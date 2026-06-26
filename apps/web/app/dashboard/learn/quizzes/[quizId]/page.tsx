@@ -20,17 +20,17 @@ export default function StudentQuizPage() {
 
   useEffect(() => {
     // Fetch mock user ID for testing
-    fetch('http://localhost:4000/api/v1/auth/me')
+    fetch('/api/v1/auth/me')
       .then(res => res.json())
       .catch(() => {
-        fetch('http://localhost:4000/api/v1/lms/assignments/mock-context')
+        fetch('/api/v1/lms/assignments/mock-context')
           .then(res => res.json())
           .then(data => {
             if (data.studentId) setMockUserId(data.studentId)
           })
       })
 
-    fetch(`http://localhost:4000/api/v1/lms/quizzes/${quizId}`)
+    fetch(`/api/v1/lms/quizzes/${quizId}`)
       .then(res => res.json())
       .then(data => {
         if (data.data) {
@@ -54,7 +54,7 @@ export default function StudentQuizPage() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/lms/quizzes/${quizId}/submit`, {
+      const res = await fetch(`/api/v1/lms/quizzes/${quizId}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

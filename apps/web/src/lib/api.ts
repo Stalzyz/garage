@@ -1,6 +1,6 @@
 // apps/web/src/lib/api.ts
 
-const API_BASE_URL = typeof window !== 'undefined' ? '/api/v1' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1');
+const API_BASE_URL = typeof window !== 'undefined' ? '/api/v1' : (process.env.NEXT_PUBLIC_API_URL || '/api/v1');
 
 export class ApiClient {
   static async get(endpoint: string, options: RequestInit = {}) {

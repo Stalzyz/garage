@@ -11,7 +11,7 @@ export default function StudentLMSDashboard() {
 
   useEffect(() => {
     // Fetch enrollments with credentials
-    fetch('http://localhost:4000/api/v1/academy/enrollments/me', { credentials: 'include' })
+    fetch('/api/v1/academy/enrollments/me', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setEnrollments(data.data || [])
@@ -23,7 +23,7 @@ export default function StudentLMSDashboard() {
       })
 
     // Fetch certificates with credentials
-    fetch('http://localhost:4000/api/v1/academy/certificates', { credentials: 'include' })
+    fetch('/api/v1/academy/certificates', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setCertificates(data.data || [])
@@ -136,7 +136,7 @@ export default function StudentLMSDashboard() {
                       Verify
                     </Link>
                     <a
-                      href={`http://localhost:4000/api/v1/academy/certificates/${cert.id}/download`}
+                      href={`/api/v1/academy/certificates/${cert.id}/download`}
                       download
                       className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm shadow-amber-500/10"
                     >

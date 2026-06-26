@@ -8,7 +8,7 @@ export default function StudentSessionsPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/v1/academy/batches/sessions/upcoming`)
+    fetch(`/api/v1/academy/batches/sessions/upcoming`)
       .then(res => res.json())
       .then(data => {
         setSessions(data.data || [])

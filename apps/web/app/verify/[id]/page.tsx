@@ -12,7 +12,7 @@ export default function CertificateVerificationPage() {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/v1/academy/certificates/${id}`)
+    fetch(`/api/v1/academy/certificates/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) {

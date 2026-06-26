@@ -13,7 +13,7 @@ export default function StudentAssignmentsPage() {
   const [mockContext, setMockContext] = useState<any>(null)
   
   const fetchSubmissions = (studentId: string) => {
-    fetch(`http://localhost:4000/api/v1/lms/assignments/student/${studentId}`)
+    fetch(`/api/v1/lms/assignments/student/${studentId}`)
       .then(res => res.json())
       .then(data => {
         setSubmissions(data.submissions || [])
@@ -23,7 +23,7 @@ export default function StudentAssignmentsPage() {
   }
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/lms/assignments/mock-context')
+    fetch('/api/v1/lms/assignments/mock-context')
       .then(res => res.json())
       .then(data => {
         setMockContext(data)
@@ -40,7 +40,7 @@ export default function StudentAssignmentsPage() {
     
     setIsSubmitting(assignmentId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/lms/assignments/submit`, {
+      const res = await fetch(`/api/v1/lms/assignments/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

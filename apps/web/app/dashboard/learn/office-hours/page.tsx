@@ -8,7 +8,7 @@ export default function OfficeHoursPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/academy/office-hours')
+    fetch('/api/v1/academy/office-hours')
       .then(res => res.json())
       .then(data => {
         setSessions(data.data || [])

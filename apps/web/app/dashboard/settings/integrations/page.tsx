@@ -26,7 +26,7 @@ const SERVICE_META: Record<Service, { label: string; icon: any; color: string; b
 
 const SERVICES: Service[] = ["RAZORPAY", "PHONEPE", "STRIPE", "SMTP", "WHATSAPP", "GOOGLE"]
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"
+const API = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
 async function apiGet(path: string) {
   const r = await fetch(`${API}${path}`, { credentials: "include" })

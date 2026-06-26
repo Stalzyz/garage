@@ -9,7 +9,7 @@ export default function AlumniDirectoryPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/academy/alumni')
+    fetch('/api/v1/academy/alumni')
       .then(res => res.json())
       .then(data => {
         setAlumni(data.data || [])

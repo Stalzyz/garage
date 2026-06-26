@@ -12,7 +12,7 @@ export default function CourseDetailsPage() {
   const [isEnrolling, setIsEnrolling] = useState(false)
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/v1/lms/courses/${id}`)
+    fetch(`/api/v1/lms/courses/${id}`)
       .then(res => res.json())
       .then(data => {
         setCourse(data.course)
@@ -24,7 +24,7 @@ export default function CourseDetailsPage() {
     setIsEnrolling(true)
     try {
       // Mock checkout call
-      const res = await fetch(`http://localhost:4000/api/v1/academy/enroll`, {
+      const res = await fetch(`/api/v1/academy/enroll`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lmsCourseId: id })

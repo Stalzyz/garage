@@ -16,11 +16,11 @@ export default function CommunityForumsPage() {
 
   useEffect(() => {
     // Fetch mock user ID for testing
-    fetch('http://localhost:4000/api/v1/auth/me')
+    fetch('/api/v1/auth/me')
       .then(res => res.json())
       .catch(() => {
         // Fallback to fetching any student user from DB to mock auth
-        fetch('http://localhost:4000/api/v1/lms/assignments/mock-context')
+        fetch('/api/v1/lms/assignments/mock-context')
           .then(res => res.json())
           .then(data => {
             if (data.studentId) setMockUserId(data.studentId)
@@ -28,7 +28,7 @@ export default function CommunityForumsPage() {
       })
 
     // Fetch categories
-    fetch('http://localhost:4000/api/v1/academy/forums/categories')
+    fetch('/api/v1/academy/forums/categories')
       .then(res => res.json())
       .then(data => {
         setCategories(data.data || [])
@@ -42,8 +42,8 @@ export default function CommunityForumsPage() {
 
   const fetchPosts = (catId: string | null) => {
     const url = catId 
-      ? `http://localhost:4000/api/v1/academy/forums/posts?categoryId=${catId}`
-      : `http://localhost:4000/api/v1/academy/forums/posts`
+      ? `/api/v1/academy/forums/posts?categoryId=${catId}`
+      : `/api/v1/academy/forums/posts`
       
     fetch(url)
       .then(res => res.json())
@@ -54,7 +54,7 @@ export default function CommunityForumsPage() {
     if (!newTitle || !newContent || !activeCategory || !mockUserId) return alert("Please fill all fields and select a category")
     
     try {
-      const res = await fetch('http://localhost:4000/api/v1/academy/forums/posts', {
+      const res = await fetch('/api/v1/academy/forums/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

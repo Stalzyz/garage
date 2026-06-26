@@ -10,12 +10,12 @@ export default function AIPortfolioBuilderPage() {
 
   useEffect(() => {
     // Fetch mock user ID
-    fetch('http://localhost:4000/api/v1/lms/assignments/mock-context')
+    fetch('/api/v1/lms/assignments/mock-context')
       .then(res => res.json())
       .then(ctx => {
         if (ctx.studentId) {
           setMockUserId(ctx.studentId)
-          return fetch(`http://localhost:4000/api/v1/academy/portfolio/${ctx.studentId}`)
+          return fetch(`/api/v1/academy/portfolio/${ctx.studentId}`)
         }
         throw new Error("No student ID")
       })

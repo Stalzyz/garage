@@ -12,7 +12,7 @@ export default function GrekamAcademyLongForm() {
 
   useEffect(() => {
     // Fetch CMS Content
-    fetch('http://localhost:4000/api/v1/cms/pages/academy')
+    fetch('/api/v1/cms/pages/academy')
       .then(res => res.json())
       .then(data => {
         if (data?.data?.sections) {
@@ -26,7 +26,7 @@ export default function GrekamAcademyLongForm() {
       .catch(console.error)
 
     // Fetch Live LMS Courses
-    fetch('http://localhost:4000/api/v1/lms/courses')
+    fetch('/api/v1/lms/courses')
       .then(res => res.json())
       .then(data => {
         if (data?.courses) {

@@ -71,7 +71,7 @@ const UniversalContactForm = ({
       const notes = formData.get('notes') as string;
       
       try {
-        const res = await fetch('http://localhost:4000/api/v1/crm/public/leads', {
+        const res = await fetch('/api/v1/crm/public/leads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -788,7 +788,7 @@ export default function GrekamOSAgency() {
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/cms/pages/agency')
+    fetch('/api/v1/cms/pages/agency')
       .then(res => res.json())
       .then(data => {
         if (data?.data?.sections) {

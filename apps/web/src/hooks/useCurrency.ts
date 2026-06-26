@@ -25,7 +25,7 @@ export function useCurrency() {
 
     if (!isFetching) {
       isFetching = true;
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
       fetch(`${apiBase}/settings/finance`, { credentials: "include" })
         .then((r) => r.json())
         .then((data) => {

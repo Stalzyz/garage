@@ -8,7 +8,7 @@ export default function MentorAnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/academy/analytics')
+    fetch('/api/v1/academy/analytics')
       .then(res => res.json())
       .then(data => {
         setAnalytics(data.data)

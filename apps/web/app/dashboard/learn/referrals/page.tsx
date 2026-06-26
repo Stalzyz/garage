@@ -10,7 +10,7 @@ export default function AffiliateDashboardPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/academy/referrals/me')
+    fetch('/api/v1/academy/referrals/me')
       .then(res => res.json())
       .then(res => {
         setData(res.data)

@@ -13,17 +13,17 @@ export default function CareerPortalPage() {
 
   useEffect(() => {
     // Fetch mock user ID for testing
-    fetch('http://localhost:4000/api/v1/auth/me')
+    fetch('/api/v1/auth/me')
       .then(res => res.json())
       .catch(() => {
-        fetch('http://localhost:4000/api/v1/lms/assignments/mock-context')
+        fetch('/api/v1/lms/assignments/mock-context')
           .then(res => res.json())
           .then(data => {
             if (data.studentId) setMockUserId(data.studentId)
           })
       })
 
-    fetch('http://localhost:4000/api/v1/academy/jobs')
+    fetch('/api/v1/academy/jobs')
       .then(res => res.json())
       .then(data => {
         setJobs(data.data || [])
@@ -37,7 +37,7 @@ export default function CareerPortalPage() {
     
     setApplyingJobId(jobId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/academy/jobs/${jobId}/apply`, {
+      const res = await fetch(`/api/v1/academy/jobs/${jobId}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: mockUserId })

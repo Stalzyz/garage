@@ -26,7 +26,7 @@ export default function CMSPageEditor() {
   }, [slug])
 
   const fetchPage = () => {
-    fetch(`http://localhost:4000/api/v1/cms/pages/${slug}`)
+    fetch(`/api/v1/cms/pages/${slug}`)
       .then(res => res.json())
       .then(data => {
         setPage(data.data)
@@ -73,7 +73,7 @@ export default function CMSPageEditor() {
     }
 
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/cms/pages/${slug}/sections/${activeSection.sectionId}`, {
+      const res = await fetch(`/api/v1/cms/pages/${slug}/sections/${activeSection.sectionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: finalContent })
@@ -100,7 +100,7 @@ export default function CMSPageEditor() {
       // If it's named 'cards', default it to an array for the visual builder
       const initContent = newSectionId === 'cards' ? [] : { type: 'html', html: '<div></div>' };
       
-      await fetch(`http://localhost:4000/api/v1/cms/pages/${slug}/sections`, {
+      await fetch(`/api/v1/cms/pages/${slug}/sections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sectionId: newSectionId, content: initContent })
@@ -116,7 +116,7 @@ export default function CMSPageEditor() {
     if (!aiPrompt) return
     setIsGenerating(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/cms/ai-generate`, {
+      const res = await fetch(`/api/v1/cms/ai-generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: aiPrompt })

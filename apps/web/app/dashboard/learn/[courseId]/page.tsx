@@ -14,7 +14,7 @@ export default function LMSVideoPlayer() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/v1/lms/courses/${courseId}`)
+    fetch(`/api/v1/lms/courses/${courseId}`)
       .then(res => res.json())
       .then(data => {
         setCourse(data.course)

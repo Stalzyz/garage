@@ -9,7 +9,7 @@ export default function LeaderboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/academy/leaderboard')
+    fetch('/api/v1/academy/leaderboard')
       .then(res => res.json())
       .then(data => {
         setStudents(data.data || [])
@@ -17,7 +17,7 @@ export default function LeaderboardPage() {
       })
       .catch(() => setIsLoading(false))
 
-    fetch('http://localhost:4000/api/v1/academy/leaderboard/me')
+    fetch('/api/v1/academy/leaderboard/me')
       .then(res => res.json())
       .then(data => setMyRank(data.data))
       .catch(() => {})

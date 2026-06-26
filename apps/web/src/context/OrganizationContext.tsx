@@ -34,7 +34,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [org, setOrg] = useState<Organization>(defaultOrg);
 
   useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
     fetch(`${API_BASE}/settings/organization`)
       .then((r) => r.ok ? r.json() : null)

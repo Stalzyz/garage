@@ -13,7 +13,7 @@ export default function CMSDashboard() {
   const [newType, setNewType] = useState("LANDING_PAGE")
 
   const fetchPages = () => {
-    fetch('http://localhost:4000/api/v1/cms/pages')
+    fetch('/api/v1/cms/pages')
       .then(res => res.json())
       .then(data => {
         setPages(data.data || [])
@@ -29,7 +29,7 @@ export default function CMSDashboard() {
   const handleCreatePage = async () => {
     if (!newTitle || !newSlug) return;
     try {
-      await fetch('http://localhost:4000/api/v1/cms/pages', {
+      await fetch('/api/v1/cms/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newTitle, slug: newSlug, type: newType })
