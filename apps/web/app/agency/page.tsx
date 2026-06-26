@@ -140,7 +140,7 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
              const width = useSpring(widthSync, { mass: 0.1, stiffness: 200, damping: 15 })
              return (
                <motion.button key={card.id} ref={ref} style={{ width, height: width }} onClick={() => { playSound(); setActiveCard(card); }} className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8">
-                 {card.icon}
+                 {renderIcon(card.iconName, card.icon)}
                </motion.button>
              )
            })}
@@ -607,7 +607,7 @@ const LayoutCinematic = ({ cards }: any) => {
                     </motion.div>
                  ) : (
                     <motion.div initial={{ opacity: 0, scale: 0.5 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.5 }} className="scale-[5] opacity-20 pointer-events-none mr-32" style={{ color: card.colorHex }}>
-                      {card.icon}
+                      {renderIcon(card.iconName, card.icon)}
                     </motion.div>
                  )}
               </div>
@@ -634,7 +634,7 @@ const LayoutSwissPrecision = ({ cards }: any) => {
            <div key={card.id} className={`border-b md:border-b border-black p-6 md:p-10 flex flex-col justify-between md:aspect-square group transition-colors ${card.id !== 'contact_form' ? 'hover:bg-black hover:text-white cursor-pointer' : 'bg-gray-50'} ${i === 0 ? 'md:col-span-6 md:row-span-2' : card.id === 'contact_form' ? 'md:col-span-6' : 'md:col-span-3 md:border-r'}`}>
               <div className="flex justify-between items-start mb-8 md:mb-12">
                  <div className="text-[10px] font-bold uppercase tracking-widest opacity-50">{card.category}</div>
-                 <div className="w-6 h-6 md:w-8 md:h-8 group-hover:invert transition-colors" style={{ color: card.colorHex }}>{card.icon}</div>
+                 <div className="w-6 h-6 md:w-8 md:h-8 group-hover:invert transition-colors" style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon)}</div>
               </div>
               <div className="flex flex-col flex-1 justify-end relative overflow-hidden">
                  <h2 className={`font-bold tracking-tight mb-4 ${i === 0 || card.id === 'contact_form' ? 'text-4xl md:text-6xl' : 'text-2xl md:text-3xl'} z-10`}>{card.title}</h2>
@@ -708,7 +708,7 @@ const LayoutCreativeUniverse = ({ cards, playSound }: any) => {
             onClick={() => { playSound(); setActiveCard(card); }}
           >
             <div className={`w-full h-full rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform ${activeCard?.id === card.id ? 'scale-125 md:scale-150 ring-4 ring-white/50 bg-white/20' : 'group-hover:scale-125'}`} style={{ color: card.colorHex }}>
-               {card.icon}
+               {renderIcon(card.iconName, card.icon)}
             </div>
             {!isMobile && !activeCard && (
                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 text-center opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
