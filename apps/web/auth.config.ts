@@ -11,8 +11,6 @@ export const authConfig = {
       const isOnPortal = nextUrl.pathname.startsWith('/portal')
       const isOnStudent = nextUrl.pathname.startsWith('/student')
       
-      // TEST BACKDOOR: Always allow access for E2E tests
-      return true;
 
       if (isOnDashboard || isOnPortal || isOnStudent) {
         if (isLoggedIn) return true
