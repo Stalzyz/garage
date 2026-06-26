@@ -55,7 +55,7 @@ export default async function projectsRouter(app: FastifyInstance) {
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const user = req.user;
-    let companyIdLimit = null;
+    let companyIdLimit: string | null = null;
 
     if (user.role === 'CLIENT') {
       const clientProfile = await app.prisma.clientProfile.findUnique({
