@@ -371,7 +371,7 @@ Return ONLY a valid JSON object matching this schema:
           } else if (Array.isArray(parsedMatches)) {
             matchedIds = parsedMatches;
           } else if (parsedMatches && typeof parsedMatches === 'object') {
-            matchedIds = Object.values(parsedMatches).find(val => Array.isArray(val)) || Object.values(parsedMatches)[0] || [];
+            matchedIds = (Object.values(parsedMatches).find(val => Array.isArray(val)) || Object.values(parsedMatches)[0] || []) as any[];
           }
         }
       } catch (openAiError: any) {
