@@ -1,0 +1,12 @@
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+.turbo
+.next
+apps/web/.next
+dist
+apps/*/dist
+.git
+.env
+postgres_data
+*.log

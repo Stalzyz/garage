@@ -1,0 +1,1820 @@
+// This is your Prisma schema file for GREKAM OS
+// Full 12-module enterprise platform schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// CORE — Users, Roles, Auth
+// ─────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  MANAGER
+  STAFF
+  CLIENT
+  STUDENT
+  VENDOR
+  INTERN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(PENDING)
+  firstName    String
+  lastName     String
+  phone        String?
+  avatarUrl    String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // 2FA
+  twoFaEnabled     Boolean @default(false)
+  twoFaSecret      String?
+  twoFaBackupCodes String? // JSON array of backup codes
+
+  // Relations
+  employee      Employee?
+  student       Student?
+  vendor        Vendor?
+  clientProfile ClientProfile?
+
+  sessions      Session[]
+  notifications Notification[]
+  auditLogs     AuditLog[]          @relation("AuditUser")
+  generatedDocs GeneratedDocument[]
+  ForumPost     ForumPost[]
+  ForumReply    ForumReply[]
+  OfficeHour    OfficeHour[]
+
+  // Chat Relations
+  chatParticipants ChatParticipant[] @relation("UserChatParticipants")
+  chatMessages     ChatMessage[]     @relation("UserChatMessages")
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String // CREATE | UPDATE | DELETE | VIEW
+  resource   String // Model name
+  resourceId String
+  changes    Json? // Before/after diff
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation("AuditUser", fields: [userId], references: [id])
+
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────
+// ORGANIZATION — Departments, Structure
+// ─────────────────────────────────────────
+
+enum BusinessUnit {
+  AGENCY // Grekam Visuals
+  ACADEMY // Grekam Academy
+  BOTH
+}
+
+model Department {
+  id           String       @id @default(cuid())
+  name         String
+  businessUnit BusinessUnit
+  headId       String?
+  createdAt    DateTime     @default(now())
+
+  employees Employee[]
+
+  @@map("departments")
+}
+
+// ─────────────────────────────────────────
+// WHITELABELING & SETTINGS
+// ─────────────────────────────────────────
+
+model Organization {
+  id              String   @id @default(cuid())
+  name            String   @default("My Agency OS")
+  
+  // Whitelabel Branding
+  logoUrl         String?  // URL to Cloudflare R2
+  faviconUrl      String?
+  primaryColor    String   @default("#2563eb") // Default Blue
+  darkModeDefault Boolean  @default(true)
+  
+  // Contact Info
+  supportEmail    String?
+  billingAddress  String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("organization")
+}
+
+model FinanceSettings {
+  id                String   @id @default(cuid())
+  baseCurrency      String   @default("INR")
+  currencySymbol    String   @default("₹")
+  taxModel          String   @default("GST") // GST | VAT | NONE
+  gstNumber         String?
+  vatNumber         String?
+  fiscalYearStart   Int      @default(4)  // 4 = April (India), 1 = January
+  invoicePrefix     String   @default("INV")
+  invoiceNextNumber Int      @default(1)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("finance_settings")
+}
+
+model IntegrationKey {
+  id             String   @id @default(cuid())
+  service        String   // RAZORPAY | PHONEPE | STRIPE | SMTP | WHATSAPP | GOOGLE
+  keyName        String   // e.g. KEY_ID, SECRET_KEY, WEBHOOK_SECRET
+  encryptedValue String   // AES-256 encrypted value
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([service, keyName])
+  @@map("integration_keys")
+}
+
+// ─────────────────────────────────────────
+// MODULE 01 — CRM
+// ─────────────────────────────────────────
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+  ENQUIRY
+  COUNSELLING
+  TRIAL
+  ENROLLED_ACADEMY
+  DROPPED
+}
+
+enum LeadSource {
+  WEBSITE
+  WHATSAPP
+  REFERRAL
+  COLD_OUTREACH
+  INSTAGRAM
+  LINKEDIN
+  ACADEMY_ALUMNI
+  OTHER
+}
+
+enum ClientTier {
+  GOLD
+  SILVER
+  BRONZE
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  status          LeadStatus @default(NEW)
+  source          LeadSource
+  score           Int        @default(0)
+  estimatedBudget Float?
+  projectType     String?
+  notes           String?
+  assignedToId    String?
+  lostReason      String?
+  businessUnit    String     @default("AGENCY")
+  courseInterest  String?
+  batchId         String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  activities LeadActivity[]
+  proposals  Proposal[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@map("leads")
+}
+
+model LeadActivity {
+  id        String   @id @default(cuid())
+  leadId    String
+  type      String // CALL | EMAIL | WHATSAPP | MEETING | NOTE
+  content   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_activities")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  website   String?
+  industry  String?
+  size      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts      Contact[]
+  projects      Project[]
+  subscriptions Subscription[]
+
+  @@map("companies")
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  companyId     String
+  productName   String
+  planName      String
+  mrr           Float
+  status        String   @default("active") // active | paused | at_risk | churned
+  nextBilling   DateTime
+  usage         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Contact {
+  id        String      @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  whatsapp  String?
+  companyId String?
+  tier      ClientTier?
+  isPrimary Boolean     @default(false)
+  tags      String[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  company           Company?           @relation(fields: [companyId], references: [id])
+  clientProfile     ClientProfile?
+  communicationLogs CommunicationLog[]
+
+  @@map("contacts")
+}
+
+model CommunicationLog {
+  id        String   @id @default(cuid())
+  contactId String
+  type      String // CALL | EMAIL | WHATSAPP | MEETING
+  direction String // INBOUND | OUTBOUND
+  summary   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  contact Contact @relation(fields: [contactId], references: [id])
+
+  @@map("communication_logs")
+}
+
+model ClientProfile {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  contactId String? @unique
+
+  user    User     @relation(fields: [userId], references: [id])
+  contact Contact? @relation(fields: [contactId], references: [id])
+
+  @@map("client_profiles")
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model Proposal {
+  id           String         @id @default(cuid())
+  leadId       String?
+  title        String
+  status       ProposalStatus @default(DRAFT)
+  version      Int            @default(1)
+  validUntil   DateTime?
+  totalAmount  Float
+  currency     String         @default("INR")
+  notes        String?
+  signedAt     DateTime?
+  signatureUrl String?
+  publicToken  String?        @unique
+  signatureData String?       @db.Text
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  lead          Lead?               @relation(fields: [leadId], references: [id])
+  items         ProposalItem[]
+  generatedDocs GeneratedDocument[]
+
+  @@map("proposals")
+}
+
+model ProposalItem {
+  id          String @id @default(cuid())
+  proposalId  String
+  description String
+  quantity    Float
+  unitPrice   Float
+  unit        String // hours | days | units | license
+  total       Float
+  sortOrder   Int    @default(0)
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@map("proposal_items")
+}
+
+// ─────────────────────────────────────────
+// MODULE 02 — Project Management
+// ─────────────────────────────────────────
+
+enum ProjectStatus {
+  BRIEFING
+  DISCOVERY
+  CONCEPT
+  PRODUCTION
+  REVIEW
+  DELIVERY
+  CLOSED
+  ON_HOLD
+}
+
+enum ProjectType {
+  BRAND_IDENTITY
+  WEBSITE
+  CAMPAIGN
+  MOTION
+  FULL_PACKAGE
+  CUSTOM
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  type        ProjectType
+  status      ProjectStatus @default(BRIEFING)
+  companyId   String?
+  managerId   String
+  budget      Float?
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  company  Company?       @relation(fields: [companyId], references: [id])
+  phases        ProjectPhase[]
+  tasks         Task[]
+  files         ProjectFile[]
+  brief         Brief?
+  timeLogs      TimeLog[]
+
+  @@index([status])
+  @@map("projects")
+}
+
+model ProjectPhase {
+  id          String    @id @default(cuid())
+  projectId   String
+  name        String
+  sortOrder   Int
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  approvedAt  DateTime?
+  approvedBy  String?
+  clientNotes String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@map("project_phases")
+}
+
+enum TaskPriority {
+  CRITICAL
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+model Task {
+  id           String       @id @default(cuid())
+  projectId    String
+  phaseId      String?
+  title        String
+  description  String?
+  status       TaskStatus   @default(TODO)
+  priority     TaskPriority @default(NORMAL)
+  assigneeId   String?
+  estimatedHrs Float?
+  dueDate      DateTime?
+  completedAt  DateTime?
+  parentTaskId String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase       ProjectPhase?    @relation(fields: [phaseId], references: [id])
+  subtasks    Task[]           @relation("TaskSubtasks")
+  parentTask  Task?            @relation("TaskSubtasks", fields: [parentTaskId], references: [id])
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+  timeLogs    TimeLog[]
+
+  @@index([projectId, status])
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id         String   @id @default(cuid())
+  taskId     String
+  filename   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+model ProjectFile {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  folderPath String   @default("/")
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  version    Int      @default(1)
+  uploadedBy String
+  isDelivery Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  approvedAt  DateTime?
+  approvedBy  String?
+  clientNotes String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_files")
+}
+
+model Brief {
+  id           String   @id @default(cuid())
+  projectId    String   @unique
+  templateType String
+  content      Json // Flexible JSON for different brief types
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("briefs")
+}
+
+model TimeLog {
+  id          String   @id @default(cuid())
+  projectId   String
+  taskId      String?
+  userId      String
+  hours       Float
+  description String?
+  logDate     DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+  task    Task?   @relation(fields: [taskId], references: [id])
+
+  @@map("time_logs")
+}
+
+// ─────────────────────────────────────────
+// MODULE 03 — Staff & HR
+// ─────────────────────────────────────────
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+  FREELANCE
+}
+
+model Employee {
+  id             String         @id @default(cuid())
+  userId         String         @unique
+  employeeCode   String         @unique
+  departmentId   String?
+  jobTitle       String
+  employmentType EmploymentType @default(FULL_TIME)
+  managerId      String?
+  joiningDate    DateTime
+  salary         Float?
+  currency       String         @default("INR")
+  skills         String[]
+  bio            String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user            User                @relation(fields: [userId], references: [id])
+  department      Department?         @relation(fields: [departmentId], references: [id])
+  attendances     Attendance[]
+  leaveRequests   LeaveRequest[]
+  leaveBalances   LeaveBalance[]
+  documents       EmployeeDocument[]
+  payslips        Payslip[]
+  timeEntries     TimeEntry[]
+  onboardingTasks OnboardingTask[]
+  interviews      InterviewSchedule[]
+  reviews         Review[]            @relation("EmployeeReviews")
+  givenReviews    Review[]            @relation("ReviewerReviews")
+
+  @@map("employees")
+}
+
+model Attendance {
+  id               String    @id @default(cuid())
+  employeeId       String
+  date             DateTime  @db.Date
+  clockIn          DateTime?
+  clockInPhotoUrl  String?
+  clockOut         DateTime?
+  clockOutPhotoUrl String?
+  breakStart       DateTime?
+  breakEnd         DateTime?
+  status           String // PRESENT | ABSENT | LATE | HALF_DAY | HOLIDAY | LEAVE
+  notes            String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+model TimeEntry {
+  id          String    @id @default(cuid())
+  employeeId  String
+  date        DateTime  @db.Date
+  startTime   DateTime
+  endTime     DateTime?
+  breakMins   Int       @default(0)
+  description String?
+  isOvertime  Boolean   @default(false)
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("time_entries")
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  EARNED
+  MATERNITY
+  PATERNITY
+  COMP_OFF
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model LeaveRequest {
+  id         String      @id @default(cuid())
+  employeeId String
+  type       LeaveType
+  startDate  DateTime    @db.Date
+  endDate    DateTime    @db.Date
+  days       Float
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  approvedBy String?
+  approvedAt DateTime?
+  createdAt  DateTime    @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("leave_requests")
+}
+
+model LeaveBalance {
+  id         String    @id @default(cuid())
+  employeeId String
+  type       LeaveType
+  balance    Float
+  year       Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, type, year])
+  @@map("leave_balances")
+}
+
+model Payslip {
+  id              String    @id @default(cuid())
+  employeeId      String
+  month           Int
+  year            Int
+  basicSalary     Float
+  hra             Float     @default(0)
+  allowances      Float     @default(0)
+  grossSalary     Float
+  pfDeduction     Float     @default(0)
+  esiDeduction    Float     @default(0)
+  tdsDeduction    Float     @default(0)
+  otherDeductions Float     @default(0)
+  netSalary       Float
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, month, year])
+  @@map("payslips")
+}
+
+model EmployeeDocument {
+  id         String   @id @default(cuid())
+  employeeId String
+  name       String
+  fileUrl    String
+  type       String // ID | CONTRACT | TAX | OTHER
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("employee_documents")
+}
+
+model PayrollConfig {
+  id         String   @id @default(cuid())
+  basicPct   Float    @default(50)
+  hraPct     Float    @default(20)
+  specialPct Float    @default(30)
+  pfPct      Float    @default(12)
+  pfMaxLimit Float    @default(1800)
+  ptAmount   Float    @default(200)
+  tdsLimit   Float    @default(60000)
+  tdsPct     Float    @default(10)
+  updatedAt  DateTime @updatedAt
+
+  @@map("payroll_configs")
+}
+
+model OnboardingTask {
+  id          String    @id @default(cuid())
+  employeeId  String
+  title       String
+  description String?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("onboarding_tasks")
+}
+
+model JobPosting {
+  id                  String   @id @default(cuid())
+  title               String
+  departmentId        String?
+  description         String
+  requirements        String[]
+  status              String   @default("OPEN") // OPEN | CLOSED | DRAFT
+  isPublicForStudents Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  candidates Candidate[]
+
+  @@map("job_postings")
+}
+
+model Candidate {
+  id           String   @id @default(cuid())
+  jobPostingId String
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  resumeUrl    String?
+  status       String   @default("APPLIED") // APPLIED | SCREENING | INTERVIEW | OFFERED | REJECTED | HIRED
+  appliedAt    DateTime @default(now())
+
+  jobPosting JobPosting          @relation(fields: [jobPostingId], references: [id])
+  interviews InterviewSchedule[]
+
+  @@map("candidates")
+}
+
+model InterviewSchedule {
+  id            String   @id @default(cuid())
+  candidateId   String
+  interviewerId String
+  scheduledAt   DateTime
+  durationMins  Int      @default(60)
+  meetLink      String?
+  feedback      String?
+  status        String   @default("SCHEDULED") // SCHEDULED | COMPLETED | CANCELLED
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  interviewer Employee  @relation(fields: [interviewerId], references: [id])
+
+  @@map("interview_schedules")
+}
+
+model PerformanceCycle {
+  id        String   @id @default(cuid())
+  name      String // e.g. "Q1 2025 Review"
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  status    String   @default("ACTIVE") // ACTIVE | CLOSED
+
+  reviews Review[]
+
+  @@map("performance_cycles")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  cycleId    String
+  employeeId String
+  reviewerId String
+  score      Float?
+  feedback   String?
+  status     String   @default("PENDING") // PENDING | COMPLETED
+  createdAt  DateTime @default(now())
+
+  cycle    PerformanceCycle @relation(fields: [cycleId], references: [id])
+  employee Employee         @relation("EmployeeReviews", fields: [employeeId], references: [id])
+  reviewer Employee         @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────
+// MODULE 04 — Finance & Accounting
+// ─────────────────────────────────────────
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  projectId       String?
+  clientName      String
+  clientEmail     String?
+  clientGst       String?
+  status          InvoiceStatus @default(DRAFT)
+  businessUnit    BusinessUnit
+  subtotal        Float
+  cgst            Float         @default(0)
+  sgst            Float         @default(0)
+  igst            Float         @default(0)
+  totalAmount     Float
+  paidAmount      Float         @default(0)
+  currency        String        @default("INR")
+  dueDate         DateTime
+  isRecurring     Boolean       @default(false)
+  recurringPeriod String?
+  notes           String?
+  razorpayLinkId  String?
+  sentAt          DateTime?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@index([status])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float
+  unitPrice   Float
+  taxRate     Float   @default(18)
+  hsnCode     String?
+  total       Float
+  sortOrder   Int     @default(0)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  amount        Float
+  method        String // RAZORPAY | BANK_TRANSFER | CASH | CHEQUE
+  transactionId String?
+  paidAt        DateTime @default(now())
+  notes         String?
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+model Expense {
+  id          String    @id @default(cuid())
+  employeeId  String?
+  category    String // TRAVEL | SOFTWARE | OFFICE | PROJECT | OTHER
+  amount      Float
+  description String
+  receiptUrl  String?
+  projectId   String?
+  status      String    @default("PENDING") // PENDING | APPROVED | REJECTED | PAID
+  submittedAt DateTime  @default(now())
+  approvedBy  String?
+  approvedAt  DateTime?
+  paidAt      DateTime?
+
+  @@map("expenses")
+}
+
+model Budget {
+  id           String       @id @default(cuid())
+  name         String
+  departmentId String?
+  projectId    String?
+  businessUnit BusinessUnit
+  amount       Float
+  period       String // Q1-2025 | 2025-06 | FY2025
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime     @default(now())
+
+  @@map("budgets")
+}
+
+// ─────────────────────────────────────────
+// MODULE 05 — Student Management
+// ─────────────────────────────────────────
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  ADMITTED
+  DEFERRED
+  REJECTED
+}
+
+model Student {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  studentCode  String    @unique
+  dateOfBirth  DateTime? @db.Date
+  address      String?
+  parentName   String?
+  parentPhone  String?
+  portfolio    String?
+  isAlumni     Boolean   @default(false)
+  graduatedAt  DateTime?
+  xp           Int       @default(0)
+  referralCode String?   @unique
+  referredById String?
+  leadId       String?
+  createdAt    DateTime  @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  application Application?
+  enrollments Enrollment[]
+  Certificate Certificate[]
+  QuizAttempt QuizAttempt[]
+  badges      StudentBadge[]
+
+  referredBy        Student?   @relation("StudentReferrals", fields: [referredById], references: [id])
+  referrals         Student[]  @relation("StudentReferrals")
+  commissionsEarned Referral[] @relation("ReferrerCommissions")
+  referralRecord    Referral?  @relation("ReferredStudent")
+
+  @@map("students")
+}
+
+model Application {
+  id           String            @id @default(cuid())
+  studentId    String            @unique
+  courseId     String?
+  status       ApplicationStatus @default(SUBMITTED)
+  portfolioUrl String?
+  statement    String?
+  reviewNotes  String?
+  reviewedBy   String?
+  appliedAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("applications")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  duration    String // e.g., "3 months", "6 months"
+  fee         Float
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  batches     Batch[]
+  lmsCourse   LMSCourse?
+  Certificate Certificate[]
+  Quiz        Quiz[]
+
+  @@map("courses")
+}
+
+model Batch {
+  id        String   @id @default(cuid())
+  courseId  String
+  name      String // e.g., "GD-Batch-24-Morning"
+  type      String // MORNING | EVENING | WEEKEND | ONLINE
+  capacity  Int      @default(20)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  course      Course         @relation(fields: [courseId], references: [id])
+  enrollments Enrollment[]
+  sessions    BatchSession[]
+
+  @@map("batches")
+}
+
+model BatchSession {
+  id           String   @id @default(cuid())
+  batchId      String
+  educatorId   String?
+  title        String
+  description  String?
+  startTime    DateTime
+  endTime      DateTime
+  location     String?
+  meetLink     String?
+  recordingUrl String?
+  createdAt    DateTime @default(now())
+
+  batch       Batch               @relation(fields: [batchId], references: [id])
+  attendances SessionAttendance[]
+
+  @@map("batch_sessions")
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  batchId    String
+  enrolledAt DateTime @default(now())
+  feePaid    Float    @default(0)
+  totalFee   Float
+  status     String   @default("ACTIVE") // ACTIVE | COMPLETED | DROPPED
+
+  student Student @relation(fields: [studentId], references: [id])
+  batch   Batch   @relation(fields: [batchId], references: [id])
+
+  @@unique([studentId, batchId])
+  @@map("enrollments")
+}
+
+model SessionAttendance {
+  id        String  @id @default(cuid())
+  sessionId String
+  studentId String
+  status    String  @default("PRESENT") // PRESENT | ABSENT | LATE
+  markedBy  String?
+
+  session BatchSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, studentId])
+  @@map("session_attendance")
+}
+
+// ─────────────────────────────────────────
+// MODULE 06 — LMS
+// ─────────────────────────────────────────
+
+model LMSCourse {
+  id            String    @id @default(cuid())
+  courseId      String    @unique
+  thumbnail     String?
+  outcomes      String[]
+  prerequisites String[]
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  course  Course      @relation(fields: [courseId], references: [id])
+  modules LMSModule[]
+
+  @@map("lms_courses")
+}
+
+model LMSModule {
+  id          String   @id @default(cuid())
+  lmsCourseId String
+  title       String
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+
+  lmsCourse LMSCourse   @relation(fields: [lmsCourseId], references: [id], onDelete: Cascade)
+  lessons   LMSLesson[]
+  Quiz      Quiz[]
+
+  @@map("lms_modules")
+}
+
+enum LessonType {
+  VIDEO
+  PDF
+  SLIDE
+  LIVE_SESSION
+  ASSIGNMENT
+  QUIZ
+  LINK
+}
+
+model LMSLesson {
+  id          String     @id @default(cuid())
+  moduleId    String
+  title       String
+  type        LessonType
+  contentUrl  String? // Video URL, PDF URL, slide embed
+  videoId     String? // Cloudflare Stream / Mux ID
+  duration    Int? // Minutes
+  description String?
+  isPreview   Boolean    @default(false)
+  sortOrder   Int
+  resources   Json? // Downloadable resources array
+  createdAt   DateTime   @default(now())
+
+  module   LMSModule        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress LessonProgress[]
+
+  @@map("lms_lessons")
+}
+
+model LessonProgress {
+  id           String    @id @default(cuid())
+  lessonId     String
+  studentId    String
+  isCompleted  Boolean   @default(false)
+  watchedSecs  Int       @default(0)
+  completedAt  DateTime?
+  lastPosition Int       @default(0) // Video resume position in seconds
+  updatedAt    DateTime  @updatedAt
+
+  lesson LMSLesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([lessonId, studentId])
+  @@map("lesson_progress")
+}
+
+model Assignment {
+  id           String    @id @default(cuid())
+  lessonId     String?
+  batchId      String?
+  title        String
+  brief        String
+  rubric       Json? // Grading rubric JSON
+  dueDate      DateTime?
+  maxScore     Int       @default(100)
+  isPeerReview Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  submissions AssignmentSubmission[]
+
+  @@map("assignments")
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  GRADED
+  RESUBMIT_REQUESTED
+  FINAL
+}
+
+model AssignmentSubmission {
+  id           String           @id @default(cuid())
+  assignmentId String
+  studentId    String
+  fileUrls     String[]
+  linkUrl      String?
+  status       SubmissionStatus @default(SUBMITTED)
+  grade        Int?
+  feedback     String?
+  gradedBy     String?
+  gradedAt     DateTime?
+  submittedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id])
+
+  @@map("assignment_submissions")
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  imageUrl    String?
+  criteria    String // e.g., "COMPLETE_MODULE_1", "SCORE_100_ASSIGNMENT"
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  studentBadges StudentBadge[]
+
+  @@map("badges")
+}
+
+model StudentBadge {
+  id        String   @id @default(cuid())
+  studentId String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badge   Badge   @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, badgeId])
+  @@map("student_badges")
+}
+
+// ─────────────────────────────────────────
+// MODULE 09 — Vendor Management
+// ─────────────────────────────────────────
+
+enum VendorType {
+  CREATIVE
+  TECHNICAL
+  OPERATIONAL
+  SUPPLIER
+}
+
+model Vendor {
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  vendorCode  String     @unique
+  type        VendorType
+  company     String?
+  skills      String[]
+  dayRate     Float?
+  projectRate Float?
+  rating      Float      @default(0)
+  gstin       String?
+  createdAt   DateTime   @default(now())
+
+  user        User               @relation(fields: [userId], references: [id])
+  assignments VendorAssignment[]
+
+  @@map("vendors")
+}
+
+model VendorAssignment {
+  id          String    @id @default(cuid())
+  vendorId    String
+  projectId   String
+  brief       String?
+  deadline    DateTime?
+  status      String    @default("ASSIGNED") // ASSIGNED | SUBMITTED | APPROVED | PAID
+  rating      Int?
+  ratingNotes String?
+  agreedRate  Float?
+  createdAt   DateTime  @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@map("vendor_assignments")
+}
+
+// ─────────────────────────────────────────
+// MODULE 12 — Notifications
+// ─────────────────────────────────────────
+
+enum NotificationType {
+  TASK_ASSIGNED
+  DEADLINE_APPROACHING
+  APPROVAL_NEEDED
+  PAYMENT_RECEIVED
+  PAYMENT_OVERDUE
+  MILESTONE_REACHED
+  LEAVE_APPROVED
+  ASSIGNMENT_GRADED
+  NEW_MESSAGE
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Announcement {
+  id          String     @id @default(cuid())
+  title       String
+  content     String
+  targetRoles UserRole[]
+  isPinned    Boolean    @default(false)
+  publishedAt DateTime   @default(now())
+  expiresAt   DateTime?
+  createdBy   String
+
+  @@map("announcements")
+}
+
+model GraftyMessageLog {
+  id          String   @id @default(cuid())
+  recipient   String // Phone number
+  templateId  String
+  payload     Json
+  status      String // SENT | DELIVERED | FAILED | READ
+  triggeredBy String // Module that triggered it
+  triggerId   String // ID of the triggering record
+  sentAt      DateTime @default(now())
+
+  @@map("grafty_message_logs")
+}
+
+// ─────────────────────────────────────────
+// MODULE 13 — Document Generation
+// ─────────────────────────────────────────
+
+enum DocumentType {
+  CERTIFICATE
+  EXPERIENCE_LETTER
+  OFFER_LETTER
+  CUSTOM
+  PROPOSAL
+  CONTRACT
+}
+
+model DocumentTemplate {
+  id        String       @id @default(cuid())
+  name      String
+  type      DocumentType
+  content   String // HTML or rich text template with variables like {{NAME}}
+  variables String[] // e.g., ["NAME", "ROLE", "START_DATE", "END_DATE"]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  documents GeneratedDocument[]
+
+  @@map("document_templates")
+}
+
+model GeneratedDocument {
+  id          String   @id @default(cuid())
+  templateId  String
+  userId      String? // Target user (Employee or Student)
+  proposalId  String? // Target proposal
+  documentUrl String? // Optional: if we store the final PDF to S3/Cloud
+  metadata    Json? // Snapshot of variables used
+  generatedBy String // HR/Admin who generated it
+  createdAt   DateTime @default(now())
+
+  template DocumentTemplate @relation(fields: [templateId], references: [id])
+  user     User?            @relation(fields: [userId], references: [id])
+  proposal Proposal?        @relation(fields: [proposalId], references: [id])
+
+  @@map("generated_documents")
+}
+
+// ─────────────────────────────────────────
+// MODULE 14 — Marketing Hub
+// ─────────────────────────────────────────
+
+model Campaign {
+  id             String    @id @default(cuid())
+  title          String
+  type           String // EMAIL, AD, SOCIAL
+  status         String // DRAFT, SCHEDULED, ACTIVE, COMPLETED
+  budget         Float?
+  content        String? // Email HTML body
+  targetAudience String?
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("campaigns")
+}
+
+model SocialPost {
+  id        String    @id @default(cuid())
+  content   String
+  platform  String // TWITTER, LINKEDIN, INSTAGRAM
+  status    String // DRAFT, SCHEDULED, PUBLISHED
+  publishAt DateTime?
+  authorId  String
+  createdAt DateTime  @default(now())
+
+  @@map("social_posts")
+}
+
+// ─────────────────────────────────────────
+// MODULE 15 — Support Helpdesk
+// ─────────────────────────────────────────
+
+model Ticket {
+  id         String   @id @default(cuid())
+  subject    String
+  status     String // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority   String // LOW, MEDIUM, HIGH, URGENT
+  userId     String // The user (student/client) who opened the ticket
+  assignedTo String? // Staff member ID handling the ticket
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  messages TicketMessage[]
+
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderId   String
+  message    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+
+  @@map("ticket_messages")
+}
+
+// ─────────────────────────────────────────
+// MODULE 16 — Automations & Workflows
+// ─────────────────────────────────────────
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  triggerType String // e.g. "ON_LEAD_CREATED", "ON_INVOICE_PAID"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  steps WorkflowStep[]
+  logs  WorkflowLog[]
+
+  @@map("workflows")
+}
+
+model WorkflowStep {
+  id         String   @id @default(cuid())
+  workflowId String
+  stepOrder  Int
+  actionType String // e.g. "SEND_EMAIL", "SEND_WHATSAPP", "CREATE_TASK"
+  config     Json // e.g. { "templateId": "...", "recipient": "{{lead.email}}" }
+  createdAt  DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_steps")
+}
+
+model WorkflowLog {
+  id          String   @id @default(cuid())
+  workflowId  String
+  triggerData Json
+  status      String // SUCCESS, FAILED
+  error       String?
+  executedAt  DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_logs")
+}
+
+// ─────────────────────────────────────────
+// MODULE 17 — Real-Time Communication (Chat)
+// ─────────────────────────────────────────
+
+model ChatChannel {
+  id        String   @id @default(cuid())
+  name      String? // Null for direct messages
+  type      String // DIRECT, GROUP, PROJECT
+  projectId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+
+  @@map("chat_channels")
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  channel ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User        @relation("UserChatParticipants", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_participants")
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  channelId  String
+  senderId   String
+  content    String
+  attachment String? // URL if any
+  createdAt  DateTime @default(now())
+
+  channel ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  sender  User        @relation("UserChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+// ─────────────────────────────────────────
+// MODULE 18 — Central Asset Drive
+// ─────────────────────────────────────────
+
+model DriveFolder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String? // Null for root folders
+  projectId String? // Optional tie to a project
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  files DriveFile[]
+
+  @@map("drive_folders")
+}
+
+model DriveFile {
+  id         String   @id @default(cuid())
+  folderId   String?
+  name       String
+  fileUrl    String
+  mimeType   String
+  sizeBytes  Int
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  folder DriveFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@map("drive_files")
+}
+
+// ─────────────────────────────────────────
+// MODULE 19 — Settings & RBAC
+// ─────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  permissions Permission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id       String @id @default(cuid())
+  roleId   String
+  resource String // e.g. "PROJECTS", "FINANCE"
+  action   String // e.g. "READ", "WRITE", "DELETE", "ALL"
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("permissions")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String
+
+  @@map("system_settings")
+}
+
+// ─────────────────────────────────────────
+// MODULE 20 — CMS (Landing Pages)
+// ─────────────────────────────────────────
+
+model LandingPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sections PageSection[]
+
+  @@map("landing_pages")
+}
+
+model PageSection {
+  id            String   @id @default(cuid())
+  landingPageId String
+  sectionId     String
+  content       Json
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  landingPage LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+
+  @@unique([landingPageId, sectionId])
+  @@map("page_sections")
+}
+
+// ─────────────────────────────────────────
+// MODULE 21 — Certificates
+// ─────────────────────────────────────────
+
+model Certificate {
+  id            String   @id @default(cuid())
+  certificateId String   @unique // e.g., "GRK-2026-XYZ"
+  studentId     String
+  courseId      String
+  issuedAt      DateTime @default(now())
+  grade         String?
+  metadata      Json? // Optional extra info (e.g. skills acquired)
+
+  student Student @relation(fields: [studentId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id])
+
+  @@unique([studentId, courseId])
+  @@map("certificates")
+}
+
+// ─────────────────────────────────────────
+// MODULE 22 — Community Forums
+// ─────────────────────────────────────────
+
+model ForumCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String? // e.g. "bg-blue-500"
+  courseId    String? // If null, it's a global category
+  createdAt   DateTime @default(now())
+
+  posts ForumPost[]
+
+  @@map("forum_categories")
+}
+
+model ForumPost {
+  id         String   @id @default(cuid())
+  categoryId String
+  authorId   String // User ID
+  title      String
+  content    String
+  isPinned   Boolean  @default(false)
+  upvotes    Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category ForumCategory @relation(fields: [categoryId], references: [id])
+  author   User          @relation(fields: [authorId], references: [id])
+  replies  ForumReply[]
+
+  @@map("forum_posts")
+}
+
+model ForumReply {
+  id         String   @id @default(cuid())
+  postId     String
+  authorId   String // User ID
+  content    String
+  isAccepted Boolean  @default(false)
+  upvotes    Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  post   ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User      @relation(fields: [authorId], references: [id])
+
+  @@map("forum_replies")
+}
+
+// ─────────────────────────────────────────
+// MODULE 23 — Quizzes & Assessments
+// ─────────────────────────────────────────
+
+model Quiz {
+  id           String   @id @default(cuid())
+  courseId     String
+  moduleId     String? // Optional, if linked to a specific LMSModule
+  title        String
+  description  String?
+  passingScore Int      @default(80) // Out of 100
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  course Course     @relation(fields: [courseId], references: [id])
+  module LMSModule? @relation(fields: [moduleId], references: [id])
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String  @id @default(cuid())
+  quizId        String
+  questionText  String
+  options       Json // e.g. ["A", "B", "C", "D"]
+  correctOption Int // Index of correct option (0-3)
+  explanation   String?
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  studentId String
+  score     Int
+  passed    Boolean
+  createdAt DateTime @default(now())
+
+  quiz    Quiz    @relation(fields: [quizId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("quiz_attempts")
+}
+
+// ─────────────────────────────────────────
+// MODULE 24 — Referrals & Affiliates
+// ─────────────────────────────────────────
+
+model Referral {
+  id             String   @id @default(cuid())
+  referrerId     String // The student who shared the link
+  referredUserId String   @unique // The new student who signed up
+  status         String   @default("PENDING") // PENDING | CONVERTED | PAID
+  commissionAmt  Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  referrer     Student @relation("ReferrerCommissions", fields: [referrerId], references: [id])
+  referredUser Student @relation("ReferredStudent", fields: [referredUserId], references: [id])
+
+  @@map("referrals")
+}
+
+// ─────────────────────────────────────────
+// MODULE 25 — Office Hours (Google Meet)
+// ─────────────────────────────────────────
+
+model OfficeHour {
+  id           String   @id @default(cuid())
+  title        String
+  mentorId     String
+  meetLink     String
+  scheduledFor DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  mentor User @relation(fields: [mentorId], references: [id])
+
+  @@map("office_hours")
+}

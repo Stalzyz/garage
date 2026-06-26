@@ -1,0 +1,295 @@
+"use client"
+
+import { BarChart2, TrendingUp, DollarSign, Users, Briefcase, GraduationCap, Target, ArrowUpRight, ArrowDownRight, Layers, Activity } from "lucide-react"
+import { motion } from "framer-motion"
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { useApi } from "@/lib/useApi"
+
+export default function GlobalAnalyticsDashboard() {
+  const { data: overview, isLoading: overviewLoading } = useApi<any>("/analytics/overview")
+  const { data: revenueData } = useApi<any>("/analytics/revenue?months=12")
+
+  const revStats = overview?.agency || { revenueCollected: 0, revenueOverdue: 0, activeProjects: 0, totalLeads: 0, totalInvoices: 0, totalPayroll: 0 }
+  const acaStats = overview?.academy || { totalStudents: 0, activeBatches: 0 }
+
+  const totalPayrollVal = revStats.totalPayroll || 1 // prevent div by zero
+  const roiMultiplier = revStats.revenueCollected > 0 ? (revStats.revenueCollected / totalPayrollVal).toFixed(1) : "0.0"
+
+  // Build chart data — revenue endpoint now returns pre-grouped monthly data
+  const chartData = revenueData?.data?.map((m: any) => ({
+    name: m.month,
+    total: m.revenue,
+    expenses: m.expenses,
+  })) || []
+
+  return (
+    <div className="flex flex-col h-full bg-transparent text-white overflow-hidden relative">
+      
+      {/* Ambient background light */}
+      <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-600/10 blur-[150px] rounded-full pointer-events-none" />
+
+      {/* Header */}
+      <div className="flex-none px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
+              <div className="absolute inset-0 bg-blue-500/20 animate-pulse mix-blend-overlay" />
+              <Activity className="w-6 h-6 text-blue-400 relative z-10" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">The God View</h1>
+              <p className="text-xs font-mono tracking-widest text-white/40 mt-1 uppercase">Global Telemetry Aggregation</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <select className="bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl text-xs font-mono font-bold tracking-widest uppercase text-white/70 focus:outline-none focus:border-blue-500/50 cursor-pointer appearance-none shadow-sm hover:bg-white/10 transition-colors backdrop-blur-md">
+              <option className="bg-black text-white">Last 30 Days</option>
+              <option className="bg-black text-white">This Quarter</option>
+              <option className="bg-black text-white">Year to Date</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 relative z-10">
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          {/* Top Level KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <KpiCard 
+              title="Total Revenue Collected" 
+              value={`$${(revStats.revenueCollected / 1000).toFixed(1)}k`} 
+              trend="+14.2%" 
+              trendUp={true} 
+              icon={<DollarSign className="w-5 h-5 text-emerald-400" />} 
+              color="emerald" 
+              delay={0}
+            />
+            <KpiCard 
+              title="Active Projects" 
+              value={revStats.activeProjects.toString()} 
+              trend="+5.4%" 
+              trendUp={true} 
+              icon={<Briefcase className="w-5 h-5 text-blue-400" />} 
+              color="blue" 
+              delay={0.1}
+            />
+            <KpiCard 
+              title="Total Leads" 
+              value={revStats.totalLeads.toString()} 
+              trend="-2.1%" 
+              trendUp={false} 
+              icon={<Users className="w-5 h-5 text-red-400" />} 
+              color="red" 
+              delay={0.2}
+            />
+            <KpiCard 
+              title="Active Students" 
+              value={acaStats.totalStudents.toString()} 
+              trend="+12" 
+              trendUp={true} 
+              icon={<GraduationCap className="w-5 h-5 text-amber-400" />} 
+              color="amber" 
+              delay={0.3}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Sales & Pipeline Velocity */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+              className="lg:col-span-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 shadow-sm flex flex-col relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <h2 className="text-sm font-mono font-bold tracking-widest uppercase text-white/50 flex items-center gap-3">
+                  <Briefcase className="w-4 h-4 text-blue-400" /> Agency Revenue Matrix
+                </h2>
+                <button className="text-[10px] font-mono tracking-widest uppercase font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 transition-colors">Export Report</button>
+              </div>
+              
+              <div className="flex-1 w-full h-64 mt-4 relative z-10">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} barGap={4}>
+                      <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', fontSize: '11px' }}
+                        formatter={(val: any, name: any) => [`$${Number(val).toLocaleString()}`, name === 'total' ? 'Revenue' : 'Expenses']}
+                      />
+                      <Bar dataKey="total" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="expenses" name="Expenses" fill="rgba(239,68,68,0.5)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-white/40 text-sm font-mono uppercase">Loading Chart Data...</div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Department Breakdown */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+              className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 shadow-sm flex flex-col relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <h2 className="text-sm font-mono font-bold tracking-widest uppercase text-white/50 flex items-center gap-3 mb-8 relative z-10">
+                <Users className="w-4 h-4 text-emerald-400" /> Payroll vs Revenue
+              </h2>
+              
+              <div className="flex-1 flex flex-col justify-center gap-10 relative z-10">
+                {/* Visual Circle Mock */}
+                <div className="w-56 h-56 rounded-full border-[20px] border-white/5 mx-auto relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
+                  <div className="absolute inset-0 border-[20px] border-blue-500 rounded-full border-t-transparent border-l-transparent rotate-45 shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute inset-0 border-[20px] border-emerald-500 rounded-full border-b-transparent border-r-transparent -rotate-12 shadow-[0_0_30px_rgba(16,185,129,0.5)]" />
+                  
+                  {/* Mock Donut Chart Center Text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-full backdrop-blur-sm pointer-events-none">
+                    <span className="text-4xl font-black text-white tracking-tight">{roiMultiplier}x</span>
+                    <span className="text-[10px] font-mono tracking-widest text-white/50 uppercase mt-1">ROI Multiplier</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-6 mt-auto">
+                  <div className="text-center bg-white/5 p-4 rounded-xl border border-white/5">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto mb-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    <div className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest">Total Payroll</div>
+                    <div className="text-xl font-bold text-white mt-1">${(revStats.totalPayroll / 1000).toFixed(1)}k</div>
+                  </div>
+                  <div className="text-center bg-white/5 p-4 rounded-xl border border-white/5">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500 mx-auto mb-2 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                    <div className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest">Gross Rev.</div>
+                    <div className="text-xl font-bold text-white mt-1">${(revStats.revenueCollected / 1000).toFixed(1)}k</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+
+          {/* Lower Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Academy Health */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+              className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-sm font-mono font-bold tracking-widest uppercase text-white/50 flex items-center gap-3">
+                  <GraduationCap className="w-4 h-4 text-amber-400" /> Academy Health
+                </h2>
+              </div>
+              <div className="space-y-6">
+                <ProgressRow label="Course Completion Rate" value="68%" color="bg-blue-500" />
+                <ProgressRow label="Average Assignment Score" value="84%" color="bg-emerald-500" />
+                <ProgressRow label="Student Churn Rate" value="4%" color="bg-red-500" />
+                <ProgressRow label="New Enrollments (30d)" value="125" color="bg-amber-400" raw />
+              </div>
+            </motion.div>
+
+            {/* Marketing ROAS */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+              className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-sm font-mono font-bold tracking-widest uppercase text-white/50 flex items-center gap-3">
+                  <Target className="w-4 h-4 text-purple-400" /> Blended ROAS
+                </h2>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10 group cursor-default">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    <span className="font-medium text-sm text-white/80 group-hover:text-white">Facebook Ads</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-bold text-white">3.2x</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $4,200</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10 group cursor-default">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                    <span className="font-medium text-sm text-white/80 group-hover:text-white">Google Search</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-bold text-white">4.5x</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $7,800</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10 group cursor-default">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-white/40" />
+                    <span className="font-medium text-sm text-white/80 group-hover:text-white">LinkedIn B2B</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-bold text-white">1.1x</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $450</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KpiCard({ title, value, trend, trendUp, icon, color, delay }: { title: string, value: string, trend: string, trendUp: boolean, icon: any, color: string, delay: number }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={`bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-sm hover:border-${color}-500/30 transition-colors group relative overflow-hidden`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br from-${color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+      
+      <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className={`w-12 h-12 rounded-xl bg-${color}-500/10 border border-${color}-500/20 flex items-center justify-center shadow-[inset_0_0_15px_rgba(255,255,255,0.05)] group-hover:shadow-[0_0_20px_var(--tw-shadow-color)] shadow-${color}-500/20 transition-all`}>
+          {icon}
+        </div>
+        <div className={`flex items-center gap-1 text-[10px] font-mono font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-lg border ${
+          trendUp ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+        }`}>
+          {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          {trend}
+        </div>
+      </div>
+      <div className="relative z-10">
+        <h3 className="text-[10px] font-mono tracking-widest uppercase text-white/50 mb-2">{title}</h3>
+        <p className={`text-4xl font-black text-white tracking-tight group-hover:text-${color}-400 transition-colors`}>{value}</p>
+      </div>
+    </motion.div>
+  )
+}
+
+function ProgressRow({ label, value, color, raw = false }: { label: string, value: string, color: string, raw?: boolean }) {
+  const percent = raw ? 100 : parseInt(value)
+  return (
+    <div className="group">
+      <div className="flex justify-between text-xs font-mono uppercase tracking-widest mb-3">
+        <span className="font-bold text-white/50 group-hover:text-white/80 transition-colors">{label}</span>
+        <span className="font-bold text-white">{value}</span>
+      </div>
+      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 1, delay: 0.8 }}
+          className={`h-full ${color} rounded-full shadow-[0_0_10px_var(--tw-shadow-color)] shadow-${color.replace('bg-', '')}`} 
+        />
+      </div>
+    </div>
+  )
+}

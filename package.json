@@ -1,0 +1,35 @@
+{
+  "name": "grekam-os",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Grekam OS — Unified Enterprise Platform for Grekam Visuals & Grekam Academy",
+  "scripts": {
+    "dev:all": "turbo run dev",
+    "build:all": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "playwright test",
+    "db:generate": "turbo run db:generate --filter=@grekam/db",
+    "db:migrate": "turbo run db:migrate --filter=@grekam/db",
+    "db:studio": "turbo run db:studio --filter=@grekam/db"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.19.21",
+    "eslint": "^9.0.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.1.1",
+  "dependencies": {
+    "@sentry/node": "^10.60.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.4"
+  }
+}

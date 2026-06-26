@@ -1,0 +1,14 @@
+node_modules/
+.turbo/
+dist/
+.next/
+build/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.pem
+coverage/
+.vercel/
+prisma/migrations/*.sql

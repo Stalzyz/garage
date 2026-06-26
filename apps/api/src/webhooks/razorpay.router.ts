@@ -1,0 +1,216 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import crypto from 'crypto';
+import { z } from 'zod';
+import { createNotification } from '../notifications/notifications.service';
+
+// In a real app, you would import PrismaClient from your db setup
+// import prisma from '../../lib/prisma';
+
+interface RazorpayWebhookBody {
+  event: string;
+  payload: {
+    payment?: {
+      entity: {
+        id: string;
+        order_id: string;
+        status: string;
+        amount: number;
+        currency: string;
+        notes?: {
+          invoice_id?: string;
+          student_id?: string;
+          course_id?: string;
+          batch_id?: string;
+        };
+      };
+    };
+    order?: {
+      entity: {
+        id: string;
+        status: string;
+        receipt?: string;
+      };
+    };
+  };
+}
+
+export default async function razorpayWebhookRouter(app: FastifyInstance) {
+  // POST /api/v1/webhooks/razorpay
+  app.post<{ Body: RazorpayWebhookBody }>('/razorpay', async (req: FastifyRequest<{ Body: RazorpayWebhookBody }>, reply: FastifyReply) => {
+    try {
+      const signature = req.headers['x-razorpay-signature'] as string;
+      const secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'dev_secret';
+      
+      // 1. Verify Signature
+      if (signature && process.env.NODE_ENV === 'production') {
+        const bodyText = JSON.stringify(req.body);
+        const expectedSignature = crypto
+          .createHmac('sha256', secret)
+          .update(bodyText)
+          .digest('hex');
+
+        if (expectedSignature !== signature) {
+          app.log.warn('Razorpay signature mismatch');
+          return reply.code(400).send({ error: 'Invalid signature' });
+        }
+      }
+
+      const event = req.body.event;
+      app.log.info({ event }, 'Received verified Razorpay webhook');
+
+      switch (event) {
+        case 'payment.captured': {
+          const payment = req.body.payload.payment?.entity;
+          if (payment) {
+            app.log.info(`Payment Captured: ${payment.id} for Order: ${payment.order_id}`);
+            
+            if (payment.notes?.invoice_id) {
+              const invoice = await app.prisma.invoice.findUnique({
+                where: { id: payment.notes.invoice_id }
+              });
+
+              if (invoice && invoice.status !== 'PAID') {
+                await app.prisma.$transaction([
+                  app.prisma.invoice.update({
+                    where: { id: invoice.id },
+                    data: { 
+                      status: 'PAID', 
+                      paidAt: new Date(),
+                      paidAmount: invoice.totalAmount
+                    }
+                  }),
+                  app.prisma.payment.create({
+                    data: {
+                      invoiceId: invoice.id,
+                      amount: invoice.totalAmount,
+                      method: 'RAZORPAY',
+                      transactionId: payment.id,
+                      paidAt: new Date(),
+                      notes: `Paid via Razorpay. Order ID: ${payment.order_id}`
+                    }
+                  })
+                ]);
+
+                try {
+                  (app as any).broadcast('telemetry-event', {
+                    event: 'Payment Received',
+                    data: {
+                      id: invoice.id,
+                      invoiceNumber: invoice.invoiceNumber,
+                      amount: invoice.totalAmount,
+                      clientName: invoice.clientName
+                    }
+                  });
+                } catch (wsErr) {
+                  app.log.error(wsErr, "Failed to broadcast WebSocket event");
+                }
+              }
+            } else if (payment.notes?.batch_id && payment.notes?.student_id) {
+              const { batch_id, student_id } = payment.notes;
+              // Check if enrollment already exists to prevent duplicates
+              const existing = await app.prisma.enrollment.findFirst({
+                where: { studentId: student_id, batchId: batch_id }
+              });
+
+              if (!existing) {
+                const batch = await app.prisma.batch.findUnique({
+                  where: { id: batch_id },
+                  include: { course: true }
+                });
+
+                if (batch) {
+                  await app.prisma.enrollment.create({
+                    data: {
+                      studentId: student_id,
+                      batchId: batch_id,
+                      totalFee: batch.course.fee || 0,
+                      feePaid: payment.amount / 100, // payment.amount is in paise
+                      status: 'ACTIVE'
+                    }
+                  });
+                  
+                  // Notify the student
+                  const student = await app.prisma.student.findUnique({ where: { id: student_id } });
+                  if (student) {
+                    await createNotification({
+                      userId: student.userId,
+                      type: 'PAYMENT_RECEIVED',
+                      title: 'Enrollment Successful',
+                      body: `Your payment of ${payment.amount / 100} ${payment.currency} was successful. You are now enrolled in ${batch.course.name}.`,
+                    });
+                  }
+
+                  app.log.info(`Created LMS Enrollment for student ${student_id} in batch ${batch_id}`);
+                }
+              }
+            }
+          }
+          break;
+        }
+
+        case 'order.paid': {
+          const order = req.body.payload.order?.entity;
+          if (order) {
+            app.log.info(`Order Paid: ${order.id}. Receipt: ${order.receipt}`);
+            if (order.receipt) {
+              const invoice = await app.prisma.invoice.findUnique({
+                where: { invoiceNumber: order.receipt }
+              });
+              if (invoice && invoice.status !== 'PAID') {
+                await app.prisma.$transaction([
+                  app.prisma.invoice.update({
+                    where: { id: invoice.id },
+                    data: { 
+                      status: 'PAID', 
+                      paidAt: new Date(),
+                      paidAmount: invoice.totalAmount
+                    }
+                  }),
+                  app.prisma.payment.create({
+                    data: {
+                      invoiceId: invoice.id,
+                      amount: invoice.totalAmount,
+                      method: 'RAZORPAY',
+                      transactionId: order.id,
+                      paidAt: new Date(),
+                      notes: `Paid via Razorpay Order: ${order.id}`
+                    }
+                  })
+                ]);
+
+                try {
+                  (app as any).broadcast('telemetry-event', {
+                    event: 'Payment Received',
+                    data: {
+                      id: invoice.id,
+                      invoiceNumber: invoice.invoiceNumber,
+                      amount: invoice.totalAmount,
+                      clientName: invoice.clientName
+                    }
+                  });
+                } catch {}
+              }
+            }
+          }
+          break;
+        }
+
+        case 'payment.failed': {
+          const payment = req.body.payload.payment?.entity;
+          if (payment) {
+            app.log.warn(`Payment Failed: ${payment.id}`);
+          }
+          break;
+        }
+
+        default:
+          app.log.info(`Unhandled Razorpay event: ${event}`);
+      }
+
+      return reply.code(200).send({ status: 'ok' });
+    } catch (error) {
+      app.log.error(error);
+      return reply.code(500).send({ error: 'Webhook processing failed' });
+    }
+  });
+}
