@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { LeaveType, LeaveStatus } from '@prisma/client';
+type LocalLeaveType = "SICK" | "CASUAL" | "PAID";
+type LocalLeaveStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export default async function leavesRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -28,7 +29,7 @@ export default async function leavesRoutes(app: FastifyInstance) {
     schema: {
       body: z.object({
         employeeId: z.string(),
-        type: z.nativeEnum(LeaveType),
+        type: z.string(),
         balance: z.number(),
         year: z.number()
       })
@@ -38,12 +39,12 @@ export default async function leavesRoutes(app: FastifyInstance) {
       where: {
         employeeId_type_year: {
           employeeId: req.body.employeeId,
-          type: req.body.type,
+          type: req.body.type as any,
           year: req.body.year
         }
       },
       update: { balance: req.body.balance },
-      create: req.body
+      create: { ...req.body, type: req.body.type as any }
     });
     return reply.status(201).send(balance);
   });
@@ -52,7 +53,7 @@ export default async function leavesRoutes(app: FastifyInstance) {
     schema: {
       body: z.object({
         employeeId: z.string().optional(),
-        type: z.nativeEnum(LeaveType),
+        type: z.string(),
         startDate: z.string(),
         endDate: z.string(),
         days: z.number(),
@@ -79,12 +80,12 @@ export default async function leavesRoutes(app: FastifyInstance) {
     const leave = await server.prisma.leaveRequest.create({
       data: {
         employeeId,
-        type: data.type,
+        type: data.type as any,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
         days: data.days,
         reason: data.reason,
-        status: LeaveStatus.PENDING
+        status: "PENDING" as any
       }
     });
     return reply.status(201).send(leave);
@@ -93,7 +94,7 @@ export default async function leavesRoutes(app: FastifyInstance) {
   server.patch('/:id/status', {
     schema: {
       params: z.object({ id: z.string() }),
-      body: z.object({ status: z.nativeEnum(LeaveStatus), approvedBy: z.string().optional() })
+      body: z.object({ status: z.string(), approvedBy: z.string().optional() })
     }
   }, async (req, reply) => {
     const { status, approvedBy } = req.body;
@@ -107,13 +108,13 @@ export default async function leavesRoutes(app: FastifyInstance) {
     const leave = await server.prisma.leaveRequest.update({
       where: { id: req.params.id },
       data: { 
-        status, 
+        status: status as any, 
         approvedBy,
-        approvedAt: status === LeaveStatus.APPROVED ? new Date() : null
+        approvedAt: status === "APPROVED" ? new Date() : null
       }
     });
 
-    if (status === LeaveStatus.APPROVED && request.status !== LeaveStatus.APPROVED) {
+    if (status === "APPROVED" && request.status !== "APPROVED") {
        // Deduct from balance
        const year = new Date().getFullYear();
        const balanceRecord = await server.prisma.leaveBalance.findUnique({
