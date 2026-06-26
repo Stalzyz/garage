@@ -1,7 +1,19 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { LeaveType, LeaveStatus } from '@grekam/db';
+// import { LeaveType, LeaveStatus } from '@grekam/db';
+
+enum LeaveType {
+  SICK = "SICK",
+  CASUAL = "CASUAL",
+  PAID = "PAID"
+}
+
+enum LeaveStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED"
+}
 
 export default async function leavesRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();

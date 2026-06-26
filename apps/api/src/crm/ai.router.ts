@@ -131,7 +131,7 @@ Please answer operational queries briefly and direct reps or managers to the rig
         return { success: true, reply: mockReply };
       }
 
-      let response = null;
+      let response: string | null = null;
       try {
         const completion = await openai.chat.completions.create({
           model: "gpt-4o",
@@ -223,7 +223,7 @@ Keep titles concise and matching typical course designs.`;
         };
       }
 
-      let responseText = null;
+      let responseText: string | null = null;
       try {
         const completion = await openai.chat.completions.create({
           model: "gpt-4o",
@@ -352,7 +352,7 @@ Return ONLY a valid JSON object matching this schema:
         return { success: true, matchedIds: matched };
       }
 
-      let matchedIds = null;
+      let matchedIds: any[] | null = null;
       try {
         const completion = await openai.chat.completions.create({
           model: "gpt-4o",
