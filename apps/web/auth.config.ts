@@ -19,9 +19,9 @@ export const authConfig = {
         if (nextUrl.pathname.startsWith('/auth/login') || nextUrl.pathname === '/') {
           // @ts-ignore
           const role = auth?.user?.role;
-          if (role === 'Client') {
+          if (role === 'CLIENT') {
             return Response.redirect(new URL('/portal', nextUrl));
-          } else if (role === 'Student') {
+          } else if (role === 'STUDENT') {
             return Response.redirect(new URL('/student', nextUrl));
           }
           return Response.redirect(new URL('/dashboard', nextUrl));

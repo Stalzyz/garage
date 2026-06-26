@@ -18,7 +18,7 @@ import {
   Globe,
 } from "lucide-react"
 
-export type Role = "Super Admin" | "Manager" | "Staff" | "Client" | "Student" | "Vendor" | "Intern"
+export type Role = "SUPER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "STUDENT" | "VENDOR" | "INTERN"
 
 export interface NavItem {
   title: string
@@ -33,13 +33,13 @@ export const navigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["Super Admin", "Manager", "Staff", "Client", "Student", "Vendor", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
   },
   {
     title: "CRM & Sales",
     href: "/dashboard/crm",
     icon: Layers,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
       { title: "Lead Pipeline",  href: "/dashboard/crm" },
       { title: "Contacts",       href: "/dashboard/crm/contacts" },
@@ -54,7 +54,7 @@ export const navigation: NavItem[] = [
     title: "Projects",
     href: "/dashboard/projects",
     icon: Briefcase,
-    roles: ["Super Admin", "Manager", "Staff", "Client", "Vendor", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
     children: [
       { title: "Kanban Board", href: "/dashboard/projects" },
       { title: "Asset Hub",    href: "/dashboard/projects/assets" },
@@ -64,7 +64,7 @@ export const navigation: NavItem[] = [
     title: "Finance",
     href: "/dashboard/finance",
     icon: DollarSign,
-    roles: ["Super Admin", "Manager", "Client"],
+    roles: ["SUPER_ADMIN", "MANAGER", "CLIENT"],
     children: [
       { title: "Overview",  href: "/dashboard/finance" },
       { title: "Revenue",   href: "/dashboard/finance/revenue" },
@@ -77,7 +77,7 @@ export const navigation: NavItem[] = [
     title: "HR & Identity",
     href: "/dashboard/hr",
     icon: Users,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
       { title: "Employees",  href: "/dashboard/hr" },
       { title: "Time Track", href: "/dashboard/hr/time" },
@@ -94,7 +94,7 @@ export const navigation: NavItem[] = [
     title: "Academy",
     href: "/dashboard/academy/admissions",
     icon: GraduationCap,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
       { title: "Admissions", href: "/dashboard/academy/admissions" },
       { title: "Students",   href: "/dashboard/academy/students" },
@@ -107,7 +107,7 @@ export const navigation: NavItem[] = [
     title: "LMS",
     href: "/dashboard/lms",
     icon: BookOpen,
-    roles: ["Super Admin", "Manager", "Staff", "Student", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
     children: [
       { title: "My Courses",   href: "/dashboard/lms" },
       { title: "Assignments",  href: "/dashboard/lms/assignments" },
@@ -120,13 +120,13 @@ export const navigation: NavItem[] = [
     title: "Vendors",
     href: "/dashboard/vendors",
     icon: UserCheck,
-    roles: ["Super Admin", "Manager"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Marketing",
     href: "/dashboard/marketing/calendar",
     icon: Radio,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
       { title: "AI Prospects",     href: "/dashboard/marketing/prospects" },
       { title: "Content Scheduler",href: "/dashboard/marketing/scheduler" },
@@ -138,7 +138,7 @@ export const navigation: NavItem[] = [
     title: "CMS & Website",
     href: "/dashboard/cms",
     icon: Globe,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
       { title: "Pages Builder",  href: "/dashboard/cms/pages" },
       { title: "Blog Posts",     href: "/dashboard/cms/blog" },
@@ -150,49 +150,49 @@ export const navigation: NavItem[] = [
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart2,
-    roles: ["Super Admin", "Manager"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Support",
     href: "/dashboard/support",
     icon: LifeBuoy,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
   },
   {
     title: "Automations",
     href: "/dashboard/automations",
     icon: Zap,
-    roles: ["Super Admin", "Manager"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Chat Hub",
     href: "/dashboard/chat",
     icon: MessageSquare,
-    roles: ["Super Admin", "Manager", "Staff", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
   {
     title: "Asset Drive",
     href: "/dashboard/drive",
     icon: HardDrive,
-    roles: ["Super Admin", "Manager", "Staff"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
   },
   {
     title: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
-    roles: ["Super Admin", "Manager", "Staff", "Client", "Student", "Vendor", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
   },
   {
     title: "Knowledge Base",
     href: "/dashboard/kb",
     icon: BookOpen,
-    roles: ["Super Admin", "Manager", "Staff", "Client", "Student", "Vendor", "Intern"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
   },
   {
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
-    roles: ["Super Admin"],
+    roles: ["SUPER_ADMIN"],
     children: [
       { title: "General", href: "/dashboard/settings" },
       { title: "Roles & Permissions", href: "/dashboard/settings/roles" },

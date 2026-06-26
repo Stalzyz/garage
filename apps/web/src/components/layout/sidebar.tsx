@@ -146,29 +146,29 @@ export function Sidebar() {
 
   const getBottomTabs = (role: Role) => {
     switch (role) {
-      case "Student":
-      case "Intern":
+      case "STUDENT":
+      case "INTERN":
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "Courses", href: "/dashboard/lms", icon: BookOpen },
           { title: "Tasks", href: "/dashboard/lms/assignments", icon: Briefcase },
           { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
         ]
-      case "Client":
+      case "CLIENT":
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "Billing", href: "/dashboard/finance/revenue", icon: DollarSign },
           { title: "Board", href: "/dashboard/projects", icon: Briefcase },
           { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
         ]
-      case "Vendor":
+      case "VENDOR":
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "Board", href: "/dashboard/projects", icon: Briefcase },
           { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
           { title: "Alerts", href: "/dashboard/notifications", icon: Bell },
         ]
-      default: // Super Admin, Manager, Staff
+      default: // SUPER_ADMIN, MANAGER, STAFF
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "CRM", href: "/dashboard/crm", icon: Layers },
