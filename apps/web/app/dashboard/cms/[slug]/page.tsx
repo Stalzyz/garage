@@ -233,11 +233,11 @@ export default function CMSPageEditor() {
         </div>
 
         {/* Editor Area */}
-        <div className="flex-1 flex flex-col bg-slate-50 p-6 overflow-hidden gap-4">
+        <div className="flex-1 flex flex-col bg-slate-50 p-6 min-h-0 overflow-hidden gap-4">
           
           {/* AI Generator Box (Hidden in Visual Mode) */}
           {mode !== 'visual' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-purple-200 p-2 pl-4 flex items-center gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-purple-200 p-2 pl-4 flex items-center gap-4 shrink-0">
               <Bot className="w-6 h-6 text-purple-500 shrink-0" />
               <input 
                 type="text" 
@@ -259,10 +259,10 @@ export default function CMSPageEditor() {
           )}
 
           {activeSection ? (
-            <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               
               {/* Editor Toolbar */}
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-4">
                   <span className="font-mono text-sm font-bold text-slate-700">{activeSection.sectionId}</span>
                   <div className="flex items-center bg-slate-200 rounded-lg p-0.5">
@@ -298,17 +298,17 @@ export default function CMSPageEditor() {
 
               {/* Editor Content Area */}
               {mode === 'visual' ? (
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-100">
+                <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-slate-100 relative">
                   <div className="max-w-4xl mx-auto space-y-6">
                     {Array.isArray(content) && content.map((card: any, idx: number) => (
                       <div key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex">
                         {/* Drag Handle */}
-                        <div className="w-8 bg-slate-50 border-r border-slate-100 flex flex-col items-center py-4 text-slate-400 cursor-move">
+                        <div className="w-8 bg-slate-50 border-r border-slate-100 flex flex-col items-center py-4 text-slate-400 cursor-move shrink-0">
                           <GripVertical className="w-4 h-4" />
                         </div>
 
                         {/* Card Fields */}
-                        <div className="p-6 flex-1 flex flex-col gap-4">
+                        <div className="p-6 flex-1 min-w-0 flex flex-col gap-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category / Tag</label>
@@ -326,7 +326,7 @@ export default function CMSPageEditor() {
                               <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Hex Color</label>
                               <div className="flex gap-2">
                                 <input type="color" value={card.colorHex || "#ffffff"} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="w-10 h-10 p-1 border border-slate-200 rounded" />
-                                <input type="text" value={card.colorHex || ""} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="flex-1 px-3 py-2 border border-slate-200 rounded outline-none focus:border-[#49ABC9]" />
+                                <input type="text" value={card.colorHex || ""} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded outline-none focus:border-[#49ABC9]" />
                               </div>
                             </div>
                             <div>
@@ -355,7 +355,7 @@ export default function CMSPageEditor() {
                         </div>
 
                         {/* Delete Button */}
-                        <div className="border-l border-slate-100 p-4 flex items-start bg-slate-50">
+                        <div className="border-l border-slate-100 p-4 flex items-start bg-slate-50 shrink-0">
                           <button onClick={() => removeCard(idx)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                             <Trash className="w-4 h-4" />
                           </button>
@@ -373,14 +373,14 @@ export default function CMSPageEditor() {
                 </div>
               ) : mode === 'preview' ? (
                 <div 
-                  className="flex-1 overflow-y-auto p-6 bg-white border-2 border-dashed border-slate-200"
+                  className="flex-1 min-h-0 overflow-y-auto p-6 bg-white border-2 border-dashed border-slate-200 relative"
                   dangerouslySetInnerHTML={{ __html: content }}
                 />
               ) : (
                 <textarea 
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className={`flex-1 w-full p-6 font-mono text-[13px] outline-none resize-none leading-relaxed ${
+                  className={`flex-1 min-h-0 w-full p-6 font-mono text-[13px] outline-none resize-none leading-relaxed ${
                     mode === 'html' ? 'bg-[#1E1E1E] text-sky-300' : 'bg-[#1E1E1E] text-green-400'
                   }`}
                   spellCheck="false"
@@ -388,7 +388,7 @@ export default function CMSPageEditor() {
               )}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">
+            <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">
               <Code className="w-12 h-12 mb-4 text-slate-300" />
               Select or create a section to start editing.
             </div>
