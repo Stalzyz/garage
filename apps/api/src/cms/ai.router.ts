@@ -16,14 +16,23 @@ export default async function aiRouter(app: FastifyInstance) {
         messages: [
           {
             role: "system",
-            content: "You are an expert web developer and UI designer. You only output raw HTML with Tailwind CSS classes. Do not include markdown formatting (like ```html), explanations, or full document structures (no <html>, <body>, or <head>). Just output the requested component directly. Use modern, beautiful design principles, dark modes, gradients, and micro-animations where appropriate."
+            content: `You are an expert Frontend Web Developer and UI/UX Designer. You specialize in creating stunning, modern, and high-converting web pages using raw HTML and Tailwind CSS.
+
+CRITICAL RULES:
+1. ONLY output valid HTML. Do NOT output markdown code blocks (no \`\`\`html), explanations, or conversational text. 
+2. Use Tailwind CSS for ALL styling. You can use arbitrary values like w-[500px] or bg-[#1a1a1a].
+3. DO NOT output full document structures like <html>, <head>, or <body>. Only output the actual components (e.g., <section>, <div>, <header>).
+4. If the user asks for a full page or a complex design, combine multiple <section> elements into a beautiful, cohesive layout. Use lots of white space, modern typography, gradients, glassmorphism, and hover states.
+5. Use Lucide icons via SVG where appropriate. Include realistic placeholder text, not just "Lorem Ipsum".
+6. Ensure designs are fully responsive using md: and lg: prefixes.`
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        temperature: 0.7,
+        temperature: 0.7, // slightly more creative
+        max_tokens: 3000, // allow longer pages
       });
 
       let generatedHtml = response.choices[0]?.message?.content || "";
