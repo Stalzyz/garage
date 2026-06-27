@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
 import { cn } from "@/lib/utils"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { 
   ChevronDown, ChevronRight, Menu, X, ShieldCheck, Moon, Sun, 
   LayoutDashboard, BookOpen, Briefcase, MessageSquare, Layers, DollarSign, Bell 
@@ -141,7 +141,16 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const org = useOrganization()
 
-  const role = (session?.user?.role || "Intern") as Role
+  let rawRole = session?.user?.role || "INTERN"
+  if (rawRole === "Super Admin") rawRole = "SUPER_ADMIN"
+  if (rawRole === "Manager") rawRole = "MANAGER"
+  if (rawRole === "Staff") rawRole = "STAFF"
+  if (rawRole === "Client") rawRole = "CLIENT"
+  if (rawRole === "Student") rawRole = "STUDENT"
+  if (rawRole === "Vendor") rawRole = "VENDOR"
+  if (rawRole === "Intern") rawRole = "INTERN"
+  
+  const role = rawRole as Role
   const navItems = getNavItemsByRole(role)
 
   const getBottomTabs = (role: Role) => {
@@ -206,7 +215,7 @@ export function Sidebar() {
 
       {/* User footer */}
       <div className="p-4 relative z-10 border-t border-white/5 bg-gradient-to-t from-black/60 to-transparent">
-        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/10">
+        <div onClick={() => signOut()} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/10" title="Click to logout">
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">
             {session?.user?.name?.charAt(0) || "U"}
           </div>
