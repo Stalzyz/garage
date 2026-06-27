@@ -140,7 +140,7 @@ export const navigation: NavItem[] = [
     icon: Globe,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     children: [
-      { title: "Pages Builder",  href: "/dashboard/cms/pages" },
+      { title: "Pages Builder",  href: "/dashboard/cms" },
       { title: "Blog Posts",     href: "/dashboard/cms/blog" },
       { title: "Media Library",  href: "/dashboard/cms/media" },
       { title: "SEO Settings",   href: "/dashboard/cms/seo" },

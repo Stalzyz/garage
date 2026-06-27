@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, GripVertical } from "lucide-react"
+import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, GripVertical, Globe } from "lucide-react"
 
 export default function CMSPageEditor() {
   const { slug } = useParams()
@@ -29,13 +29,20 @@ export default function CMSPageEditor() {
     fetch(`/api/v1/cms/pages/${slug}`)
       .then(res => res.json())
       .then(data => {
+        if (!data.data) {
+          setPage({ notFound: true })
+          return
+        }
         setPage(data.data)
         setSections(data.data?.sections || [])
         if (data.data?.sections?.length > 0 && !activeSection) {
           selectSection(data.data.sections[0])
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error(err)
+        setPage({ notFound: true })
+      })
   }
 
   const selectSection = (section: any) => {
@@ -156,6 +163,15 @@ export default function CMSPageEditor() {
   const removeCard = (index: number) => {
     setContent(content.filter((_: any, i: number) => i !== index));
   }
+
+  if (page?.notFound) return (
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] bg-slate-50 text-slate-500">
+      <Globe className="w-16 h-16 mb-4 text-slate-300" />
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Page Not Found</h2>
+      <p className="mb-4">The CMS page '{slug}' does not exist.</p>
+      <button onClick={() => router.push('/dashboard/cms')} className="px-6 py-2 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800">Return to Pages Builder</button>
+    </div>
+  )
 
   if (!page) return <div className="p-12 text-center text-slate-500 animate-pulse">Loading CMS Engine...</div>
 
