@@ -74,23 +74,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        // Format role from enum to match our Next.js frontend nav roles
-        let formattedRole = "Intern";
-        switch (user.role) {
-          case "SUPER_ADMIN": formattedRole = "Super Admin"; break;
-          case "MANAGER": formattedRole = "Manager"; break;
-          case "STAFF": formattedRole = "Staff"; break;
-          case "CLIENT": formattedRole = "Client"; break;
-          case "STUDENT": formattedRole = "Student"; break;
-          case "VENDOR": formattedRole = "Vendor"; break;
-          case "INTERN": formattedRole = "Intern"; break;
-        }
-        
         return { 
           id: user.id, 
           name: `${user.firstName} ${user.lastName}`, 
           email: user.email, 
-          role: formattedRole 
+          role: user.role 
         };
       }
     })
