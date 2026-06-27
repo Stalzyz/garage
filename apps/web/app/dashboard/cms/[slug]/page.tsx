@@ -12,7 +12,7 @@ export default function CMSPageEditor() {
   const [sections, setSections] = useState<any[]>([])
   const [activeSection, setActiveSection] = useState<any>(null)
   const [content, setContent] = useState<any>("")
-  const [mode, setMode] = useState<'visual' | 'json' | 'html'>('visual')
+  const [mode, setMode] = useState<'visual' | 'json' | 'html' | 'preview'>('visual')
   
   const [isSaving, setIsSaving] = useState(false)
   const [newSectionId, setNewSectionId] = useState("")
@@ -286,6 +286,12 @@ export default function CMSPageEditor() {
                     >
                       <Code className="w-3 h-3" /> Raw HTML
                     </button>
+                    <button 
+                      onClick={() => { setMode('preview'); setContent(typeof content !== 'string' ? '' : content); }}
+                      className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors ${mode === 'preview' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      <Layout className="w-3 h-3" /> Preview
+                    </button>
                   </div>
                 </div>
               </div>
@@ -365,6 +371,11 @@ export default function CMSPageEditor() {
                     </button>
                   </div>
                 </div>
+              ) : mode === 'preview' ? (
+                <div 
+                  className="flex-1 overflow-y-auto p-6 bg-white border-2 border-dashed border-slate-200"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
               ) : (
                 <textarea 
                   value={content}
