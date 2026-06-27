@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, GripVertical, Globe } from "lucide-react"
+import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, GripVertical, Globe, ArrowUp, ArrowDown } from "lucide-react"
+import { ComponentRegistry } from "@/components/cms/registry"
 
 export default function CMSPageEditor() {
   const { slug } = useParams()
@@ -20,6 +21,9 @@ export default function CMSPageEditor() {
   // AI State
   const [aiPrompt, setAiPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
+
+  // Pro Builder State
+  const [selectedNodeIdx, setSelectedNodeIdx] = useState<number | null>(null)
 
   useEffect(() => {
     fetchPage()
@@ -48,7 +52,10 @@ export default function CMSPageEditor() {
   const selectSection = (section: any) => {
     setActiveSection(section)
     
-    if (section.content?.type === 'html' && section.content?.html) {
+    if (section.sectionId === 'canvas' && Array.isArray(section.content)) {
+      setMode('visual')
+      setContent(section.content)
+    } else if (section.content?.type === 'html' && section.content?.html) {
       setMode('html')
       setContent(section.content.html)
     } else if (section.sectionId === 'cards' && Array.isArray(section.content)) {
@@ -104,8 +111,8 @@ export default function CMSPageEditor() {
       return;
     }
     try {
-      // If it's named 'cards', default it to an array for the visual builder
-      const initContent = newSectionId === 'cards' ? [] : { type: 'html', html: '<div></div>' };
+      // If it's named 'cards' or 'canvas', default it to an array for the visual builder
+      const initContent = (newSectionId === 'cards' || newSectionId === 'canvas') ? [] : { type: 'html', html: '<div></div>' };
       
       await fetch(`/api/v1/cms/pages/${slug}/sections`, {
         method: 'POST',
@@ -164,6 +171,50 @@ export default function CMSPageEditor() {
     setContent(content.filter((_: any, i: number) => i !== index));
   }
 
+  // Pro Builder Helpers
+  const addComponent = (componentId: string) => {
+    const CompDef = ComponentRegistry[componentId]
+    if (!CompDef) return
+    const defaultProps: any = {}
+    CompDef.props.forEach(p => { defaultProps[p.name] = p.defaultValue })
+    
+    setContent([...(Array.isArray(content) ? content : []), {
+      id: `node_${Date.now()}`,
+      componentId,
+      props: defaultProps
+    }])
+  }
+
+  const updateComponentProp = (idx: number, propName: string, value: any) => {
+    const newContent = [...content]
+    newContent[idx] = {
+      ...newContent[idx],
+      props: {
+        ...newContent[idx].props,
+        [propName]: value
+      }
+    }
+    setContent(newContent)
+  }
+
+  const removeComponent = (idx: number) => {
+    const newContent = [...content]
+    newContent.splice(idx, 1)
+    setContent(newContent)
+    if (selectedNodeIdx === idx) setSelectedNodeIdx(null)
+  }
+
+  const moveComponent = (idx: number, dir: -1 | 1) => {
+    if (idx + dir < 0 || idx + dir >= content.length) return
+    const newContent = [...content]
+    const temp = newContent[idx]
+    newContent[idx] = newContent[idx + dir]
+    newContent[idx + dir] = temp
+    setContent(newContent)
+    if (selectedNodeIdx === idx) setSelectedNodeIdx(idx + dir)
+    else if (selectedNodeIdx === idx + dir) setSelectedNodeIdx(idx)
+  }
+
   if (page?.notFound) return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] bg-slate-50 text-slate-500">
       <Globe className="w-16 h-16 mb-4 text-slate-300" />
@@ -176,6 +227,7 @@ export default function CMSPageEditor() {
   if (!page) return <div className="p-12 text-center text-slate-500 animate-pulse">Loading CMS Engine...</div>
 
   const isCardsSection = activeSection?.sectionId === 'cards';
+  const isCanvasSection = activeSection?.sectionId === 'canvas';
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col bg-slate-50">
@@ -216,7 +268,10 @@ export default function CMSPageEditor() {
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 italic">Name section 'cards' to use Visual Builder.</p>
+            <p className="text-[10px] text-slate-400 mt-2 italic flex flex-col gap-1">
+              <span>Name section 'cards' for legacy cards.</span>
+              <span className="text-blue-500 font-bold">Name section 'canvas' to use the new Pro Builder!</span>
+            </p>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {sections.map(section => (
@@ -266,7 +321,7 @@ export default function CMSPageEditor() {
                 <div className="flex items-center gap-4">
                   <span className="font-mono text-sm font-bold text-slate-700">{activeSection.sectionId}</span>
                   <div className="flex items-center bg-slate-200 rounded-lg p-0.5">
-                    {isCardsSection && (
+                    {(isCardsSection || isCanvasSection) && (
                       <button 
                         onClick={() => { setMode('visual'); setContent(typeof content === 'string' ? JSON.parse(content || '[]') : content); }}
                         className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors ${mode === 'visual' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
@@ -298,6 +353,92 @@ export default function CMSPageEditor() {
 
               {/* Editor Content Area */}
               {mode === 'visual' ? (
+                isCanvasSection ? (
+                  <div className="flex-1 min-h-0 flex bg-slate-100 relative overflow-hidden">
+                    {/* Component Palette */}
+                    <div className="w-64 bg-white border-r border-slate-200 p-4 overflow-y-auto flex flex-col gap-2 shrink-0">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Add Component</h4>
+                      {Object.keys(ComponentRegistry).map(compKey => (
+                        <button key={compKey} onClick={() => addComponent(compKey)} className="text-left p-3 rounded-lg border border-slate-200 hover:border-[#49ABC9] hover:bg-[#49ABC9]/5 transition-all">
+                          <div className="font-bold text-sm text-slate-800">{ComponentRegistry[compKey].name}</div>
+                          <div className="text-[10px] text-slate-500 mt-1">{ComponentRegistry[compKey].description}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Canvas & Inspector */}
+                    <div className="flex-1 flex overflow-hidden">
+                       <div className="flex-1 overflow-y-auto p-0 md:p-8 relative">
+                          <div className="mx-auto flex flex-col w-full bg-white shadow-sm border border-slate-200 min-h-full">
+                            {Array.isArray(content) && content.length === 0 && (
+                               <div className="text-center p-12 text-slate-400">
+                                  Drag or click components from the sidebar to build your page.
+                               </div>
+                            )}
+                            {Array.isArray(content) && content.map((node, idx) => {
+                               const CompDef = ComponentRegistry[node.componentId];
+                               if (!CompDef) return null;
+                               return (
+                                 <div key={node.id} className={`relative group border-2 transition-colors ${selectedNodeIdx === idx ? 'border-blue-500' : 'border-transparent hover:border-blue-300'}`}>
+                                    <div className="absolute top-2 right-2 hidden group-hover:flex items-center gap-1 bg-white shadow-md border border-slate-200 rounded-lg p-1 z-20">
+                                       <button onClick={() => moveComponent(idx, -1)} className="p-1.5 hover:bg-slate-100 rounded text-slate-500"><ArrowUp className="w-4 h-4" /></button>
+                                       <button onClick={() => moveComponent(idx, 1)} className="p-1.5 hover:bg-slate-100 rounded text-slate-500"><ArrowDown className="w-4 h-4" /></button>
+                                       <button onClick={() => removeComponent(idx)} className="p-1.5 hover:bg-red-50 rounded text-red-500"><Trash className="w-4 h-4" /></button>
+                                    </div>
+                                    <div onClick={() => setSelectedNodeIdx(idx)} className="cursor-pointer w-full pointer-events-none">
+                                        <CompDef.component {...node.props} />
+                                    </div>
+                                 </div>
+                               )
+                            })}
+                          </div>
+                       </div>
+                       
+                       {/* Property Inspector */}
+                       <div className="w-80 bg-white border-l border-slate-200 p-4 overflow-y-auto shrink-0 flex flex-col gap-4">
+                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Properties</h4>
+                          {selectedNodeIdx !== null && content[selectedNodeIdx] ? (
+                             (() => {
+                               const node = content[selectedNodeIdx];
+                               const CompDef = ComponentRegistry[node.componentId];
+                               if (!CompDef) return <div className="text-sm text-slate-500">Unknown component</div>;
+                               return (
+                                 <div className="flex flex-col gap-4">
+                                   <div className="font-bold text-sm bg-slate-50 p-2 rounded border border-slate-200">{CompDef.name}</div>
+                                   {CompDef.props.map(prop => (
+                                     <div key={prop.name}>
+                                       <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{prop.label}</label>
+                                       {prop.type === 'textarea' ? (
+                                         <textarea 
+                                           value={node.props[prop.name] || ''} 
+                                           onChange={(e) => updateComponentProp(selectedNodeIdx, prop.name, e.target.value)}
+                                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 min-h-[80px]"
+                                         />
+                                       ) : prop.type === 'color' ? (
+                                         <div className="flex gap-2">
+                                           <input type="color" value={node.props[prop.name] || '#ffffff'} onChange={(e) => updateComponentProp(selectedNodeIdx, prop.name, e.target.value)} className="w-10 h-10 p-1 border border-slate-200 rounded" />
+                                           <input type="text" value={node.props[prop.name] || ''} onChange={(e) => updateComponentProp(selectedNodeIdx, prop.name, e.target.value)} className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded outline-none focus:border-blue-500" />
+                                         </div>
+                                       ) : (
+                                         <input 
+                                           type="text" 
+                                           value={node.props[prop.name] || ''} 
+                                           onChange={(e) => updateComponentProp(selectedNodeIdx, prop.name, e.target.value)}
+                                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                                         />
+                                       )}
+                                     </div>
+                                   ))}
+                                 </div>
+                               )
+                             })()
+                          ) : (
+                             <div className="text-sm text-slate-500 italic">Select a component on the canvas to edit its properties.</div>
+                          )}
+                       </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-slate-100 relative">
                   <div className="max-w-4xl mx-auto space-y-6">
                     {Array.isArray(content) && content.map((card: any, idx: number) => (
@@ -371,6 +512,7 @@ export default function CMSPageEditor() {
                     </button>
                   </div>
                 </div>
+                )
               ) : mode === 'preview' ? (
                 <div 
                   className="flex-1 min-h-0 overflow-y-auto p-6 bg-white border-2 border-dashed border-slate-200 relative"
