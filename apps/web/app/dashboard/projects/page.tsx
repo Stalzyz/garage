@@ -5,6 +5,8 @@ import { Plus, Search, Filter, Briefcase, Calendar, CheckCircle, Clock, Kanban, 
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
+import { SlideOver } from "@/components/SlideOver"
+import { toast } from "sonner"
 
 const STATUS_CONFIG = {
   BRIEFING:   { label: "Briefing",   color: "text-slate-400 bg-slate-500/10 border-slate-500/20", glow: "" },
@@ -32,6 +34,44 @@ export default function ProjectsDashboard() {
   const [projects, setProjects] = useState<any[]>([])
   const [draggedProject, setDraggedProject] = useState<string | null>(null)
   const [crmToast, setCrmToast] = useState<string | null>(null)
+  
+  const [isInitializeOpen, setIsInitializeOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "WEBSITE",
+    managerId: "usr_1", // Default manager
+    dueDate: ""
+  })
+
+  const handleInitializeProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const payload: any = {
+        name: formData.name,
+        type: formData.type,
+        managerId: formData.managerId
+      }
+      if (formData.dueDate) {
+        payload.dueDate = new Date(formData.dueDate).toISOString()
+      }
+
+      await fetchApi("/projects", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      })
+      toast.success("Project initialized successfully")
+      setIsInitializeOpen(false)
+      setFormData({ name: "", type: "WEBSITE", managerId: "usr_1", dueDate: "" })
+      // Trigger reload to fetch new project
+      window.location.reload()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to initialize project")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     const queued = JSON.parse(localStorage.getItem("new_projects_queue") || "[]")
@@ -148,7 +188,10 @@ export default function ProjectsDashboard() {
               <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Deliverables & Timeline Telemetry</p>
             </div>
           </div>
-          <button className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
+          <button 
+            onClick={() => setIsInitializeOpen(true)}
+            className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
+          >
             <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
             <Plus className="w-4 h-4" /> Initialize Project
           </button>
@@ -364,6 +407,71 @@ export default function ProjectsDashboard() {
           </div>
         )}
       </div>
+      
+      {/* SlideOver for Initializing Project */}
+      <SlideOver
+        open={isInitializeOpen}
+        onClose={() => setIsInitializeOpen(false)}
+        title="Initialize Project"
+        subtitle="Create a new project matrix for telemetry tracking."
+      >
+        <form onSubmit={handleInitializeProject} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Name *</label>
+            <input 
+              required
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              placeholder="e.g. RedBrick Brand Identity"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Type *</label>
+            <select 
+              required
+              value={formData.type}
+              onChange={e => setFormData({...formData, type: e.target.value})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="BRAND_IDENTITY">Brand Identity</option>
+              <option value="WEBSITE">Website</option>
+              <option value="CAMPAIGN">Campaign</option>
+              <option value="MOTION">Motion Graphics</option>
+              <option value="FULL_PACKAGE">Full Package</option>
+              <option value="CUSTOM">Custom Project</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Deadline</label>
+            <input 
+              type="date"
+              value={formData.dueDate}
+              onChange={e => setFormData({...formData, dueDate: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30 [color-scheme:dark]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Manager ID *</label>
+            <input 
+              required
+              value={formData.managerId}
+              onChange={e => setFormData({...formData, managerId: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              placeholder="e.g. usr_1"
+            />
+          </div>
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? "Initializing..." : "Initialize Project"}
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

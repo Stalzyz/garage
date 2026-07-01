@@ -21,7 +21,17 @@ export default function OrganizationSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await ApiClient.patch("/settings/organization", org);
+      const payload: any = {
+        name: org.name || "",
+        primaryColor: org.primaryColor || "#2563eb",
+      }
+      if (org.logoUrl) payload.logoUrl = org.logoUrl
+      if (org.faviconUrl) payload.faviconUrl = org.faviconUrl
+      if (org.supportEmail) payload.supportEmail = org.supportEmail
+      if (org.billingAddress) payload.billingAddress = org.billingAddress
+      if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
+
+      const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -32,6 +42,39 @@ export default function OrganizationSettingsPage() {
       console.error(err);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'faviconUrl') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (field === 'logoUrl') setUploadingLogo(true);
+    else setUploadingFavicon(true);
+
+    try {
+      const { uploadUrl, downloadUrl } = await ApiClient.post('/storage/upload-url', {
+        filename: file.name,
+        contentType: file.type,
+        prefix: 'branding'
+      });
+
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      });
+
+      setOrg({ ...org, [field]: downloadUrl });
+    } catch (err) {
+      console.error('Upload failed', err);
+      alert('Upload failed. Please check console.');
+    } finally {
+      if (field === 'logoUrl') setUploadingLogo(false);
+      else setUploadingFavicon(false);
     }
   };
 
@@ -95,25 +138,37 @@ export default function OrganizationSettingsPage() {
           <div className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm text-[#a1a1aa]">Logo URL</label>
-              <input
-                type="text"
-                value={org?.logoUrl || ""}
-                onChange={(e) => setOrg({ ...org, logoUrl: e.target.value })}
-                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-                placeholder="https://cdn.example.com/logo.png"
-              />
-              <p className="text-xs text-[#666]">URL to a public image (Cloudflare R2 or similar).</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={org?.logoUrl || ""}
+                  onChange={(e) => setOrg({ ...org, logoUrl: e.target.value })}
+                  className="flex-1 bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="https://cdn.example.com/logo.png"
+                />
+                <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center min-w-[100px] transition-colors">
+                  {uploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : "Upload"}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'logoUrl')} />
+                </label>
+              </div>
+              <p className="text-xs text-[#666]">Upload a new logo or provide a direct URL.</p>
             </div>
             
             <div className="space-y-2">
               <label className="text-sm text-[#a1a1aa]">Favicon URL</label>
-              <input
-                type="text"
-                value={org?.faviconUrl || ""}
-                onChange={(e) => setOrg({ ...org, faviconUrl: e.target.value })}
-                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-                placeholder="https://cdn.example.com/favicon.ico"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={org?.faviconUrl || ""}
+                  onChange={(e) => setOrg({ ...org, faviconUrl: e.target.value })}
+                  className="flex-1 bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="https://cdn.example.com/favicon.ico"
+                />
+                <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center min-w-[100px] transition-colors">
+                  {uploadingFavicon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Upload"}
+                  <input type="file" className="hidden" accept="image/*, .ico" onChange={(e) => handleUpload(e, 'faviconUrl')} />
+                </label>
+              </div>
             </div>
           </div>
         </div>

@@ -9,33 +9,42 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Initialize Lenis
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for premium feel
-      orientation: "vertical",
-      gestureOrientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    })
-    lenisRef.current = lenis
-
-    function raf(time: number) {
-      lenis.raf(time)
-      requestAnimationFrame(raf)
+    // Disable Lenis inside the dashboard because it uses a fixed 100vh layout with inner scroll areas
+    if (pathname?.startsWith('/dashboard')) {
+      if (lenisRef.current) {
+        lenisRef.current.destroy()
+        lenisRef.current = null
+      }
+      return
     }
 
-    requestAnimationFrame(raf)
+    // Initialize Lenis if it doesn't exist
+    if (!lenisRef.current) {
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for premium feel
+        orientation: "vertical",
+        gestureOrientation: "vertical",
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+      })
+      lenisRef.current = lenis
 
-    return () => {
-      lenis.destroy()
-    }
-  }, [])
+      let rafId: number;
+      function raf(time: number) {
+        lenis.raf(time)
+        rafId = requestAnimationFrame(raf)
+      }
+      rafId = requestAnimationFrame(raf)
 
-  // Reset scroll on route change
-  useEffect(() => {
-    if (lenisRef.current) {
+      return () => {
+        cancelAnimationFrame(rafId)
+        lenis.destroy()
+        lenisRef.current = null
+      }
+    } else {
+      // If lenis is already running, just reset scroll on route change
       lenisRef.current.scrollTo(0, { immediate: true })
     }
   }, [pathname])

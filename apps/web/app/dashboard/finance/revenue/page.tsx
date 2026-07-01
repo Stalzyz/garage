@@ -23,6 +23,7 @@ const MONTHLY_DATA = [
 export default function RevenueDashboard() {
   const { symbol } = useCurrency()
   const [timeframe, setTimeframe] = useState("This Year")
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -39,11 +40,31 @@ export default function RevenueDashboard() {
               Export CSV
             </button>
             <div className="relative">
-              <button className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg text-sm font-bold border border-primary/20 hover:bg-primary/20 transition-all">
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg text-sm font-bold border border-primary/20 hover:bg-primary/20 transition-all"
+              >
                 <Filter className="w-4 h-4" />
                 {timeframe}
                 <ChevronDown className="w-3 h-3 ml-1" />
               </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-card border border-border/50 rounded-xl shadow-xl overflow-hidden z-50">
+                  {["This Month", "This Quarter", "This Year", "All Time"].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => {
+                        setTimeframe(t);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors"
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

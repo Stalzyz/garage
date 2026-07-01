@@ -23,6 +23,7 @@ interface Asset {
   projectName: string
   starred: boolean
   previewColor: string // used as CSS gradient placeholder for images
+  url?: string
 }
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -48,15 +49,15 @@ const PREVIEW_GRADIENTS = [
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 
 const SEED_ASSETS: Asset[] = [
-  { id: "a1", name: "RedBrick_Logo_Final_v3.ai", type: "IMAGE", size: "4.2 MB", uploadedBy: "Santhosh D.", uploadedAt: "Jun 12, 2025", tags: ["logo", "brand"], projectId: "proj_1", projectName: "RedBrick Brand Identity", starred: true, previewColor: PREVIEW_GRADIENTS[0] },
+  { id: "a1", name: "RedBrick_Logo_Final_v3.ai", type: "IMAGE", size: "4.2 MB", uploadedBy: "Santhosh D.", uploadedAt: "Jun 12, 2025", tags: ["logo", "brand"], projectId: "proj_1", projectName: "RedBrick Brand Identity", starred: true, previewColor: PREVIEW_GRADIENTS[0], url: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&q=80" },
   { id: "a2", name: "Brand_Guidelines_v2.pdf",   type: "DOCUMENT", size: "8.6 MB", uploadedBy: "Aisha R.", uploadedAt: "Jun 14, 2025", tags: ["guidelines", "brand"], projectId: "proj_1", projectName: "RedBrick Brand Identity", starred: false, previewColor: PREVIEW_GRADIENTS[3] },
   { id: "a3", name: "Hero_Video_MASTER.mp4",      type: "VIDEO", size: "1.2 GB", uploadedBy: "Priya A.", uploadedAt: "Jun 15, 2025", tags: ["hero", "video", "social"], projectId: "proj_3", projectName: "Fitburst Launch Video", starred: true, previewColor: PREVIEW_GRADIENTS[1] },
-  { id: "a4", name: "Techflow_Wireframes_v4.fig", type: "IMAGE", size: "22.1 MB", uploadedBy: "Ravi K.", uploadedAt: "Jun 16, 2025", tags: ["ui", "wireframe"], projectId: "proj_2", projectName: "Techflow SaaS Redesign", starred: false, previewColor: PREVIEW_GRADIENTS[4] },
+  { id: "a4", name: "Techflow_Wireframes_v4.fig", type: "IMAGE", size: "22.1 MB", uploadedBy: "Ravi K.", uploadedAt: "Jun 16, 2025", tags: ["ui", "wireframe"], projectId: "proj_2", projectName: "Techflow SaaS Redesign", starred: false, previewColor: PREVIEW_GRADIENTS[4], url: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&q=80" },
   { id: "a5", name: "SocialContent_Q3_Pack.zip",  type: "ARCHIVE", size: "340 MB", uploadedBy: "Maya S.", uploadedAt: "Jun 17, 2025", tags: ["social", "content"], projectId: "proj_4", projectName: "Spice Kitchen Socials Q3", starred: false, previewColor: PREVIEW_GRADIENTS[5] },
   { id: "a6", name: "VO_Draft_1.wav",             type: "AUDIO", size: "18.4 MB", uploadedBy: "Priya A.", uploadedAt: "Jun 18, 2025", tags: ["audio", "voiceover"], projectId: "proj_3", projectName: "Fitburst Launch Video", starred: false, previewColor: PREVIEW_GRADIENTS[2] },
   { id: "a7", name: "Storyboard_v1.pdf",          type: "DOCUMENT", size: "3.1 MB", uploadedBy: "Aisha R.", uploadedAt: "Jun 13, 2025", tags: ["storyboard", "pre-prod"], projectId: "proj_3", projectName: "Fitburst Launch Video", starred: true, previewColor: PREVIEW_GRADIENTS[3] },
-  { id: "a8", name: "RedBrick_BusinessCard.png",  type: "IMAGE", size: "2.8 MB", uploadedBy: "Santhosh D.", uploadedAt: "Jun 17, 2025", tags: ["print", "brand"], projectId: "proj_1", projectName: "RedBrick Brand Identity", starred: false, previewColor: PREVIEW_GRADIENTS[0] },
-  { id: "a9", name: "Packaging_3D_Render.png",    type: "IMAGE", size: "14.3 MB", uploadedBy: "Ravi K.", uploadedAt: "Jun 18, 2025", tags: ["3d", "packaging"], projectId: "proj_5", projectName: "Bloom Studios Packaging", starred: false, previewColor: PREVIEW_GRADIENTS[2] },
+  { id: "a8", name: "RedBrick_BusinessCard.png",  type: "IMAGE", size: "2.8 MB", uploadedBy: "Santhosh D.", uploadedAt: "Jun 17, 2025", tags: ["print", "brand"], projectId: "proj_1", projectName: "RedBrick Brand Identity", starred: false, previewColor: PREVIEW_GRADIENTS[0], url: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=80" },
+  { id: "a9", name: "Packaging_3D_Render.png",    type: "IMAGE", size: "14.3 MB", uploadedBy: "Ravi K.", uploadedAt: "Jun 18, 2025", tags: ["3d", "packaging"], projectId: "proj_5", projectName: "Bloom Studios Packaging", starred: false, previewColor: PREVIEW_GRADIENTS[2], url: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80" },
 ]
 
 const ALL_PROJECTS = [...new Set(SEED_ASSETS.map(a => a.projectName))]
@@ -266,7 +267,12 @@ export default function AssetHub() {
                     }`}
                   >
                     {/* Thumbnail / Placeholder */}
-                    {asset.type === "IMAGE" || asset.type === "VIDEO" ? (
+                    {asset.type === "IMAGE" && asset.url ? (
+                      <div className="w-full h-full bg-muted/20 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={asset.url} alt={asset.name} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    ) : asset.type === "IMAGE" || asset.type === "VIDEO" ? (
                       <div className={`w-full h-full bg-gradient-to-br ${asset.previewColor} opacity-80 flex items-center justify-center`}>
                         <Icon className="w-8 h-8 text-white/60" />
                       </div>
@@ -356,12 +362,17 @@ export default function AssetHub() {
             </div>
 
             {/* Preview */}
-            <div className={`w-full aspect-video flex items-center justify-center ${
+            <div className={`w-full aspect-video flex items-center justify-center relative overflow-hidden ${
               (selected.type === "IMAGE" || selected.type === "VIDEO")
                 ? `bg-gradient-to-br ${selected.previewColor}`
                 : "bg-muted/40"
             }`}>
-              {(() => { const Icon = TYPE_CONFIG[selected.type].icon; return <Icon className={`w-12 h-12 ${selected.type === "IMAGE" || selected.type === "VIDEO" ? "text-white/50" : TYPE_CONFIG[selected.type].color}`} /> })()}
+              {selected.type === "IMAGE" && selected.url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={selected.url} alt={selected.name} className="w-full h-full object-cover" />
+              ) : (
+                (() => { const Icon = TYPE_CONFIG[selected.type].icon; return <Icon className={`w-12 h-12 ${selected.type === "IMAGE" || selected.type === "VIDEO" ? "text-white/50" : TYPE_CONFIG[selected.type].color}`} /> })()
+              )}
             </div>
 
             <div className="p-5 space-y-4 flex-1">

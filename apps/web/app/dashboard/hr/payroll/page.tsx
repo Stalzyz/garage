@@ -5,6 +5,7 @@ import { Settings, Play, FileText, CheckCircle2, ChevronRight, Calculator, User,
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useCurrency } from "@/hooks/useCurrency"
+import { useOrganization } from "@/context/OrganizationContext"
 
 // --- Sub-components ---
 
@@ -98,6 +99,7 @@ function RunDetailView({ run, onBack, onViewPayslip }: { run: any, onBack: () =>
 
 function PayslipModal({ slip, onClose }: { slip: any, onClose: () => void }) {
   const { symbol } = useCurrency()
+  const org = useOrganization()
   const statutoryDeductions = slip.pfDeduction + slip.tdsDeduction + slip.ptDeduction;
   const totalDeductions = statutoryDeductions + (slip.lwpDeduction || 0);
 
@@ -145,9 +147,15 @@ function PayslipModal({ slip, onClose }: { slip: any, onClose: () => void }) {
         <div className="flex-1 overflow-y-auto p-8 space-y-8 print:overflow-visible print:p-0 print:text-black">
           {/* Logo & Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-6 print:border-black/10">
-            <div>
-              <h1 className="text-2xl font-bold tracking-wider text-blue-400 print:text-blue-600 uppercase">Grekam OS</h1>
-              <p className="text-[10px] text-white/40 font-mono mt-0.5 print:text-black/50">UNIFIED ENTERPRISE SYSTEMS</p>
+            <div className="flex items-center gap-4">
+              {org.logoUrl
+                ? <img src={org.logoUrl} alt={org.name} className="h-12 w-auto object-contain" />
+                : <div className="h-12 px-3 bg-blue-600 text-white font-black text-xl flex items-center justify-center rounded-lg">{org.name.charAt(0)}</div>
+              }
+              <div>
+                <h1 className="text-2xl font-bold tracking-wider text-blue-400 print:text-blue-600 uppercase">{org.name}</h1>
+                {org.billingAddress && <p className="text-[10px] text-white/40 font-mono mt-0.5 print:text-black/50 whitespace-pre-line">{org.billingAddress}</p>}
+              </div>
             </div>
             <div className="text-left sm:text-right mt-4 sm:mt-0">
               <h2 className="text-base font-bold uppercase tracking-wider print:text-black font-sans">Salary Payslip</h2>
@@ -262,7 +270,7 @@ function PayslipModal({ slip, onClose }: { slip: any, onClose: () => void }) {
           {/* Digital Signature Placeholder */}
           <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between text-xs text-white/40 font-mono print:border-black/10 print:text-black/50 gap-4">
             <div>
-              <p>Generated electronically via Grekam OS Enterprise System.</p>
+              <p>Generated electronically via {org.name} Enterprise System.</p>
               <p className="mt-1">No physical signature required.</p>
             </div>
             <div className="sm:text-right">

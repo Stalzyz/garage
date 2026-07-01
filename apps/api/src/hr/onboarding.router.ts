@@ -20,18 +20,21 @@ export default async function onboardingRoutes(app: FastifyInstance) {
     return { data: employeesWithTasks };
   });
 
-  // Create an onboarding task
   server.post('/', {
     schema: {
       body: z.object({
         employeeId: z.string(),
         title: z.string(),
-        category: z.string()
+        category: z.string().optional()
       })
     }
   }, async (req, reply) => {
     const task = await server.prisma.onboardingTask.create({
-      data: req.body
+      data: {
+        employeeId: req.body.employeeId,
+        title: req.body.title,
+        description: req.body.category
+      }
     });
     return reply.status(201).send(task);
   });
@@ -47,5 +50,17 @@ export default async function onboardingRoutes(app: FastifyInstance) {
       data: { isCompleted: true, completedAt: new Date() }
     });
     return reply.send(task);
+  });
+
+  // Delete all tasks for an employee (Delete Workflow)
+  server.delete('/:employeeId', {
+    schema: {
+      params: z.object({ employeeId: z.string() })
+    }
+  }, async (req, reply) => {
+    await server.prisma.onboardingTask.deleteMany({
+      where: { employeeId: req.params.employeeId }
+    });
+    return reply.status(204).send();
   });
 }

@@ -226,4 +226,128 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     return { success: true, file };
   });
+
+  // ==========================================
+  // BILLING SCHEDULES
+  // ==========================================
+
+  // Get Billing Schedule for a project
+  app.get('/:id/billing-schedule', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const schedule = await app.prisma.billingSchedule.findUnique({
+      where: { projectId: id },
+      include: { milestones: { orderBy: { createdAt: 'asc' } } }
+    });
+    return { success: true, schedule };
+  });
+
+  // Upsert Billing Schedule
+  app.put('/:id/billing-schedule', {
+    schema: {
+      body: z.object({
+        type: z.enum(['ONE_TIME', 'INSTALLMENTS']),
+        milestones: z.array(z.object({
+          id: z.string().optional(),
+          name: z.string(),
+          amount: z.number(),
+          dueDate: z.string().optional().nullable()
+        }))
+      })
+    }
+  }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { type, milestones } = request.body as any;
+
+    const project = await app.prisma.project.findUnique({ where: { id } });
+    if (!project) return reply.notFound('Project not found');
+
+    const schedule = await app.prisma.$transaction(async (tx) => {
+      // Upsert the schedule
+      const sched = await tx.billingSchedule.upsert({
+        where: { projectId: id },
+        update: { type },
+        create: { projectId: id, type }
+      });
+
+      // Simple implementation: delete old milestones and create new ones
+      await tx.billingMilestone.deleteMany({
+        where: { scheduleId: sched.id }
+      });
+
+      await tx.billingMilestone.createMany({
+        data: milestones.map((m: any) => ({
+          scheduleId: sched.id,
+          name: m.name,
+          amount: m.amount,
+          dueDate: m.dueDate ? new Date(m.dueDate) : null,
+          status: 'PENDING'
+        }))
+      });
+
+      return await tx.billingSchedule.findUnique({
+        where: { id: sched.id },
+        include: { milestones: { orderBy: { createdAt: 'asc' } } }
+      });
+    });
+
+    return { success: true, schedule };
+  });
+
+  // Generate Invoice for a Milestone
+  app.post('/:id/billing-milestones/:milestoneId/generate-invoice', async (request, reply) => {
+    const { id, milestoneId } = request.params as { id: string, milestoneId: string };
+    
+    const milestone = await app.prisma.billingMilestone.findUnique({
+      where: { id: milestoneId },
+      include: { schedule: { include: { project: { include: { company: true } } } } }
+    });
+
+    if (!milestone || milestone.schedule.projectId !== id) {
+      return reply.notFound('Milestone not found');
+    }
+
+    if (milestone.invoiceId) {
+      return reply.badRequest('Invoice already generated for this milestone');
+    }
+
+    const project = milestone.schedule.project;
+    
+    // Create the invoice
+    const invoice = await app.prisma.$transaction(async (tx) => {
+      const inv = await tx.invoice.create({
+        data: {
+          invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+          projectId: project.id,
+          clientName: project.company?.name || 'Unknown Client',
+          clientEmail: project.company?.email,
+          businessUnit: 'SERVICES',
+          subtotal: milestone.amount,
+          totalAmount: milestone.amount, // ignoring tax for simplicity here
+          dueDate: milestone.dueDate || new Date(),
+          status: 'DRAFT',
+          billingMilestone: {
+            connect: { id: milestone.id }
+          },
+          items: {
+            create: [{
+              description: `${project.name} - ${milestone.name}`,
+              quantity: 1,
+              unitPrice: milestone.amount,
+              total: milestone.amount
+            }]
+          }
+        }
+      });
+
+      // Link invoice to milestone
+      await tx.billingMilestone.update({
+        where: { id: milestone.id },
+        data: { invoiceId: inv.id, status: 'INVOICED' }
+      });
+
+      return inv;
+    });
+
+    return { success: true, invoice };
+  });
 }

@@ -8,7 +8,7 @@ import { format } from "date-fns"
 
 export default function ProposalsPage() {
   const { data, isLoading } = useApi<any>("/crm/proposals")
-  const proposals = data?.proposals || []
+  const proposals = data?.data || []
 
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -88,7 +88,11 @@ export default function ProposalsPage() {
                 </tr>
               ) : (
                 filteredProposals.map((p: any) => (
-                  <tr key={p.id} className="hover:bg-white/5 transition-colors group">
+                  <tr 
+                    key={p.id} 
+                    onClick={() => window.location.href = `/dashboard/crm/proposals/${p.id}`}
+                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                  >
                     <td className="px-6 py-4">
                       <div className="font-medium text-white">{p.title}</div>
                       <div className="text-[10px] text-white/40 font-mono mt-1">ID: {p.id.slice(0, 8)}</div>
@@ -98,7 +102,7 @@ export default function ProposalsPage() {
                       <div className="text-[10px] text-white/40 mt-1">{p.lead?.company}</div>
                     </td>
                     <td className="px-6 py-4 font-mono font-medium text-white">
-                      ${p.totalValue?.toLocaleString() || '0'}
+                      ${p.totalAmount?.toLocaleString() || '0'}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(p.status)}
@@ -107,9 +111,9 @@ export default function ProposalsPage() {
                       {format(new Date(p.createdAt), 'MMM d, yyyy')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="p-1.5 hover:bg-white/10 rounded-md transition-colors text-white/40 hover:text-white">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <Link href={`/dashboard/crm/proposals/${p.id}`} onClick={e => e.stopPropagation()} className="p-1.5 hover:bg-white/10 rounded-md transition-colors text-white/40 hover:text-white inline-block">
+                        <span className="text-xs bg-white/10 px-3 py-1 rounded-md text-white">View</span>
+                      </Link>
                     </td>
                   </tr>
                 ))

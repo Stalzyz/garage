@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Search, Plus, CheckCircle2, Circle, Clock, Mail, Laptop, ShieldCheck, MoreVertical, LayoutDashboard } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { motion } from "framer-motion"
@@ -9,12 +10,20 @@ export default function OnboardingDashboard() {
   const { data, mutate } = useApi<any>("/hr/onboarding")
   const hiresData = data?.data || []
 
+  const { data: empData } = useApi<any>("/hr/employees")
+  const allEmployees = empData?.employees || []
+
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+  
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [selectedEmpId, setSelectedEmpId] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const hires = hiresData.map((emp: any) => {
-    const completedTasks = emp.tasks.filter((t: any) => t.isCompleted).length
-    const totalTasks = emp.tasks.length
+    const tasks = emp.onboardingTasks || []
+    const completedTasks = tasks.filter((t: any) => t.isCompleted).length
+    const totalTasks = tasks.length
     const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
     let status = "NOT_STARTED"
     if (progress > 0 && progress < 100) status = "IN_PROGRESS"
@@ -30,7 +39,8 @@ export default function OnboardingDashboard() {
   const filteredHires = hires.filter((hire: any) => {
     if (filter !== "all" && hire.status !== filter.toUpperCase()) return false
     const searchString = search.toLowerCase()
-    if (search && !hire.user?.name?.toLowerCase().includes(searchString) && !hire.designation?.toLowerCase().includes(searchString)) return false
+    const fullName = `${hire.user?.firstName || ""} ${hire.user?.lastName || ""}`.trim()
+    if (search && !fullName.toLowerCase().includes(searchString) && !hire.jobTitle?.toLowerCase().includes(searchString)) return false
     return true
   })
 
@@ -38,8 +48,55 @@ export default function OnboardingDashboard() {
     try {
       await fetchApi(`/hr/onboarding/${taskId}/complete`, { method: "PATCH" })
       mutate()
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
+      toast.error(e.message || "Failed to complete task")
+    }
+  }
+
+  const handleDeleteWorkflow = async (employeeId: string) => {
+    if (!window.confirm("Are you sure you want to delete this onboarding workflow? This will remove all tasks.")) return;
+    try {
+      await fetchApi(`/hr/onboarding/${employeeId}`, { method: "DELETE" })
+      toast.success("Workflow deleted")
+      mutate()
+    } catch (e: any) {
+      console.error(e)
+      toast.error(e.message || "Failed to delete workflow")
+    }
+  }
+
+  const handleAddWorkflow = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedEmpId) return
+    setIsSubmitting(true)
+    
+    const defaultTasks = [
+      { title: "Sign Employment Contract", category: "LEGAL" },
+      { title: "Setup Company Email", category: "IT" },
+      { title: "Orientation Walkthrough", category: "HR" }
+    ]
+
+    try {
+      for (const t of defaultTasks) {
+        await fetchApi("/hr/onboarding", {
+          method: "POST",
+          body: JSON.stringify({
+            employeeId: selectedEmpId,
+            title: t.title,
+            category: t.category
+          })
+        })
+      }
+      setIsAddOpen(false)
+      setSelectedEmpId("")
+      toast.success("Workflow created successfully")
+      mutate()
+    } catch (e: any) {
+      console.error(e)
+      toast.error(e.message || "Failed to create workflow")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -64,7 +121,7 @@ export default function OnboardingDashboard() {
         </div>
         
         <div className="flex gap-4">
-          <button className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]">
             <Plus className="w-4 h-4" /> Add Workflow
           </button>
         </div>
@@ -125,20 +182,24 @@ export default function OnboardingDashboard() {
                   }`}>
                     {hire.status.replace("_", " ")}
                   </div>
-                  <button className="text-white/40 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleDeleteWorkflow(hire.id)}
+                    className="text-white/40 hover:text-red-400 transition-colors"
+                    title="Delete Workflow"
+                  >
                     <MoreVertical className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-xl font-black text-white flex-none shadow-[inset_0_0_15px_rgba(255,255,255,0.05)]">
-                    {hire.user?.name?.charAt(0) || "U"}
+                    {hire.user?.firstName?.charAt(0) || "U"}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-lg font-bold text-white truncate">{hire.user?.name}</h3>
-                    <p className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase truncate mt-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-block">{hire.designation}</p>
+                    <h3 className="text-lg font-bold text-white truncate">{hire.user?.firstName} {hire.user?.lastName}</h3>
+                    <p className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase truncate mt-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-block">{hire.jobTitle}</p>
                     <p className="text-[9px] text-white/50 font-mono uppercase tracking-widest mt-2 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-white/30" /> Starts {new Date(hire.joinDate).toLocaleDateString()}
+                      <Clock className="w-3 h-3 text-white/30" /> Starts {new Date(hire.joiningDate).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -162,30 +223,30 @@ export default function OnboardingDashboard() {
               <div className="flex-1 p-5 overflow-y-auto custom-scrollbar relative z-10">
                 <h4 className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-4 font-mono">Task Checklist</h4>
                 <div className="space-y-3">
-                  {hire.tasks.map((task: any) => (
-                    <div key={task.id} className="flex items-start gap-3 group/task">
-                      <button 
-                        onClick={() => !task.isCompleted && handleTaskComplete(task.id)}
-                        disabled={task.isCompleted}
-                        className="mt-0.5 flex-none transition-colors"
-                      >
+                  {(hire.onboardingTasks || []).map((task: any) => (
+                    <div 
+                      key={task.id} 
+                      onClick={() => !task.isCompleted && handleTaskComplete(task.id)}
+                      className={`flex items-start gap-3 group/task transition-all p-2 rounded-lg ${!task.isCompleted ? 'cursor-pointer hover:bg-white/5' : 'opacity-70'}`}
+                    >
+                      <div className="mt-0.5 flex-none transition-colors">
                         {task.isCompleted ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
                         ) : (
                           <Circle className="w-4 h-4 text-white/30 group-hover/task:text-emerald-400 transition-colors" />
                         )}
-                      </button>
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-bold transition-colors ${task.isCompleted ? 'text-white/30 line-through' : 'text-white/80 group-hover/task:text-white'}`}>
                           {task.title}
                         </p>
                         <span className="text-[8px] font-mono font-bold tracking-widest uppercase px-1.5 py-0.5 bg-black/40 border border-white/10 rounded text-white/50 mt-1.5 inline-block">
-                          {task.category}
+                          {task.description || "GENERAL"}
                         </span>
                       </div>
                     </div>
                   ))}
-                  {hire.tasks.length === 0 && (
+                  {(!hire.onboardingTasks || hire.onboardingTasks.length === 0) && (
                     <p className="text-xs text-white/30 font-mono text-center pt-4">No tasks assigned</p>
                   )}
                 </div>
@@ -204,6 +265,44 @@ export default function OnboardingDashboard() {
           )}
         </div>
       </div>
+
+      {isAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-card border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-white text-lg">Add Onboarding Workflow</h3>
+              <button onClick={() => setIsAddOpen(false)} className="text-white/40 hover:text-white transition-colors text-xs font-medium px-2.5 py-1 rounded-lg border border-white/10">Close</button>
+            </div>
+            
+            <form onSubmit={handleAddWorkflow} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono tracking-widest uppercase text-white/50 block">Select Employee</label>
+                <select 
+                  required 
+                  value={selectedEmpId} 
+                  onChange={e => setSelectedEmpId(e.target.value)} 
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                >
+                  <option value="">Choose an employee...</option>
+                  {allEmployees.map((e: any) => (
+                    <option key={e.id} value={e.id} className="bg-[#090d16]">{e.user?.firstName} {e.user?.lastName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="pt-4 border-t border-white/10">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 py-3 rounded-xl hover:bg-emerald-500/30 transition-all disabled:opacity-50"
+                >
+                  {isSubmitting ? "Creating..." : "Create Workflow"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

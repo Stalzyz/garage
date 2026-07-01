@@ -106,17 +106,25 @@ export default function CMSDashboard() {
                 </div>
               </div>
               
-              <div className="mt-auto pt-6 flex items-center justify-between border-t border-slate-100">
-                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+              <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium px-1">
                   <LayoutTemplate className="w-4 h-4" />
                   {page.sections?.length || 0} Blocks
                 </div>
-                <Link 
-                  href={`/dashboard/cms/${page.slug}`}
-                  className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm group-hover:scale-105"
-                >
-                  Edit Layout <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="flex gap-2">
+                  <Link 
+                    href={`/dashboard/cms/${page.slug}`}
+                    className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-200 transition-colors flex justify-center text-center shadow-sm"
+                  >
+                    Data Editor
+                  </Link>
+                  <Link 
+                    href={`/dashboard/builder/${page.id}`}
+                    className="flex-1 px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 shadow-sm group-hover:scale-[1.02]"
+                  >
+                    Pro Builder <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

@@ -18,25 +18,11 @@ const SchedulePostSchema = z.object({
 export default async function socialRouter(app: FastifyInstance) {
   // GET /api/v1/marketing/social
   app.get('/social', async (req, reply) => {
-    // Mock database response for scheduled posts
-    return {
-      data: [
-        {
-          id: 'post_1',
-          platform: 'LinkedIn',
-          content: 'Excited to announce our new UI/UX Masterclass launch! 🚀 #UIUX #Design',
-          scheduledFor: new Date(Date.now() + 86400000).toISOString(),
-          status: 'SCHEDULED'
-        },
-        {
-          id: 'post_2',
-          platform: 'Instagram',
-          content: 'Behind the scenes at Grekam Visuals. Designing the future. ✨ #DesignAgency',
-          scheduledFor: new Date(Date.now() - 86400000).toISOString(),
-          status: 'PUBLISHED'
-        }
-      ]
-    };
+    const posts = await app.prisma.socialPost.findMany({
+      orderBy: { publishAt: 'asc' }
+    });
+    // Map publishAt back to scheduledFor for the frontend
+    return { data: posts.map(p => ({...p, scheduledFor: p.publishAt})) };
   });
 
   // POST /api/v1/marketing/social/generate
@@ -69,14 +55,17 @@ export default async function socialRouter(app: FastifyInstance) {
   app.post('/social/schedule', async (req, reply) => {
     const body = SchedulePostSchema.parse(req.body);
     
-    // In a real app, this would save to the database and schedule a worker task (e.g., using BullMQ)
-    const mockPost = {
-      id: `post_${Date.now()}`,
-      ...body,
-      createdAt: new Date().toISOString()
-    };
+    const post = await app.prisma.socialPost.create({
+      data: {
+        platform: body.platform,
+        content: body.content,
+        publishAt: new Date(body.scheduledFor),
+        status: body.status,
+        authorId: 'system' // Placeholder for actual user ID from auth
+      }
+    });
     
     reply.code(201);
-    return mockPost;
+    return post;
   });
 }

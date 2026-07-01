@@ -22,6 +22,7 @@ enum UserRole {
   STUDENT
   VENDOR
   INTERN
+  EDUCATOR
 }
 
 enum UserStatus {
@@ -51,8 +52,11 @@ model User {
   twoFaBackupCodes String? // JSON array of backup codes
 
   // Relations
+  customRoleId  String?
+  customRole    Role?          @relation(fields: [customRoleId], references: [id])
   employee      Employee?
   student       Student?
+  educator      Educator?
   vendor        Vendor?
   clientProfile ClientProfile?
 
@@ -119,9 +123,37 @@ model Department {
   headId       String?
   createdAt    DateTime     @default(now())
 
-  employees Employee[]
+  employees   Employee[]
+  Team        Team[]
+  Designation Designation[]
 
   @@map("departments")
+}
+
+model Team {
+  id           String   @id @default(cuid())
+  name         String
+  departmentId String
+  leaderId     String?
+  createdAt    DateTime @default(now())
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  employees  Employee[]
+
+  @@map("teams")
+}
+
+model Designation {
+  id           String   @id @default(cuid())
+  title        String
+  departmentId String?
+  level        Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  employees  Employee[]
+
+  @@map("designations")
 }
 
 // ─────────────────────────────────────────
@@ -129,47 +161,50 @@ model Department {
 // ─────────────────────────────────────────
 
 model Organization {
-  id              String   @id @default(cuid())
-  name            String   @default("My Agency OS")
-  
+  id   String @id @default(cuid())
+  name String @default("My Agency OS")
+
   // Whitelabel Branding
-  logoUrl         String?  // URL to Cloudflare R2
+  logoUrl         String? // URL to Cloudflare R2
+  academyLogoUrl  String? // Separate logo for academy/student documents
   faviconUrl      String?
-  primaryColor    String   @default("#2563eb") // Default Blue
-  darkModeDefault Boolean  @default(true)
-  
+  primaryColor    String  @default("#2563eb") // Default Blue
+  darkModeDefault Boolean @default(true)
+
   // Contact Info
-  supportEmail    String?
-  billingAddress  String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  supportEmail   String?
+  billingAddress String?
+  website        String?
+  phone          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("organization")
 }
 
 model FinanceSettings {
-  id                String   @id @default(cuid())
-  baseCurrency      String   @default("INR")
-  currencySymbol    String   @default("₹")
-  taxModel          String   @default("GST") // GST | VAT | NONE
+  id                String  @id @default(cuid())
+  baseCurrency      String  @default("INR")
+  currencySymbol    String  @default("₹")
+  taxModel          String  @default("GST") // GST | VAT | NONE
   gstNumber         String?
   vatNumber         String?
-  fiscalYearStart   Int      @default(4)  // 4 = April (India), 1 = January
-  invoicePrefix     String   @default("INV")
-  invoiceNextNumber Int      @default(1)
+  fiscalYearStart   Int     @default(4) // 4 = April (India), 1 = January
+  invoicePrefix     String  @default("INV")
+  invoiceNextNumber Int     @default(1)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("finance_settings")
 }
 
 model IntegrationKey {
   id             String   @id @default(cuid())
-  service        String   // RAZORPAY | PHONEPE | STRIPE | SMTP | WHATSAPP | GOOGLE
-  keyName        String   // e.g. KEY_ID, SECRET_KEY, WEBHOOK_SECRET
-  encryptedValue String   // AES-256 encrypted value
+  service        String // RAZORPAY | PHONEPE | STRIPE | SMTP | WHATSAPP | GOOGLE
+  keyName        String // e.g. KEY_ID, SECRET_KEY, WEBHOOK_SECRET
+  encryptedValue String // AES-256 encrypted value
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -272,18 +307,18 @@ model Company {
 }
 
 model Subscription {
-  id            String   @id @default(cuid())
-  companyId     String
-  productName   String
-  planName      String
-  mrr           Float
-  status        String   @default("active") // active | paused | at_risk | churned
-  nextBilling   DateTime
-  usage         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  companyId   String
+  productName String
+  planName    String
+  mrr         Float
+  status      String   @default("active") // active | paused | at_risk | churned
+  nextBilling DateTime
+  usage       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
@@ -344,21 +379,21 @@ enum ProposalStatus {
 }
 
 model Proposal {
-  id           String         @id @default(cuid())
-  leadId       String?
-  title        String
-  status       ProposalStatus @default(DRAFT)
-  version      Int            @default(1)
-  validUntil   DateTime?
-  totalAmount  Float
-  currency     String         @default("INR")
-  notes        String?
-  signedAt     DateTime?
-  signatureUrl String?
-  publicToken  String?        @unique
-  signatureData String?       @db.Text
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  leadId        String?
+  title         String
+  status        ProposalStatus @default(DRAFT)
+  version       Int            @default(1)
+  validUntil    DateTime?
+  totalAmount   Float
+  currency      String         @default("INR")
+  notes         String?
+  signedAt      DateTime?
+  signatureUrl  String?
+  publicToken   String?        @unique
+  signatureData String?        @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   lead          Lead?               @relation(fields: [leadId], references: [id])
   items         ProposalItem[]
@@ -422,14 +457,45 @@ model Project {
   updatedAt   DateTime      @updatedAt
 
   company  Company?       @relation(fields: [companyId], references: [id])
-  phases        ProjectPhase[]
-  tasks         Task[]
-  files         ProjectFile[]
-  brief         Brief?
-  timeLogs      TimeLog[]
+  phases   ProjectPhase[]
+  tasks    Task[]
+  files    ProjectFile[]
+  brief    Brief?
+  timeLogs TimeLog[]
+  billingSchedule BillingSchedule?
 
   @@index([status])
   @@map("projects")
+}
+
+model BillingSchedule {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  type      String   // ONE_TIME | INSTALLMENTS
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  project    Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestones BillingMilestone[]
+
+  @@map("billing_schedules")
+}
+
+model BillingMilestone {
+  id              String   @id @default(cuid())
+  scheduleId      String
+  name            String   // e.g., "Advance Payment", "Final Handover"
+  amount          Float
+  dueDate         DateTime?
+  status          String   @default("PENDING") // PENDING, INVOICED, PAID
+  invoiceId       String?  @unique // Links to the actual Invoice
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  schedule  BillingSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  invoice   Invoice?        @relation(fields: [invoiceId], references: [id])
+
+  @@map("billing_milestones")
 }
 
 model ProjectPhase {
@@ -521,17 +587,17 @@ model TaskAttachment {
 }
 
 model ProjectFile {
-  id         String   @id @default(cuid())
-  projectId  String
-  name       String
-  folderPath String   @default("/")
-  fileUrl    String
-  fileSize   Int
-  mimeType   String
-  version    Int      @default(1)
-  uploadedBy String
-  isDelivery Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id          String    @id @default(cuid())
+  projectId   String
+  name        String
+  folderPath  String    @default("/")
+  fileUrl     String
+  fileSize    Int
+  mimeType    String
+  version     Int       @default(1)
+  uploadedBy  String
+  isDelivery  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
   approvedAt  DateTime?
   approvedBy  String?
   clientNotes String?
@@ -584,24 +650,34 @@ enum EmploymentType {
 }
 
 model Employee {
-  id             String         @id @default(cuid())
-  userId         String         @unique
-  employeeCode   String         @unique
-  departmentId   String?
-  jobTitle       String
-  employmentType EmploymentType @default(FULL_TIME)
-  managerId      String?
-  joiningDate    DateTime
-  salary         Float?
-  currency       String         @default("INR")
-  skills         String[]
-  bio            String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id               String         @id @default(cuid())
+  userId           String         @unique
+  employeeCode     String         @unique
+  departmentId     String?
+  jobTitle         String
+  employmentType   EmploymentType @default(FULL_TIME)
+  managerId        String?
+  joiningDate      DateTime
+  salary           Float?
+  currency         String         @default("INR")
+  skills           String[]
+  bio              String?
+  bloodGroup       String?
+  emergencyContact Json? // { name, relation, phone }
+  bankDetails      Json? // { bankName, accountNo, ifsc, branch }
+  governmentId     Json? // { type: 'PAN'|'AADHAAR'|'PASSPORT', number }
+  teamId           String?
+  designationId    String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   user            User                @relation(fields: [userId], references: [id])
   department      Department?         @relation(fields: [departmentId], references: [id])
+  team            Team?               @relation(fields: [teamId], references: [id])
+  designation     Designation?        @relation(fields: [designationId], references: [id])
   attendances     Attendance[]
+  telemetry       EmployeeTelemetry[]
+  screenshots     ScreenshotLog[]
   leaveRequests   LeaveRequest[]
   leaveBalances   LeaveBalance[]
   documents       EmployeeDocument[]
@@ -628,10 +704,39 @@ model Attendance {
   status           String // PRESENT | ABSENT | LATE | HALF_DAY | HOLIDAY | LEAVE
   notes            String?
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, date])
   @@map("attendance")
+}
+
+model EmployeeTelemetry {
+  id              String   @id @default(cuid())
+  employeeId      String
+  date            DateTime @db.Date
+  timestamp       DateTime @default(now())
+  activeMinutes   Int      @default(0)
+  idleMinutes     Int      @default(0)
+  keyboardStrokes Int      @default(0)
+  mouseClicks     Int      @default(0)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, date])
+  @@map("employee_telemetry")
+}
+
+model ScreenshotLog {
+  id         String   @id @default(cuid())
+  employeeId String
+  timestamp  DateTime @default(now())
+  imageUrl   String
+  notes      String?
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, timestamp])
+  @@map("screenshot_logs")
 }
 
 model TimeEntry {
@@ -644,7 +749,7 @@ model TimeEntry {
   description String?
   isOvertime  Boolean   @default(false)
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("time_entries")
 }
@@ -679,7 +784,7 @@ model LeaveRequest {
   approvedAt DateTime?
   createdAt  DateTime    @default(now())
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("leave_requests")
 }
@@ -693,7 +798,7 @@ model LeaveBalance {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, type, year])
   @@map("leave_balances")
@@ -716,7 +821,7 @@ model Payslip {
   paidAt          DateTime?
   createdAt       DateTime  @default(now())
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, month, year])
   @@map("payslips")
@@ -731,7 +836,7 @@ model EmployeeDocument {
   uploadedBy String
   createdAt  DateTime @default(now())
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("employee_documents")
 }
@@ -760,7 +865,7 @@ model OnboardingTask {
   completedAt DateTime?
   createdAt   DateTime  @default(now())
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("onboarding_tasks")
 }
@@ -885,6 +990,7 @@ model Invoice {
 
   items    InvoiceItem[]
   payments Payment[]
+  billingMilestone BillingMilestone?
 
   @@index([status])
   @@map("invoices")
@@ -966,36 +1072,100 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum DeliveryMode {
+  ONLINE
+  ONSITE
+  HYBRID
+}
+
 model Student {
   id           String    @id @default(cuid())
   userId       String    @unique
   studentCode  String    @unique
+  deliveryMode DeliveryMode @default(ONSITE)
   dateOfBirth  DateTime? @db.Date
   address      String?
-  parentName   String?
-  parentPhone  String?
+  parentName       String?
+  parentPhone      String?
+  gender           String?
+  profession       String?
+  college          String?
+  bloodGroup       String?   // A+, A-, B+, B-, O+, O-, AB+, AB-
+  emergencyContact String?   // JSON: { name, phone, relation }
+  interestAreas    String[]
+  learningLanguage String?
+  country          String?
+  state            String?
+  city             String?
+  currentStreak    Int       @default(0)
   portfolio    String?
   isAlumni     Boolean   @default(false)
   graduatedAt  DateTime?
   xp           Int       @default(0)
+  careerScore  Int       @default(0)  // 0-100, computed
   referralCode String?   @unique
   referredById String?
   leadId       String?
   createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id])
+  user        User           @relation(fields: [userId], references: [id])
   application Application?
   enrollments Enrollment[]
   Certificate Certificate[]
   QuizAttempt QuizAttempt[]
-  badges      StudentBadge[]
+  badges          StudentBadge[]
+  portfolioProfile StudentPortfolio?
+  skills          SkillMatrix[]
+  projectMembers  AcademyProjectMember[]
+  internships     Internship[]
+  placements      PlacementApplication[]
+  wallet          DigitalWallet?
+  purchases       MarketplacePurchase[]
+  eventRegs       EventRegistration[]
+  payoutsEarned   ReferralPayout[]   @relation("ReferrerPayouts")
+  payoutAsReferee ReferralPayout[]   @relation("ReferredPayouts")
 
   referredBy        Student?   @relation("StudentReferrals", fields: [referredById], references: [id])
   referrals         Student[]  @relation("StudentReferrals")
   commissionsEarned Referral[] @relation("ReferrerCommissions")
   referralRecord    Referral?  @relation("ReferredStudent")
+  officeHourBookings OfficeHourBooking[]
+  attendanceRecords  StudentAttendance[]
 
   @@map("students")
+}
+
+model StudentAttendance {
+  id          String   @id @default(cuid())
+  studentId   String
+  date        DateTime @db.Date
+  status      String   @default("PRESENT") // PRESENT, LATE, ABSENT
+  scannedAt   DateTime @default(now())
+  location    String?
+  notes       String?
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@map("student_attendance")
+}
+
+model SkillMatrix {
+  id         String   @id @default(cuid())
+  studentId  String
+  skillName  String   // e.g. "Graphic Design", "Figma", "Communication"
+  category   String   // TECHNICAL | SOFT | TOOL | DOMAIN
+  rating     Int      @default(0) // 0–5 stars
+  endorsedBy String?  // Educator userId who verified this
+  notes      String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, skillName])
+  @@map("skill_matrix")
 }
 
 model Application {
@@ -1079,11 +1249,252 @@ model Enrollment {
   totalFee   Float
   status     String   @default("ACTIVE") // ACTIVE | COMPLETED | DROPPED
 
-  student Student @relation(fields: [studentId], references: [id])
-  batch   Batch   @relation(fields: [batchId], references: [id])
+  student      Student          @relation(fields: [studentId], references: [id])
+  batch        Batch            @relation(fields: [batchId], references: [id])
+  installments FeeInstallment[]
 
   @@unique([studentId, batchId])
   @@map("enrollments")
+}
+
+enum FeeStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+model FeeInstallment {
+  id           String    @id @default(cuid())
+  enrollmentId String
+  dueDate      DateTime  @db.Date
+  amount       Float
+  paidAmount   Float     @default(0)
+  status       FeeStatus @default(PENDING)
+  paidAt       DateTime?
+  paymentRef   String?   // UPI txn ID, cheque number, etc.
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  enrollment Enrollment   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  followUps  FeeFollowUp[]
+
+  @@map("fee_installments")
+}
+
+model FeeFollowUp {
+  id             String    @id @default(cuid())
+  installmentId  String
+  staffId        String?
+  channel        String    // CALL | WHATSAPP | EMAIL | VISIT
+  notes          String?
+  nextFollowUpAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  installment FeeInstallment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@map("fee_follow_ups")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACADEMY — LIVE PROJECT HUB
+// ─────────────────────────────────────────────────────────────
+
+enum AcademyProjectType {
+  INTERNAL
+  CLIENT
+  INDUSTRY
+  HACKATHON
+  RESEARCH
+  COMPETITION
+  FREELANCE
+}
+
+enum AcademyProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+model AcademyProject {
+  id          String               @id @default(cuid())
+  title       String
+  type        AcademyProjectType
+  status      AcademyProjectStatus @default(PLANNING)
+  batchId     String?
+  mentorId    String?              // Educator userId
+  description String?
+  githubUrl   String?
+  figmaUrl    String?
+  driveUrl    String?
+  presentationUrl String?
+  clientName  String?
+  clientFeedback String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  members     AcademyProjectMember[]
+  tasks       AcademyProjectTask[]
+
+  @@map("academy_projects")
+}
+
+model AcademyProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  studentId String
+  role      String   @default("MEMBER") // LEAD | MEMBER
+  joinedAt  DateTime @default(now())
+
+  project AcademyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, studentId])
+  @@map("academy_project_members")
+}
+
+model AcademyProjectTask {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  assignedTo  String?  // studentId
+  status      String   @default("TODO") // TODO | IN_PROGRESS | DONE
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  project AcademyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("academy_project_tasks")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACADEMY — INTERNSHIP PORTAL
+// ─────────────────────────────────────────────────────────────
+
+enum InternshipStatus {
+  APPLIED
+  SELECTED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model Internship {
+  id           String          @id @default(cuid())
+  studentId    String
+  companyName  String
+  role         String
+  stipend      Float?
+  startDate    DateTime?
+  endDate      DateTime?
+  mentorName   String?
+  mentorEmail  String?
+  status       InternshipStatus @default(APPLIED)
+  offerLetterUrl String?
+  certificateUrl String?
+  performanceScore Int?        // 0-100
+  mentorFeedback String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  student  Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  dailyLogs InternshipLog[]
+
+  @@map("internships")
+}
+
+model InternshipLog {
+  id           String   @id @default(cuid())
+  internshipId String
+  date         DateTime @db.Date
+  summary      String
+  hoursWorked  Float    @default(8)
+  createdAt    DateTime @default(now())
+
+  internship Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+
+  @@map("internship_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACADEMY — PLACEMENT ENGINE
+// ─────────────────────────────────────────────────────────────
+
+enum PlacementStatus {
+  APPLIED
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_DONE
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  JOINED
+  REJECTED
+}
+
+model PlacementCompany {
+  id          String   @id @default(cuid())
+  name        String
+  website     String?
+  industry    String?
+  logoUrl     String?
+  contactName String?
+  contactEmail String?
+  contactPhone String?
+  createdAt   DateTime @default(now())
+
+  jobs PlacementJob[]
+
+  @@map("placement_companies")
+}
+
+model PlacementJob {
+  id          String   @id @default(cuid())
+  companyId   String
+  title       String
+  description String?
+  location    String?
+  salaryMin   Float?
+  salaryMax   Float?
+  skills      String[] // Required skills
+  minCareerScore Int   @default(0)  // Minimum career score to be eligible
+  openDate    DateTime @default(now())
+  closeDate   DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  company      PlacementCompany     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications PlacementApplication[]
+
+  @@map("placement_jobs")
+}
+
+model PlacementApplication {
+  id           String          @id @default(cuid())
+  jobId        String
+  studentId    String
+  status       PlacementStatus @default(APPLIED)
+  appliedAt    DateTime        @default(now())
+  interviewAt  DateTime?
+  offerAmount  Float?
+  offerDate    DateTime?
+  joinedDate   DateTime?
+  rejectionReason String?
+  notes        String?
+  updatedAt    DateTime        @updatedAt
+
+  job     PlacementJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  student Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, studentId])
+  @@map("placement_applications")
 }
 
 model SessionAttendance {
@@ -1110,6 +1521,10 @@ model LMSCourse {
   outcomes      String[]
   prerequisites String[]
   isPublished   Boolean   @default(false)
+  pricing       Float?
+  seoTitle      String?
+  trailerVideoId String?
+  draftStatus   String    @default("DRAFT") // DRAFT | PENDING_REVIEW | PUBLISHED
   publishedAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -1142,6 +1557,10 @@ enum LessonType {
   ASSIGNMENT
   QUIZ
   LINK
+  TEXT
+  CODE
+  DESIGN
+  RICH_TEXT
 }
 
 model LMSLesson {
@@ -1153,6 +1572,7 @@ model LMSLesson {
   videoId     String? // Cloudflare Stream / Mux ID
   duration    Int? // Minutes
   description String?
+  richText    String? // Notion-style block JSON or HTML
   isPreview   Boolean    @default(false)
   sortOrder   Int
   resources   Json? // Downloadable resources array
@@ -1198,10 +1618,12 @@ model Assignment {
 }
 
 enum SubmissionStatus {
+  DRAFT
   SUBMITTED
   UNDER_REVIEW
   GRADED
   RESUBMIT_REQUESTED
+  APPROVED        // Final approved — triggers auto portfolio push
   FINAL
 }
 
@@ -1211,17 +1633,49 @@ model AssignmentSubmission {
   studentId    String
   fileUrls     String[]
   linkUrl      String?
-  status       SubmissionStatus @default(SUBMITTED)
+  status       SubmissionStatus @default(DRAFT)
   grade        Int?
   feedback     String?
   gradedBy     String?
   gradedAt     DateTime?
+  versionCount Int              @default(1)
+  pushedToPortfolio Boolean    @default(false)
   submittedAt  DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  assignment Assignment @relation(fields: [assignmentId], references: [id])
+  assignment  Assignment              @relation(fields: [assignmentId], references: [id])
+  versions    SubmissionVersion[]
+  annotations MentorAnnotation[]
 
   @@map("assignment_submissions")
+}
+
+model SubmissionVersion {
+  id           String   @id @default(cuid())
+  submissionId String
+  version      Int      // 1, 2, 3...
+  fileUrls     String[]
+  linkUrl      String?
+  note         String?  // Student's note about what changed
+  submittedAt  DateTime @default(now())
+
+  submission AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("submission_versions")
+}
+
+model MentorAnnotation {
+  id           String   @id @default(cuid())
+  submissionId String
+  mentorId     String
+  content      String   // The annotation / feedback text
+  position     String?  // Optional: { x, y, page } for PDF overlay
+  resolved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  submission AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("mentor_annotations")
 }
 
 model Badge {
@@ -1401,7 +1855,7 @@ model GeneratedDocument {
 
   template DocumentTemplate @relation(fields: [templateId], references: [id])
   user     User?            @relation(fields: [userId], references: [id])
-  proposal Proposal?        @relation(fields: [proposalId], references: [id])
+  proposal Proposal?        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 
   @@map("generated_documents")
 }
@@ -1603,6 +2057,7 @@ model Role {
   createdAt   DateTime @default(now())
 
   permissions Permission[]
+  User        User[]
 
   @@map("roles")
 }
@@ -1637,6 +2092,8 @@ model LandingPage {
   slug        String   @unique
   title       String
   description String?
+  customHtml  String?  @db.Text
+  customCss   String?  @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1666,13 +2123,17 @@ model PageSection {
 // ─────────────────────────────────────────
 
 model Certificate {
-  id            String   @id @default(cuid())
-  certificateId String   @unique // e.g., "GRK-2026-XYZ"
-  studentId     String
-  courseId      String
-  issuedAt      DateTime @default(now())
-  grade         String?
-  metadata      Json? // Optional extra info (e.g. skills acquired)
+  id               String   @id @default(cuid())
+  certificateId    String   @unique // e.g., "GRK-2026-XYZ"
+  verificationCode String   @unique @default(cuid()) // Short code for public verify page
+  studentId        String
+  courseId         String
+  issuedAt         DateTime @default(now())
+  grade            String?
+  pdfUrl           String?  // S3/hosted PDF URL
+  whatsappSent     Boolean  @default(false)
+  emailSent        Boolean  @default(false)
+  metadata         Json?    // Optional extra info (e.g. skills acquired)
 
   student Student @relation(fields: [studentId], references: [id])
   course  Course  @relation(fields: [courseId], references: [id])
@@ -1809,12 +2270,381 @@ model OfficeHour {
   id           String   @id @default(cuid())
   title        String
   mentorId     String
-  meetLink     String
+  meetLink     String?
   scheduledFor DateTime
+  durationMins Int      @default(15)
+  capacity     Int      @default(1)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  mentor User @relation(fields: [mentorId], references: [id])
+  mentor   User                @relation(fields: [mentorId], references: [id])
+  bookings OfficeHourBooking[]
 
   @@map("office_hours")
+}
+
+model OfficeHourBooking {
+  id           String   @id @default(cuid())
+  officeHourId String
+  studentId    String
+  notes        String?
+  status       String   @default("CONFIRMED") // CONFIRMED, CANCELLED
+  createdAt    DateTime @default(now())
+
+  officeHour OfficeHour @relation(fields: [officeHourId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([officeHourId, studentId])
+  @@map("office_hour_bookings")
+}
+
+
+// ─────────────────────────────────────────
+// MODULE 06+ — LMS 2.0 Extended EduOS
+// ─────────────────────────────────────────
+
+model Educator {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  designation        String?
+  company            String?
+  yearsExperience    Int?
+  skills             String[]
+  bio                String?
+  portfolioUrl       String?
+  linkedInUrl        String?
+  verificationStatus String    @default("PENDING") // PENDING | VERIFIED | REJECTED
+  deliveryMode       DeliveryMode @default(ONSITE)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("educators")
+}
+
+enum QuestionType {
+  MCQ
+  MULTI_SELECT
+  TRUE_FALSE
+  ESSAY
+  CODE
+  MATCHING
+}
+
+model StudentPortfolio {
+  id          String   @id @default(cuid())
+  studentId   String   @unique
+  bio         String?
+  resumeUrl   String?
+  githubUrl   String?
+  behanceUrl  String?
+  dribbbleUrl String?
+  isPublic    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  projects PortfolioProject[]
+
+  @@map("student_portfolios")
+}
+
+model PortfolioProject {
+  id          String   @id @default(cuid())
+  portfolioId String
+  title       String
+  description String
+  imageUrl    String?
+  mediaUrls   String[] // assignment files, screenshots, etc.
+  linkUrl     String?
+  category    String   @default("PROJECT") // PROJECT | ASSIGNMENT | CERTIFICATE | INTERNSHIP
+  createdAt   DateTime @default(now())
+
+  portfolio StudentPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_projects")
+}
+
+model DiscussionForum {
+  id          String   @id @default(cuid())
+  courseId    String?  // If tied to a course
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  threads DiscussionThread[]
+
+  @@map("discussion_forums")
+}
+
+model DiscussionThread {
+  id        String   @id @default(cuid())
+  forumId   String
+  authorId  String   // User ID
+  title     String
+  content   String
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  forum   DiscussionForum @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  replies DiscussionReply[]
+
+  @@map("discussion_threads")
+}
+
+model DiscussionReply {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String   // User ID
+  content   String
+  createdAt DateTime @default(now())
+
+  thread DiscussionThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@map("discussion_replies")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 26 — WALLET & REWARDS
+// ─────────────────────────────────────────────────────────────
+
+model DigitalWallet {
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  balance   Float    @default(0)
+  currency  String   @default("INR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student      Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("digital_wallets")
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  amount      Float
+  type        String   // CREDIT | DEBIT
+  source      String   // REFERRAL | SCHOLARSHIP | REFUND | PURCHASE | REWARD
+  description String?
+  createdAt   DateTime @default(now())
+
+  wallet DigitalWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_transactions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 27 — MARKETPLACE
+// ─────────────────────────────────────────────────────────────
+
+model MarketplaceItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  type        String   // COURSE | TEMPLATE | TICKET | SESSION | BOOK
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  purchases MarketplacePurchase[]
+
+  @@map("marketplace_items")
+}
+
+model MarketplacePurchase {
+  id         String   @id @default(cuid())
+  studentId  String
+  itemId     String
+  amountPaid Float
+  createdAt  DateTime @default(now())
+
+  student Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    MarketplaceItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("marketplace_purchases")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 28 — EVENT MANAGEMENT
+// ─────────────────────────────────────────────────────────────
+
+model CampusEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   // WORKSHOP | HACKATHON | GUEST_SESSION | WEBINAR
+  date        DateTime
+  location    String?
+  maxCapacity Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  registrations EventRegistration[]
+
+  @@map("campus_events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  studentId String
+  status    String   @default("REGISTERED") // REGISTERED | ATTENDED | CANCELLED
+  createdAt DateTime @default(now())
+
+  event   CampusEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, studentId])
+  @@map("event_registrations")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 29 — CAMPUS COMMUNITY
+// ─────────────────────────────────────────────────────────────
+
+model CommunityPost {
+  id          String   @id @default(cuid())
+  authorId    String   // Student or Educator userId
+  content     String
+  mediaUrls   String[]
+  likesCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("community_posts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 30 — REFERRAL SYSTEM
+// ─────────────────────────────────────────────────────────────
+
+model ReferralPayout {
+  id            String   @id @default(cuid())
+  referrerId    String
+  referredId    String
+  amount        Float
+  courseType    String   // ONSITE | ONLINE
+  percentage    Float
+  status        String   @default("PENDING") // PENDING | PAID | REJECTED
+  paidAt        DateTime?
+  paymentMethod String?  // UPI, BANK_TRANSFER, CASH
+  transactionId String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  referrer      Student  @relation("ReferrerPayouts", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred      Student  @relation("ReferredPayouts", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@map("referral_payouts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 31 — WALK-IN & DEMO REGISTRATION
+// ─────────────────────────────────────────────────────────────
+
+enum WalkInStatus {
+  NEW
+  COUNSELLING
+  DEMO_SCHEDULED
+  CONVERTED
+  FOLLOW_UP
+  COLD
+  LOST
+}
+
+enum WalkInType {
+  WALKIN
+  DEMO
+  ENQUIRY
+  CAMPUS_TOUR
+}
+
+model WalkIn {
+  id              String       @id @default(cuid())
+  name            String
+  phone           String
+  email           String?
+  interestArea    String       // Course or program name
+  type            WalkInType   @default(WALKIN)
+  source          String       @default("OTHER") // GOOGLE | INSTAGRAM | FACEBOOK | FRIEND | REFERRAL | YOUTUBE | HOARDING | OTHER
+  status          WalkInStatus @default(NEW)
+  counsellorId    String?      // Assigned counsellor User ID
+  preferredDate   DateTime?    // Preferred demo date
+  notes           String?
+  followUpAt      DateTime?
+  convertedAt     DateTime?
+  whatsappSent    Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  demoRegistration DemoRegistration?
+
+  @@map("walk_ins")
+}
+
+model DemoSession {
+  id          String   @id @default(cuid())
+  title       String
+  courseId    String?
+  scheduledAt DateTime
+  durationMins Int     @default(60)
+  venue       String?
+  capacity    Int      @default(20)
+  mentorId    String?  // Presenter / mentor User ID
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  registrations DemoRegistration[]
+
+  @@map("demo_sessions")
+}
+
+model DemoRegistration {
+  id            String   @id @default(cuid())
+  demoSessionId String
+  walkInId      String   @unique
+  status        String   @default("REGISTERED") // REGISTERED | ATTENDED | NO_SHOW | INTERESTED | NOT_INTERESTED
+  feedback      String?
+  createdAt     DateTime @default(now())
+
+  demoSession DemoSession @relation(fields: [demoSessionId], references: [id], onDelete: Cascade)
+  walkIn      WalkIn      @relation(fields: [walkInId], references: [id], onDelete: Cascade)
+
+  @@map("demo_registrations")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 32 — DYNAMIC FORM BUILDER
+// ─────────────────────────────────────────────────────────────
+
+model EnquiryForm {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  fields      Json     // Array of { id, label, type, required, options }
+  createLead  Boolean  @default(true) // Whether to push to Admission CRM
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions FormSubmission[]
+
+  @@map("enquiry_forms")
+}
+
+model FormSubmission {
+  id        String   @id @default(cuid())
+  formId    String
+  data      Json     // Collected responses { fieldId: value }
+  leadId    String?  // Reference to created lead if applicable
+  createdAt DateTime @default(now())
+
+  form EnquiryForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("form_submissions")
 }

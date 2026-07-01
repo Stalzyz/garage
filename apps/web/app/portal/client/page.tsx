@@ -4,6 +4,7 @@ import { Briefcase, CreditCard, LifeBuoy, CheckCircle2, Clock, Loader2, ArrowRig
 import { useApi } from "@/lib/useApi"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 export default function ClientPortalPage() {
   const { data: session } = useSession()
@@ -105,9 +106,9 @@ export default function ClientPortalPage() {
                           <CheckCircle2 className="w-3 h-3" /> Paid
                         </div>
                       ) : (
-                        <Link href={`/portal/invoices/${invoice.id}`}>
-                          <button className="text-[10px] text-blue-400 font-bold uppercase mt-1 hover:underline">View / Pay</button>
-                        </Link>
+                        <button onClick={() => toast("Invoice viewer coming soon!")}>
+                          <span className="text-[10px] text-blue-400 font-bold uppercase mt-1 hover:underline block">View / Pay</span>
+                        </button>
                       )}
                     </div>
                   </div>

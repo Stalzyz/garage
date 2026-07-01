@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, GripVertical, Globe } from "lucide-react"
+import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, Trash2, GripVertical, Globe } from "lucide-react"
+import { MediaPicker } from "../../../../src/components/builder/MediaPicker"
 
 export default function CMSPageEditor() {
   const { slug } = useParams()
@@ -51,7 +52,7 @@ export default function CMSPageEditor() {
     if (section.content?.type === 'html' && section.content?.html) {
       setMode('html')
       setContent(section.content.html)
-    } else if (section.sectionId === 'cards' && Array.isArray(section.content)) {
+    } else if (['cards', 'products', 'portfolio'].includes(section.sectionId?.toLowerCase()) && Array.isArray(section.content)) {
       setMode('visual')
       setContent(section.content)
     } else {
@@ -99,23 +100,69 @@ export default function CMSPageEditor() {
   }
 
   const handleCreateSection = async () => {
-    if (!newSectionId) {
-      alert("Please type a section name (e.g. 'cards') before clicking the plus button.");
+    if (!newSectionId.trim()) return;
+
+    // Check if it already exists in state
+    if (sections.find(s => s.sectionId === newSectionId.trim())) {
+      alert(`Section "${newSectionId}" already exists!`);
       return;
     }
     try {
-      // If it's named 'cards', default it to an array for the visual builder
-      const initContent = newSectionId === 'cards' ? [] : { type: 'html', html: '<div></div>' };
+      let initContent: any = { type: 'html', html: '<div></div>' };
+      const sectionIdLower = newSectionId.toLowerCase();
+      
+      if (sectionIdLower === 'cards') {
+        const dummyProjects = [
+          { id: 'p1', title: 'Aura SaaS Platform', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80' },
+          { id: 'p2', title: 'Lumina Dashboard', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80' },
+        ];
+        initContent = [
+          { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures.", iconName: "Sparkles", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
+          { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: dummyProjects },
+          { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure?", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
+          { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
+          { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
+          { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true }
+        ];
+      } else if (sectionIdLower === 'products') {
+        initContent = [
+          { id: "prod_1", title: "Grafty AI Automation", description: "Proprietary WhatsApp Business API integration that automates 90% of your customer support.", image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80", link: "#" },
+          { id: "prod_2", title: "Nexus E-Commerce", description: "Headless e-commerce infrastructure built for extreme scale and instantaneous loads.", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80", link: "#" }
+        ];
+      } else if (sectionIdLower === 'portfolio') {
+        initContent = [
+          { id: "port_1", title: "Vanguard Identity", image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
+          { id: "port_2", title: "Zephyr Campaign", image: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&q=80" },
+          { id: "port_3", title: "Lumina Dashboard", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80" },
+          { id: "port_4", title: "Nexus Mobile App", image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80" }
+        ];
+      }
       
       await fetch(`/api/v1/cms/pages/${slug}/sections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sectionId: newSectionId, content: initContent })
-      })
-      setNewSectionId("")
-      fetchPage()
+      });
+      setNewSectionId('');
+      fetchPage();
     } catch (err) {
-      console.error(err)
+      console.error(err);
+      alert('Failed to create section');
+    }
+  }
+
+  const handleDeleteSection = async (e: React.MouseEvent, sectionId: string) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to delete the "${sectionId}" section?`)) return;
+    try {
+      await fetch(`/api/v1/cms/pages/${slug}/sections/${sectionId}`, {
+        method: 'DELETE',
+      });
+      if (activeSection?.sectionId === sectionId) setActiveSection(null);
+      fetchPage();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete section');
     }
   }
 
@@ -148,16 +195,25 @@ export default function CMSPageEditor() {
   }
 
   const addCard = () => {
-    setContent([...content, { 
-      id: `c_${Date.now()}`, 
-      category: "New Service", 
-      title: "Untitled", 
-      subtitle: "Description goes here.", 
-      iconName: "Sparkles", 
-      colorHex: "#4ade80",
-      cta: "Learn More",
-      isContactForm: false
-    }]);
+    if (activeSection?.sectionId === 'products') {
+      setContent([...content, { id: `p_${Date.now()}`, title: "New Product", description: "Short description...", image: "", link: "#" }]);
+    } else if (activeSection?.sectionId === 'portfolio') {
+      setContent([...content, { id: `img_${Date.now()}`, title: "Image Title", image: "" }]);
+    } else {
+      setContent([...content, { 
+        id: `c_${Date.now()}`, 
+        category: "New Service", 
+        title: "Untitled", 
+        subtitle: "Description goes here.", 
+        iconName: "Sparkles", 
+        colorHex: "#4ade80",
+        cta: "Learn More",
+        isContactForm: false,
+        isProducts: false,
+        isPortfolio: false,
+        isAcademy: false
+      }]);
+    }
   }
 
   const removeCard = (index: number) => {
@@ -175,7 +231,10 @@ export default function CMSPageEditor() {
 
   if (!page) return <div className="p-12 text-center text-slate-500 animate-pulse">Loading CMS Engine...</div>
 
-  const isCardsSection = activeSection?.sectionId === 'cards';
+  const isCardsSection = activeSection?.sectionId?.toLowerCase() === 'cards';
+  const isProductsSection = activeSection?.sectionId?.toLowerCase() === 'products';
+  const isPortfolioSection = activeSection?.sectionId?.toLowerCase() === 'portfolio';
+  const isVisualSection = isCardsSection || isProductsSection || isPortfolioSection;
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col bg-slate-50">
@@ -210,23 +269,31 @@ export default function CMSPageEditor() {
                 placeholder="new_section"
                 value={newSectionId}
                 onChange={(e) => setNewSectionId(e.target.value)}
-                className="flex-1 text-sm border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-900"
+                className="flex-1 text-sm border border-slate-200 rounded px-2 py-1 text-slate-900 bg-white outline-none focus:border-slate-900"
               />
               <button onClick={handleCreateSection} className="p-1.5 bg-slate-100 rounded hover:bg-slate-200">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 italic">Name section 'cards' to use Visual Builder.</p>
+            <p className="text-[10px] text-slate-400 mt-2 italic">Name section 'cards', 'products', or 'portfolio' to use Visual Builder.</p>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {sections.map(section => (
-              <button 
-                key={section.id}
-                onClick={() => selectSection(section)}
-                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm mb-1 transition-colors ${activeSection?.id === section.id ? 'bg-[#49ABC9]/10 text-[#49ABC9] font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
-              >
-                {section.sectionId}
-              </button>
+              <div key={section.id} className="relative group">
+                <button 
+                  onClick={() => selectSection(section)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm mb-1 transition-colors pr-10 ${activeSection?.id === section.id ? 'bg-[#49ABC9]/10 text-[#49ABC9] font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  {section.sectionId}
+                </button>
+                <button 
+                  onClick={(e) => handleDeleteSection(e, section.sectionId)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                  title="Delete Section"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             ))}
             {sections.length === 0 && <div className="p-4 text-sm text-slate-400 text-center">No sections created yet.</div>}
           </div>
@@ -266,7 +333,7 @@ export default function CMSPageEditor() {
                 <div className="flex items-center gap-4">
                   <span className="font-mono text-sm font-bold text-slate-700">{activeSection.sectionId}</span>
                   <div className="flex items-center bg-slate-200 rounded-lg p-0.5">
-                    {isCardsSection && (
+                    {isVisualSection && (
                       <button 
                         onClick={() => { setMode('visual'); setContent(typeof content === 'string' ? JSON.parse(content || '[]') : content); }}
                         className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors ${mode === 'visual' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
@@ -312,46 +379,120 @@ export default function CMSPageEditor() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category / Tag</label>
-                              <input type="text" value={card.category || ''} onChange={e => updateCard(idx, 'category', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" placeholder="e.g. Manifesto" />
+                              <input type="text" value={card.category || ''} onChange={e => updateCard(idx, 'category', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Manifesto" />
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Card Title</label>
-                              <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold" placeholder="e.g. The Digital Ecosystem" />
+                              <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 font-bold" placeholder="e.g. The Digital Ecosystem" />
                             </div>
                             <div className="col-span-1 md:col-span-2">
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Subtitle / Description</label>
-                              <textarea value={card.subtitle || ''} onChange={e => updateCard(idx, 'subtitle', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 min-h-[80px]" placeholder="Detailed description..." />
+                              <textarea value={card.subtitle || ''} onChange={e => updateCard(idx, 'subtitle', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 min-h-[80px]" placeholder="Detailed description..." />
                             </div>
                             <div>
                               <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Hex Color</label>
                               <div className="flex gap-2">
                                 <input type="color" value={card.colorHex || "#ffffff"} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="w-10 h-10 p-1 border border-slate-200 rounded" />
-                                <input type="text" value={card.colorHex || ""} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded outline-none focus:border-[#49ABC9]" />
+                                <input type="text" value={card.colorHex || ""} onChange={(e) => updateCard(idx, 'colorHex', e.target.value)} className="flex-1 min-w-0 px-3 py-2 border border-slate-200 text-slate-900 bg-white rounded outline-none focus:border-[#49ABC9]" />
                               </div>
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lucide Icon Name</label>
-                              <input type="text" value={card.iconName || ''} onChange={e => updateCard(idx, 'iconName', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" placeholder="e.g. Sparkles, Code2" />
+                              <input type="text" value={card.iconName || ''} onChange={e => updateCard(idx, 'iconName', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Sparkles, Code2" />
                             </div>
                             <div className="col-span-1 md:col-span-2">
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Button CTA Text</label>
-                              <input type="text" value={card.cta || ''} onChange={e => updateCard(idx, 'cta', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" placeholder="e.g. Enter the Ecosystem" />
+                              <input type="text" value={card.cta || ''} onChange={e => updateCard(idx, 'cta', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Enter the Ecosystem" />
                             </div>
                           </div>
 
-                          {/* Contact Form Toggle */}
-                          <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-                            <input
-                              type="checkbox"
-                              id={`contact-form-${idx}`}
-                              checked={card.isContactForm || false}
-                              onChange={(e) => updateCard(idx, 'isContactForm', e.target.checked as any)}
-                              className="w-4 h-4 text-[#49ABC9] border-slate-300 rounded focus:ring-[#49ABC9]"
-                            />
-                            <label htmlFor={`contact-form-${idx}`} className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
-                              Render Contact Form instead of Icon
-                            </label>
-                          </div>
+                          {/* Special Render Toggles */}
+                          {isCardsSection && (
+                            <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id={`contact-form-${idx}`}
+                                  checked={card.isContactForm || false}
+                                  onChange={(e) => updateCard(idx, 'isContactForm', e.target.checked as any)}
+                                  className="w-4 h-4 text-[#49ABC9] border-slate-300 rounded focus:ring-[#49ABC9]"
+                                />
+                                <label htmlFor={`contact-form-${idx}`} className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                  Render Contact Form instead of Icon
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id={`products-toggle-${idx}`}
+                                  checked={card.isProducts || false}
+                                  onChange={(e) => updateCard(idx, 'isProducts', e.target.checked as any)}
+                                  className="w-4 h-4 text-[#49ABC9] border-slate-300 rounded focus:ring-[#49ABC9]"
+                                />
+                                <label htmlFor={`products-toggle-${idx}`} className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                  Render Swipeable Products Carousel
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id={`portfolio-toggle-${idx}`}
+                                  checked={card.isPortfolio || false}
+                                  onChange={(e) => updateCard(idx, 'isPortfolio', e.target.checked as any)}
+                                  className="w-4 h-4 text-[#49ABC9] border-slate-300 rounded focus:ring-[#49ABC9]"
+                                />
+                                <label htmlFor={`portfolio-toggle-${idx}`} className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                  Render Portfolio Mosaic Grid
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id={`academy-toggle-${idx}`}
+                                  checked={card.isAcademy || false}
+                                  onChange={(e) => updateCard(idx, 'isAcademy', e.target.checked as any)}
+                                  className="w-4 h-4 text-[#49ABC9] border-slate-300 rounded focus:ring-[#49ABC9]"
+                                />
+                                <label htmlFor={`academy-toggle-${idx}`} className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                  Render Academy CTA
+                                </label>
+                              </div>
+                            </div>
+                          )}
+
+                          {isProductsSection && (
+                            <div className="grid grid-cols-1 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Product Title</label>
+                                <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 font-bold" placeholder="e.g. Grafty AI" />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Description</label>
+                                <textarea value={card.description || ''} onChange={e => updateCard(idx, 'description', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 min-h-[60px]" placeholder="Short description..." />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image/Screenshot URL</label>
+                                <MediaPicker value={card.image || ''} onChange={(url) => updateCard(idx, 'image', url)} placeholder="https://..." />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">CTA Link (View Demo)</label>
+                                <input type="text" value={card.link || ''} onChange={e => updateCard(idx, 'link', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="https://..." />
+                              </div>
+                            </div>
+                          )}
+
+                          {isPortfolioSection && (
+                            <div className="grid grid-cols-1 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image Title (Optional)</label>
+                                <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 font-bold" placeholder="e.g. Modern UI Design" />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image URL</label>
+                                <MediaPicker value={card.image || ''} onChange={(url) => updateCard(idx, 'image', url)} placeholder="https://..." />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Delete Button */}
@@ -367,7 +508,7 @@ export default function CMSPageEditor() {
                       onClick={addCard}
                       className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:border-[#49ABC9] hover:text-[#49ABC9] hover:bg-[#49ABC9]/5 transition-all flex items-center justify-center gap-2"
                     >
-                      <Plus className="w-5 h-5" /> Add New Section Card
+                      <Plus className="w-5 h-5" /> Add New {isProductsSection ? 'Product' : (isPortfolioSection ? 'Portfolio Item' : 'Card')}
                     </button>
                   </div>
                 </div>

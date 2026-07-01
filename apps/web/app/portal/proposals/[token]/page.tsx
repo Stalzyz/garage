@@ -5,11 +5,13 @@ import { useParams, useRouter } from "next/navigation"
 import { Loader2, CheckCircle2, FileSignature, ShieldCheck, ChevronLeft } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export default function PublicProposalPage() {
   const { token } = useParams()
   const router = useRouter()
   const { data: proposal, isLoading, mutate } = useApi<any>(`/crm/public/proposals/${token}`)
+  const org = useOrganization()
   
   const [signatureName, setSignatureName] = useState("")
   const [agreed, setAgreed] = useState(false)
@@ -72,8 +74,13 @@ export default function PublicProposalPage() {
               <h1 className="text-3xl md:text-5xl font-black tracking-tight">{proposal.title}</h1>
             </div>
             <div className="text-right">
-              <p className="font-bold text-sm">Grekam Visuals</p>
-              <p className="text-xs text-slate-500">hello@grekam.com</p>
+              {org.logoUrl
+                ? <img src={org.logoUrl} alt={org.name} className="h-10 w-auto object-contain ml-auto mb-1" />
+                : <div className="w-10 h-10 bg-primary rounded-xl ml-auto mb-1 flex items-center justify-center text-white font-black text-lg">{org.name.charAt(0)}</div>
+              }
+              <p className="font-bold text-sm">{org.name}</p>
+              {org.supportEmail && <p className="text-xs text-slate-500">{org.supportEmail}</p>}
+              {org.phone && <p className="text-xs text-slate-500">{org.phone}</p>}
               <p className="text-xs text-slate-500 mt-2 font-mono">Date: {new Date(proposal.createdAt).toLocaleDateString()}</p>
             </div>
           </div>

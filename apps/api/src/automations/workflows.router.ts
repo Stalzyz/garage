@@ -48,4 +48,30 @@ export default async function workflowsRoutes(app: FastifyInstance) {
     
     return reply.status(201).send(workflow);
   });
+
+  server.post('/:id/steps', {
+    schema: {
+      params: z.object({ id: z.string() }),
+      body: z.object({
+        actionType: z.string(),
+        config: z.any()
+      })
+    }
+  }, async (req, reply) => {
+    const { id } = req.params;
+    const data = req.body;
+
+    const count = await server.prisma.workflowStep.count({ where: { workflowId: id } });
+
+    const step = await server.prisma.workflowStep.create({
+      data: {
+        workflowId: id,
+        actionType: data.actionType,
+        config: data.config,
+        stepOrder: count
+      }
+    });
+
+    return reply.status(201).send(step);
+  });
 }

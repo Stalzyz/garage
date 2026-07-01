@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { ShieldCheck, Award, Calendar, User, Search, CheckCircle2, AlertTriangle } from "lucide-react"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export default function CertificateVerificationPage() {
   const { id } = useParams()
+  const org = useOrganization()
   const [certData, setCertData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -59,8 +61,11 @@ export default function CertificateVerificationPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/academy" className="font-bold text-slate-900 text-lg flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="w-8 h-8 rounded-full bg-[#49ABC9] text-white flex items-center justify-center text-sm">G</span>
-            Grekam Academy
+            {org.academyLogoUrl
+              ? <img src={org.academyLogoUrl} alt={org.name} className="w-8 h-8 rounded-full object-contain" />
+              : <span className="w-8 h-8 rounded-full bg-[#49ABC9] text-white flex items-center justify-center text-sm">{org.name.charAt(0)}</span>
+            }
+            {org.name}
           </Link>
           <div className="hidden md:flex items-center gap-2 text-sm font-bold text-green-600 bg-green-50 px-4 py-2 rounded-full">
             <ShieldCheck className="w-4 h-4" /> Official Record
@@ -73,7 +78,7 @@ export default function CertificateVerificationPage() {
         <div className="bg-green-500 text-white rounded-t-3xl p-8 text-center flex flex-col items-center">
           <CheckCircle2 className="w-16 h-16 mb-4" />
           <h1 className="text-3xl font-black mb-2">Verified Credential</h1>
-          <p className="text-green-100 max-w-lg">This certificate is authentic and was issued directly by Grekam Academy to the student listed below.</p>
+          <p className="text-green-100 max-w-lg">This certificate is authentic and was issued directly by {org.name} to the student listed below.</p>
         </div>
 
         {/* Certificate Details Card */}
@@ -125,7 +130,14 @@ export default function CertificateVerificationPage() {
           </div>
 
           <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col items-center text-center">
-            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&q=80" alt="Grekam Logo" className="h-12 w-12 rounded-full object-cover grayscale opacity-50 mb-4" />
+            {org.academyLogoUrl
+              ? <img src={org.academyLogoUrl} alt={org.name} className="h-12 w-12 rounded-full object-contain mb-4" />
+              : org.logoUrl
+                ? <img src={org.logoUrl} alt={org.name} className="h-12 w-12 rounded-full object-contain mb-4 opacity-50" />
+                : <div className="h-12 w-12 rounded-full bg-[#49ABC9] text-white flex items-center justify-center font-black text-xl mb-4">{org.name.charAt(0)}</div>
+            }
+            <p className="text-sm font-bold text-slate-600 mb-1">{org.name}</p>
+            {org.website && <a href={org.website} className="text-xs text-[#49ABC9] mb-2">{org.website}</a>}
             <p className="text-sm text-slate-500 max-w-md">This credential verifies that the recipient has successfully completed all required modules, assignments, and assessments for this program.</p>
           </div>
 

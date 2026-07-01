@@ -1,10 +1,85 @@
 "use client"
 
-import { useState } from "react"
-import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug, Loader2, Upload } from "lucide-react"
+import { toast } from "sonner"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export default function SystemSettingsPage() {
   const [activeTab, setActiveTab] = useState('branding')
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [academyLogoPreview, setAcademyLogoPreview] = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [workspaceName, setWorkspaceName] = useState('Grekam Visuals')
+  const [phone, setPhone] = useState('')
+  const [website, setWebsite] = useState('')
+  const [supportEmail, setSupportEmail] = useState('')
+  const [billingAddress, setBillingAddress] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const academyFileInputRef = useRef<HTMLInputElement>(null)
+  const org = useOrganization()
+
+  // Pre-populate from live org data when context loads
+  useEffect(() => {
+    if (org.name) setWorkspaceName(org.name)
+    if (org.logoUrl && !logoPreview) setLogoPreview(org.logoUrl)
+    if (org.academyLogoUrl && !academyLogoPreview) setAcademyLogoPreview(org.academyLogoUrl)
+    if (org.phone) setPhone(org.phone)
+    if (org.website) setWebsite(org.website)
+    if (org.supportEmail) setSupportEmail(org.supportEmail)
+    if (org.billingAddress) setBillingAddress(org.billingAddress)
+  }, [org])
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Show live preview immediately
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setLogoPreview(ev.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleAcademyLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setAcademyLogoPreview(ev.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSave = async () => {
+    try {
+      setLogoUploading(true)
+      const body: Record<string, string> = { 
+        name: workspaceName,
+        phone,
+        website,
+        supportEmail,
+        billingAddress
+      }
+      if (logoPreview) body.logoUrl = logoPreview
+      if (academyLogoPreview) body.academyLogoUrl = academyLogoPreview
+
+      const res = await fetch('/api/v1/settings/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+
+      if (!res.ok) throw new Error('Failed to save')
+      toast.success('Settings saved successfully!')
+    } catch (err) {
+      toast.error('Failed to save settings.')
+    } finally {
+      setLogoUploading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">
@@ -14,8 +89,13 @@ export default function SystemSettingsPage() {
           <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
           <p className="text-sm text-white/50 mt-2">Manage workspace preferences, branding, and configurations.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
-          <Save className="w-4 h-4" /> Save Changes
+        <button 
+          onClick={handleSave}
+          disabled={logoUploading}
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-60"
+        >
+          {logoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {logoUploading ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -79,20 +159,103 @@ export default function SystemSettingsPage() {
                       <label className="text-sm font-bold text-white/70 block mb-2">Workspace Name</label>
                       <input 
                         type="text" 
-                        defaultValue="Grekam Visuals"
+                        value={workspaceName}
+                        onChange={e => setWorkspaceName(e.target.value)}
                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50"
                       />
                     </div>
                     
                     <div>
-                      <label className="text-sm font-bold text-white/70 block mb-2">Workspace Logo</label>
-                      <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-bold text-2xl border-2 border-white/20">
-                          G
+                      <label className="text-sm font-bold text-white/70 block mb-3">Workspace Logo</label>
+                      <div className="flex items-start gap-6">
+                        {/* Preview */}
+                        <div className="w-24 h-24 rounded-2xl border-2 border-white/10 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-blue-600 to-purple-600 shrink-0">
+                          {logoPreview ? (
+                            <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-white font-black text-3xl">G</span>
+                          )}
                         </div>
-                        <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm flex items-center gap-2">
-                          <ImageIcon className="w-4 h-4" /> Upload New Logo
-                        </button>
+
+                        {/* Drop Zone */}
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={e => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files?.[0]
+                            if (file && file.type.startsWith('image/')) {
+                              const reader = new FileReader()
+                              reader.onload = ev => setLogoPreview(ev.target?.result as string)
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="flex-1 border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-blue-500/10 flex items-center justify-center transition-colors">
+                            <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-400 transition-colors" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-white">
+                              {logoPreview ? '✅ Logo selected — click to change' : 'Click or drag & drop your logo'}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
+                          </div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleLogoChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-white/70 block mb-3">Academy Logo (Optional)</label>
+                      <div className="flex items-start gap-6">
+                        {/* Preview */}
+                        <div className="w-24 h-24 rounded-2xl border-2 border-white/10 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-rose-600 to-orange-600 shrink-0">
+                          {academyLogoPreview ? (
+                            <img src={academyLogoPreview} alt="Academy Logo Preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-white font-black text-3xl">A</span>
+                          )}
+                        </div>
+
+                        {/* Drop Zone */}
+                        <div
+                          onClick={() => academyFileInputRef.current?.click()}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={e => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files?.[0]
+                            if (file && file.type.startsWith('image/')) {
+                              const reader = new FileReader()
+                              reader.onload = ev => setAcademyLogoPreview(ev.target?.result as string)
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="flex-1 border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
+                            <Upload className="w-5 h-5 text-slate-400 group-hover:text-orange-400 transition-colors" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-white">
+                              {academyLogoPreview ? '✅ Academy logo selected' : 'Click or drag & drop academy logo'}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
+                          </div>
+                          <input
+                            ref={academyFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleAcademyLogoChange}
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -117,17 +280,21 @@ export default function SystemSettingsPage() {
                   <Building className="w-5 h-5 text-emerald-400" /> Company Details
                 </h2>
                 <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm font-bold text-white/70 block mb-2">Legal Name</label>
-                    <input type="text" defaultValue="Grekam Visuals Pvt Ltd" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="text-sm font-bold text-white/70 block mb-2">Phone Number</label>
+                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
                   </div>
-                  <div>
-                    <label className="text-sm font-bold text-white/70 block mb-2">Tax ID / GSTIN</label>
-                    <input type="text" defaultValue="29ABCDE1234F1Z5" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="text-sm font-bold text-white/70 block mb-2">Website URL</label>
+                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://grekam.com" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
                   </div>
-                  <div className="col-span-2">
-                    <label className="text-sm font-bold text-white/70 block mb-2">Billing Address</label>
-                    <textarea rows={3} defaultValue="123 Creative Street, Tech Park\nBangalore, India 560001" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 resize-none" />
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="text-sm font-bold text-white/70 block mb-2">Support / Contact Email</label>
+                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="hello@grekam.com" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                  </div>
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="text-sm font-bold text-white/70 block mb-2">Billing & Official Address</label>
+                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="123 Creative Street, Tech Park..." className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 resize-none" />
                   </div>
                 </div>
               </div>

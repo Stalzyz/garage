@@ -5,6 +5,7 @@ import { Search, Plus, Star, Briefcase, Users, Mail, Phone, Tag, X, CheckCircle,
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
+import { SlideOver } from "@/components/SlideOver"
 
 const TYPE_COLORS: Record<string, string> = {
   CREATIVE:    "text-violet-400 border-violet-500/20 bg-violet-500/10 shadow-[0_0_10px_rgba(139,92,246,0.2)]",
@@ -54,6 +55,15 @@ export default function VendorDirectory() {
   const [typeFilter, setTypeFilter] = useState("ALL")
   const [selected, setSelected] = useState<any | null>(null)
   
+  const [isAddNodeOpen, setIsAddNodeOpen] = useState(false)
+  const [newNode, setNewNode] = useState({
+    company: "",
+    vendorCode: "",
+    type: "CREATIVE",
+    email: "",
+    skills: ""
+  })
+
   // Rate handling
   const [isRating, setIsRating] = useState(false)
   const [ratingValue, setRatingValue] = useState(0)
@@ -89,6 +99,27 @@ export default function VendorDirectory() {
     }
   }
 
+  const handleAddNode = async () => {
+    if (!newNode.company || !newNode.email) return toast.error("Company and Email are required");
+    try {
+      await fetchApi("/vendors", {
+        method: "POST",
+        body: JSON.stringify({
+          company: newNode.company,
+          vendorCode: newNode.vendorCode,
+          type: newNode.type,
+          user: { name: newNode.company, email: newNode.email },
+          skills: newNode.skills.split(',').map(s => s.trim()).filter(Boolean)
+        })
+      });
+      toast.success("Vendor added to matrix");
+      setIsAddNodeOpen(false);
+      mutate();
+    } catch(err: any) {
+      toast.error(err.message || "Failed to add node");
+    }
+  }
+
   const filtered = vendors.filter((v: any) => {
     const vName = v.company || v.user?.name || "Unknown Vendor";
     const matchSearch = vName.toLowerCase().includes(search.toLowerCase()) ||
@@ -119,7 +150,7 @@ export default function VendorDirectory() {
                 <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Vendor & Freelancer Telemetry</p>
               </div>
             </div>
-            <button className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
+            <button onClick={() => setIsAddNodeOpen(true)} className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
               <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
               <Plus className="w-4 h-4" /> Add Node
             </button>
@@ -358,6 +389,69 @@ export default function VendorDirectory() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SlideOver title="Add New Node" open={isAddNodeOpen} onClose={() => setIsAddNodeOpen(false)}>
+        <div className="p-6 space-y-6">
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Company / Freelancer Name *</label>
+            <input 
+              value={newNode.company}
+              onChange={e => setNewNode({...newNode, company: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+              placeholder="E.g. Pixel Perfect Studios"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Contact Email *</label>
+              <input 
+                type="email"
+                value={newNode.email}
+                onChange={e => setNewNode({...newNode, email: e.target.value})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+                placeholder="hello@example.com"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Vendor Code</label>
+              <input 
+                value={newNode.vendorCode}
+                onChange={e => setNewNode({...newNode, vendorCode: e.target.value})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-blue-500"
+                placeholder="VND-001"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Category Type</label>
+            <select 
+              value={newNode.type}
+              onChange={e => setNewNode({...newNode, type: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+            >
+              <option value="CREATIVE">Creative</option>
+              <option value="TECHNICAL">Technical</option>
+              <option value="OPERATIONAL">Operational</option>
+              <option value="SUPPLIER">Supplier</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Skills (comma separated)</label>
+            <textarea 
+              value={newNode.skills}
+              onChange={e => setNewNode({...newNode, skills: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 font-mono"
+              placeholder="UI Design, Video Editing, Motion Graphics"
+            />
+          </div>
+          
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button onClick={handleAddNode} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold tracking-widest uppercase text-xs hover:bg-blue-500 transition-all">
+              Add Node to Matrix
+            </button>
+          </div>
+        </div>
+      </SlideOver>
     </div>
   )
 }

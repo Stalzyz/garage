@@ -5,12 +5,46 @@ import { Search, Plus, UserPlus, Filter, MoreHorizontal, GraduationCap, ChevronR
 import { useApi, fetchApi } from "@/lib/useApi"
 import { format } from "date-fns"
 import { toast } from "sonner"
+import { SlideOver } from "@/components/SlideOver"
 
 export default function AdmissionsPage() {
   const { data, mutate, isLoading } = useApi<any>("/academy/applications")
   const applications = data?.data || []
+  
+  const { data: studentsData } = useApi<any>("/academy/students")
+  const { data: coursesData } = useApi<any>("/lms/courses")
+  
+  const students = studentsData?.data || []
+  const courses = coursesData?.data || []
 
   const [searchQuery, setSearchQuery] = useState("")
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    studentId: "",
+    courseId: "",
+    portfolioUrl: "",
+    statement: ""
+  })
+
+  const handleCreateApp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/academy/applications", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      })
+      toast.success("Application created successfully")
+      setIsAddOpen(false)
+      setFormData({ studentId: "", courseId: "", portfolioUrl: "", statement: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create application")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const filteredApps = applications.filter((app: any) => {
     const fn = app.student?.user?.firstName || ""
@@ -66,7 +100,7 @@ export default function AdmissionsPage() {
             <h1 className="text-3xl font-bold tracking-tight">Admissions Pipeline</h1>
             <p className="text-sm text-white/50 mt-2">Manage prospective students and enrollments</p>
           </div>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
             <UserPlus className="w-4 h-4" /> New Application
           </button>
         </div>
@@ -160,6 +194,73 @@ export default function AdmissionsPage() {
           </div>
         )}
       </div>
+
+      <SlideOver
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        title="New Application"
+        subtitle="Create a new admission application for an existing student."
+      >
+        <form onSubmit={handleCreateApp} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Student *</label>
+            <select 
+              required
+              value={formData.studentId}
+              onChange={e => setFormData({...formData, studentId: e.target.value})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="">Select Student</option>
+              {students.map((s: any) => (
+                <option key={s.id} value={s.id}>{s.user?.firstName} {s.user?.lastName}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Target Course *</label>
+            <select 
+              required
+              value={formData.courseId}
+              onChange={e => setFormData({...formData, courseId: e.target.value})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="">Select Course</option>
+              {courses.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.title || c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Portfolio URL</label>
+            <input 
+              type="url"
+              value={formData.portfolioUrl}
+              onChange={e => setFormData({...formData, portfolioUrl: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Statement of Purpose</label>
+            <textarea 
+              value={formData.statement}
+              onChange={e => setFormData({...formData, statement: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30 min-h-[100px]"
+              placeholder="Why do you want to join..."
+            />
+          </div>
+          
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? "Creating..." : "Create Application"}
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

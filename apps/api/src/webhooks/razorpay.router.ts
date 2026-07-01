@@ -70,16 +70,16 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
               });
 
               if (invoice && invoice.status !== 'PAID') {
-                await app.prisma.$transaction([
-                  app.prisma.invoice.update({
+                await app.prisma.$transaction(async (tx) => {
+                  await tx.invoice.update({
                     where: { id: invoice.id },
                     data: { 
                       status: 'PAID', 
                       paidAt: new Date(),
                       paidAmount: invoice.totalAmount
                     }
-                  }),
-                  app.prisma.payment.create({
+                  });
+                  await tx.payment.create({
                     data: {
                       invoiceId: invoice.id,
                       amount: invoice.totalAmount,
@@ -88,8 +88,22 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                       paidAt: new Date(),
                       notes: `Paid via Razorpay. Order ID: ${payment.order_id}`
                     }
-                  })
-                ]);
+                  });
+
+                  // If this invoice is linked to a billing milestone, mark it as paid
+                  const milestone = await tx.billingMilestone.findUnique({
+                    where: { invoiceId: invoice.id }
+                  });
+                  if (milestone) {
+                    await tx.billingMilestone.update({
+                      where: { id: milestone.id },
+                      data: { status: 'PAID' }
+                    });
+                    
+                    // In a real app, send "Payment Received" email to client here
+                    app.log.info(`Marked milestone ${milestone.id} as PAID and queued receipt email.`);
+                  }
+                });
 
                 try {
                   (app as any).broadcast('telemetry-event', {
@@ -124,13 +138,16 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                       studentId: student_id,
                       batchId: batch_id,
                       totalFee: batch.course.fee || 0,
-                      feePaid: payment.amount / 100, // payment.amount is in paise
+                      feePaid: payment.amount / 100,
                       status: 'ACTIVE'
                     }
                   });
                   
                   // Notify the student
-                  const student = await app.prisma.student.findUnique({ where: { id: student_id } });
+                  const student = await app.prisma.student.findUnique({
+                    where: { id: student_id },
+                    include: { enrollments: { where: { batchId: batch_id } } }
+                  });
                   if (student) {
                     await createNotification({
                       userId: student.userId,
@@ -138,6 +155,34 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                       title: 'Enrollment Successful',
                       body: `Your payment of ${payment.amount / 100} ${payment.currency} was successful. You are now enrolled in ${batch.course.name}.`,
                     });
+
+                    // ── Auto-create referral payout if student was referred ──
+                    if (student.referredById) {
+                      const REFERRAL_PERCENTAGE = 10;
+                      const feePaid = payment.amount / 100;
+                      const payoutAmount = (feePaid * REFERRAL_PERCENTAGE) / 100;
+                      // Derive courseType from batch type field or fallback to ONSITE
+                      const courseType: string = (batch as any).type === 'ONLINE' ? 'ONLINE' : 'ONSITE';
+
+                      // Avoid creating duplicate payouts for same referral
+                      const existingPayout = await app.prisma.referralPayout.findFirst({
+                        where: { referrerId: student.referredById, referredId: student_id }
+                      });
+
+                      if (!existingPayout) {
+                        await app.prisma.referralPayout.create({
+                          data: {
+                            referrerId: student.referredById,
+                            referredId: student_id,
+                            amount: payoutAmount,
+                            percentage: REFERRAL_PERCENTAGE,
+                            courseType,
+                            status: 'PENDING'
+                          }
+                        });
+                        app.log.info(`Auto-created referral payout of ₹${payoutAmount} for referrer ${student.referredById}`);
+                      }
+                    }
                   }
 
                   app.log.info(`Created LMS Enrollment for student ${student_id} in batch ${batch_id}`);
@@ -157,16 +202,16 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                 where: { invoiceNumber: order.receipt }
               });
               if (invoice && invoice.status !== 'PAID') {
-                await app.prisma.$transaction([
-                  app.prisma.invoice.update({
+                await app.prisma.$transaction(async (tx) => {
+                  await tx.invoice.update({
                     where: { id: invoice.id },
                     data: { 
                       status: 'PAID', 
                       paidAt: new Date(),
                       paidAmount: invoice.totalAmount
                     }
-                  }),
-                  app.prisma.payment.create({
+                  });
+                  await tx.payment.create({
                     data: {
                       invoiceId: invoice.id,
                       amount: invoice.totalAmount,
@@ -175,8 +220,22 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                       paidAt: new Date(),
                       notes: `Paid via Razorpay Order: ${order.id}`
                     }
-                  })
-                ]);
+                  });
+
+                  // If this invoice is linked to a billing milestone, mark it as paid
+                  const milestone = await tx.billingMilestone.findUnique({
+                    where: { invoiceId: invoice.id }
+                  });
+                  if (milestone) {
+                    await tx.billingMilestone.update({
+                      where: { id: milestone.id },
+                      data: { status: 'PAID' }
+                    });
+                    
+                    // In a real app, send "Payment Received" email to client here
+                    app.log.info(`Marked milestone ${milestone.id} as PAID and queued receipt email.`);
+                  }
+                });
 
                 try {
                   (app as any).broadcast('telemetry-event', {

@@ -5,12 +5,21 @@ import { FileText, Printer, Download, Search, Plus } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { format } from "date-fns"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export default function DocumentsPage() {
+  const org = useOrganization()
   const { data, mutate, isLoading } = useApi<any>("/hr/documents")
   const documents = data?.documents || []
   
   const [selectedDoc, setSelectedDoc] = useState<any>(null)
+  
+  // For emailing directly from templates
+  const { data: empData } = useApi<any>("/hr/employees")
+  const allEmployees = empData?.employees || []
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+  const [selectedEmpId, setSelectedEmpId] = useState("")
+  const [isEmailing, setIsEmailing] = useState(false)
   
   // For creating a quick document
   const [isCreating, setIsCreating] = useState(false)
@@ -22,9 +31,17 @@ export default function DocumentsPage() {
 
   const handleCreate = async () => {
     try {
+      // Auto-extract {{VARIABLES}} from content
+      const regex = /\{\{([A-Z_]+)\}\}/g;
+      const extractedVars = Array.from(formData.content.matchAll(regex)).map(m => m[1]);
+      const uniqueVars = Array.from(new Set(extractedVars));
+
       await fetchApi("/hr/documents", {
         method: "POST",
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          variables: uniqueVars
+        })
       })
       toast.success("Document template saved")
       setIsCreating(false)
@@ -47,6 +64,43 @@ export default function DocumentsPage() {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleEmailDocument = async () => {
+    if (!selectedDoc || !selectedEmpId) return
+    setIsEmailing(true)
+    try {
+      // Find the employee object to get the email and userId
+      const emp = allEmployees.find((e: any) => e.id === selectedEmpId)
+      if (!emp) throw new Error("Employee not found")
+
+      // 1. Generate the document to save to history and get ID
+      const res = await fetchApi<any>("/documents/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          templateId: selectedDoc.id,
+          userId: emp.userId
+        })
+      })
+      
+      // 2. Send the email with the document ID
+      await fetchApi<any>("/documents/email", {
+        method: "POST",
+        body: JSON.stringify({
+          documentId: res.documentId,
+          emailTo: emp.user.email
+        })
+      })
+
+      toast.success("Document generated and securely emailed!")
+      setIsEmailModalOpen(false)
+      setSelectedEmpId("")
+    } catch (e: any) {
+      console.error(e)
+      toast.error(e.message || "Failed to email document")
+    } finally {
+      setIsEmailing(false)
+    }
   }
 
   return (
@@ -115,8 +169,11 @@ export default function DocumentsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-white/50 mb-1 block">Content (HTML/Text)</label>
-                <textarea rows={12} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none font-mono" />
+                <label className="text-xs text-white/50 mb-1 flex items-center justify-between">
+                  <span>Content (HTML/Text)</span>
+                  <span className="text-[10px] text-blue-400">Available: {'{{NAME}}, {{EMAIL}}, {{DESIGNATION}}, {{SALARY}}, {{CURRENCY}}, {{JOIN_DATE}}, {{EMPLOYEE_CODE}}, {{EMPLOYMENT_TYPE}}, {{DATE}}'}</span>
+                </label>
+                <textarea rows={12} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none font-mono" placeholder="Use {{NAME}} to insert employee name dynamically..." />
               </div>
               <div className="flex gap-3">
                 <button onClick={handleCreate} className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-500 transition-colors">Save Document</button>
@@ -138,6 +195,9 @@ export default function DocumentsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <button onClick={() => setIsEmailModalOpen(true)} className="px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-sm font-medium rounded-lg transition-colors">
+                  Email to Employee
+                </button>
                 <button onClick={() => handleDelete(selectedDoc.id)} className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors">
                   Delete
                 </button>
@@ -153,9 +213,35 @@ export default function DocumentsPage() {
                 {/* A4 Paper Container */}
                 <div className="w-full max-w-[210mm] min-h-[297mm] bg-white text-black p-[20mm] shadow-2xl print:shadow-none print:w-full print:max-w-none print:min-h-0 print:m-0 print:p-0">
                   <div className="border-b-2 border-black/10 pb-6 mb-8 flex items-center justify-between">
-                    <div>
-                      <h1 className="text-2xl font-black tracking-tighter">GREKAM CORP</h1>
-                      <p className="text-xs text-gray-500 font-mono mt-1">123 Innovation Drive, Tech District</p>
+                    <div className="flex items-center gap-4">
+                      {selectedDoc.type === 'CERTIFICATE' || selectedDoc.type === 'OFFER_LETTER' ? (
+                        org.academyLogoUrl ? (
+                          <img src={org.academyLogoUrl} alt="Academy Logo" className="w-16 h-16 object-contain" />
+                        ) : (
+                          <div className="w-16 h-16 bg-black text-white font-black text-2xl flex items-center justify-center rounded-xl">
+                            A
+                          </div>
+                        )
+                      ) : (
+                        org.logoUrl ? (
+                          <img src={org.logoUrl} alt={org.name} className="w-16 h-16 object-contain" />
+                        ) : (
+                          <div className="w-16 h-16 bg-blue-600 text-white font-black text-2xl flex items-center justify-center rounded-xl">
+                            {org.name.charAt(0).toUpperCase()}
+                          </div>
+                        )
+                      )}
+                      <div>
+                        <h1 className="text-2xl font-black tracking-tighter uppercase">{org.name}</h1>
+                        <p className="text-xs text-gray-500 font-mono mt-1 whitespace-pre-wrap">{org.billingAddress ?? '123 Tech Lane, NY 10001'}</p>
+                        {(org.website || org.phone) && (
+                          <p className="text-xs text-gray-400 font-mono mt-1">
+                            {org.website && <span>{org.website}</span>}
+                            {org.website && org.phone && <span> | </span>}
+                            {org.phone && <span>{org.phone}</span>}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right text-xs text-gray-500 font-mono">
                       Date: {format(new Date(), 'dd MMM yyyy')}<br/>
@@ -184,6 +270,44 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+
+      {/* Email Modal */}
+      {isEmailModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-card border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-white text-lg">Email Document</h3>
+              <button onClick={() => setIsEmailModalOpen(false)} className="text-white/40 hover:text-white transition-colors text-xs font-medium px-2.5 py-1 rounded-lg border border-white/10">Close</button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono tracking-widest uppercase text-white/50 block">Select Employee</label>
+                <select 
+                  value={selectedEmpId} 
+                  onChange={e => setSelectedEmpId(e.target.value)} 
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                >
+                  <option value="">Choose an employee...</option>
+                  {allEmployees.map((e: any) => (
+                    <option key={e.id} value={e.id} className="bg-[#090d16]">{e.user?.firstName} {e.user?.lastName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="pt-4 border-t border-white/10">
+                <button 
+                  onClick={handleEmailDocument}
+                  disabled={isEmailing || !selectedEmpId} 
+                  className="w-full bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30 py-3 rounded-xl hover:bg-blue-500/30 transition-all disabled:opacity-50"
+                >
+                  {isEmailing ? "Sending Email..." : "Send Document"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CSS for printing - hides everything except the .print area and sets margins */}
       <style dangerouslySetInnerHTML={{__html: `

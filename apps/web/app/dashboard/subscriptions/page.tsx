@@ -23,6 +23,9 @@ export default function SubscriptionsDashboard() {
 
   // Local state for tracking action loading states
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  
+  // Manage modal state
+  const [editingSub, setEditingSub] = useState<any>(null)
 
   const handlePause = async (id: string) => {
     setActionLoadingId(id)
@@ -302,7 +305,7 @@ export default function SubscriptionsDashboard() {
                                 )}
                               </>
                             )}
-                            <button className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+                            <button onClick={() => setEditingSub(sub)} className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 hover:border-white/20 transition-colors">
                               Manage
                             </button>
                           </div>
@@ -387,7 +390,7 @@ export default function SubscriptionsDashboard() {
                           )}
                         </>
                       )}
-                      <button className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-wider bg-white/5 text-white rounded-lg border border-white/10">
+                      <button onClick={() => setEditingSub(sub)} className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-wider bg-white/5 text-white rounded-lg border border-white/10">
                         Manage
                       </button>
                     </div>
@@ -498,6 +501,91 @@ export default function SubscriptionsDashboard() {
                   ) : (
                     "Create Subscription"
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Subscription Modal */}
+      {editingSub && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-[#090d16] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-white text-lg">Manage Subscription</h3>
+              <button 
+                onClick={() => setEditingSub(null)}
+                className="text-white/40 hover:text-white transition-colors text-xs font-mono tracking-widest uppercase border border-white/10 px-2.5 py-1 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsSubmitting(true);
+              try {
+                await fetchApi(`/finance/subscriptions/${editingSub.id}`, {
+                  method: 'PATCH',
+                  body: JSON.stringify({ 
+                    mrr: parseFloat(editingSub.mrr), 
+                    usage: editingSub.usage, 
+                    status: editingSub.status 
+                  })
+                });
+                setEditingSub(null);
+                await mutate();
+              } catch (err) {
+                console.error(err);
+                alert("Failed to update subscription");
+              } finally {
+                setIsSubmitting(false);
+              }
+            }} className="p-6 space-y-4">
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">MRR (INR)</label>
+                <input 
+                  type="number" 
+                  required 
+                  value={editingSub.mrr} 
+                  onChange={e => setEditingSub({...editingSub, mrr: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/30" 
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Usage / Notes</label>
+                <input 
+                  type="text" 
+                  value={editingSub.usage || ""} 
+                  onChange={e => setEditingSub({...editingSub, usage: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/30" 
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Status</label>
+                <select 
+                  value={editingSub.status} 
+                  onChange={e => setEditingSub({...editingSub, status: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/30"
+                >
+                  <option value="active" className="bg-[#090d16]">Active</option>
+                  <option value="paused" className="bg-[#090d16]">Paused</option>
+                  <option value="at_risk" className="bg-[#090d16]">At Risk</option>
+                  <option value="churned" className="bg-[#090d16]">Churned</option>
+                </select>
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] py-4 rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
                 </button>
               </div>
             </form>

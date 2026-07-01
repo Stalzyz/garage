@@ -3,7 +3,9 @@
 import { useState } from "react"
 import { Folder, FileText, Image as ImageIcon, Video, File, Plus, Upload, Search, Filter, MoreVertical, HardDrive, Share2, Download, Trash2, Sparkles, Loader2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
+import { SlideOver } from "@/components/SlideOver"
 import { format } from "date-fns"
+import { toast } from "sonner"
 
 export default function DrivePage() {
   const [currentFolderId, setCurrentFolderId] = useState<string>("root")
@@ -21,6 +23,34 @@ export default function DrivePage() {
     setSearchQuery(val)
     if (!val) {
       setAiMatchedIds(null)
+    }
+  }
+
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
+  const [newFolderName, setNewFolderName] = useState("")
+  const [isSubmittingFolder, setIsSubmittingFolder] = useState(false)
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+    setIsSubmittingFolder(true);
+    try {
+      await fetchApi('/drive/folders', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newFolderName,
+          parentId: currentFolderId === 'root' ? null : currentFolderId
+        })
+      });
+      toast.success("Folder created successfully");
+      setNewFolderName("");
+      setIsCreateFolderOpen(false);
+      mutate();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to create folder");
+    } finally {
+      setIsSubmittingFolder(false);
     }
   }
 
@@ -96,10 +126,19 @@ export default function DrivePage() {
     }
   };
 
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('image')) return <ImageIcon className="w-8 h-8 text-blue-400" />
-    if (mimeType.includes('video')) return <Video className="w-8 h-8 text-purple-400" />
-    if (mimeType.includes('pdf')) return <FileText className="w-8 h-8 text-red-400" />
+  const getFilePreview = (file: any) => {
+    if (file.mimeType.includes('image') && file.fileUrl) {
+      return (
+        <img 
+          src={file.fileUrl} 
+          alt={file.name} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+      );
+    }
+    if (file.mimeType.includes('image')) return <ImageIcon className="w-8 h-8 text-blue-400" />
+    if (file.mimeType.includes('video')) return <Video className="w-8 h-8 text-purple-400" />
+    if (file.mimeType.includes('pdf')) return <FileText className="w-8 h-8 text-red-400" />
     return <File className="w-8 h-8 text-white/40" />
   }
 
@@ -134,7 +173,7 @@ export default function DrivePage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10">
+          <button onClick={() => setIsCreateFolderOpen(true)} className="flex items-center gap-2 px-4 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10">
             <Plus className="w-4 h-4" /> New Folder
           </button>
           
@@ -225,7 +264,7 @@ export default function DrivePage() {
                   {displayedFiles.map((file: any) => (
                     <div key={file.id} className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden group hover:border-white/20 transition-all">
                       <div className="aspect-square bg-white/[0.02] border-b border-white/10 flex items-center justify-center relative overflow-hidden group-hover:bg-white/[0.04]">
-                        {getFileIcon(file.mimeType)}
+                        {getFilePreview(file)}
                         
                         {/* Hover Overlay Actions */}
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -254,6 +293,36 @@ export default function DrivePage() {
           </div>
         )}
       </div>
+      
+      {/* SlideOver for New Folder */}
+      <SlideOver
+        open={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        title="Create New Folder"
+        subtitle="Organize your files into logical directories."
+      >
+        <form onSubmit={handleCreateFolder} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Folder Name *</label>
+            <input 
+              required
+              value={newFolderName}
+              onChange={e => setNewFolderName(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              placeholder="e.g. Brand Assets"
+            />
+          </div>
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button 
+              type="submit"
+              disabled={isSubmittingFolder}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all disabled:opacity-50"
+            >
+              {isSubmittingFolder ? "Creating..." : "Create Folder"}
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

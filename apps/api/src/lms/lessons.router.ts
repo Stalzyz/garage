@@ -22,11 +22,12 @@ export default async function lessonsRoutes(app: FastifyInstance) {
       body: z.object({
         moduleId:    z.string(),
         title:       z.string(),
-        type:        z.enum(['VIDEO', 'PDF', 'SLIDE', 'LIVE_SESSION', 'ASSIGNMENT', 'QUIZ', 'LINK']),
+        type:        z.enum(['VIDEO', 'PDF', 'SLIDE', 'LIVE_SESSION', 'ASSIGNMENT', 'QUIZ', 'LINK', 'TEXT', 'CODE', 'DESIGN', 'RICH_TEXT']),
         contentUrl:  z.string().optional(),
         videoId:     z.string().optional(),
         duration:    z.number().optional(),
         description: z.string().optional(),
+        richText:    z.string().optional(),
         isPreview:   z.boolean().optional().default(false),
         sortOrder:   z.number().optional(),
       })
@@ -51,6 +52,7 @@ export default async function lessonsRoutes(app: FastifyInstance) {
         videoId:     z.string().optional(),
         duration:    z.number().optional(),
         description: z.string().optional(),
+        richText:    z.string().optional(),
         isPreview:   z.boolean().optional(),
         sortOrder:   z.number().optional(),
       })

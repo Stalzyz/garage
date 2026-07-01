@@ -13,10 +13,19 @@ const EXPENSES = [
 ]
 
 export default function ExpensesDashboard() {
+  const [expensesList, setExpensesList] = useState(EXPENSES)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+  
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    employee: "Current User",
+    category: "Software",
+    amount: "",
+    description: ""
+  })
 
-  const filteredExpenses = EXPENSES.filter(exp => {
+  const filteredExpenses = expensesList.filter(exp => {
     if (filter !== "all" && exp.status.toLowerCase() !== filter) return false
     if (search && !exp.employee.toLowerCase().includes(search.toLowerCase()) && !exp.category.toLowerCase().includes(search.toLowerCase())) return false
     return true
@@ -37,6 +46,27 @@ export default function ExpensesDashboard() {
     }
   }
 
+  const handleStatusChange = (id: string, newStatus: string) => {
+    setExpensesList(expensesList.map(exp => exp.id === id ? { ...exp, status: newStatus } : exp))
+  }
+
+  const handleSubmitClaim = (e: React.FormEvent) => {
+    e.preventDefault()
+    const newExp = {
+      id: `EXP-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+      employee: formData.employee,
+      category: formData.category,
+      amount: `₹${Number(formData.amount).toLocaleString()}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: "PENDING",
+      description: formData.description,
+      receipt: true
+    }
+    setExpensesList([newExp, ...expensesList])
+    setIsSubmitOpen(false)
+    setFormData({ employee: "Current User", category: "Software", amount: "", description: "" })
+  }
+
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
@@ -46,7 +76,7 @@ export default function ExpensesDashboard() {
             <h1 className="text-2xl font-bold text-foreground">Expense Management</h1>
             <p className="text-sm text-muted-foreground mt-1">Review and approve employee reimbursement claims.</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+          <button onClick={() => setIsSubmitOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
             <Plus className="w-4 h-4" />
             Submit Claim
           </button>
@@ -160,10 +190,10 @@ export default function ExpensesDashboard() {
                     <td className="px-6 py-4 text-right">
                       {exp.status === 'PENDING' ? (
                         <div className="flex items-center justify-end gap-2">
-                          <button className="px-3 py-1.5 text-xs font-medium bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors border border-emerald-500/20 hover:border-emerald-500">
+                          <button onClick={() => handleStatusChange(exp.id, 'APPROVED')} className="px-3 py-1.5 text-xs font-medium bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors border border-emerald-500/20 hover:border-emerald-500">
                             Approve
                           </button>
-                          <button className="px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 hover:border-red-500">
+                          <button onClick={() => handleStatusChange(exp.id, 'REJECTED')} className="px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 hover:border-red-500">
                             Reject
                           </button>
                         </div>
@@ -187,6 +217,45 @@ export default function ExpensesDashboard() {
         </div>
 
       </div>
+
+      {isSubmitOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-card border border-border/50 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-5 border-b border-border/50 flex items-center justify-between">
+              <h3 className="font-bold text-foreground text-lg">Submit Expense Claim</h3>
+              <button onClick={() => setIsSubmitOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium px-2.5 py-1 rounded-lg">Close</button>
+            </div>
+            
+            <form onSubmit={handleSubmitClaim} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Category</label>
+                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary">
+                  <option value="Software">Software</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Meals">Meals</option>
+                  <option value="Equipment">Equipment</option>
+                </select>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Amount (₹)</label>
+                <input type="number" required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Description</label>
+                <input type="text" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" />
+              </div>
+
+              <div className="pt-4 border-t border-border/50">
+                <button type="submit" className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl hover:bg-primary/90 transition-all">
+                  Submit Claim
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

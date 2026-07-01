@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Users,
   Briefcase,
-  GraduationCap,
   DollarSign,
   BookOpen,
   BarChart2,
@@ -25,6 +24,7 @@ export interface NavItem {
   href: string
   icon: React.ElementType
   roles: Role[]
+  resource?: string
   children?: { title: string; href: string }[]
 }
 
@@ -33,13 +33,20 @@ export const navigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+  },
+  {
+    title: "My Workspace (ESS)",
+    href: "/dashboard/ess",
+    icon: UserCheck,
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
   {
     title: "CRM & Sales",
     href: "/dashboard/crm",
     icon: Layers,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    resource: "CRM",
+    roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Lead Pipeline",  href: "/dashboard/crm" },
       { title: "Contacts",       href: "/dashboard/crm/contacts" },
@@ -54,6 +61,7 @@ export const navigation: NavItem[] = [
     title: "Projects",
     href: "/dashboard/projects",
     icon: Briefcase,
+    resource: "PROJECTS",
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
     children: [
       { title: "Kanban Board", href: "/dashboard/projects" },
@@ -64,6 +72,7 @@ export const navigation: NavItem[] = [
     title: "Finance",
     href: "/dashboard/finance",
     icon: DollarSign,
+    resource: "FINANCE",
     roles: ["SUPER_ADMIN", "MANAGER", "CLIENT"],
     children: [
       { title: "Overview",  href: "/dashboard/finance" },
@@ -77,7 +86,8 @@ export const navigation: NavItem[] = [
     title: "HR & Identity",
     href: "/dashboard/hr",
     icon: Users,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    resource: "HR",
+    roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Employees",  href: "/dashboard/hr" },
       { title: "Time Track", href: "/dashboard/hr/time" },
@@ -88,45 +98,24 @@ export const navigation: NavItem[] = [
       { title: "Onboarding", href: "/dashboard/hr/onboarding" },
       { title: "ATS",        href: "/dashboard/hr/ats" },
       { title: "Expenses",   href: "/dashboard/hr/expenses" },
-    ],
-  },
-  {
-    title: "Academy",
-    href: "/dashboard/academy/admissions",
-    icon: GraduationCap,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
-    children: [
-      { title: "Admissions", href: "/dashboard/academy/admissions" },
-      { title: "Students",   href: "/dashboard/academy/students" },
-      { title: "Batches",    href: "/dashboard/academy/batches" },
-      { title: "Attendance", href: "/dashboard/academy/attendance" },
-      { title: "Schedule",   href: "/dashboard/academy/schedule" },
-    ],
-  },
-  {
-    title: "LMS",
-    href: "/dashboard/lms",
-    icon: BookOpen,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
-    children: [
-      { title: "My Courses",   href: "/dashboard/lms" },
-      { title: "Assignments",  href: "/dashboard/lms/assignments" },
-      { title: "Achievements", href: "/dashboard/lms/achievements" },
-      { title: "Course Builder",href: "/dashboard/lms/builder" },
-      { title: "Analytics",    href: "/dashboard/lms/analytics" },
+      { title: "Monitoring", href: "/dashboard/hr/monitoring" },
+      { title: "Performance",href: "/dashboard/hr/performance" },
+      { title: "Analytics",  href: "/dashboard/hr/analytics" },
     ],
   },
   {
     title: "Vendors",
     href: "/dashboard/vendors",
     icon: UserCheck,
+    resource: "VENDORS",
     roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Marketing",
     href: "/dashboard/marketing/calendar",
     icon: Radio,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    resource: "MARKETING",
+    roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "AI Prospects",     href: "/dashboard/marketing/prospects" },
       { title: "Content Scheduler",href: "/dashboard/marketing/scheduler" },
@@ -138,7 +127,8 @@ export const navigation: NavItem[] = [
     title: "CMS & Website",
     href: "/dashboard/cms",
     icon: Globe,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    resource: "CMS",
+    roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Pages Builder",  href: "/dashboard/cms" },
       { title: "Blog Posts",     href: "/dashboard/cms/blog" },
@@ -156,7 +146,7 @@ export const navigation: NavItem[] = [
     title: "Support",
     href: "/dashboard/support",
     icon: LifeBuoy,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Automations",
@@ -174,19 +164,19 @@ export const navigation: NavItem[] = [
     title: "Asset Drive",
     href: "/dashboard/drive",
     icon: HardDrive,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
   },
   {
     title: "Knowledge Base",
     href: "/dashboard/kb",
     icon: BookOpen,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "STUDENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
   },
   {
     title: "Settings",
@@ -202,6 +192,11 @@ export const navigation: NavItem[] = [
   },
 ]
 
-export const getNavItemsByRole = (role: string) => {
-  return navigation.filter((item) => item.roles.includes(role as Role))
+export const getNavItemsByRole = (role: string, customPermissions?: string[]) => {
+  return navigation.filter((item) => {
+    if (customPermissions && customPermissions.length > 0 && item.resource) {
+      return customPermissions.includes(item.resource)
+    }
+    return item.roles.includes(role as Role)
+  })
 }

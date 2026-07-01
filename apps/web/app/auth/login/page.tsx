@@ -7,9 +7,11 @@ import { AlertCircle, Fingerprint, Lock, Mail, ArrowRight, ShieldCheck } from "l
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export default function LoginPage() {
   const [errorMessage, dispatch] = useActionState(authenticate, undefined)
+  const org = useOrganization()
   const [isClient, setIsClient] = useState(false)
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
 
@@ -80,16 +82,15 @@ export default function LoginPage() {
             >
               <ShieldCheck className="w-8 h-8 text-white/80" strokeWidth={1.5} />
             </motion.div>
-            <h1 className="text-3xl font-bold tracking-tighter mb-2">Grekam OS</h1>
+            <h1 className="text-3xl font-bold tracking-tighter mb-2">{org.name}</h1>
             <p className="text-sm font-mono tracking-widest text-white/40 uppercase">
-              {is2faStage ? "Verification" : "Secure Authentication"}
+              {is2faStage ? "Verification" : "Staff Secure Login"}
             </p>
           </div>
 
           <form action={dispatch} className="space-y-5">
             {is2faStage ? (
               <div className="space-y-4">
-                {/* Keep credentials inputs as hidden fields so they are re-submitted */}
                 <input type="hidden" name="email" value={email} />
                 <input type="hidden" name="password" value={password} />
                 
@@ -131,7 +132,7 @@ export default function LoginPage() {
                       name="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="m@example.com"
+                      placeholder="staff@grekam.com"
                       required
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput(null)}
@@ -191,6 +192,13 @@ export default function LoginPage() {
               )}
             </AnimatePresence>
           </form>
+          
+          {/* Link to Academy */}
+          <div className="mt-8 text-center">
+             <a href="http://localhost:3001/auth/login" className="text-xs font-mono tracking-widest text-white/40 hover:text-white/80 transition-colors uppercase block">
+               Student or Educator? Log in here →
+             </a>
+          </div>
         </div>
       </motion.div>
 
@@ -209,7 +217,7 @@ function LoginButton({ is2fa }: { is2fa: boolean }) {
     <button 
       type="submit" 
       disabled={pending}
-      className={`relative w-full h-14 flex items-center justify-center gap-3 rounded-2xl font-bold tracking-widest uppercase transition-all overflow-hidden group ${pending ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5' : 'bg-white text-black hover:scale-[1.02]'}`}
+      className={`relative w-full h-14 flex items-center justify-center gap-3 rounded-2xl font-bold tracking-widest uppercase transition-all overflow-hidden group \${pending ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5' : 'bg-white text-black hover:scale-[1.02]'}`}
     >
       {pending ? (
         <>

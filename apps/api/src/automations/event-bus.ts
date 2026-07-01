@@ -25,6 +25,9 @@ export const SystemEvents = {
   ACADEMY_ENQUIRY_RECEIVED: 'academy.enquiry.received',
   ACADEMY_TRIAL_SCHEDULED: 'academy.trial.scheduled',
   ACADEMY_LEAD_INACTIVE: 'academy.lead.inactive',
+  FEE_PAID: 'fee.paid',
+  FEE_DUE_REMINDER: 'fee.due_reminder',
+  FEE_OVERDUE: 'fee.overdue',
 
   // Projects
   PROJECT_STARTED: 'project.started',

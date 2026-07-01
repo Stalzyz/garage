@@ -10,9 +10,13 @@ export default function LeavesPage() {
   const { data, mutate, isLoading } = useApi<any>("/hr/leaves")
   const leaves = data?.leaves || []
 
+  const { data: empData } = useApi<any>("/hr/employees")
+  const allEmployees = empData?.employees || []
+
   const [filter, setFilter] = useState("ALL")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [leaveData, setLeaveData] = useState({
+    employeeId: "",
     type: "SICK",
     startDate: "",
     endDate: "",
@@ -29,7 +33,7 @@ export default function LeavesPage() {
       })
       toast.success("Leave requested successfully!")
       setIsModalOpen(false)
-      setLeaveData({ type: "SICK", startDate: "", endDate: "", days: 1, reason: "" })
+      setLeaveData({ employeeId: "", type: "SICK", startDate: "", endDate: "", days: 1, reason: "" })
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to submit leave request")
@@ -120,8 +124,8 @@ export default function LeavesPage() {
                       <User className="w-5 h-5 text-white/60" />
                     </div>
                     <div>
-                      <div className="font-medium text-sm">{leave.employee?.user?.name || 'Unknown Employee'}</div>
-                      <div className="text-[10px] text-white/40 font-mono mt-0.5">{leave.employee?.department || 'N/A'}</div>
+                      <div className="font-medium text-sm">{leave.employee?.user ? `${leave.employee.user.firstName} ${leave.employee.user.lastName}` : 'Unknown Employee'}</div>
+                      <div className="text-[10px] text-white/40 font-mono mt-0.5">{leave.employee?.department?.name || 'N/A'}</div>
                     </div>
                   </div>
 
@@ -183,6 +187,21 @@ export default function LeavesPage() {
             </div>
             
             <form onSubmit={handleSubmitLeave} className="p-6 space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-mono tracking-widest uppercase text-white/50">Employee</label>
+                <select 
+                  value={leaveData.employeeId}
+                  onChange={e => setLeaveData({...leaveData, employeeId: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white appearance-none cursor-pointer"
+                  required
+                >
+                  <option value="" className="bg-black text-white">Select Employee</option>
+                  {allEmployees.map((emp: any) => (
+                    <option key={emp.id} value={emp.id} className="bg-black text-white">{emp.user?.firstName} {emp.user?.lastName}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-xs font-mono tracking-widest uppercase text-white/50">Leave Type</label>
                 <select 

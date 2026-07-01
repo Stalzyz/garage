@@ -41,6 +41,44 @@ export default async function rbacRoutes(app: FastifyInstance) {
     return reply.status(201).send(role);
   });
 
+  server.patch('/roles/:id', {
+    schema: {
+      params: z.object({ id: z.string() }),
+      body: z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        permissions: z.array(z.object({
+          resource: z.string(),
+          action: z.string()
+        })).optional()
+      })
+    }
+  }, async (req, reply) => {
+    const { id } = req.params;
+    const data = req.body;
+    
+    // If updating permissions, we replace all existing ones (simplest approach)
+    if (data.permissions) {
+      await server.prisma.permission.deleteMany({ where: { roleId: id } });
+    }
+
+    const role = await server.prisma.role.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        ...(data.permissions && {
+          permissions: {
+            create: data.permissions
+          }
+        })
+      },
+      include: { permissions: true }
+    });
+    
+    return reply.status(200).send(role);
+  });
+
   server.get('/system', async (req, reply) => {
     const settings = await server.prisma.systemSetting.findMany();
     return { settings };

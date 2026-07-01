@@ -6,22 +6,28 @@ export interface Organization {
   id: string;
   name: string;
   logoUrl?: string | null;
+  academyLogoUrl?: string | null;
   faviconUrl?: string | null;
   primaryColor: string;
   darkModeDefault: boolean;
   supportEmail?: string | null;
   billingAddress?: string | null;
+  website?: string | null;
+  phone?: string | null;
 }
 
 const defaultOrg: Organization = {
   id: "",
   name: "Grekam OS",
   logoUrl: null,
+  academyLogoUrl: null,
   faviconUrl: null,
   primaryColor: "#2563eb",
   darkModeDefault: true,
   supportEmail: null,
   billingAddress: null,
+  website: null,
+  phone: null,
 };
 
 const OrganizationContext = createContext<Organization>(defaultOrg);

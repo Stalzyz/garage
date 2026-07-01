@@ -115,14 +115,16 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const record = await server.prisma.attendance.upsert({
-      where: { employeeId_date: { employeeId, date: today } },
-      update: {
-        clockIn: new Date(),
-        clockInPhotoUrl: photoUrl,
-        status: "PRESENT"
-      },
-      create: {
+    const existingRecord = await server.prisma.attendance.findUnique({
+      where: { employeeId_date: { employeeId, date: today } }
+    });
+
+    if (existingRecord?.clockIn) {
+      return reply.status(400).send({ error: "Already clocked in for today" });
+    }
+
+    const record = await server.prisma.attendance.create({
+      data: {
         employeeId,
         date: today,
         clockIn: new Date(),

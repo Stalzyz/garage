@@ -161,6 +161,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const cmsModule = (await import('./cms')).default;
   await app.register(cmsModule, { prefix: '/api/v1/cms' });
 
+  const workspaceModule = (await import('./workspace')).default;
+  await app.register(workspaceModule, { prefix: '/api/v1/workspace' });
+
   // Email & Drip
   const emailRouter = (await import('./integrations/email.router')).default;
   await app.register(emailRouter, { prefix: '/api/v1/email' });
@@ -186,6 +189,10 @@ export async function buildApp(opts: any = {}): Promise<any> {
   await app.register(twoFaRouter, { prefix: '/api/v1/auth' });
   const meRouter = (await import('./auth/me.router')).default;
   await app.register(meRouter, { prefix: '/api/v1/auth' });
+
+  // AI Integration
+  const aiMentorRouter = (await import('./ai/mentor.router')).default;
+  await app.register(aiMentorRouter, { prefix: '/api/v1/ai/mentor' });
 
   // WebSocket — real-time broadcast hub
   const wsClients = new Set<any>();

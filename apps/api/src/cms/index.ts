@@ -16,12 +16,17 @@ export default async function cmsRouter(app: FastifyInstance) {
     return { data: pages };
   });
 
-  // GET /api/v1/cms/pages/:slug — Get specific page with sections
-  app.get('/pages/:slug', async (req, reply) => {
-    const { slug } = req.params as { slug: string };
+  // GET /api/v1/cms/pages/:identifier — Get specific page by slug or ID
+  app.get('/pages/:identifier', async (req, reply) => {
+    const { identifier } = req.params as { identifier: string };
     
-    const page = await app.prisma.landingPage.findUnique({
-      where: { slug },
+    const page = await app.prisma.landingPage.findFirst({
+      where: { 
+        OR: [
+          { slug: identifier },
+          { id: identifier }
+        ]
+      },
       include: {
         sections: {
           orderBy: { sortOrder: 'asc' }
@@ -32,6 +37,33 @@ export default async function cmsRouter(app: FastifyInstance) {
     if (!page) {
       return reply.status(404).send({ error: 'Page not found' });
     }
+
+    // Return under both `data` (old) and `page` (new) for compatibility
+    return { data: page, page };
+  });
+
+  // PATCH /api/v1/cms/pages/:identifier — Update page content by ID
+  app.patch('/pages/:identifier', async (req, reply) => {
+    const { identifier } = req.params as { identifier: string };
+    const { customHtml, customCss, title, description } = req.body as { customHtml?: string, customCss?: string, title?: string, description?: string };
+    
+    const existing = await app.prisma.landingPage.findFirst({
+      where: { 
+        OR: [{ slug: identifier }, { id: identifier }]
+      }
+    });
+
+    if (!existing) return reply.status(404).send({ error: 'Page not found' });
+
+    const page = await app.prisma.landingPage.update({
+      where: { id: existing.id },
+      data: {
+        customHtml,
+        customCss,
+        title,
+        description
+      }
+    });
 
     return { data: page };
   });
@@ -91,5 +123,32 @@ export default async function cmsRouter(app: FastifyInstance) {
     });
 
     return { data: section };
+  });
+
+  // DELETE /api/v1/cms/pages/:slug/sections/:sectionId — Delete a section
+  app.delete('/pages/:slug/sections/:sectionId', async (req, reply) => {
+    const { slug, sectionId } = req.params as { slug: string, sectionId: string };
+
+    const page = await app.prisma.landingPage.findUnique({
+      where: { slug }
+    });
+
+    if (!page) {
+      return reply.code(404).send({ error: 'Page not found' });
+    }
+
+    try {
+      await app.prisma.pageSection.delete({
+        where: {
+          landingPageId_sectionId: {
+            landingPageId: page.id,
+            sectionId
+          }
+        }
+      });
+      return { success: true };
+    } catch (e) {
+      return reply.code(404).send({ error: 'Section not found' });
+    }
   });
 }

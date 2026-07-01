@@ -217,4 +217,30 @@ export default async function subscriptionsRouter(app: FastifyInstance) {
 
     return updated;
   });
+
+  // PATCH /api/v1/finance/subscriptions/:id
+  app.patch('/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const schema = z.object({
+      mrr: z.number().positive().optional(),
+      status: z.enum(['active', 'paused', 'at_risk', 'churned']).optional(),
+      usage: z.string().optional().nullable()
+    });
+
+    const parsed = schema.parse(req.body);
+    const sub = await app.prisma.subscription.findUnique({ where: { id } });
+    if (!sub) return reply.notFound('Subscription not found');
+
+    const updated = await app.prisma.subscription.update({
+      where: { id },
+      data: parsed,
+      include: {
+        company: {
+          select: { name: true }
+        }
+      }
+    });
+
+    return updated;
+  });
 }

@@ -6,6 +6,7 @@ import React from 'react';
 import { whatsappService } from '../integrations/whatsapp.service';
 import { CertificatesService } from '../lms/certificates.service';
 import { GamificationService } from '../lms/gamification.service';
+import { prisma } from '../db';
 
 // Import Templates
 import { WelcomeClientEmail } from './templates/WelcomeClient';
@@ -23,7 +24,9 @@ export function registerGlobalListeners() {
   // --------------------------------------------------------------------------
   EventBus.on(SystemEvents.LEAD_CREATED, async (data) => {
     console.log('[Autopilot] Caught LEAD_CREATED:', data);
-    await EmailService.sendEmail('admin@grekam.com', 'New Lead Arrived!', `<h1>New Lead</h1><p>${data.name} (${data.email}) just submitted an inquiry.</p>`);
+    const org = await prisma.organization.findFirst();
+    const adminEmail = org?.supportEmail || 'admin@grekam.com';
+    await EmailService.sendEmail(adminEmail, 'New Lead Arrived!', `<h1>New Lead</h1><p>${data.name} (${data.email}) just submitted an inquiry.</p>`);
 
     // WhatsApp: notify sales team (if phone configured)
     if (process.env.SALES_TEAM_PHONE) {
@@ -192,6 +195,88 @@ export function registerGlobalListeners() {
       courseName: data.courseName,
       lmsCourseId: data.lmsCourseId,
     });
+  });
+
+  // --------------------------------------------------------------------------
+  // FEE COLLECTION EVENTS
+  // --------------------------------------------------------------------------
+  EventBus.on(SystemEvents.FEE_PAID, async (data) => {
+    console.log('[Autopilot] 💰 Caught FEE_PAID:', data.studentName);
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px;background:#f9f9f9;border-radius:12px;">
+        <h1 style="color:#16a34a;">✅ Payment Confirmed</h1>
+        <p>Hi <strong>${data.studentName}</strong>,</p>
+        <p>We have received your fee payment of <strong>${data.amount}</strong> for <strong>${data.batchName}</strong>.</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:16px;">
+          <tr><td style="padding:8px;color:#666;">Payment Ref</td><td style="padding:8px;font-weight:bold;">${data.paymentRef}</td></tr>
+          <tr><td style="padding:8px;color:#666;">Date</td><td style="padding:8px;font-weight:bold;">${data.paidAt}</td></tr>
+        </table>
+        <p style="margin-top:24px;color:#555;">Thank you for your timely payment. Keep it up!</p>
+        <p style="color:#888;font-size:12px;">— Grekam Academy Team</p>
+      </div>`;
+    if (data.studentEmail) {
+      await EmailService.sendEmail(data.studentEmail, '✅ Fee Payment Confirmed - Grekam Academy', html);
+    }
+    // WhatsApp receipt to student
+    if (data.studentPhone) {
+      await whatsappService.sendTemplateMessage({
+        phone: data.studentPhone,
+        name: data.studentName,
+        event: 'FEE_PAID',
+        templateName: 'fee_payment_receipt',
+        variables: [data.studentName, data.amount, data.batchName, data.paymentRef],
+      });
+    }
+  });
+
+  EventBus.on(SystemEvents.FEE_DUE_REMINDER, async (data) => {
+    console.log('[Autopilot] 🔔 Caught FEE_DUE_REMINDER:', data.studentName);
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px;background:#f9f9f9;border-radius:12px;">
+        <h1 style="color:#d97706;">🔔 Upcoming Fee Reminder</h1>
+        <p>Hi <strong>${data.studentName}</strong>,</p>
+        <p>This is a friendly reminder that your fee of <strong>${data.amount}</strong> for <strong>${data.batchName}</strong> is due on <strong>${data.dueDate}</strong>.</p>
+        <p>Please make the payment on time to avoid any disruption to your classes.</p>
+        <p style="color:#888;font-size:12px;">— Grekam Academy Team</p>
+      </div>`;
+    if (data.studentEmail) {
+      await EmailService.sendEmail(data.studentEmail, '🔔 Fee Due Reminder - Grekam Academy', html);
+    }
+    if (data.studentPhone) {
+      await whatsappService.sendTemplateMessage({
+        phone: data.studentPhone,
+        name: data.studentName,
+        event: 'FEE_DUE_REMINDER',
+        templateName: 'fee_due_reminder',
+        variables: [data.studentName, data.amount, data.batchName, data.dueDate],
+      });
+    }
+  });
+
+  EventBus.on(SystemEvents.FEE_OVERDUE, async (data) => {
+    console.log('[Autopilot] ⚠️ Caught FEE_OVERDUE:', data.studentName);
+    const org = await prisma.organization.findFirst();
+    const adminEmail = org?.supportEmail || 'admin@grekam.com';
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px;background:#fff5f5;border-radius:12px;border:2px solid #fca5a5;">
+        <h1 style="color:#dc2626;">⚠️ Fee Overdue Notice</h1>
+        <p>Hi <strong>${data.studentName}</strong>,</p>
+        <p>Your fee of <strong>${data.amount}</strong> for <strong>${data.batchName}</strong> was due on <strong>${data.dueDate}</strong> and has not been received yet.</p>
+        <p>Please contact us immediately at <strong>${adminEmail}</strong> or pay online to avoid any impact on your enrollment.</p>
+        <p style="color:#888;font-size:12px;">— Grekam Academy Admin</p>
+      </div>`;
+    if (data.studentEmail) {
+      await EmailService.sendEmail(data.studentEmail, '⚠️ URGENT: Fee Overdue - Grekam Academy', html);
+    }
+    if (data.studentPhone) {
+      await whatsappService.sendTemplateMessage({
+        phone: data.studentPhone,
+        name: data.studentName,
+        event: 'FEE_OVERDUE',
+        templateName: 'fee_overdue_alert',
+        variables: [data.studentName, data.amount, data.batchName, data.dueDate],
+      });
+    }
   });
 }
 

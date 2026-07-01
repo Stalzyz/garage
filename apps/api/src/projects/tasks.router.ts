@@ -24,6 +24,17 @@ export default async function tasksRouter(app: FastifyInstance) {
     return { data: tasks, total: tasks.length };
   });
 
+  // GET /api/v1/projects/tasks/user/:assigneeId
+  app.get('/user/:assigneeId', async (req, reply) => {
+    const { assigneeId } = req.params as { assigneeId: string };
+    const tasks = await app.prisma.task.findMany({
+      where: { assigneeId, status: { notIn: ['DONE'] } },
+      include: { project: { select: { name: true } } },
+      orderBy: { dueDate: 'asc' },
+    });
+    return { data: tasks, total: tasks.length };
+  });
+
   // POST /api/v1/projects/tasks
   app.post('/tasks', async (req, reply) => {
     const body = CreateTaskSchema.parse(req.body);

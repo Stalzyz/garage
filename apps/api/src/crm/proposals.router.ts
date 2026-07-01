@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { auditLog } from '../utils/audit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const ProposalItemSchema = z.object({
   description: z.string().min(1),
@@ -61,6 +62,33 @@ export default async function proposalsRouter(app: FastifyInstance) {
     });
     if (!proposal) return reply.notFound('Proposal not found');
     return proposal;
+  });
+
+  // POST /api/v1/crm/proposals/generate — AI generate proposal content
+  app.post('/proposals/generate', async (req, reply) => {
+    const { title, items } = req.body as { title: string, items: any[] };
+    
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `Write a professional executive summary and overview for a business proposal titled "${title}".
+      The proposal includes the following line items:
+      ${items.map((i: any) => `- ${i.title || i.name}: ${i.description}`).join('\n')}
+      
+      Format the response in Markdown. Include sections for Overview, Objectives, and Value Proposition.
+      Do not include any introductory conversation, just the markdown content itself.`;
+
+      const result = await model.generateContent(prompt);
+      const content = result.response.text();
+
+      return { content: content.trim() };
+    } catch (error) {
+      console.error("AI Generation Error:", error);
+      return { 
+        content: `## Overview\n\nWe are excited to propose the "${title}" project.\n\n## Objectives\n- Deliver high quality results\n- Align with your strategic goals\n\n*(Note: This is a fallback mock because the AI generation failed.)*` 
+      };
+    }
   });
 
   // POST /api/v1/crm/proposals — create proposal with items
@@ -134,8 +162,14 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     
     // Generate token if it doesn't have one
-    const existing = await app.prisma.proposal.findUnique({ where: { id }, select: { publicToken: true } });
-    const token = existing?.publicToken || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const existing = await app.prisma.proposal.findUnique({ 
+      where: { id }, 
+      include: { lead: true } 
+    });
+    
+    if (!existing) return reply.notFound('Proposal not found');
+
+    const token = existing.publicToken || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const proposal = await app.prisma.proposal.update({
       where: { id },
@@ -144,6 +178,28 @@ export default async function proposalsRouter(app: FastifyInstance) {
         publicToken: token
       },
     });
+
+    if (existing.lead && existing.lead.email) {
+      const { sendEmail } = await import('../integrations/email.service');
+      const portalUrl = process.env.PORTAL_URL || 'http://localhost:3000';
+      const link = `${portalUrl}/portal/proposals/${token}`;
+      
+      const htmlBody = `
+        <h2>Hello ${existing.lead.name},</h2>
+        <p>A new proposal (<strong>${proposal.title}</strong>) has been prepared for you.</p>
+        <p>You can view and approve the proposal using the secure link below:</p>
+        <br/>
+        <a href="${link}" style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">View Proposal</a>
+        <br/><br/>
+        <p style="color:#666;font-size:12px;">Powered by Grekam Visuals</p>
+      `;
+
+      await sendEmail(existing.lead.email, {
+        subject: `New Proposal: ${proposal.title}`,
+        html: htmlBody
+      });
+    }
+
     await auditLog(app.prisma as any, req, 'UPDATE', 'Proposal', proposal.id, { status: 'SENT' });
     return proposal;
   });
@@ -186,6 +242,52 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     await app.prisma.proposal.delete({ where: { id } });
     await auditLog(app.prisma as any, req, 'DELETE', 'Proposal', id);
-    reply.code(204);
+    return reply.code(204).send();
+  });
+
+  // GET /api/v1/crm/proposals/public/:token
+  app.get('/proposals/public/:token', async (req, reply) => {
+    const { token } = req.params as { token: string };
+    const proposal = await app.prisma.proposal.findUnique({
+      where: { publicToken: token },
+      include: {
+        items: true,
+        lead: { select: { id: true, name: true, company: true } },
+      },
+    });
+    
+    if (!proposal) return reply.notFound('Proposal not found');
+    
+    // Auto-update status to VIEWED if it was just SENT
+    if (proposal.status === 'SENT') {
+      await app.prisma.proposal.update({
+        where: { id: proposal.id },
+        data: { status: 'VIEWED' }
+      });
+      proposal.status = 'VIEWED';
+    }
+    
+    return { data: proposal };
+  });
+
+  // POST /api/v1/crm/proposals/public/:token/sign
+  app.post('/proposals/public/:token/sign', async (req, reply) => {
+    const { token } = req.params as { token: string };
+    const { signatureData } = req.body as { signatureData: string };
+    
+    const existing = await app.prisma.proposal.findUnique({ where: { publicToken: token } });
+    if (!existing) return reply.notFound('Proposal not found');
+    
+    const proposal = await app.prisma.proposal.update({
+      where: { id: existing.id },
+      data: {
+        status: 'APPROVED',
+        signedAt: new Date(),
+        signatureData: signatureData
+      },
+      include: { lead: true }
+    });
+
+    return { success: true, data: proposal };
   });
 }

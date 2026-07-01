@@ -15,11 +15,12 @@ const CreateStudentSchema = z.object({
 export default async function studentsRouter(app: FastifyInstance) {
   // GET /api/v1/academy/students
   app.get('/students', async (req, reply) => {
-    const { isAlumni } = req.query as { isAlumni?: string };
+    const { isAlumni, deliveryMode } = req.query as { isAlumni?: string, deliveryMode?: string };
     
-    let whereClause = {};
-    if (isAlumni === 'true') whereClause = { isAlumni: true };
-    if (isAlumni === 'false') whereClause = { isAlumni: false };
+    let whereClause: any = {};
+    if (isAlumni === 'true') whereClause.isAlumni = true;
+    if (isAlumni === 'false') whereClause.isAlumni = false;
+    if (deliveryMode) whereClause.deliveryMode = deliveryMode;
 
     const students = await app.prisma.student.findMany({
       where: whereClause,

@@ -3,8 +3,10 @@
 import { useState } from "react"
 import { Search, Plus, MoreHorizontal, Sparkles, UploadCloud, Calendar, UserCheck, Star, BrainCircuit } from "lucide-react"
 
+import { SlideOver } from "@/components/SlideOver"
+
 // Mock Data
-const CANDIDATES = [
+const INITIAL_CANDIDATES = [
   { id: "c1", name: "David Kim", role: "Senior Frontend Engineer", stage: "NEW", score: null, applied: "2 hours ago" },
   { id: "c2", name: "Elena Rostova", role: "UI/UX Instructor", stage: "SCREENING", score: 92, applied: "1 day ago" },
   { id: "c3", name: "Marcus Johnson", role: "Sales Executive", stage: "SCREENING", score: 45, applied: "1 day ago" },
@@ -20,15 +22,44 @@ const STAGES = [
 ]
 
 export default function ATSDashboard() {
+  const [candidates, setCandidates] = useState(INITIAL_CANDIDATES)
   const [search, setSearch] = useState("")
   const [isParsing, setIsParsing] = useState(false)
+  
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [formData, setFormData] = useState({ name: "", role: "Senior Frontend Engineer" })
 
   const handleParseMock = () => {
     setIsParsing(true)
     setTimeout(() => {
       setIsParsing(false)
-      alert("AI Parsing Complete! 3 new candidates matched.")
-    }, 2500)
+      const updated = candidates.map(c => {
+        if (c.stage === "NEW") {
+          return { ...c, stage: "SCREENING", score: Math.floor(Math.random() * 40) + 60 }
+        }
+        return c
+      })
+      setCandidates(updated as any)
+      alert("AI Parsing Complete! Candidates screened.")
+    }, 1500)
+  }
+
+  const updateStage = (id: string, stage: string, extra?: any) => {
+    setCandidates(candidates.map(c => c.id === id ? { ...c, stage, ...extra } : c))
+  }
+
+  const handleAddCandidate = (e: React.FormEvent) => {
+    e.preventDefault()
+    setCandidates([{
+      id: `c${Date.now()}`,
+      name: formData.name,
+      role: formData.role,
+      stage: "NEW",
+      score: null,
+      applied: "Just now"
+    }, ...candidates])
+    setIsAddOpen(false)
+    setFormData({ name: "", role: "Senior Frontend Engineer" })
   }
 
   return (
@@ -54,7 +85,7 @@ export default function ATSDashboard() {
                 <><UploadCloud className="w-4 h-4" /> Upload & Parse Resumes</>
               )}
             </button>
-            <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+            <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
               <Plus className="w-4 h-4" /> Add Candidate
             </button>
           </div>
@@ -85,7 +116,7 @@ export default function ATSDashboard() {
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
         <div className="flex h-full gap-6 min-w-max">
           {STAGES.map(stage => {
-            const columnCandidates = CANDIDATES.filter(c => c.stage === stage.id && (search === "" || c.name.toLowerCase().includes(search.toLowerCase())))
+            const columnCandidates = candidates.filter(c => c.stage === stage.id && (search === "" || c.name.toLowerCase().includes(search.toLowerCase())))
             
             return (
               <div key={stage.id} className="w-80 flex flex-col h-full">
@@ -130,17 +161,17 @@ export default function ATSDashboard() {
                       {/* Quick Actions overlay */}
                       <div className="mt-3 flex gap-2 hidden group-hover:flex">
                         {stage.id === 'NEW' && (
-                          <button className="flex-1 bg-primary text-primary-foreground text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
+                          <button onClick={() => updateStage(candidate.id, 'SCREENING', { score: Math.floor(Math.random() * 20) + 80 })} className="flex-1 bg-primary text-primary-foreground text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
                             <BrainCircuit className="w-3 h-3" /> AI Screen
                           </button>
                         )}
                         {stage.id === 'SCREENING' && candidate.score && candidate.score >= 80 && (
-                          <button className="flex-1 bg-amber-500 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
+                          <button onClick={() => updateStage(candidate.id, 'INTERVIEW')} className="flex-1 bg-amber-500 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
                             <Calendar className="w-3 h-3" /> Schedule
                           </button>
                         )}
                         {stage.id === 'INTERVIEW' && (
-                          <button className="flex-1 bg-emerald-500 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
+                          <button onClick={() => updateStage(candidate.id, 'OFFER')} className="flex-1 bg-emerald-500 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1">
                             <UserCheck className="w-3 h-3" /> Extend Offer
                           </button>
                         )}
@@ -159,6 +190,38 @@ export default function ATSDashboard() {
           })}
         </div>
       </div>
+
+      <SlideOver
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        title="Add Candidate"
+        subtitle="Manually add a candidate to the pipeline."
+      >
+        <form onSubmit={handleAddCandidate} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-foreground/50 uppercase tracking-wider mb-2">Candidate Name *</label>
+            <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 text-foreground" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-foreground/50 uppercase tracking-wider mb-2">Role</label>
+            <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 text-foreground">
+              <option value="Senior Frontend Engineer">Senior Frontend Engineer</option>
+              <option value="UI/UX Instructor">UI/UX Instructor</option>
+              <option value="Sales Executive">Sales Executive</option>
+              <option value="Junior Designer">Junior Designer</option>
+            </select>
+          </div>
+          
+          <div className="pt-4 mt-6 border-t border-border/50">
+            <button 
+              type="submit"
+              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all"
+            >
+              Add Candidate
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

@@ -2,25 +2,37 @@
 
 import { useState } from "react"
 import { Search, Plus, Filter, UserCheck, Clock, CheckCircle2, XCircle, LogIn, LogOut, Calendar, Download } from "lucide-react"
+import { SlideOver } from "@/components/SlideOver"
+import { toast } from "sonner"
 
-// Mock Data
-const STAFF_ATTENDANCE = [
-  { id: "A001", name: "Aisha Rahman", role: "Creative Director", date: "Today", checkIn: "09:15 AM", checkOut: "--", status: "PRESENT", hours: "4h 30m" },
-  { id: "A002", name: "Ravi Kumar", role: "Senior UX Designer", date: "Today", checkIn: "09:45 AM", checkOut: "--", status: "LATE", hours: "4h 00m" },
-  { id: "A003", name: "Maya Sharma", role: "Frontend Developer", date: "Today", checkIn: "10:05 AM", checkOut: "--", status: "LATE", hours: "3h 40m" },
-  { id: "A004", name: "Karthik N.", role: "Operations Lead", date: "Today", checkIn: "--", checkOut: "--", status: "ABSENT", hours: "0h 00m" },
-  { id: "A005", name: "Priya Desai", role: "Marketing Intern", date: "Today", checkIn: "09:00 AM", checkOut: "01:00 PM", status: "HALF_DAY", hours: "4h 00m" },
-]
+import { useApi, fetchApi } from "@/lib/useApi"
 
 export default function StaffAttendanceDashboard() {
+  const { data: attendanceData, mutate, isLoading } = useApi<{ attendance: any[] }>("/hr/attendance/all")
+  const logs = attendanceData?.attendance || []
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+  
+  const [isManualOpen, setIsManualOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    status: "PRESENT",
+    checkIn: "09:00 AM",
+    checkOut: "05:00 PM"
+  })
 
-  const filteredLogs = STAFF_ATTENDANCE.filter(log => {
-    if (filter !== "all" && log.status.toLowerCase() !== filter) return false
-    if (search && !log.name.toLowerCase().includes(search.toLowerCase()) && !log.role.toLowerCase().includes(search.toLowerCase())) return false
+  const filteredLogs = logs.filter((log: any) => {
+    if (filter !== "all" && log.status?.toLowerCase() !== filter) return false
+    const employeeName = log.employee?.user?.firstName ? `${log.employee.user.firstName} ${log.employee.user.lastName}` : "Unknown"
+    const role = log.employee?.jobTitle || ""
+    if (search && !employeeName.toLowerCase().includes(search.toLowerCase()) && !role.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
+
+  const presentCount = logs.filter(l => l.status === "PRESENT").length
+  const lateCount = logs.filter(l => l.status === "LATE").length
+  const absentCount = logs.filter(l => l.status === "ABSENT").length
+  const halfDayCount = logs.filter(l => l.status === "HALF_DAY").length
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -36,7 +48,7 @@ export default function StaffAttendanceDashboard() {
               <Download className="w-4 h-4" />
               Export
             </button>
-            <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+            <button onClick={() => setIsManualOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
               <UserCheck className="w-4 h-4" />
               Mark Manual Entry
             </button>
@@ -54,8 +66,8 @@ export default function StaffAttendanceDashboard() {
               <span className="text-xs font-semibold uppercase tracking-wider">Present</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">18</span>
-              <span className="text-sm text-muted-foreground">/ 24 staff</span>
+              <span className="text-3xl font-bold text-foreground">{presentCount}</span>
+              <span className="text-sm text-muted-foreground">staff</span>
             </div>
           </div>
           
@@ -65,7 +77,7 @@ export default function StaffAttendanceDashboard() {
               <span className="text-xs font-semibold uppercase tracking-wider">Late In</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">3</span>
+              <span className="text-3xl font-bold text-foreground">{lateCount}</span>
               <span className="text-sm text-muted-foreground">staff</span>
             </div>
           </div>
@@ -76,7 +88,7 @@ export default function StaffAttendanceDashboard() {
               <span className="text-xs font-semibold uppercase tracking-wider">Half Day / Leave</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">2</span>
+              <span className="text-3xl font-bold text-foreground">{halfDayCount}</span>
               <span className="text-sm text-muted-foreground">staff</span>
             </div>
           </div>
@@ -87,7 +99,7 @@ export default function StaffAttendanceDashboard() {
               <span className="text-xs font-semibold uppercase tracking-wider">Absent</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">1</span>
+              <span className="text-3xl font-bold text-foreground">{absentCount}</span>
               <span className="text-sm text-muted-foreground">staff</span>
             </div>
           </div>
@@ -144,11 +156,11 @@ export default function StaffAttendanceDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {filteredLogs.map((log) => (
+                {filteredLogs.map((log: any) => (
                   <tr key={log.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-foreground">{log.name}</div>
-                      <div className="text-xs text-muted-foreground">{log.role}</div>
+                      <div className="font-medium text-foreground">{log.employee?.user?.firstName} {log.employee?.user?.lastName}</div>
+                      <div className="text-xs text-muted-foreground">{log.employee?.jobTitle}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border ${
@@ -161,23 +173,25 @@ export default function StaffAttendanceDashboard() {
                         {log.status === 'LATE' && <Clock className="w-3 h-3" />}
                         {log.status === 'ABSENT' && <XCircle className="w-3 h-3" />}
                         {log.status === 'HALF_DAY' && <Calendar className="w-3 h-3" />}
-                        {log.status.replace("_", " ")}
+                        {log.status?.replace("_", " ")}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-foreground">
                         <LogIn className="w-3.5 h-3.5 text-muted-foreground" />
-                        {log.checkIn}
+                        {log.clockIn ? new Date(log.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--"}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-foreground">
                         <LogOut className="w-3.5 h-3.5 text-muted-foreground" />
-                        {log.checkOut}
+                        {log.clockOut ? new Date(log.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--"}
                       </div>
                     </td>
                     <td className="px-6 py-4 font-mono font-medium text-foreground">
-                      {log.hours}
+                      {log.clockIn && log.clockOut 
+                        ? `${Math.floor((new Date(log.clockOut).getTime() - new Date(log.clockIn).getTime()) / 3600000)}h ${Math.floor(((new Date(log.clockOut).getTime() - new Date(log.clockIn).getTime()) % 3600000) / 60000)}m` 
+                        : "--"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button className="text-primary hover:underline text-xs font-medium">Edit Log</button>
@@ -196,6 +210,55 @@ export default function StaffAttendanceDashboard() {
         </div>
 
       </div>
+
+      <SlideOver
+        open={isManualOpen}
+        onClose={() => setIsManualOpen(false)}
+        title="Mark Manual Entry"
+        subtitle="Manually update an employee's attendance record."
+      >
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          // Mock save
+          setIsManualOpen(false)
+          setFormData({ name: "", status: "PRESENT", checkIn: "09:00 AM", checkOut: "05:00 PM" })
+          toast.success("Manual entry saved")
+        }} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Employee Name *</label>
+            <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white placeholder:text-white/30" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Status</label>
+            <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white">
+              <option value="PRESENT">Present</option>
+              <option value="LATE">Late</option>
+              <option value="ABSENT">Absent</option>
+              <option value="HALF_DAY">Half Day</option>
+            </select>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Check In</label>
+              <input value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Check Out</label>
+              <input value={formData.checkOut} onChange={e => setFormData({...formData, checkOut: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
+            </div>
+          </div>
+          
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button 
+              type="submit"
+              className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all"
+            >
+              Save Entry
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

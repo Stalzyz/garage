@@ -11,7 +11,7 @@ export default function TimeTrackingPage() {
   const { data: projectsData } = useApi<any>("/projects")
   
   const timeLogs = logsData?.timeLogs || []
-  const projects = projectsData?.projects || []
+  const projects = projectsData?.data || []
 
   const [isLogging, setIsLogging] = useState(false)
   const [formData, setFormData] = useState({

@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical } from "lucide-react"
+import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
+import { FinanceTab } from "./FinanceTab"
 
 const TABS = [
   { id: "tasks", label: "Tasks", icon: KanbanSquare },
   { id: "brief", label: "Brief", icon: FileText },
   { id: "files", label: "Files", icon: LayoutList },
+  { id: "finance", label: "Finance", icon: CreditCard },
   { id: "settings", label: "Settings", icon: Settings },
 ]
 
@@ -222,7 +224,11 @@ export default function ProjectDetailsPage() {
           </div>
         )}
 
-        {activeTab !== "tasks" && (
+        {activeTab === "finance" && (
+          <FinanceTab projectId={project.id} budget={project.budget || 0} />
+        )}
+
+        {activeTab !== "tasks" && activeTab !== "finance" && (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} view placeholder
           </div>

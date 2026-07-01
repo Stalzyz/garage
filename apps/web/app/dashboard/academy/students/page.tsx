@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, Users, GraduationCap, Mail, Phone, BookOpen, Fingerprint, X, Printer } from "lucide-react"
+import { Search, Plus, Filter, Users, GraduationCap, Mail, Phone, BookOpen, Fingerprint, X, Printer, LayoutGrid, List as ListIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 
 export default function StudentDirectory() {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("ALL") // ALL, ENROLLED, ALUMNI
+  const [viewMode, setViewMode] = useState<"GRID"|"LIST">("GRID")
   
   const [activeStudent, setActiveStudent] = useState<any>(null)
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false)
@@ -137,22 +138,39 @@ export default function StudentDirectory() {
               </button>
             ))}
           </div>
-          <div className="relative w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or code..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all backdrop-blur-md"
-            />
+          <div className="flex gap-2">
+            <div className="relative w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name or code..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all backdrop-blur-md"
+              />
+            </div>
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+              <button 
+                onClick={() => setViewMode("GRID")}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'GRID' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setViewMode("LIST")}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'LIST' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}
+              >
+                <ListIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Content Grid */}
+      {/* Content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <AnimatePresence>
+        {viewMode === "GRID" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <AnimatePresence>
             {filtered.map((student: any, i: number) => (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -208,8 +226,58 @@ export default function StudentDirectory() {
                 </div>
               </motion.div>
             ))}
-          </AnimatePresence>
-        </div>
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 bg-black/40">
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50">Student</th>
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50">Code</th>
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50">Contact</th>
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50">Batch</th>
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-mono tracking-widest uppercase text-white/50 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((student: any) => (
+                  <tr key={student.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" onClick={() => setActiveStudent(student)}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center font-bold text-xs text-white">
+                          {student.name.charAt(0)}
+                        </div>
+                        <span className="text-sm font-bold text-white group-hover:text-violet-400 transition-colors">{student.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-mono text-white/60">{student.code}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1 text-xs text-white/60">
+                        <span>{student.email}</span>
+                        <span>{student.phone}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-mono text-white/60">{student.batch}</td>
+                    <td className="px-6 py-4">
+                      <span className={`text-[9px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border inline-flex items-center gap-1.5 ${
+                        student.status === 'ENROLLED' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                          : 'bg-white/5 text-white/50 border-white/10'
+                      }`}>
+                        {student.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white transition-colors">View</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center h-64 text-center relative z-10">

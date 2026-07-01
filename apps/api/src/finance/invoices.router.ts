@@ -4,6 +4,7 @@ import { EventBus, SystemEvents } from '../automations/event-bus';
 import { generateInvoicePDF } from './pdf.service';
 import { paymentsService } from '../integrations/payments.service';
 import { auditLog } from '../utils/audit';
+import { sendEmail, EmailTemplates } from '../integrations/email.service';
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 function toCsv(rows: Record<string, any>[], headers: string[]): string {
@@ -255,6 +256,36 @@ export default async function invoicesRouter(app: FastifyInstance) {
     await app.prisma.invoice.delete({ where: { id } });
     await auditLog(app.prisma as any, req, 'DELETE', 'Invoice', id, { invoiceNumber: invoice?.invoiceNumber });
     reply.code(204);
+  });
+
+  // POST /api/v1/finance/invoices/:id/send
+  app.post('/invoices/:id/send', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) return reply.notFound('Invoice not found');
+    
+    if (!invoice.clientEmail) {
+      return reply.badRequest('Client email is missing');
+    }
+
+    const template = EmailTemplates.invoiceDue(
+      invoice.clientName, 
+      invoice.invoiceNumber, 
+      invoice.totalAmount, 
+      invoice.dueDate.toLocaleDateString()
+    );
+
+    const result = await sendEmail(invoice.clientEmail, template);
+    
+    const updatedInvoice = await app.prisma.invoice.update({
+      where: { id },
+      data: { status: 'SENT' },
+      include: { items: true }
+    });
+
+    await auditLog(app.prisma as any, req, 'UPDATE', 'Invoice', id, { status: 'SENT', emailSent: true });
+
+    return { success: true, invoice: updatedInvoice, previewUrl: result.previewUrl };
   });
 
   // POST /api/v1/finance/invoices/:id/pay

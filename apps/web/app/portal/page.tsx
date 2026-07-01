@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useOrganization } from "@/context/OrganizationContext"
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
 
 // Demo client credentials
@@ -13,6 +14,7 @@ const DEMO_CLIENTS = [
 
 export default function ClientPortalLogin() {
   const router = useRouter()
+  const org = useOrganization()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -52,11 +54,14 @@ export default function ClientPortalLogin() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3 mb-auto">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+          {org.logoUrl
+            ? <img src={org.logoUrl} alt={org.name} className="w-10 h-10 rounded-xl object-contain" />
+            : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+          }
           <div>
-            <p className="text-sm font-bold text-white">Grekam Visuals</p>
+            <p className="text-sm font-bold text-white">{org.name}</p>
             <p className="text-[10px] text-white/40 uppercase tracking-widest">Client Portal</p>
           </div>
         </div>
@@ -98,10 +103,13 @@ export default function ClientPortalLogin() {
           
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <p className="text-sm font-bold text-white">Grekam Client Portal</p>
+            {org.logoUrl
+              ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
+              : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+            }
+            <p className="text-sm font-bold text-white">{org.name} Client Portal</p>
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
@@ -177,8 +185,8 @@ export default function ClientPortalLogin() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-white/25 mt-8">
-            This portal is for Grekam Visuals clients only.
+          <p className="text-xs text-white/30 mt-8 text-center">
+            This portal is for {org.name} clients only.
             <br />If you need access, contact your project manager.
           </p>
         </div>

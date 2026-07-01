@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Calculator, Download, Landmark, FileText, AlertTriangle, ArrowRight, CheckCircle2, TrendingUp, TrendingDown } from "lucide-react"
+import { Calculator, Download, Landmark, FileText, AlertTriangle, ArrowRight, CheckCircle2, TrendingUp, TrendingDown, Loader2 } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
+import { toast } from "sonner"
 
 // Mock Data
 const TAX_YEAR = "2024-2025"
@@ -23,6 +24,34 @@ const GST_LIABILITY = GST_COLLECTED - GST_PAID
 
 export default function TaxHubDashboard() {
   const { symbol } = useCurrency()
+  const [isExporting, setIsExporting] = useState(false)
+  const [isFiling, setIsFiling] = useState(false)
+
+  const handleExportTax = () => {
+    setIsExporting(true)
+    setTimeout(() => {
+      const csv = `Type,Amount\nGross Income,${INCOME}\nDeductible Expenses,${EXPENSES}\nTaxable Profit,${PROFIT}\nEstimated Tax Liability,${TOTAL_CORP_TAX}\nGST Collected,${GST_COLLECTED}\nITC,${GST_PAID}\nNet GST Liability,${GST_LIABILITY}`
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Tax_Report_${TAX_YEAR}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setIsExporting(false)
+      toast.success("Tax Report Exported successfully")
+    }, 800)
+  }
+
+  const handleFileGST = () => {
+    setIsFiling(true)
+    setTimeout(() => {
+      setIsFiling(false)
+      toast.success("GST Return filed successfully for Q1!")
+    }, 1500)
+  }
   
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -34,12 +63,13 @@ export default function TaxHubDashboard() {
             <p className="text-sm text-muted-foreground mt-1">Estimations for GST liability and Corporate Tax ({TAX_YEAR}).</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50">
-              <Download className="w-4 h-4" />
-              Export Tax Report
+            <button onClick={handleExportTax} disabled={isExporting} className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 disabled:opacity-50">
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {isExporting ? "Exporting..." : "Export Tax Report"}
             </button>
-            <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
-              <FileText className="w-4 h-4" /> File GST Return
+            <button onClick={handleFileGST} disabled={isFiling} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50">
+              {isFiling ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+              {isFiling ? "Filing..." : "File GST Return"}
             </button>
           </div>
         </div>

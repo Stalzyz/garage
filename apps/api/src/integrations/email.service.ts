@@ -234,11 +234,20 @@ export const EmailTemplates = {
 
 // ─── Send Function ────────────────────────────────────────────────────────────
 
-export async function sendEmail(to: string, template: { subject: string; html: string }) {
+export async function sendEmail(
+  to: string, 
+  template: { subject: string; html: string; attachments?: any[] }
+) {
   const t = await getTransporter();
   const from = process.env.SMTP_FROM || '"Grekam Visuals" <no-reply@grekam.in>';
 
-  const info = await t.sendMail({ from, to, subject: template.subject, html: template.html });
+  const info = await t.sendMail({ 
+    from, 
+    to, 
+    subject: template.subject, 
+    html: template.html,
+    attachments: template.attachments
+  });
 
   // Log Ethereal preview URL in dev
   const previewUrl = nodemailer.getTestMessageUrl(info);

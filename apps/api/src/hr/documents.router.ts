@@ -17,7 +17,8 @@ export default async function documentsRoutes(app: FastifyInstance) {
       body: z.object({
         name: z.string(),
         type: z.enum(['CERTIFICATE', 'EXPERIENCE_LETTER', 'OFFER_LETTER', 'CONTRACT', 'CUSTOM', 'PROPOSAL']),
-        content: z.string()
+        content: z.string(),
+        variables: z.array(z.string()).optional()
       })
     }
   }, async (req, reply) => {
@@ -30,6 +31,11 @@ export default async function documentsRoutes(app: FastifyInstance) {
   server.delete('/:id', {
     schema: { params: z.object({ id: z.string() }) }
   }, async (req, reply) => {
+    // Delete all associated generated documents first to prevent foreign key constraint errors
+    await server.prisma.generatedDocument.deleteMany({
+      where: { templateId: req.params.id }
+    });
+    
     await server.prisma.documentTemplate.delete({
       where: { id: req.params.id }
     });

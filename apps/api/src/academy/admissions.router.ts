@@ -2,9 +2,12 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 const CreateApplicationSchema = z.object({
-  studentId: z.string().min(1),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().optional(),
   courseId: z.string().optional(),
-  portfolioUrl: z.string().url().optional(),
+  portfolioUrl: z.string().optional(),
   statement: z.string().optional(),
 });
 
@@ -48,9 +51,45 @@ export default async function admissionsRouter(app: FastifyInstance) {
   // POST /api/v1/academy/applications
   app.post('/applications', async (req, reply) => {
     const body = CreateApplicationSchema.parse(req.body);
-    const application = await app.prisma.application.create({
-      data: body,
+    
+    // Create User, Student, and Application in a transaction
+    const application = await app.prisma.$transaction(async (tx) => {
+      // 1. Create User
+      const user = await tx.user.create({
+        data: {
+          firstName: body.firstName,
+          lastName: body.lastName,
+          email: body.email,
+          role: 'STUDENT',
+          passwordHash: '$2a$10$x4R4Qz4hVfQW9y4r4hVfQ.W9y4r4hVfQW9y4r4hVfQW9y4r4hVfQ', // Dummy hash for now
+        }
+      });
+
+      // 2. Create Student
+      const studentCode = `STU-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const student = await tx.student.create({
+        data: {
+          userId: user.id,
+          studentCode,
+        }
+      });
+
+      // 3. Create Application
+      return await tx.application.create({
+        data: {
+          studentId: student.id,
+          courseId: body.courseId,
+          portfolioUrl: body.portfolioUrl,
+          statement: body.statement,
+          status: 'SUBMITTED'
+        },
+        include: {
+          student: { include: { user: true } },
+          course: true
+        }
+      });
     });
+
     reply.code(201);
     return application;
   });

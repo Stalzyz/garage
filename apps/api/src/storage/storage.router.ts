@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const GetUploadUrlSchema = z.object({
@@ -27,6 +27,42 @@ export default async function storageRouter(app: FastifyInstance) {
   app.put('/mock-upload', async (req, reply) => {
     // Simply accept the upload and do nothing
     return reply.code(200).send({ success: true });
+  });
+
+  // GET /api/v1/storage/asset/*
+  // Proxies files directly from R2 if no public domain is configured
+  app.get('/asset/*', async (req, reply) => {
+    const key = (req.params as any)['*'];
+    if (!key) return reply.code(400).send({ error: 'Missing key' });
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+      });
+
+      const response = await s3.send(command);
+      if (!response.Body) {
+        return reply.code(404).send({ error: 'File empty or not found' });
+      }
+
+      // Set headers
+      if (response.ContentType) {
+        reply.header('Content-Type', response.ContentType);
+      }
+      if (response.ContentLength) {
+        reply.header('Content-Length', response.ContentLength);
+      }
+
+      // Stream the response body
+      return reply.send(response.Body as any);
+    } catch (err: any) {
+      if (err.name === 'NoSuchKey') {
+        return reply.code(404).send({ error: 'File not found' });
+      }
+      console.error('R2 GetObject Error:', err);
+      return reply.code(500).send({ error: 'Failed to fetch asset' });
+    }
   });
 
   // POST /api/v1/storage/upload-url
@@ -60,8 +96,9 @@ export default async function storageRouter(app: FastifyInstance) {
       const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
 
       // We don't have a custom domain setup yet, so we'll mock the public download URL or construct it if there's a public dev URL
-      const publicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://your-public-r2-domain.com';
-      const downloadUrl = `${publicDomain}/${key}`;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+      const publicDomain = process.env.R2_PUBLIC_DOMAIN;
+      const downloadUrl = publicDomain ? `${publicDomain}/${key}` : `${API_URL}/storage/asset/${key}`;
 
       return { uploadUrl, key, downloadUrl };
     } catch (err) {

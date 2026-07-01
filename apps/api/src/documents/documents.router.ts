@@ -83,6 +83,9 @@ export default async function documentsRoutes(app: FastifyInstance) {
         dict.DESIGNATION = user.employee.jobTitle;
         dict.JOIN_DATE = new Date(user.employee.joiningDate).toLocaleDateString();
         dict.EMPLOYEE_CODE = user.employee.employeeCode;
+        dict.SALARY = user.employee.salary ? user.employee.salary.toLocaleString() : '0';
+        dict.CURRENCY = user.employee.currency || 'INR';
+        dict.EMPLOYMENT_TYPE = user.employee.employmentType.replace('_', ' ');
       }
       if (user.student) {
         dict.STUDENT_CODE = user.student.studentCode;
@@ -167,5 +170,65 @@ export default async function documentsRoutes(app: FastifyInstance) {
       }
     });
     return { documents: docs };
+  });
+
+  // 6. Email Document
+  server.post('/email', {
+    schema: {
+      body: z.object({
+        documentId: z.string(),
+        emailTo: z.string().email()
+      })
+    }
+  }, async (req, reply) => {
+    const doc = await server.prisma.generatedDocument.findUnique({
+      where: { id: req.body.documentId },
+      include: { template: true, user: true }
+    });
+
+    if (!doc) {
+      return reply.status(404).send({ error: 'Document not found' });
+    }
+
+    const { sendEmail } = await import('../integrations/email.service');
+    
+    // Re-generate HTML
+    let finalContent = doc.template.content;
+    const dict = (doc.metadata || {}) as Record<string, string>;
+    doc.template.variables.forEach(v => {
+      const val = dict[v] || `[${v}]`;
+      finalContent = finalContent.replace(new RegExp(`\\{\\{${v}\\}\\}`, 'g'), val);
+    });
+
+    // Create a styled wrapping for the attachment so it looks decent
+    const styledHtml = `
+      <html>
+        <head><style>body { font-family: sans-serif; margin: 40px; line-height: 1.6; }</style></head>
+        <body>${finalContent}</body>
+      </html>
+    `;
+
+    const subject = `Your Document: ${doc.template.name}`;
+    const htmlBody = `
+      <h2>Hello${doc.user ? ' ' + doc.user.firstName : ''},</h2>
+      <p>A new official document (<strong>${doc.template.name}</strong>) has been generated for you.</p>
+      <p>Please find it securely attached to this email.</p>
+      <br/><hr/><br/>
+      <p style="color: #666; font-size: 12px;">Generated securely by Grekam-OS</p>
+    `;
+
+    await sendEmail(req.body.emailTo, {
+      subject,
+      html: htmlBody,
+      attachments: [
+        {
+          filename: `${doc.template.name.replace(/\\s+/g, '_')}.html`,
+          content: styledHtml,
+          contentType: 'text/html'
+        }
+      ]
+    });
+
+    return reply.send({ success: true });
   });
 }

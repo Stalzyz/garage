@@ -60,10 +60,40 @@ const CATALOGUE: ProductCategory[] = [
 ]
 
 export default function ProductCataloguePage() {
+  const [catalog, setCatalog] = useState<ProductCategory[]>(CATALOGUE)
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<string>("grafty-pro")
+  
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [newTier, setNewTier] = useState({ name: "", price: "", billing: "monthly", description: "", isPopular: false })
 
-  const activeCategory = CATALOGUE.find(c => c.id === activeTab)
+  const activeCategory = catalog.find(c => c.id === activeTab)
+
+  const handleAddTier = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTier.name || !newTier.price) return
+    
+    setCatalog(prev => prev.map(cat => {
+      if (cat.id === activeTab) {
+        return {
+          ...cat,
+          tiers: [...cat.tiers, {
+            id: `tier-${Date.now()}`,
+            name: newTier.name,
+            price: newTier.price,
+            billing: newTier.billing as any,
+            description: newTier.description,
+            features: ["Custom Feature 1", "Custom Feature 2"], // Mock default features
+            isPopular: newTier.isPopular
+          }]
+        }
+      }
+      return cat
+    }))
+    
+    setNewTier({ name: "", price: "", billing: "monthly", description: "", isPopular: false })
+    setIsAddModalOpen(false)
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -74,7 +104,7 @@ export default function ProductCataloguePage() {
             <h1 className="text-2xl font-bold text-foreground">Product Catalogue</h1>
             <p className="text-sm text-muted-foreground mt-1">Manage your software and agency service subscriptions.</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+          <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
             <Plus className="w-4 h-4" />
             Add Product Tier
           </button>
@@ -83,7 +113,7 @@ export default function ProductCataloguePage() {
         {/* Top Controls */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex bg-muted/30 p-1 rounded-lg border border-border/50 overflow-x-auto">
-            {CATALOGUE.map(cat => (
+            {catalog.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveTab(cat.id)}
@@ -186,6 +216,56 @@ export default function ProductCataloguePage() {
           </div>
         )}
       </div>
+
+      {/* Add Tier Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-card border border-border/50 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-5 border-b border-border/50 flex items-center justify-between">
+              <h3 className="font-bold text-foreground text-lg">Add New Tier to {activeCategory?.name}</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium px-2.5 py-1 rounded-lg">Close</button>
+            </div>
+            
+            <form onSubmit={handleAddTier} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Tier Name</label>
+                <input type="text" required placeholder="e.g. Enterprise" value={newTier.name} onChange={e => setNewTier({...newTier, name: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Price (Formatted string)</label>
+                <input type="text" required placeholder="e.g. ₹99,999" value={newTier.price} onChange={e => setNewTier({...newTier, price: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Billing Cycle</label>
+                <select value={newTier.billing} onChange={e => setNewTier({...newTier, billing: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary">
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                  <option value="retainer">Retainer</option>
+                  <option value="once">One-time</option>
+                </select>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground block">Description</label>
+                <input type="text" placeholder="Short description..." value={newTier.description} onChange={e => setNewTier({...newTier, description: e.target.value})} className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" />
+              </div>
+              
+              <div className="flex items-center gap-2 pt-2">
+                <input type="checkbox" id="isPop" checked={newTier.isPopular} onChange={e => setNewTier({...newTier, isPopular: e.target.checked})} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
+                <label htmlFor="isPop" className="text-sm text-foreground">Mark as Most Popular</label>
+              </div>
+
+              <div className="pt-4 border-t border-border/50">
+                <button type="submit" className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl hover:bg-primary/90 transition-all">
+                  Create Tier
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

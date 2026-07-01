@@ -427,12 +427,12 @@ export default function ClientProjectDetailPage() {
             </div>
             
             <div className="border-t border-white/5 my-4 pt-4 flex flex-col gap-2">
-              <Link 
-                href="/portal/chat" 
+              <button 
+                onClick={() => toast("Chat module coming soon!")}
                 className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-2"
               >
                 <MessageSquare className="w-4 h-4 text-blue-400" /> Chat with Team
-              </Link>
+              </button>
             </div>
           </div>
 

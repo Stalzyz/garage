@@ -2,8 +2,10 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, MapPin, Mail, Phone, ArrowRight, Sparkles, Orbit } from 'lucide-react'
+import { useOrganization } from '@/context/OrganizationContext'
 
 export default function ContactPage() {
+  const org = useOrganization()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
@@ -28,7 +30,7 @@ export default function ContactPage() {
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center group-hover:rotate-180 transition-transform duration-700">
             <Orbit className="w-6 h-6 text-black" />
           </div>
-          <span className="font-bold tracking-widest uppercase text-sm md:text-base">Grekam Visuals</span>
+          <span className="font-bold tracking-widest uppercase text-sm md:text-base">{org.name}</span>
         </a>
         <a href="/agency" className="text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors">
           Back to Agency
@@ -65,7 +67,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-1">Global HQ</h4>
-                <p className="text-slate-400">123 Innovation Drive, Tech District<br/>San Francisco, CA 94105</p>
+                <p className="text-slate-400 whitespace-pre-wrap">{org.billingAddress || '123 Innovation Drive, Tech District\nSan Francisco, CA 94105'}</p>
               </div>
             </div>
             
@@ -75,7 +77,9 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-1">General Inquiries</h4>
-                <a href="mailto:hello@grekam.com" className="text-blue-400 hover:text-blue-300 transition-colors">hello@grekam.com</a>
+                <a href={`mailto:${org.supportEmail || 'hello@grekam.com'}`} className="text-blue-400 hover:text-blue-300 transition-colors">
+                  {org.supportEmail || 'hello@grekam.com'}
+                </a>
               </div>
             </div>
 
@@ -85,7 +89,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider mb-1">Direct Line</h4>
-                <p className="text-slate-400">+1 (800) 123-4567</p>
+                <p className="text-slate-400">{org.phone || '+1 (800) 123-4567'}</p>
               </div>
             </div>
           </div>

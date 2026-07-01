@@ -7,6 +7,7 @@ import {
   Clock, Download, MessageSquare, Bell, ChevronRight,
   Package, Star, AlertCircle, ExternalLink, GraduationCap, PlayCircle
 } from "lucide-react"
+import { useOrganization } from "@/context/OrganizationContext"
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
@@ -134,6 +135,7 @@ type TabId = "overview" | "projects" | "invoices" | "proposals" | "courses"
 
 export default function ClientDashboard() {
   const router = useRouter()
+  const org = useOrganization()
   const [client, setClient] = useState<{ name: string; email: string; avatar: string } | null>(null)
   const [tab, setTab] = useState<TabId>("overview")
   const [showNotifications, setShowNotifications] = useState(false)
@@ -170,11 +172,14 @@ export default function ClientDashboard() {
       {/* Top Navigation */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b border-white/8 bg-[#0a0a0f]/90 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+          {org.logoUrl
+            ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
+            : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+          }
           <div>
-            <p className="text-xs font-bold text-white">Grekam Visuals</p>
+            <p className="text-xs font-bold text-white">{org.name}</p>
             <p className="text-[9px] text-white/30 uppercase tracking-widest">Client Portal</p>
           </div>
         </div>
@@ -256,7 +261,7 @@ export default function ClientDashboard() {
               <h1 className="text-2xl font-bold text-white">
                 Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{client.name}</span> 👋
               </h1>
-              <p className="text-white/40 text-sm mt-1">Here's a snapshot of your active engagement with Grekam Visuals.</p>
+              <p className="text-white/40 text-sm mt-1">Here's a snapshot of your active engagement with {org.name}.</p>
             </div>
 
             {/* Stats */}

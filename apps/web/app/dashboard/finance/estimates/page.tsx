@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, FileText, Send, CheckCircle, Clock, Copy, MoreHorizontal, ArrowRight, Eye } from "lucide-react"
+import { Plus, Search, FileText, Send, CheckCircle, Clock, Copy, MoreHorizontal, ArrowRight, Eye, Edit2, CopyPlus } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
+import { SlideOver } from "@/components/SlideOver"
+import { toast } from "sonner"
 
 // Mock Data
 const ESTIMATES = [
@@ -15,10 +17,35 @@ const ESTIMATES = [
 export default function EstimatesDashboard() {
   const { symbol } = useCurrency()
   const [search, setSearch] = useState("")
+  const [estimatesList, setEstimatesList] = useState(ESTIMATES)
+  
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [editingEst, setEditingEst] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    client: "",
+    project: "",
+    amount: 0
+  })
 
-  const filtered = ESTIMATES.filter(e => {
+  const filtered = estimatesList.filter(e => {
     return search === "" || e.client.toLowerCase().includes(search.toLowerCase()) || e.id.toLowerCase().includes(search.toLowerCase())
   })
+
+  const handleCreateEstimate = (e: React.FormEvent) => {
+    e.preventDefault()
+    const newEst = {
+      id: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+      client: formData.client,
+      project: formData.project,
+      amount: Number(formData.amount),
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: "DRAFT"
+    }
+    setEstimatesList([newEst, ...estimatesList])
+    toast.success("Estimate created as draft")
+    setIsAddOpen(false)
+    setFormData({ client: "", project: "", amount: 0 })
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -29,7 +56,7 @@ export default function EstimatesDashboard() {
             <h1 className="text-2xl font-bold text-foreground">Estimates & Quotes</h1>
             <p className="text-sm text-muted-foreground mt-1">Draft estimates, send for client approval, and convert to invoices.</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
             <Plus className="w-4 h-4" />
             Create Estimate
           </button>
@@ -99,21 +126,32 @@ export default function EstimatesDashboard() {
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">{est.date}</td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2">
                         {est.status === 'APPROVED' ? (
                           <button className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-lg text-xs font-bold border border-emerald-500/20 hover:border-emerald-500 transition-all">
                             Convert to Invoice <ArrowRight className="w-3 h-3" />
                           </button>
                         ) : (
                           <>
-                            <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors tooltip" title="Copy Client Link">
+                            <button onClick={() => { navigator.clipboard.writeText(`https://grekam.com/verify/estimate/${est.id}`); toast.success("Client link copied!") }} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors tooltip" title="Copy Client Link">
                               <Copy className="w-4 h-4" />
                             </button>
-                            <button className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors tooltip" title="Preview">
+                            <button onClick={() => toast("Preview mode coming soon!")} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors tooltip" title="Preview">
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
-                              <MoreHorizontal className="w-4 h-4" />
+                            <button onClick={() => setEditingEst(est)} className="p-1.5 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-md transition-colors tooltip" title="Edit">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => {
+                              const duplicated = {
+                                ...est,
+                                id: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+                                status: "DRAFT"
+                              }
+                              setEstimatesList([duplicated, ...estimatesList])
+                              toast.success("Estimate duplicated successfully!")
+                            }} className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors tooltip" title="Duplicate">
+                              <CopyPlus className="w-4 h-4" />
                             </button>
                           </>
                         )}
@@ -167,6 +205,84 @@ export default function EstimatesDashboard() {
         </div>
 
       </div>
+
+      <SlideOver
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        title="Create Estimate"
+        subtitle="Draft a new quote for your client."
+      >
+        <form onSubmit={handleCreateEstimate} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Client Name *</label>
+            <input required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30" placeholder="e.g. Acme Corp" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Name *</label>
+            <input required value={formData.project} onChange={e => setFormData({...formData, project: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30" placeholder="e.g. Website Redesign" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Total Amount ({symbol}) *</label>
+            <input required type="number" value={formData.amount || ''} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30" />
+          </div>
+          
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <button 
+              type="submit"
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
+            >
+              Save Draft
+            </button>
+          </div>
+        </form>
+      </SlideOver>
+
+      <SlideOver
+        open={!!editingEst}
+        onClose={() => setEditingEst(null)}
+        title="Manage Estimate"
+        subtitle="Update the status or details of this estimate."
+      >
+        {editingEst && (
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            setEstimatesList(estimatesList.map(est => est.id === editingEst.id ? editingEst : est))
+            toast.success("Estimate updated successfully")
+            setEditingEst(null)
+          }} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Client Name</label>
+              <input type="text" value={editingEst.client} onChange={e => setEditingEst({...editingEst, client: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Name</label>
+              <input type="text" value={editingEst.project} onChange={e => setEditingEst({...editingEst, project: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Status</label>
+              <select value={editingEst.status} onChange={e => setEditingEst({...editingEst, status: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white">
+                <option value="DRAFT" className="bg-[#090d16]">Draft</option>
+                <option value="SENT" className="bg-[#090d16]">Sent</option>
+                <option value="APPROVED" className="bg-[#090d16]">Approved</option>
+                <option value="DECLINED" className="bg-[#090d16]">Declined</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Total Amount ({symbol})</label>
+              <input type="number" value={editingEst.amount} onChange={e => setEditingEst({...editingEst, amount: Number(e.target.value)})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white" />
+            </div>
+            
+            <div className="pt-4 mt-6 border-t border-white/10">
+              <button 
+                type="submit"
+                className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        )}
+      </SlideOver>
     </div>
   )
 }
