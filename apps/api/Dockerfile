@@ -10,6 +10,7 @@ FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter @grekam/db db:generate
 RUN pnpm --filter @grekam/api build
 
 FROM base AS runner
