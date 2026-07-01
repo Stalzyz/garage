@@ -10,7 +10,7 @@ export default async function workspaceRouter(app: FastifyInstance) {
     // For now, we fetch the most recent active project and pending invoice
     
     const project = await app.prisma.project.findFirst({
-      where: { status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+      where: { status: { notIn: ['CLOSED', 'ON_HOLD'] } },
       include: {
         phases: {
           orderBy: { sortOrder: 'asc' }
@@ -21,7 +21,7 @@ export default async function workspaceRouter(app: FastifyInstance) {
     });
 
     const pendingInvoice = await app.prisma.invoice.findFirst({
-      where: { status: 'PENDING' },
+      where: { status: 'SENT' },
       orderBy: { dueDate: 'asc' }
     });
 
@@ -35,18 +35,19 @@ export default async function workspaceRouter(app: FastifyInstance) {
     ];
 
     let progress = 0;
-    let activePhase = null;
-    let nextPhase = null;
+    let activePhase: any = null;
+    let nextPhase: any = null;
 
-    if (project && project.phases.length > 0) {
-      const completedPhases = project.phases.filter(p => p.completedAt !== null).length;
-      progress = Math.round((completedPhases / project.phases.length) * 100);
+    if (project && (project as any).phases && (project as any).phases.length > 0) {
+      const phases = (project as any).phases;
+      const completedPhases = phases.filter((p: any) => p.completedAt !== null).length;
+      progress = Math.round((completedPhases / phases.length) * 100);
       
-      const activeIndex = project.phases.findIndex(p => p.completedAt === null);
+      const activeIndex = phases.findIndex((p: any) => p.completedAt === null);
       if (activeIndex !== -1) {
-        activePhase = project.phases[activeIndex];
-        if (activeIndex + 1 < project.phases.length) {
-          nextPhase = project.phases[activeIndex + 1];
+        activePhase = phases[activeIndex];
+        if (activeIndex + 1 < phases.length) {
+          nextPhase = phases[activeIndex + 1];
         }
       }
     }
@@ -59,12 +60,12 @@ export default async function workspaceRouter(app: FastifyInstance) {
           progress,
           activePhase: activePhase ? activePhase.name : 'All Phases Complete',
           nextPhase: nextPhase ? nextPhase.name : null,
-          phases: project.phases.map(p => ({
+          phases: (project as any).phases ? (project as any).phases.map((p: any) => ({
             id: p.id,
             name: p.name,
             status: p.completedAt ? 'completed' : (p.id === activePhase?.id ? 'active' : 'pending'),
             progress: p.completedAt ? 100 : (p.id === activePhase?.id ? 50 : 0)
-          }))
+          })) : []
         } : null,
         financials: {
           pendingAmount: pendingInvoice ? pendingInvoice.totalAmount : 0,

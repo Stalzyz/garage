@@ -37,10 +37,10 @@ async function run() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 3) {
-      console.log(`[REMINDER] Sending 3-day reminder to ${m.schedule.project.company?.email} for milestone "${m.name}" (Amount: ${m.amount}). Due Date: ${dueDate.toLocaleDateString()}`);
+      console.log(`[REMINDER] Sending 3-day reminder for company "${m.schedule.project.company?.name}" for milestone "${m.name}" (Amount: ${m.amount}). Due Date: ${dueDate.toLocaleDateString()}`);
       // Real app: Send Email logic here
     } else if (diffDays < 0) {
-      console.log(`[OVERDUE] Sending overdue notice to ${m.schedule.project.company?.email} for milestone "${m.name}" (Amount: ${m.amount}). Was due on: ${dueDate.toLocaleDateString()}`);
+      console.log(`[OVERDUE] Sending overdue notice for company "${m.schedule.project.company?.name}" for milestone "${m.name}" (Amount: ${m.amount}). Was due on: ${dueDate.toLocaleDateString()}`);
       // Real app: Send Email logic here
     }
   }

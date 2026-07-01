@@ -319,8 +319,8 @@ export default async function projectsRouter(app: FastifyInstance) {
           invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
           projectId: project.id,
           clientName: project.company?.name || 'Unknown Client',
-          clientEmail: project.company?.email,
-          businessUnit: 'SERVICES',
+          clientEmail: undefined,
+          businessUnit: 'AGENCY',
           subtotal: milestone.amount,
           totalAmount: milestone.amount, // ignoring tax for simplicity here
           dueDate: milestone.dueDate || new Date(),
