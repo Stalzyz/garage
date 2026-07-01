@@ -1,8 +1,12 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
+  }
+  return _openai;
+}
 
 interface GradingResult {
   grade: number;
@@ -38,7 +42,7 @@ Student Submission Link: ${submissionUrl}
 Please evaluate the submission. Return ONLY a valid JSON object.`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini", // Use a fast, capable model
         messages: [
           { role: "system", content: systemPrompt },

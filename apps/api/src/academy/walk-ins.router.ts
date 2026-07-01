@@ -2,7 +2,15 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Lazy initialization — avoids crash on startup if OPENAI_API_KEY is not set
+let _openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!_openai) {
+    if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set');
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 // Simple round-robin auto-assign from a fixed pool of counsellor user IDs
 // In production, pull these from the DB (staff with role COUNSELLOR)
@@ -324,7 +332,7 @@ export default async function walkInsRouter(app: FastifyInstance) {
     `;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,

@@ -1,9 +1,14 @@
 import { FastifyInstance } from 'fastify';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!_openai) {
+    if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set');
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 export default async function aiRouter(app: FastifyInstance) {
   // POST /api/v1/cms/ai-generate
@@ -11,7 +16,7 @@ export default async function aiRouter(app: FastifyInstance) {
     const { prompt } = req.body as { prompt: string };
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini", // Using a fast/cheap model for UI generation
         messages: [
           {

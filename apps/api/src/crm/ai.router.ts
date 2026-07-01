@@ -2,9 +2,13 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "dummy_key",
-});
+let _openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
+  }
+  return _openai;
+}
 
 export default async function aiRouter(app: FastifyInstance) {
   
@@ -49,7 +53,7 @@ Return ONLY valid JSON matching this schema:
         };
       }
 
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
@@ -133,7 +137,7 @@ Please answer operational queries briefly and direct reps or managers to the rig
 
       let response: string | null = null;
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: "gpt-4o",
           messages: [
             { role: "system", content: contextString },
@@ -225,7 +229,7 @@ Keep titles concise and matching typical course designs.`;
 
       let responseText: string | null = null;
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: "gpt-4o",
           messages: [
             { role: "system", content: systemPrompt },
@@ -354,7 +358,7 @@ Return ONLY a valid JSON object matching this schema:
 
       let matchedIds: any[] | null = null;
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: "gpt-4o",
           messages: [
             { role: "system", content: systemPrompt },
