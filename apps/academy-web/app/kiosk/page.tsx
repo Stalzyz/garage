@@ -43,17 +43,21 @@ export default function KioskPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    if (!form.name || !form.phone || !form.interestArea) {
-      setError("Please fill in your name, phone, and area of interest.")
+    if (!form.name) {
+      setError("Please enter your full name.")
       return
     }
-    if (form.phone.length < 10) {
+    if (!form.phone || form.phone.length < 10) {
       setError("Please enter a valid 10-digit phone number.")
+      return
+    }
+    if (!form.interestArea) {
+      setError("Please select at least one course that interests you.")
       return
     }
     setIsSubmitting(true)
     try {
-      const res = await fetch("http://localhost:3002/api/v1/academy/walk-ins", {
+      const res = await fetch("http://localhost:4000/api/v1/academy/walk-ins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

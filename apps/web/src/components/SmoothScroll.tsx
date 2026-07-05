@@ -9,8 +9,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Disable Lenis inside the dashboard because it uses a fixed 100vh layout with inner scroll areas
-    if (pathname?.startsWith('/dashboard')) {
+    // Disable Lenis inside the dashboard and academy because they use fixed 100vh layouts with inner scroll/snap areas
+    if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/academy')) {
       if (lenisRef.current) {
         lenisRef.current.destroy()
         lenisRef.current = null

@@ -218,59 +218,6 @@ function AcademyCanvas({ active }: { active: boolean }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: active ? 1 : 0, transition: "opacity 0.8s" }} />
 }
 
-// ─────────────────────────────────────────────
-// Magnetic cursor (Agency)
-// ─────────────────────────────────────────────
-function MagneticCursor({ side, easterEgg }: { side: "agency" | "academy" | null; easterEgg: string | null }) {
-  const mxRaw = useMotionValue(-200)
-  const myRaw = useMotionValue(-200)
-  const mx = useSpring(mxRaw, { stiffness: 500, damping: 40 })
-  const my = useSpring(myRaw, { stiffness: 500, damping: 40 })
-
-  const mxSlow = useSpring(mxRaw, { stiffness: 80, damping: 20 })
-  const mySlow = useSpring(myRaw, { stiffness: 80, damping: 20 })
-
-  useEffect(() => {
-    const move = (e: MouseEvent) => { mxRaw.set(e.clientX); myRaw.set(e.clientY) }
-    window.addEventListener("mousemove", move)
-    return () => window.removeEventListener("mousemove", move)
-  }, [mxRaw, myRaw])
-
-  if (easterEgg === "blueprint") return null
-
-  return (
-    <div className="hidden md:block">
-      {/* Trailing ring (slow) */}
-      <motion.div className="fixed z-[195] pointer-events-none rounded-full border"
-        style={{
-          x: mxSlow, y: mySlow,
-          translateX: "-50%", translateY: "-50%",
-          width: side === "agency" ? "36px" : "28px",
-          height: side === "agency" ? "36px" : "28px",
-          borderColor: side === "agency" ? "rgba(200,210,240,0.3)" : "rgba(80,55,25,0.25)",
-          borderWidth: "1px",
-        }} />
-      {/* Fast precise dot */}
-      <motion.div className="fixed z-[196] pointer-events-none"
-        style={{ x: mx, y: my, translateX: "-50%", translateY: "-50%" }}>
-        {side === "agency" ? (
-          <div style={{
-            width: "6px", height: "6px",
-            background: "rgba(220,225,240,0.9)",
-            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", // diamond
-          }} />
-        ) : side === "academy" ? (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 0 L10 10 L8 16 L6 10 Z" fill="rgba(60,40,15,0.8)" />
-            <path d="M6 10 L10 10 L8 14 Z" fill="rgba(180,150,80,0.6)" />
-          </svg>
-        ) : (
-          <div className="w-2 h-2 rounded-full bg-white/30" />
-        )}
-      </motion.div>
-    </div>
-  )
-}
 
 // ─────────────────────────────────────────────
 // Animated sketch annotations (Academy hover)
@@ -365,7 +312,10 @@ export default function SplitReality() {
 
   const navigate = (type: "agency" | "academy", href: string) => {
     setTransitioning(type)
-    setTimeout(() => { window.location.href = href }, 1200)
+    setTimeout(() => { 
+      // Use internal routing for academy, external for agency if needed (though both are internal now)
+      window.location.href = href 
+    }, 1200)
   }
 
   const blueprintMode = easterEgg === "blueprint"
@@ -376,7 +326,7 @@ export default function SplitReality() {
 
   return (
     <div
-      className="h-screen w-full overflow-hidden relative cursor-auto md:cursor-none select-none flex flex-col md:flex-row"
+      className="h-screen w-full overflow-hidden relative select-none flex flex-col md:flex-row"
       style={{
         filter: blueprintMode ? "sepia(1) hue-rotate(180deg) saturate(2) brightness(0.7)" : sketchMode ? "grayscale(1) contrast(1.2)" : printMode ? "sepia(0.6) contrast(1.1)" : "none",
         transition: "filter 0.8s ease",
@@ -403,7 +353,10 @@ export default function SplitReality() {
           height: isMobile ? (isAgency ? "60%" : isAcademy ? "40%" : "50%") : "100%"
         }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ zIndex: isAgency ? 20 : 10 }}
+        style={{ 
+          zIndex: isAgency ? 20 : 10,
+          cursor: `url('/cursor-agency.svg') 16 16, auto`
+        }}
         onClick={() => handleMobileTouch("agency")}
       >
         <div className="absolute inset-0" style={{ background: "linear-gradient(145deg, #111114 0%, #161820 40%, #0e0f14 100%)" }} />
@@ -413,8 +366,9 @@ export default function SplitReality() {
         <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(220,210,255,0.05) 0%, transparent 70%)", opacity: isAgency ? 1 : 0.3, transition: "opacity 0.8s ease" }} />
 
         <button
-          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 cursor-auto md:cursor-none text-left"
+          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left"
           onClick={() => isMobile ? (isAgency ? navigate("agency", "/agency") : handleMobileTouch("agency")) : navigate("agency", "/agency")}
+          style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
         >
           <div style={{ opacity: isAgency ? 1 : 0.35, transition: "opacity 0.6s ease", marginTop: isMobile ? "40px" : "0" }}>
             <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
@@ -423,7 +377,7 @@ export default function SplitReality() {
 
           <div>
             <motion.div animate={{ filter: isAgency ? "blur(0px)" : "blur(2px)", opacity: isAgency ? 1 : 0.3 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4">
-              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={isMobile ? 220 : 360} height={120} className="object-contain" style={{ filter: isAgency ? "brightness(1) invert(1)" : "brightness(0.6) invert(1)", transition: "filter 0.6s ease" }} />
+              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={isMobile ? 220 : 360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} />
               <div className="overflow-hidden mt-4">
                 <motion.h2 className="font-black uppercase leading-none"
                   style={{
@@ -488,7 +442,10 @@ export default function SplitReality() {
           height: isMobile ? (isAcademy ? "60%" : isAgency ? "40%" : "50%") : "100%"
         }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ zIndex: isAcademy ? 20 : 10 }}
+        style={{ 
+          zIndex: isAcademy ? 20 : 10,
+          cursor: `url('/cursor-academy.svg') 0 32, auto`
+        }}
         onClick={() => handleMobileTouch("academy")}
       >
         <div className="absolute inset-0" style={{ backgroundColor: "#f0e8d4", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)` }} />
@@ -497,30 +454,30 @@ export default function SplitReality() {
         {!isMobile && <SketchAnnotations active={isAcademy} />}
 
         <button
-          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 cursor-auto md:cursor-none text-left"
-          onClick={() => isMobile ? (isAcademy ? navigate("academy", "http://localhost:3001") : handleMobileTouch("academy")) : navigate("academy", "http://localhost:3001")}
-          style={{ filter: isAcademy ? "url(#rough-paper)" : "none" }}
+          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
+          onClick={() => isMobile ? (isAcademy ? navigate("academy", "/academy") : handleMobileTouch("academy")) : navigate("academy", "/academy")}
+          style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
         >
           <motion.div animate={{ opacity: isAcademy ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
             <div className="text-[9px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-2">02 / ACADEMY</div>
             <svg width="48" height="4" viewBox="0 0 48 4"><path d="M0 2 Q12 1 24 2 Q36 3 48 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
           </motion.div>
 
-          <div>
-            <motion.div animate={{ filter: isAcademy ? "none" : "blur(1.5px)", opacity: isAcademy ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col gap-4">
+          <div className="flex flex-col items-center">
+            <motion.div animate={{ filter: isAcademy ? "none" : "blur(1.5px)", opacity: isAcademy ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
               <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
                 <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} />
               </div>
               <h2 style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", fontSize: "clamp(2rem, 5vw, 6.5rem)", color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.25)", letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900, transition: "color 0.6s ease" }}>MASTER<br />THE CRAFT.</h2>
-              <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", transform: "rotate(-0.5deg)", opacity: isAcademy ? 0.7 : 0 }}>← start here</div>
+              <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", opacity: isAcademy ? 0.7 : 0 }}>↓ start here</div>
             </motion.div>
             <AnimatePresence>
               {isAcademy && (
-                <motion.div key="sketch-elements" className="mt-4 md:mt-6 space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
+                <motion.div key="sketch-elements" className="mt-4 md:mt-6 space-y-2 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
                   {["Design Thinking", "Creative Direction", "Brand Identity"].map((item, i) => (
-                    <div key={item} className="flex items-center gap-2" style={{ transform: `rotate(${(i - 1) * 0.5}deg)`, filter: "url(#rough-paper)" }}>
-                      <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 4 Q8 2 16 4" stroke="rgba(80,55,20,0.4)" strokeWidth="1" fill="none" /></svg>
-                      <span className="text-[10px] font-mono text-[#8b6a3a]/60">{item}</span>
+                    <div key={item} className="flex items-center justify-center gap-2" style={{ transform: `rotate(${(i - 1) * 0.5}deg)`, filter: "url(#rough-paper)" }}>
+                      <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 4 Q8 2 16 4" stroke="rgba(80,55,20,0.8)" strokeWidth="1.5" fill="none" /></svg>
+                      <span className="text-[12px] font-mono font-bold text-[#2a1a08]">{item}</span>
                     </div>
                   ))}
                 </motion.div>
@@ -529,7 +486,7 @@ export default function SplitReality() {
           </div>
 
           <motion.div className="mb-4 md:mb-0" animate={{ opacity: isAcademy ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <div className="inline-flex items-center gap-3 px-5 py-3 cursor-auto md:cursor-none" style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
+            <div className="inline-flex items-center gap-3 px-5 py-3" style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
               <span className="text-[10px] font-mono font-bold tracking-[0.25em] uppercase text-[#3a2808]">Enter Academy</span>
               <span className="text-[#8b6a3a]">↗</span>
             </div>
@@ -549,7 +506,7 @@ export default function SplitReality() {
             <div className="flex items-center gap-1">
               <span className="text-[9px] font-mono tracking-[0.4em] uppercase" style={{ color: isAgency || isMobile ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.1)" }}>GREKAM OS</span>
             </div>
-            <Link href="/auth/login" className="pointer-events-auto text-[9px] font-bold tracking-[0.3em] uppercase px-5 py-2 cursor-auto md:cursor-none"
+            <Link href="/auth/login" className="pointer-events-auto text-[9px] font-bold tracking-[0.3em] uppercase px-5 py-2"
               style={{
                 border: isAgency || isMobile ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(100,75,40,0.3)",
                 color: isAgency || isMobile ? "rgba(255,255,255,0.6)" : "#8b6a3a",
@@ -571,7 +528,6 @@ export default function SplitReality() {
         )}
       </AnimatePresence>
 
-      <MagneticCursor side={side} easterEgg={easterEgg} />
 
       {/* ═══════════════════════════════ */}
       {/* PAGE TRANSITIONS               */}

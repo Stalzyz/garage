@@ -50,7 +50,7 @@ export default function CourseBuilder() {
   ])
   
   const [expandedModules, setExpandedModules] = useState<string[]>(["mod-1"])
-  const [activeItem, setActiveItem] = useState<{ type: "COURSE" | "MODULE" | "LESSON", id?: string } | null>({ type: "LESSON", id: "les-1" })
+  const [activeItem, setActiveItem] = useState<{ type: "COURSE" | "MODULE" | "LESSON" | "THUMBNAIL" | "PRICING", id?: string } | null>({ type: "LESSON", id: "les-1" })
 
   const toggleModule = (id: string) => {
     setExpandedModules(prev => 
@@ -59,14 +59,14 @@ export default function CourseBuilder() {
   }
 
   const handleAddModule = () => {
-    const newId = `mod-\${Date.now()}`
+    const newId = `mod-${Date.now()}`
     setModules([...modules, { id: newId, title: "New Module", lessons: [] }])
     setExpandedModules([...expandedModules, newId])
     setActiveItem({ type: "MODULE", id: newId })
   }
 
   const handleAddLesson = (moduleId: string, type: LessonType) => {
-    const newId = `les-\${Date.now()}`
+    const newId = `les-${Date.now()}`
     setModules(modules.map(m => {
       if (m.id === moduleId) {
         return { ...m, lessons: [...m.lessons, { id: newId, title: "New Lesson", type }] }
@@ -141,12 +141,24 @@ export default function CourseBuilder() {
                   <Settings className="w-4 h-4" />
                   General Settings
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left bg-white/5 hover:bg-white/10 border border-white/5">
-                  <ImageIcon className="w-4 h-4 text-white/50" />
+                <button 
+                  onClick={() => setActiveItem({ type: "THUMBNAIL" })}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left",
+                    activeItem?.type === "THUMBNAIL" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" : "bg-white/5 hover:bg-white/10 border border-white/5"
+                  )}
+                >
+                  <ImageIcon className="w-4 h-4" />
                   Thumbnail & Trailer
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left bg-white/5 hover:bg-white/10 border border-white/5">
-                  <DollarSign className="w-4 h-4 text-white/50" />
+                <button 
+                  onClick={() => setActiveItem({ type: "PRICING" })}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left",
+                    activeItem?.type === "PRICING" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" : "bg-white/5 hover:bg-white/10 border border-white/5"
+                  )}
+                >
+                  <DollarSign className="w-4 h-4" />
                   Pricing & SEO
                 </button>
               </div>
@@ -257,8 +269,8 @@ export default function CourseBuilder() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold text-white/70 ml-1">Pricing (USD)</label>
-                      <input type="number" defaultValue={99} className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                      <label className="text-xs font-semibold text-white/70 ml-1">Category</label>
+                      <input type="text" defaultValue="Engineering" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-white/70 ml-1">Visibility</label>
@@ -267,6 +279,59 @@ export default function CourseBuilder() {
                         <option value="PUBLISHED">Published (Public)</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeItem?.type === "THUMBNAIL" && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Thumbnail & Trailer</h2>
+                  <p className="text-white/50 text-sm">Visuals used to promote your course.</p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors">
+                      <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-1">Upload Thumbnail</h3>
+                    <p className="text-sm text-white/40 mb-6">1920x1080px (16:9) recommended</p>
+                    <button className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors">
+                      Select File
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">Trailer Video URL</label>
+                    <input type="text" placeholder="https://youtube.com/..." className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeItem?.type === "PRICING" && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Pricing & SEO</h2>
+                  <p className="text-white/50 text-sm">Set how users purchase and find this course.</p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">Base Price (USD)</label>
+                    <input type="number" defaultValue={99} className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">SEO Title</label>
+                    <input type="text" defaultValue="Advanced Web Architecture - Master Scalable Systems" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">SEO Keywords (comma separated)</label>
+                    <input type="text" defaultValue="web architecture, scalable, system design" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
                   </div>
                 </div>
               </motion.div>

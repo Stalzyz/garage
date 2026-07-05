@@ -235,7 +235,7 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden md:flex h-screen w-72 flex-col border-r border-white/10 shrink-0 bg-background relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="hidden md:flex h-screen w-72 flex-col border-r border-white/10 shrink-0 bg-[#050505] relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden">
         {sidebarContent}
       </div>
 
@@ -298,7 +298,7 @@ export function Sidebar() {
             onClick={() => setMobileOpen(false)}
           />
           {/* Drawer */}
-          <div className="relative w-[85%] max-w-sm h-full flex flex-col shadow-2xl border-r border-white/10 overflow-hidden bg-background">
+          <div className="relative w-[85%] max-w-sm h-full flex flex-col shadow-2xl border-r border-white/10 overflow-hidden bg-[#050505]">
             <button
               onClick={() => setMobileOpen(false)}
               className="absolute top-5 right-5 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-colors backdrop-blur-md"

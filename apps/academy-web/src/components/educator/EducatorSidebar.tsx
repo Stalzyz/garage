@@ -23,26 +23,44 @@ import {
 } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 
-const educatorNavigation = [
-  { title: "Studio Dashboard", href: "/dashboard/educator", icon: LayoutDashboard },
-  { title: "My Courses", href: "/dashboard/educator/courses", icon: BookOpen },
-  { title: "Course Builder", href: "/dashboard/educator/courses/builder", icon: Folder },
-  { title: "Live Studio", href: "/dashboard/educator/live", icon: Video },
-  { title: "My Students", href: "/dashboard/educator/students", icon: Users },
-  { title: "Assignments", href: "/dashboard/educator/assignments", icon: CheckSquare },
-  { title: "Quiz Builder", href: "/dashboard/educator/quizzes", icon: HelpCircle },
-  { title: "Analytics", href: "/dashboard/educator/analytics", icon: BarChart2 },
-  { title: "Revenue", href: "/dashboard/educator/revenue", icon: DollarSign },
-  { title: "Reviews", href: "/dashboard/educator/reviews", icon: Star },
-  { title: "Community", href: "/dashboard/educator/community", icon: MessageSquare },
-  { title: "Announcements", href: "/dashboard/educator/announcements", icon: Megaphone },
-  { title: "AI Assistant", href: "/dashboard/educator/ai", icon: Bot },
-  { title: "Settings", href: "/dashboard/educator/settings", icon: Settings },
-]
+const getEducatorNavigation = (basePath: string) => {
+  const isOnsite = basePath.includes('/onsite');
+  
+  const nav = [
+    { title: "Studio Dashboard", href: basePath, icon: LayoutDashboard },
+    { title: "My Students", href: `${basePath}/students`, icon: Users },
+    { title: "My Courses", href: `${basePath}/courses`, icon: BookOpen },
+    { title: "Course Builder", href: `${basePath}/courses/builder`, icon: Folder },
+    { title: "Quiz Builder", href: `${basePath}/quizzes`, icon: HelpCircle },
+    { title: "Assignments", href: `${basePath}/assignments`, icon: CheckSquare },
+    { title: "Analytics", href: `${basePath}/analytics`, icon: BarChart2 },
+  ];
+
+  if (isOnsite) {
+    nav.push({ title: "Live Studio", href: `${basePath}/live`, icon: Video });
+    nav.push({ title: "Office Hours", href: `${basePath}/office-hours`, icon: Users });
+  }
+
+  // Hide the following unimplemented routes until they are built:
+  // - Revenue
+  // - Reviews
+  // - Community
+  // - Announcements
+  // - AI Assistant
+  // - Settings
+
+  return nav;
+}
 
 export function EducatorSidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  
+  const basePath = pathname.includes('/dashboard/studio/online') 
+    ? '/dashboard/studio/online' 
+    : '/dashboard/studio/onsite';
+    
+  const educatorNavigation = getEducatorNavigation(basePath);
 
   return (
     <div className="w-64 h-full bg-[#050505]/90 backdrop-blur-3xl border-r border-white/10 flex flex-col text-white">
@@ -68,7 +86,8 @@ export function EducatorSidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         {educatorNavigation.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(`\${item.href}/`)
+          // Exact match for dashboard home, otherwise prefix match
+          const isActive = pathname === item.href || (item.href !== basePath && pathname?.startsWith(`${item.href}/`))
           const Icon = item.icon
           
           return (

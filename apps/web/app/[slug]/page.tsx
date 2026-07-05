@@ -3,7 +3,8 @@ import { notFound } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
-export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
+export default async function CMSPublicPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   console.log("CMSPublicPage HIT WITH SLUG:", params.slug);
   const page = await prisma.landingPage.findUnique({
     where: { slug: params.slug },

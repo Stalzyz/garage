@@ -22,7 +22,35 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 type LessonType = "VIDEO" | "TEXT" | "QUIZ" | "LINK"
+
+function SortableModuleItem({ id, children }: { id: string, children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
 
 interface Lesson {
   id: string
@@ -50,7 +78,33 @@ export default function CourseBuilder() {
   ])
   
   const [expandedModules, setExpandedModules] = useState<string[]>(["mod-1"])
-  const [activeItem, setActiveItem] = useState<{ type: "COURSE" | "MODULE" | "LESSON", id?: string } | null>({ type: "LESSON", id: "les-1" })
+  const [activeItem, setActiveItem] = useState<{ type: "COURSE" | "MODULE" | "LESSON" | "THUMBNAIL" | "PRICING", id?: string } | null>({ type: "LESSON", id: "les-1" })
+
+  const [thumbnail, setThumbnail] = useState<string | null>(null)
+  const [courseState, setCourseState] = useState({
+    title: "Advanced Web Architecture",
+    description: "Learn how to build scalable...",
+    price: 99,
+    status: "DRAFT"
+  })
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setModules((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   const toggleModule = (id: string) => {
     setExpandedModules(prev => 
@@ -59,14 +113,14 @@ export default function CourseBuilder() {
   }
 
   const handleAddModule = () => {
-    const newId = `mod-\${Date.now()}`
+    const newId = `mod-${Date.now()}`
     setModules([...modules, { id: newId, title: "New Module", lessons: [] }])
     setExpandedModules([...expandedModules, newId])
     setActiveItem({ type: "MODULE", id: newId })
   }
 
   const handleAddLesson = (moduleId: string, type: LessonType) => {
-    const newId = `les-\${Date.now()}`
+    const newId = `les-${Date.now()}`
     setModules(modules.map(m => {
       if (m.id === moduleId) {
         return { ...m, lessons: [...m.lessons, { id: newId, title: "New Lesson", type }] }
@@ -89,9 +143,13 @@ export default function CourseBuilder() {
             <MonitorPlay className="w-4 h-4 text-purple-400" />
           </div>
           <div>
-            <h1 className="font-bold tracking-tight text-sm">Advanced Web Architecture</h1>
+            <h1 className="font-bold tracking-tight text-sm">{courseState.title}</h1>
             <div className="flex items-center gap-2 text-xs text-white/50">
-              <span className="w-2 h-2 rounded-full bg-yellow-500" /> DRAFT
+              {courseState.status === "DRAFT" ? (
+                <><span className="w-2 h-2 rounded-full bg-yellow-500" /> DRAFT</>
+              ) : (
+                <><span className="w-2 h-2 rounded-full bg-emerald-500" /> PUBLISHED</>
+              )}
             </div>
           </div>
         </div>
@@ -100,7 +158,13 @@ export default function CourseBuilder() {
           <button className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold transition-colors flex items-center gap-2">
             <Eye className="w-4 h-4" /> Preview
           </button>
-          <button className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+          <button 
+            onClick={() => {
+              setCourseState(prev => ({ ...prev, status: "PUBLISHED" }));
+              setActiveItem(null);
+            }}
+            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+          >
             <Save className="w-4 h-4" /> Publish Course
           </button>
         </div>
@@ -141,12 +205,24 @@ export default function CourseBuilder() {
                   <Settings className="w-4 h-4" />
                   General Settings
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left bg-white/5 hover:bg-white/10 border border-white/5">
-                  <ImageIcon className="w-4 h-4 text-white/50" />
+                <button 
+                  onClick={() => setActiveItem({ type: "THUMBNAIL" })}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left",
+                    activeItem?.type === "THUMBNAIL" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" : "bg-white/5 hover:bg-white/10 border border-white/5"
+                  )}
+                >
+                  <ImageIcon className="w-4 h-4" />
                   Thumbnail & Trailer
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left bg-white/5 hover:bg-white/10 border border-white/5">
-                  <DollarSign className="w-4 h-4 text-white/50" />
+                <button 
+                  onClick={() => setActiveItem({ type: "PRICING" })}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors text-left",
+                    activeItem?.type === "PRICING" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" : "bg-white/5 hover:bg-white/10 border border-white/5"
+                  )}
+                >
+                  <DollarSign className="w-4 h-4" />
                   Pricing & SEO
                 </button>
               </div>
@@ -154,9 +230,12 @@ export default function CourseBuilder() {
               <div className="space-y-6">
                 
                 {/* Modules List */}
-                <div className="space-y-3">
-                  {modules.map((module, mIdx) => (
-                    <div key={module.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={modules.map(m => m.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-3">
+                      {modules.map((module, mIdx) => (
+                        <SortableModuleItem key={module.id} id={module.id}>
+                          <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden relative z-50">
                       
                       {/* Module Header */}
                       <div 
@@ -173,7 +252,7 @@ export default function CourseBuilder() {
                           {expandedModules.includes(module.id) ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </button>
                         <div className="flex-1 font-bold text-sm truncate">Section {mIdx + 1}: {module.title}</div>
-                        <GripVertical className="w-4 h-4 text-white/20 cursor-grab" />
+                            <GripVertical className="w-4 h-4 text-white/20 cursor-grab hover:text-white transition-colors" />
                       </div>
 
                       {/* Lessons List */}
@@ -218,9 +297,12 @@ export default function CourseBuilder() {
                           </motion.div>
                         )}
                       </AnimatePresence>
+                          </div>
+                        </SortableModuleItem>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
 
                 <button 
                   onClick={handleAddModule}
@@ -257,8 +339,8 @@ export default function CourseBuilder() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold text-white/70 ml-1">Pricing (USD)</label>
-                      <input type="number" defaultValue={99} className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                      <label className="text-xs font-semibold text-white/70 ml-1">Category</label>
+                      <input type="text" defaultValue="Engineering" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-white/70 ml-1">Visibility</label>
@@ -267,6 +349,83 @@ export default function CourseBuilder() {
                         <option value="PUBLISHED">Published (Public)</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeItem?.type === "THUMBNAIL" && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Thumbnail & Trailer</h2>
+                  <p className="text-white/50 text-sm">Visuals used to promote your course.</p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div 
+                    onClick={() => setThumbnail("https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80")}
+                    className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl overflow-hidden flex flex-col items-center justify-center text-center cursor-pointer transition-colors group relative h-64"
+                  >
+                    {thumbnail ? (
+                      <>
+                        <img src={thumbnail} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button onClick={(e) => { e.stopPropagation(); setThumbnail(null); }} className="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-bold">Remove</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors">
+                          <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
+                        </div>
+                        <h3 className="text-lg font-bold mb-1">Upload Thumbnail</h3>
+                        <p className="text-sm text-white/40 mb-6">1920x1080px (16:9) recommended</p>
+                        <button className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors">
+                          Select File
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">Trailer Video URL</label>
+                    <input type="text" placeholder="https://youtube.com/..." className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeItem?.type === "PRICING" && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Pricing & SEO</h2>
+                  <p className="text-white/50 text-sm">Set how users purchase and find this course.</p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">Base Price (USD)</label>
+                    <input 
+                      type="number" 
+                      value={courseState.price}
+                      onChange={(e) => setCourseState(prev => ({ ...prev, price: Number(e.target.value) }))}
+                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">SEO Title</label>
+                    <input 
+                      type="text" 
+                      value={courseState.title}
+                      onChange={(e) => setCourseState(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">SEO Keywords (comma separated)</label>
+                    <input type="text" defaultValue="web architecture, scalable, system design" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
                   </div>
                 </div>
               </motion.div>

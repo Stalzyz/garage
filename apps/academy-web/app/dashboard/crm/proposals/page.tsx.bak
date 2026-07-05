@@ -1,0 +1,416 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Plus, Search, FileText, Send, CheckCircle, XCircle, Eye, Copy, Trash2, IndianRupee, Sparkles, Loader2, ArrowRightCircle, Briefcase } from "lucide-react"
+
+const STATUS_CONFIG = {
+  DRAFT:         { label: "Draft",         color: "text-slate-400   bg-slate-400/10   border-slate-400/20"  },
+  SENT:          { label: "Sent",          color: "text-blue-400    bg-blue-400/10    border-blue-400/20"   },
+  VIEWED:        { label: "Viewed",        color: "text-violet-400  bg-violet-400/10  border-violet-400/20" },
+  APPROVED:      { label: "Approved",      color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"},
+  REJECTED:      { label: "Rejected",      color: "text-red-400     bg-red-400/10     border-red-400/20"    },
+  EXPIRED:       { label: "Expired",       color: "text-orange-400  bg-orange-400/10  border-orange-400/20" },
+}
+
+const SEED_PROPOSALS = [
+  {
+    id: "1", title: "Full Brand Identity Package", client: "RedBrick Realty", status: "APPROVED",
+    totalAmount: 420000, version: 1, createdAt: "Jun 10, 2025", validUntil: "Jul 10, 2025",
+    items: [
+      { description: "Logo Design (3 concepts + revisions)", quantity: 1, unitPrice: 80000, taxPercent: 18 },
+      { description: "Brand Guidelines Document", quantity: 1, unitPrice: 40000, taxPercent: 18 },
+      { description: "Business Stationery Set", quantity: 1, unitPrice: 30000, taxPercent: 18 },
+      { description: "Social Media Templates (20)", quantity: 1, unitPrice: 50000, taxPercent: 18 },
+    ],
+  },
+  {
+    id: "2", title: "Website Redesign — Techflow SaaS", client: "Techflow SaaS", status: "SENT",
+    totalAmount: 295000, version: 2, createdAt: "Jun 14, 2025", validUntil: "Jul 14, 2025",
+    items: [
+      { description: "UX Research & Wireframing", quantity: 1, unitPrice: 60000, taxPercent: 18 },
+      { description: "UI Design (10 screens)", quantity: 10, unitPrice: 8000, taxPercent: 18 },
+      { description: "Framer Development", quantity: 1, unitPrice: 110000, taxPercent: 18 },
+    ],
+  },
+]
+
+function ProposalStatusBadge({ status }: { status: keyof typeof STATUS_CONFIG }) {
+  const cfg = STATUS_CONFIG[status]
+  return <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${cfg.color}`}>{cfg.label}</span>
+}
+
+export default function ProposalsPage() {
+  const [proposals, setProposals] = useState(SEED_PROPOSALS)
+  const [search, setSearch] = useState("")
+  const [selected, setSelected] = useState<typeof SEED_PROPOSALS[0] | null>(SEED_PROPOSALS[0])
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
+
+  const router = useRouter()
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null)
+  const showToast = (message: string, type: "success" | "info" = "success") => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  // CRM-to-Project conversion
+  const [isConverting, setIsConverting] = useState(false)
+  const handleConvertToProject = async () => {
+    if (!selected || selected.status !== "APPROVED") return
+    setIsConverting(true)
+    await new Promise(r => setTimeout(r, 1200)) // Simulate API call
+
+    const newProject = {
+      id: `proj_${Math.random().toString(36).substr(2, 6)}`,
+      name: selected.title,
+      client: selected.client,
+      type: "CUSTOM",
+      status: "BRIEFING",
+      progress: 0,
+      dueDate: selected.validUntil,
+      manager: "Unassigned",
+      budget: selected.totalAmount,
+      phases: selected.items.map(item => item.description),
+      source: "CRM",
+      proposalId: selected.id,
+    }
+
+    // Save to localStorage so Projects page can pick it up
+    const existing = JSON.parse(localStorage.getItem("new_projects_queue") || "[]")
+    localStorage.setItem("new_projects_queue", JSON.stringify([...existing, newProject]))
+
+    // Mark proposal as SENT (now a live project)
+    setProposals(prev => prev.map(p => p.id === selected.id ? { ...p, status: "SENT" } : p))
+    setSelected(prev => prev ? { ...prev, status: "SENT" } : prev)
+    setIsConverting(false)
+    showToast(`🚀 Project created! Redirecting to Projects...`)
+    setTimeout(() => router.push("/dashboard/projects"), 1800)
+  }
+
+  // AI Modal State
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [aiClient, setAiClient] = useState("")
+  const [aiBrief, setAiBrief] = useState("")
+
+  const handleAiGenerate = async () => {
+    if (!aiClient || !aiBrief) return;
+    setIsGenerating(true)
+    
+    try {
+      const res = await fetch("http://127.0.0.1:4000/api/v1/crm/ai/generate-proposal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientName: aiClient, brief: aiBrief })
+      }).catch(() => null); // Ignore fetch errors if backend is down
+
+      let aiData;
+      
+      if (res && res.ok) {
+        const json = await res.json();
+        aiData = json.data;
+      } else {
+        // Fallback simulation if backend fetch fails
+        await new Promise(r => setTimeout(r, 2000));
+        aiData = {
+          title: `${aiClient} - Custom Creative Proposal`,
+          summary: `Based on your brief: "${aiBrief}". We propose a comprehensive campaign designed to elevate your brand presence.`,
+          deliverables: [
+            "Concept Development & Strategy",
+            "Hero Video Production (60s)",
+            "Social Media Assets (15s Cutdowns)",
+          ],
+          budget: 150000,
+          timelineWeeks: 4
+        }
+      }
+
+      const newProposal = {
+        id: Math.random().toString(36).substr(2, 9),
+        title: aiData.title,
+        client: aiClient,
+        status: "DRAFT",
+        totalAmount: aiData.budget * 1.18, // add 18% tax
+        version: 1,
+        createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        items: aiData.deliverables.map((desc: string, i: number) => ({
+          description: desc,
+          quantity: 1,
+          unitPrice: aiData.budget / aiData.deliverables.length,
+          taxPercent: 18
+        }))
+      }
+
+      setProposals(prev => [newProposal, ...prev])
+      setSelected(newProposal)
+      setIsAiModalOpen(false)
+      setAiClient("")
+      setAiBrief("")
+
+    } catch (e) {
+      console.error("AI Generation failed:", e)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const filtered = proposals.filter(p => {
+    const matchSearch = search === "" || p.title.toLowerCase().includes(search.toLowerCase()) || p.client.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = !statusFilter || p.status === statusFilter
+    return matchSearch && matchStatus
+  })
+
+  const totalApproved = proposals.filter(p => p.status === "APPROVED").reduce((s, p) => s + p.totalAmount, 0)
+  const totalPending = proposals.filter(p => ["SENT", "VIEWED"].includes(p.status)).reduce((s, p) => s + p.totalAmount, 0)
+
+  return (
+    <div className="flex h-full min-h-0 overflow-hidden relative">
+      
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`absolute top-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm font-medium transition-all animate-in slide-in-from-top-2 ${
+          toast.type === "success"
+            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+            : "bg-blue-500/10 border-blue-500/30 text-blue-300"
+        }`}>
+          <CheckCircle className="w-4 h-4" />
+          {toast.message}
+        </div>
+      )}
+
+      {/* AI Generate Modal Overlay */}
+      {isAiModalOpen && (
+        <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-primary/20 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/10 to-transparent">
+              <div className="flex items-center gap-2 text-primary mb-1">
+                <Sparkles className="w-5 h-5" />
+                <h2 className="text-xl font-bold">Generate with AI</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">Turn a short brief into a fully structured proposal instantly.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Client Name</label>
+                <input 
+                  value={aiClient} onChange={e => setAiClient(e.target.value)} 
+                  placeholder="e.g. Acme Corp" 
+                  className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Project Brief</label>
+                <textarea 
+                  value={aiBrief} onChange={e => setAiBrief(e.target.value)} 
+                  placeholder="e.g. We need a 30-second 3D animation for our new sneaker launch. Budget is flexible around $10k." 
+                  className="w-full h-32 resize-none bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" 
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t border-border/50 bg-muted/20 flex items-center justify-end gap-3">
+              <button 
+                onClick={() => setIsAiModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAiGenerate}
+                disabled={isGenerating || !aiClient || !aiBrief}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isGenerating ? "Generating..." : "Generate Proposal"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Left panel */}
+      <div className="flex flex-col w-[400px] flex-none border-r border-border/50 bg-background">
+        <div className="flex-none px-5 py-4 border-b border-border/40">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-xl font-bold text-foreground">Proposals</h1>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setIsAiModalOpen(true)} className="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border border-primary/20">
+                <Sparkles className="w-3.5 h-3.5" />
+                AI Generate
+              </button>
+              <button className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+                New
+              </button>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2.5">
+              <p className="text-xs text-emerald-400/70">Approved</p>
+              <p className="text-base font-bold text-emerald-400">₹{(totalApproved / 1000).toFixed(0)}k</p>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2.5">
+              <p className="text-xs text-amber-400/70">Pending</p>
+              <p className="text-base font-bold text-amber-400">₹{(totalPending / 1000).toFixed(0)}k</p>
+            </div>
+          </div>
+
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search proposals..." className="w-full bg-muted/50 border border-border/50 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+          </div>
+
+          <div className="flex gap-1.5 flex-wrap">
+            {[null, "DRAFT", "SENT", "APPROVED"].map(s => (
+              <button key={s ?? "all"} onClick={() => setStatusFilter(s)} className={`text-xs px-2.5 py-1 rounded-full border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary" : "border-border/50 text-muted-foreground hover:text-foreground"}`}>
+                {s ? STATUS_CONFIG[s as keyof typeof STATUS_CONFIG].label : "All"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto divide-y divide-border/30">
+          {filtered.map(p => (
+            <button key={p.id} onClick={() => setSelected(p)} className={`w-full text-left px-5 py-4 hover:bg-muted/30 transition-colors ${selected?.id === p.id ? "bg-muted/50" : ""}`}>
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <p className="text-sm font-semibold text-foreground leading-tight line-clamp-1">{p.title}</p>
+                <ProposalStatusBadge status={p.status as any} />
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">{p.client} · v{p.version}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{p.createdAt}</span>
+                <span className="text-sm font-bold text-foreground">₹{(p.totalAmount / 1000).toFixed(1)}k</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Right panel — Proposal Detail */}
+      <div className="flex-1 overflow-y-auto relative">
+        {selected ? (
+          <div className="p-8 max-w-3xl">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-1">{selected.title}</h2>
+                <p className="text-muted-foreground">{selected.client} · Version {selected.version} · {selected.createdAt}</p>
+              </div>
+              <ProposalStatusBadge status={selected.status as any} />
+            </div>
+
+            {/* CRM → Project Conversion Banner (APPROVED only) */}
+            {selected.status === "APPROVED" && (
+              <div className="mb-6 flex items-center justify-between gap-4 bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/30 rounded-2xl px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Proposal Approved!</p>
+                    <p className="text-xs text-muted-foreground">Convert it into a live project with one click.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleConvertToProject}
+                  disabled={isConverting}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-sm font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 whitespace-nowrap"
+                >
+                  {isConverting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightCircle className="w-4 h-4" />}
+                  {isConverting ? "Creating..." : "Convert to Project"}
+                </button>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 mb-8">
+              <button className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <Send className="w-4 h-4" /> Send to Client
+              </button>
+              <button className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-foreground">
+                <Copy className="w-4 h-4" /> Duplicate
+              </button>
+              <button className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-foreground">
+                <Eye className="w-4 h-4" /> Preview PDF
+              </button>
+              <button className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors ml-auto">
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            </div>
+
+            {/* Line items table */}
+            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden mb-6">
+              <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">Line Items</span>
+              </div>
+              <table className="w-full">
+                <thead className="bg-muted/30">
+                  <tr>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Description</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Qty</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">Unit Price</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">GST</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-5 py-3">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {selected.items.map((item, i) => {
+                    const subtotal = item.quantity * item.unitPrice
+                    const tax = subtotal * (item.taxPercent / 100)
+                    const total = subtotal + tax
+                    return (
+                      <tr key={i} className="hover:bg-muted/10 transition-colors">
+                        <td className="px-5 py-3.5 text-sm text-foreground">{item.description}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground text-right">{item.quantity}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground text-right">₹{item.unitPrice.toLocaleString()}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground text-right">{item.taxPercent}%</td>
+                        <td className="px-5 py-3.5 text-sm font-semibold text-foreground text-right">₹{total.toLocaleString()}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              {/* Totals */}
+              <div className="border-t border-border/40 bg-muted/20">
+                {(() => {
+                  const subtotal = selected.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+                  const gst = selected.totalAmount - subtotal
+                  return (
+                    <>
+                      <div className="flex justify-between px-5 py-2 text-sm text-muted-foreground">
+                        <span>Subtotal</span>
+                        <span>₹{subtotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between px-5 py-2 text-sm text-muted-foreground">
+                        <span>GST (18%)</span>
+                        <span>₹{Math.round(gst).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between px-5 py-3 text-base font-bold text-foreground border-t border-border/40">
+                        <span>Total (INR)</span>
+                        <span className="text-primary">₹{Math.round(selected.totalAmount).toLocaleString()}</span>
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+
+            {/* Valid until */}
+            <p className="text-sm text-muted-foreground">
+              Valid until: <span className="text-foreground font-medium">{selected.validUntil}</span>
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+            Select a proposal to view details
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

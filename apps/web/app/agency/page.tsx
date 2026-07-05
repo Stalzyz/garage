@@ -7,7 +7,7 @@ import { X, Sparkles, Code2, Rocket, Palette, Fingerprint, Users, Volume2, Volum
 
 // --- DATA ---
 type ProjectData = { id: string; title: string; image: string }
-type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; }
+type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; }
 
 const DUMMY_PROJECTS: ProjectData[] = [
   { id: 'p1', title: 'Aura SaaS Platform', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80' },
@@ -24,7 +24,8 @@ const INITIAL_CARDS: CardData[] = [
   { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures and strategic brand identities that dominate markets.", iconName: "Sparkles", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
   { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and trust.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: BRANDING_PROJECTS },
   { id: "webdev", category: "Build", title: "Enterprise Commerce", subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce engines capable of handling infinite scale without bottlenecks.", iconName: "Code2", colorHex: "#22d3ee", cta: "Scale Infrastructure", projects: DUMMY_PROJECTS },
-  { id: "crm", category: "Systems", title: "Bespoke Operations", subtitle: "Stop forcing your team into generic software. We develop custom CRM and ERP platforms tailored to the exact neuro-pathways of your business operations.", iconName: "Fingerprint", colorHex: "#fbbf24", cta: "Automate Workflows", projects: DUMMY_PROJECTS },
+  { id: "crm", category: "Systems", title: "Bespoke CRM Operations", subtitle: "Stop forcing your team into generic software. We develop custom CRM platforms tailored to the exact neuro-pathways of your business operations.", iconName: "Fingerprint", colorHex: "#fbbf24", cta: "Enter CRM Dashboard", isCrm: true },
+  { id: "hrm", category: "People", title: "HRM & Talent", subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, and recruitment through our centralized human resource management system.", iconName: "Users", colorHex: "#10b981", cta: "Enter HR Dashboard", isHrm: true },
   { id: "grafty", category: "Proprietary Tech", title: "The Grafty Advantage", subtitle: "Leverage our proprietary WhatsApp Business API integration. Automate your support, scale your outreach, and connect exactly where your customers already live.", iconName: "Rocket", colorHex: "#f43f5e", cta: "Deploy Grafty", projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }] },
   { id: "ecosystem", category: "Partnership", title: "Fractional CTO & Creative", subtitle: "We don't do one-off projects. We act as your dedicated technical and creative partners, guiding your digital strategy from inception to enterprise scale.", iconName: "Users", colorHex: "#6366f1", cta: "Request Strategic Audit" },
   { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure? Submit a technical brief and our lead architects will review your operational requirements.", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief" },
@@ -189,7 +190,11 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
                   )}
                   
                   {!activeCard.projects && activeCard.id !== 'contact_form' && (
-                     <button className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
+                     <button onClick={() => {
+                        if (activeCard.isAcademy) window.location.href = '/academy';
+                        else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
+                        else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
+                     }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
                         {activeCard.cta} <Sparkles className="w-4 h-4" />
                      </button>
                   )}
@@ -303,6 +308,32 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
          </div>
       )}
 
+      {isActive && card.isCrm && (
+         <div className="mt-8 bg-gradient-to-br from-[#fbbf24]/20 to-transparent border border-[#fbbf24]/30 rounded-2xl p-6 md:p-8 flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-colors" onClick={() => window.location.href = '/dashboard/crm'}>
+            <div>
+               <div className="text-[10px] font-bold tracking-widest text-[#fbbf24] uppercase mb-2">Direct Access</div>
+               <h3 className="text-xl md:text-3xl font-bold text-white mb-2">CRM Dashboard</h3>
+               <p className="text-white/60 text-sm max-w-sm">Manage your pipelines, clients, and communications all in one centralized hub.</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-[#fbbf24] flex items-center justify-center text-black group-hover:scale-110 transition-transform shrink-0">
+               <Fingerprint className="w-5 h-5" />
+            </div>
+         </div>
+      )}
+
+      {isActive && card.isHrm && (
+         <div className="mt-8 bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/30 rounded-2xl p-6 md:p-8 flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-colors" onClick={() => window.location.href = '/dashboard/hr'}>
+            <div>
+               <div className="text-[10px] font-bold tracking-widest text-[#10b981] uppercase mb-2">Direct Access</div>
+               <h3 className="text-xl md:text-3xl font-bold text-white mb-2">HR Dashboard</h3>
+               <p className="text-white/60 text-sm max-w-sm">Manage payroll, employees, and recruitment from your enterprise dashboard.</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-[#10b981] flex items-center justify-center text-black group-hover:scale-110 transition-transform shrink-0">
+               <Users className="w-5 h-5" />
+            </div>
+         </div>
+      )}
+
       {isActive && (
         <div className="mt-auto pt-8 border-t border-white/10 flex flex-col md:flex-row gap-4 mt-8">
           {(card.id === 'contact_form' || card.isContactForm) ? (
@@ -312,7 +343,11 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
                 btnClass="p-4 w-full bg-white text-black font-bold uppercase tracking-widest rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 group"
              />
           ) : (
-             <button className="py-4 px-8 w-full md:w-auto bg-white text-black font-bold rounded-xl hover:bg-gray-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+             <button onClick={() => {
+                if (card.isAcademy) window.location.href = '/academy';
+                else if (card.isCrm) window.location.href = '/dashboard/crm';
+                else if (card.isHrm) window.location.href = '/dashboard/hr';
+             }} className="py-4 px-8 w-full md:w-auto bg-white text-black font-bold rounded-xl hover:bg-gray-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2">
                 {card.cta} <Sparkles className="w-4 h-4" />
              </button>
           )}
@@ -451,7 +486,11 @@ const LayoutEditorial = ({ cards }: any) => {
                     />
                   </div>
                ) : (
-                  <button className="mt-12 w-fit border-b border-[#2c2a29] pb-2 text-[10px] md:text-xs font-sans uppercase tracking-[0.2em] hover:text-[#7a7571] hover:border-[#7a7571] transition-all flex items-center gap-2">
+                  <button onClick={() => {
+                     if (card.isAcademy) window.location.href = '/academy';
+                     else if (card.isCrm) window.location.href = '/dashboard/crm';
+                     else if (card.isHrm) window.location.href = '/dashboard/hr';
+                  }} className="mt-12 w-fit border-b border-[#2c2a29] pb-2 text-[10px] md:text-xs font-sans uppercase tracking-[0.2em] hover:text-[#7a7571] hover:border-[#7a7571] transition-all flex items-center gap-2">
                     {card.cta} <Sparkles className="w-3 h-3" />
                   </button>
                )}
@@ -510,7 +549,11 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
                      btnClass="p-4 w-full bg-black text-white font-bold rounded-xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-4 hover:bg-zinc-800"
                   />
                ) : (
-                  <button className="w-full py-4 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 font-bold rounded-xl uppercase tracking-widest text-[10px] md:text-xs transition-colors mt-auto">
+                  <button onClick={() => {
+                     if (card.isAcademy) window.location.href = '/academy';
+                     else if (card.isCrm) window.location.href = '/dashboard/crm';
+                     else if (card.isHrm) window.location.href = '/dashboard/hr';
+                  }} className="w-full py-4 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 font-bold rounded-xl uppercase tracking-widest text-[10px] md:text-xs transition-colors mt-auto">
                      {card.cta}
                   </button>
                )}
@@ -543,7 +586,11 @@ const LayoutDigitalGallery = ({ cards }: any) => {
                        <h3 className="text-white text-xl md:text-2xl uppercase tracking-[0.2em] mb-2">{card.title}</h3>
                        <p className="text-zinc-400 text-xs md:text-sm mb-6">{card.subtitle}</p>
                        {!(card.id === 'contact_form' || card.isContactForm) && (
-                          <button className="px-6 py-3 border border-white/30 text-white/70 hover:text-white hover:border-white uppercase tracking-widest text-[10px] transition-all">
+                          <button onClick={() => {
+                             if (card.isAcademy) window.location.href = '/academy';
+                             else if (card.isCrm) window.location.href = '/dashboard/crm';
+                             else if (card.isHrm) window.location.href = '/dashboard/hr';
+                          }} className="px-6 py-3 border border-white/30 text-white/70 hover:text-white hover:border-white uppercase tracking-widest text-[10px] transition-all">
                              {card.cta}
                           </button>
                        )}
@@ -607,7 +654,11 @@ const LayoutNeoBrutalism = ({ cards }: any) => {
                             btnClass="p-4 w-full bg-black text-white border-[4px] border-black font-black uppercase tracking-widest hover:translate-y-1 hover:translate-x-1 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all flex items-center justify-center gap-2 mt-4"
                          />
                       ) : (
-                         <button className="w-full md:w-fit px-8 py-4 bg-white border-[4px] border-black font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
+                         <button onClick={() => {
+                            if (card.isAcademy) window.location.href = '/academy';
+                            else if (card.isCrm) window.location.href = '/dashboard/crm';
+                            else if (card.isHrm) window.location.href = '/dashboard/hr';
+                         }} className="w-full md:w-fit px-8 py-4 bg-white border-[4px] border-black font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
                             {card.cta} <Sparkles className="w-4 h-4" />
                          </button>
                       )}
@@ -998,6 +1049,7 @@ export default function GrekamOSAgency() {
             { label: 'Home', href: '/' },
             { label: 'Academy', href: '/academy' },
             { label: 'Contact', href: '/contact' },
+            { label: 'Login', href: '/auth/login' },
           ].map(({ label, href }) => (
             <a key={label} href={href} className={`text-[10px] font-bold tracking-widest uppercase transition-all hover:opacity-100 opacity-60
               ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}>

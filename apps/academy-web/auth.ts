@@ -22,6 +22,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         
+        // E2E Test Backdoor (Strictly Guarded)
+        if (process.env.PLAYWRIGHT_TEST_BACKDOOR === 'true') {
+          if (credentials.email === 'superadmin@test.com') return { id: 'test-1', name: 'Test Admin', email: 'superadmin@test.com', role: 'SUPER_ADMIN', customRole: null, permissions: [] };
+          if (credentials.email === 'student@test.com') return { id: 'test-2', name: 'Test Student', email: 'student@test.com', role: 'STUDENT', customRole: null, permissions: [] };
+          if (credentials.email === 'client@test.com') return { id: 'test-3', name: 'Test Client', email: 'client@test.com', role: 'CLIENT', customRole: null, permissions: [] };
+          if (credentials.email === 'vendor@test.com') return { id: 'test-4', name: 'Test Vendor', email: 'vendor@test.com', role: 'VENDOR', customRole: null, permissions: [] };
+          if (credentials.email === 'educator@test.com') return { id: 'test-5', name: 'Test Educator', email: 'educator@test.com', role: 'EDUCATOR', customRole: null, permissions: [] };
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
           include: {
@@ -33,13 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         if (!user || !user.passwordHash) return null;
         
-        // E2E Test Backdoor
-        let passwordsMatch = false;
-        if (credentials.email === 'admin@grekam.com' && credentials.password === 'admin123') {
-          passwordsMatch = true;
-        } else {
-          passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
-        }
+        let passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
         
         if (!passwordsMatch) return null;
 

@@ -39,7 +39,7 @@ export const navigation: NavItem[] = [
       { title: "Remote Students",   href: "/dashboard/academy/students/online" },
       { title: "Global Leaderboard", href: "/dashboard/academy/leaderboard" },
       { title: "Campus Faculty",   href: "/dashboard/academy/educators/onsite" },
-      { title: "Office Hours", href: "/dashboard/academy/office-hours" },
+      { title: "Office Hours", href: "/dashboard/studio/onsite/office-hours" },
       { title: "Remote Instructors",   href: "/dashboard/academy/educators/online" },
       { title: "Fee Collection",   href: "/dashboard/academy/fees" },
       { title: "Batches",    href: "/dashboard/academy/batches" },
@@ -64,18 +64,6 @@ export const navigation: NavItem[] = [
     href: "/dashboard/studio/online",
     icon: GraduationCap,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
-  },
-  {
-    title: "Notifications",
-    href: "/dashboard/notifications",
-    icon: Bell,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
-  },
-  {
-    title: "Knowledge Base",
-    href: "/dashboard/kb",
-    icon: BookOpen,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
   },
   {
     title: "Settings",
