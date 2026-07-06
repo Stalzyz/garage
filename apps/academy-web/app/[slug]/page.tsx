@@ -4,9 +4,9 @@ import { notFound } from "next/navigation"
 export const dynamic = 'force-dynamic'
 
 export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
-  console.log("CMSPublicPage HIT WITH SLUG:", params.slug);
+  console.log("CMSPublicPage HIT WITH SLUG:", (await params).slug);
   const page = await prisma.landingPage.findUnique({
-    where: { slug: params.slug },
+    where: { slug: (await params).slug },
     include: {
       sections: {
         orderBy: { sortOrder: 'asc' }

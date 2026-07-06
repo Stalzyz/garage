@@ -49,7 +49,7 @@ function getTornEdge(width: number, height: number, jitter = 18, isHorizontal = 
 function PencilTrail({ active }: { active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const points = useRef<{ x: number; y: number; age: number }[]>([])
-  const raf = useRef<number>()
+  const raf = useRef<number>(0)
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -99,7 +99,7 @@ function PencilTrail({ active }: { active: boolean }) {
 // ─────────────────────────────────────────────
 function AgencyCanvas({ active, mx, my }: { active: boolean; mx: number; my: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const raf = useRef<number>()
+  const raf = useRef<number>(0)
   const t = useRef(0)
 
   useEffect(() => {
@@ -153,7 +153,7 @@ function AgencyCanvas({ active, mx, my }: { active: boolean; mx: number; my: num
 // ─────────────────────────────────────────────
 function AcademyCanvas({ active }: { active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const raf = useRef<number>()
+  const raf = useRef<number>(0)
   const lastT = useRef(0)
   type Stroke = { x1: number; y1: number; cx: number; cy: number; x2: number; y2: number; w: number; a: number }
   const strokes = useRef<Stroke[]>([])
@@ -276,6 +276,9 @@ export default function SplitReality() {
   const hasInteracted = useRef(false)
   const isMobile = useMediaQuery("(max-width: 768px)")
 
+  
+  
+
   useEffect(() => {
     setIsClient(true)
     const keyMap: Record<string, "blueprint" | "sketch" | "print"> = { d: "blueprint", s: "sketch", p: "print" }
@@ -343,103 +346,100 @@ export default function SplitReality() {
         </defs>
       </svg>
 
-      {/* ══════════════════════════════════ */}
-      {/* AGENCY SIDE — Top (mobile) / Left (desktop) */}
-      {/* ══════════════════════════════════ */}
-      <motion.div
-        className="relative overflow-hidden"
-        animate={{ 
-          width: isMobile ? "100%" : (isAgency ? "58%" : isAcademy ? "42%" : "50%"),
-          height: isMobile ? (isAgency ? "60%" : isAcademy ? "40%" : "50%") : "100%"
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          zIndex: isAgency ? 20 : 10,
-          cursor: `url('/cursor-agency.svg') 16 16, auto`
-        }}
-        onClick={() => handleMobileTouch("agency")}
-      >
-        <div className="absolute inset-0" style={{ background: "linear-gradient(145deg, #111114 0%, #161820 40%, #0e0f14 100%)" }} />
-        <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` }} />
-        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, backgroundSize: "48px 48px", opacity: isAgency ? 1 : 0.4, transition: "opacity 0.8s ease" }} />
-        <AgencyCanvas active={isAgency} mx={mousePos.x} my={mousePos.y} />
-        <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(220,210,255,0.05) 0%, transparent 70%)", opacity: isAgency ? 1 : 0.3, transition: "opacity 0.8s ease" }} />
-
-        <button
-          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left"
-          onClick={() => isMobile ? (isAgency ? navigate("agency", "/agency") : handleMobileTouch("agency")) : navigate("agency", "/agency")}
-          style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
-        >
-          <div style={{ opacity: isAgency ? 1 : 0.35, transition: "opacity 0.6s ease", marginTop: isMobile ? "40px" : "0" }}>
-            <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
-            <div className="w-12 h-px bg-white/20" />
-          </div>
-
-          <div>
-            <motion.div animate={{ filter: isAgency ? "blur(0px)" : "blur(2px)", opacity: isAgency ? 1 : 0.3 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4">
-              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={isMobile ? 220 : 360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} />
-              <div className="overflow-hidden mt-4">
-                <motion.h2 className="font-black uppercase leading-none"
-                  style={{
-                    fontFamily: "var(--font-barlow, system-ui), sans-serif",
-                    fontSize: "clamp(2rem, 5vw, 6.5rem)",
-                    color: isAgency ? "#ffffff" : "rgba(255,255,255,0.25)",
-                    letterSpacing: isAgency ? (isMobile ? "4px" : "14px") : "0px",
-                    transition: "color 0.6s ease, letter-spacing 0.9s cubic-bezier(0.16,1,0.3,1)",
+      
+      
+      {isMobile ? (
+        <div className="relative w-full h-full overflow-hidden bg-[#050505]">
+          <AnimatePresence>
+            {side === null && (
+              <motion.div 
+                key="portal"
+                className="absolute inset-0 flex flex-col items-center justify-center z-50 touch-none"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 2 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={0.8}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y < -50 || info.velocity.y < -200) {
+                    setSide('agency');
+                    setNavVisible(true);
+                  } else if (info.offset.y > 50 || info.velocity.y > 200) {
+                    setSide('academy');
+                    setNavVisible(true);
+                  }
+                }}
+              >
+                <div className="absolute top-1/4 text-white/40 font-mono text-xs tracking-widest uppercase animate-pulse flex flex-col items-center gap-2">
+                  <span>Swipe Up</span>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                  <span className="text-white/60 font-bold mt-1">Agency</span>
+                </div>
+                
+                {/* The Orb */}
+                <motion.div 
+                  className="w-32 h-32 rounded-full relative"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 20px 0px rgba(200,210,255,0.2), inset 0 0 20px 0px rgba(255,200,100,0.2)",
+                      "0 0 60px 10px rgba(200,210,255,0.4), inset 0 0 40px 10px rgba(255,200,100,0.4)",
+                      "0 0 20px 0px rgba(200,210,255,0.2), inset 0 0 20px 0px rgba(255,200,100,0.2)"
+                    ]
                   }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5))" }}
                 >
-                  WE BUILD<br />DIGITAL<br />EXPERIENCES
-                </motion.h2>
-              </div>
-            </motion.div>
-            <AnimatePresence>
-              {isAgency && (
-                <motion.div key="ui-lines" className="mt-4 md:mt-8 space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.5, delay: 0.2 }}>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/30" /><div className="h-px flex-1 bg-white/10" /><div className="text-[8px] font-mono text-white/20 tracking-widest">STRATEGY</div></div>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/20" /><div className="h-px flex-1 bg-white/08" /><div className="text-[8px] font-mono text-white/15 tracking-widest">DESIGN</div></div>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/15" /><div className="h-px flex-1 bg-white/06" /><div className="text-[8px] font-mono text-white/12 tracking-widest">TECHNOLOGY</div></div>
+                  {/* Orb Core */}
+                  <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-500/10 to-amber-500/10 backdrop-blur-xl" />
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
-          <motion.div className="flex items-center gap-4 mb-4 md:mb-0" animate={{ opacity: isAgency ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 hover:bg-white hover:text-black transition-all duration-300" style={{ backdropFilter: "blur(4px)" }}>
-              Enter Agency
-            </div>
-            <div className="text-white/30 text-xs font-mono">→</div>
-          </motion.div>
-        </button>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(14,15,20,0.45)", opacity: isAcademy ? 1 : 0, transition: "opacity 0.7s ease" }} />
-      </motion.div>
+                <div className="absolute bottom-1/4 text-white/40 font-mono text-xs tracking-widest uppercase animate-pulse flex flex-col items-center gap-2">
+                  <span className="text-white/60 font-bold mb-1">Academy</span>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  <span>Swipe Down</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* ═══════════════════════════════════════════ */}
-      {/* DIVIDER — organic split */}
-      {/* ═══════════════════════════════════════════ */}
-      <div className={`absolute z-30 pointer-events-none ${isMobile ? "w-full h-10 top-1/2 -translate-y-1/2 left-0" : "h-full w-10 top-0 left-1/2 -translate-x-1/2"}`} >
-        <div className="absolute inset-0"
-          style={{
-            background: isMobile 
-              ? (isAcademy ? "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 100%)" : "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.15) 100%)")
-              : (isAcademy ? "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.15) 100%)"),
-            transition: "background 0.5s ease",
-          }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            width: isMobile ? "60px" : "12px", height: isMobile ? "12px" : "60px",
-            background: "rgba(255,240,200,0.18)", border: "1px solid rgba(200,180,120,0.15)",
-            transform: "translateX(-50%) translateY(-50%) rotate(1deg)",
-          }} />
-      </div>
+          <AnimatePresence>
+            {side === 'agency' && (
+              <motion.div 
+                key="agency-view"
+                className="absolute inset-0 z-40"
+                initial={{ opacity: 0, scale: 0.9, y: 50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.1, y: -50 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
+                
+                <button 
+                  onClick={() => setSide(null)}
+                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-mono text-[10px] uppercase tracking-widest z-[100]"
+                >
+                  ← Back to Portal
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* ═══════════════════════════════════════════ */}
-      {/* ACADEMY SIDE — Bottom (mobile) / Right (desktop) */}
-      {/* ═══════════════════════════════════════════ */}
-      <motion.div
+          <AnimatePresence>
+            {side === 'academy' && (
+              <motion.div 
+                key="academy-view"
+                className="absolute inset-0 z-40"
+                initial={{ opacity: 0, scale: 0.9, y: -50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.1, y: 50 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <motion.div
         className="relative overflow-hidden"
         animate={{ 
           width: isMobile ? "100%" : (isAcademy ? "58%" : isAgency ? "42%" : "50%"),
-          height: isMobile ? (isAcademy ? "60%" : isAgency ? "40%" : "50%") : "100%"
+          height: isMobile ? "100%" : "100%"
         }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         style={{ 
@@ -458,13 +458,13 @@ export default function SplitReality() {
           onClick={() => isMobile ? (isAcademy ? navigate("academy", "/academy") : handleMobileTouch("academy")) : navigate("academy", "/academy")}
           style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
         >
-          <motion.div animate={{ opacity: isAcademy ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
+          <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
             <div className="text-[9px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-2">02 / ACADEMY</div>
             <svg width="48" height="4" viewBox="0 0 48 4"><path d="M0 2 Q12 1 24 2 Q36 3 48 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
           </motion.div>
 
           <div className="flex flex-col items-center">
-            <motion.div animate={{ filter: isAcademy ? "none" : "blur(1.5px)", opacity: isAcademy ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
+            <motion.div animate={{ filter: (isMobile || isAcademy) ? "none" : "blur(1.5px)", opacity: (isMobile || isAcademy) ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
               <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
                 <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} />
               </div>
@@ -494,8 +494,83 @@ export default function SplitReality() {
         </button>
         <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(242,236,220,0.5)", filter: "grayscale(0.6)", opacity: isAgency ? 0.7 : 0, transition: "opacity 0.7s ease" }} />
       </motion.div>
+                <button 
+                  onClick={() => setSide(null)}
+                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-black/10 backdrop-blur-xl border border-black/20 text-[#3a2808] font-mono text-[10px] uppercase tracking-widest z-[100]"
+                >
+                  ← Back to Portal
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <>
+          
+          
+          <motion.div
+        className="relative overflow-hidden"
+        animate={{ 
+          width: isMobile ? "100%" : (isAcademy ? "58%" : isAgency ? "42%" : "50%"),
+          height: isMobile ? "100%" : "100%"
+        }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{ 
+          zIndex: isAcademy ? 20 : 10,
+          cursor: `url('/cursor-academy.svg') 0 32, auto`
+        }}
+        onClick={() => handleMobileTouch("academy")}
+      >
+        <div className="absolute inset-0" style={{ backgroundColor: "#f0e8d4", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)` }} />
+        <div className="absolute top-0 left-8 md:left-16 w-px h-full bg-red-300/20 pointer-events-none" />
+        <AcademyCanvas active={isAcademy} />
+        {!isMobile && <SketchAnnotations active={isAcademy} />}
 
-      {/* ═══════════════════════════════ */}
+        <button
+          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
+          onClick={() => isMobile ? (isAcademy ? navigate("academy", "/academy") : handleMobileTouch("academy")) : navigate("academy", "/academy")}
+          style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
+        >
+          <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
+            <div className="text-[9px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-2">02 / ACADEMY</div>
+            <svg width="48" height="4" viewBox="0 0 48 4"><path d="M0 2 Q12 1 24 2 Q36 3 48 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
+          </motion.div>
+
+          <div className="flex flex-col items-center">
+            <motion.div animate={{ filter: (isMobile || isAcademy) ? "none" : "blur(1.5px)", opacity: (isMobile || isAcademy) ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
+              <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
+                <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} />
+              </div>
+              <h2 style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", fontSize: "clamp(2rem, 5vw, 6.5rem)", color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.25)", letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900, transition: "color 0.6s ease" }}>MASTER<br />THE CRAFT.</h2>
+              <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", opacity: isAcademy ? 0.7 : 0 }}>↓ start here</div>
+            </motion.div>
+            <AnimatePresence>
+              {isAcademy && (
+                <motion.div key="sketch-elements" className="mt-4 md:mt-6 space-y-2 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
+                  {["Design Thinking", "Creative Direction", "Brand Identity"].map((item, i) => (
+                    <div key={item} className="flex items-center justify-center gap-2" style={{ transform: `rotate(${(i - 1) * 0.5}deg)`, filter: "url(#rough-paper)" }}>
+                      <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 4 Q8 2 16 4" stroke="rgba(80,55,20,0.8)" strokeWidth="1.5" fill="none" /></svg>
+                      <span className="text-[12px] font-mono font-bold text-[#2a1a08]">{item}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <motion.div className="mb-4 md:mb-0" animate={{ opacity: isAcademy ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+            <div className="inline-flex items-center gap-3 px-5 py-3" style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
+              <span className="text-[10px] font-mono font-bold tracking-[0.25em] uppercase text-[#3a2808]">Enter Academy</span>
+              <span className="text-[#8b6a3a]">↗</span>
+            </div>
+          </motion.div>
+        </button>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(242,236,220,0.5)", filter: "grayscale(0.6)", opacity: isAgency ? 0.7 : 0, transition: "opacity 0.7s ease" }} />
+      </motion.div>
+        </>
+      )}
+
+{/* ═══════════════════════════════ */}
       {/* EFFECTS & OVERLAYS             */}
       {/* ═══════════════════════════════ */}
       <PencilTrail active={isAcademy} />
