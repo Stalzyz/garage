@@ -54,9 +54,9 @@ services:
       - api
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}
-      - PORT=3001
+      - PORT=3000
     ports:
-      - "3001:3001"
+      - "3015:3000"
 
 volumes:
   postgres_data:
