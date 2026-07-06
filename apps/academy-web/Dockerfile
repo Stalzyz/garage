@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm --filter @grekam/db db:generate
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL="postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public"
 RUN pnpm --filter @grekam/academy-web build
 
 FROM base AS runner
