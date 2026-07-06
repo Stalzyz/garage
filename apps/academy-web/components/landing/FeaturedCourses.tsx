@@ -44,11 +44,15 @@ const colorPalette = [
 ];
 
 export async function FeaturedCourses() {
-  // Fetch published courses from the database
-  const dbCourses = await prisma.course.findMany({
-    where: { isPublished: true },
-    select: { id: true, name: true }
-  });
+  let dbCourses: any[] = [];
+  try {
+    dbCourses = await prisma.course.findMany({
+      where: { isPublished: true },
+      select: { id: true, name: true }
+    });
+  } catch (error) {
+    console.warn("Could not fetch courses from database during build, using fallbacks.");
+  }
 
   const coursesToDisplay = dbCourses.length > 0 
     ? dbCourses.map((c) => ({ title: c.name }))
