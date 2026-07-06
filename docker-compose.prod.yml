@@ -29,7 +29,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - PORT=4000
     ports:
-      - "4000:4000"
+      - "4005:4000"
 
   web:
     build:
@@ -43,7 +43,7 @@ services:
       - AUTH_URL=${AUTH_URL:-http://localhost:3000/api/auth}
       - AUTH_SECRET=${AUTH_SECRET}
     ports:
-      - "3000:3000"
+      - "3005:3000"
 
   academy-web:
     build:
