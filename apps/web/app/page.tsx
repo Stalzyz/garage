@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion"
 
@@ -267,6 +268,7 @@ function SketchAnnotations({ active }: { active: boolean }) {
 // MAIN LANDING
 // ─────────────────────────────────────────────
 export default function SplitReality() {
+  const router = useRouter()
   const [side, setSide] = useState<"agency" | "academy" | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [navVisible, setNavVisible] = useState(false)
@@ -317,7 +319,7 @@ export default function SplitReality() {
     setTransitioning(type)
     setTimeout(() => { 
       // Use internal routing for academy, external for agency if needed (though both are internal now)
-      window.location.href = href 
+      router.push(href) 
     }, 1200)
   }
 
@@ -364,11 +366,9 @@ export default function SplitReality() {
                 dragElastic={0.8}
                 onDragEnd={(e, info) => {
                   if (info.offset.y < -50 || info.velocity.y < -200) {
-                    setSide('agency');
-                    setNavVisible(true);
+                    navigate('agency', '/agency');
                   } else if (info.offset.y > 50 || info.velocity.y > 200) {
-                    setSide('academy');
-                    setNavVisible(true);
+                    navigate('academy', '/academy');
                   }
                 }}
               >
