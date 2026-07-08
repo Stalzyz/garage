@@ -17,6 +17,7 @@ export default function ContactsPage() {
 
   const [searchQuery, setSearchQuery] = useState("")
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [editingContactId, setEditingContactId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
@@ -51,6 +52,20 @@ export default function ContactsPage() {
     }
   };
 
+  
+  const handleEditClick = (contact: any) => {
+    setEditingContactId(contact.id);
+    setFormData({
+      firstName: contact.firstName || "",
+      lastName: contact.lastName || "",
+      email: contact.email || "",
+      phone: contact.phone || "",
+      companyId: contact.companyId || "",
+      tier: contact.tier || "BRONZE"
+    });
+    setIsAddOpen(true);
+  };
+
   const handleCreateContact = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -64,12 +79,21 @@ export default function ContactsPage() {
       if (formData.phone) payload.phone = formData.phone
       if (formData.companyId) payload.companyId = formData.companyId
 
-      await fetchApi("/crm/contacts", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-      toast.success("Contact created successfully")
+      if (editingContactId) {
+        await fetchApi(`/crm/contacts/${editingContactId}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload)
+        })
+        toast.success("Contact updated successfully")
+      } else {
+        await fetchApi("/crm/contacts", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        })
+        toast.success("Contact created successfully")
+      }
       setIsAddOpen(false)
+      setEditingContactId(null)
       setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", tier: "BRONZE" })
       mutate()
     } catch (err: any) {
@@ -127,7 +151,7 @@ export default function ContactsPage() {
                 onChange={handleCsvImport}
               />
             </label>
-            <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+            <button onClick={() => { setEditingContactId(null); setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", tier: "BRONZE" }); setIsAddOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
               <Plus className="w-4 h-4" /> Add Contact
             </button>
           </div>
@@ -162,7 +186,7 @@ export default function ContactsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredContacts.map((contact: any) => (
-              <div key={contact.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors group cursor-pointer relative overflow-hidden">
+              <div key={contact.id} onClick={() => handleEditClick(contact)} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors group cursor-pointer relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="flex items-start justify-between mb-4">
@@ -216,8 +240,8 @@ export default function ContactsPage() {
 
       <SlideOver
         open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        title="Add New Contact"
+        onClose={() => { setIsAddOpen(false); setEditingContactId(null); }}
+        title={editingContactId ? "Edit Contact" : "Add New Contact"}
         subtitle="Create a new lead or client in your CRM."
       >
         <form onSubmit={handleCreateContact} className="space-y-5">
@@ -281,7 +305,7 @@ export default function ContactsPage() {
               disabled={isSubmitting}
               className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : "Save Contact"}
+              {isSubmitting ? "Saving..." : editingContactId ? "Update Contact" : "Save Contact"}
             </button>
           </div>
         </form>
