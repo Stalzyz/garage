@@ -36,7 +36,7 @@ export default function ContactsPage() {
     }
     setIsInviting(true);
     try {
-      const res = await fetchApi<any>(`/crm/contacts/${contact.id}/invite`, { method: "POST" });
+      const res = await fetchApi<any>(`/crm/contacts/${contact.id}/invite`, { method: "POST", body: JSON.stringify({}) });
       if (res.alreadyExists) {
         toast.info("This user already has portal credentials.");
       } else {
