@@ -223,18 +223,21 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
-      {isActive && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); playSound(); setActiveId(null); }} 
-          className="absolute top-4 right-4 z-[120] hover:opacity-70 transition-opacity"
-          style={{ color: card.colorHex }}
-        >
-          <X className="w-6 h-6 md:w-8 md:h-8" />
-        </button>
-      )}
-      {(!isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8">{card.category}</div>}
+      {(!isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
       
-      <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16 mb-4' : 'w-16 h-16 md:w-20 md:h-20 mb-6')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6" : (isRectangle ? "w-5 h-5" : undefined))}</div>
+      <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-start items-center mb-6 md:mb-8'))}`}>
+         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6" : (isRectangle ? "w-5 h-5" : undefined))}</div>
+         
+         {isActive && (
+           <button 
+             onClick={(e) => { e.stopPropagation(); playSound(); setActiveId(null); }} 
+             className="z-[120] hover:opacity-70 transition-opacity p-2 -mr-2"
+             style={{ color: card.colorHex }}
+           >
+             <X className="w-6 h-6 md:w-8 md:h-8" />
+           </button>
+         )}
+      </div>
       
       {(!isSmallSquare) && (
         <h2 className={`font-bold text-white ${isActive ? 'text-3xl md:text-5xl mb-2' : (isRectangle ? 'text-[11px] leading-tight text-left' : (isDesktopShrunk ? 'text-base leading-tight' : 'text-2xl mb-2'))}`}>{card.title}</h2>
