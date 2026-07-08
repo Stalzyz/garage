@@ -226,7 +226,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
       {isActive && (
         <button 
           onClick={(e) => { e.stopPropagation(); playSound(); setActiveId(null); }} 
-          className="absolute top-0 right-0 z-[60] hover:opacity-70 transition-opacity"
+          className="absolute top-4 right-4 z-[120] hover:opacity-70 transition-opacity"
           style={{ color: card.colorHex }}
         >
           <X className="w-6 h-6 md:w-8 md:h-8" />
@@ -366,14 +366,14 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
       </div>
 
       <AnimatePresence>
-        {activeId && <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-40 backdrop-blur-md" onClick={() => setActiveId(null)} />}
+        {activeId && <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-[100] backdrop-blur-md" onClick={() => setActiveId(null)} />}
         {activeId && (() => {
           const activeCard = cards.find((c: CardData) => c.id === activeId)
           if (!activeCard) return null
           return (
             <motion.div
               layoutId={`card-${activeCard.id}`}
-              className="fixed inset-0 m-auto bg-zinc-900 border border-white/10 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,1)] w-[90vw] md:w-[900px] h-auto max-h-[90vh] z-50 flex flex-col p-6 md:p-10 pb-24 md:pb-10 overflow-y-auto custom-scrollbar cursor-default pointer-events-auto"
+              className="fixed inset-0 m-auto bg-zinc-900 border border-white/10 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,1)] w-[90vw] md:w-[900px] h-auto max-h-[90vh] z-[110] flex flex-col p-6 md:p-10 pb-24 md:pb-10 overflow-y-auto custom-scrollbar cursor-default pointer-events-auto"
             >
               {renderCardContent(activeCard, true, false, false)}
             </motion.div>
@@ -390,21 +390,16 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
         let inactiveHeight = '450px'
         
         if (isMobile) {
-          if (hasOpenedCard) {
-            inactiveWidth = '64px'
-            inactiveHeight = '64px'
-          } else {
-            inactiveWidth = '240px'
-            inactiveHeight = '72px'
-          }
+          inactiveWidth = '64px'
+          inactiveHeight = '64px'
         } else {
           // Default desktop inactive cards are now always square
           inactiveWidth = '180px'
           inactiveHeight = '180px'
         }
         
-        const isSmallSquare = isMobile && hasOpenedCard;
-        const isRectangle = isMobile && !hasOpenedCard;
+        const isSmallSquare = isMobile && !isActive;
+        const isRectangle = false;
         const isDesktopShrunk = !isMobile && !isActive;
         
         // Ensure that even if text is empty, the container forces itself to a square
@@ -523,7 +518,7 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
           const x = Math.sin(i * 1.5) * radius + 2000;
           const y = Math.cos(i * 1.5) * radius + 2000;
           return (
-            <div key={card.id} className="absolute w-[85vw] md:w-[450px] bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-zinc-200 pointer-events-auto flex flex-col" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
+            <motion.div drag dragMomentum={false} key={card.id} className="absolute w-[85vw] md:w-[450px] bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-zinc-200 pointer-events-auto flex flex-col cursor-grab active:cursor-grabbing hover:z-50 hover:shadow-2xl transition-shadow" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
                <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center mb-6" style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon)}</div>
                <div className="text-[10px] md:text-xs uppercase tracking-widest text-zinc-400 mb-2">{card.category}</div>
                <h2 className="text-2xl md:text-4xl font-black text-black mb-4">{card.title}</h2>
@@ -557,7 +552,7 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
                      {card.cta}
                   </button>
                )}
-            </div>
+            </motion.div>
           )
         })}
       </motion.div>
@@ -879,7 +874,7 @@ const LayoutCreativeUniverse = ({ cards, playSound }: any) => {
       <div className="absolute w-[300px] h-[300px] md:w-[600px] md:h-[600px] border border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
       <div className="absolute w-[450px] h-[450px] md:w-[900px] md:h-[900px] border border-white/5 rounded-full animate-[spin_90s_linear_infinite_reverse]" />
       
-      <div className={`absolute bottom-24 md:bottom-32 left-1/2 -translate-x-1/2 z-10 w-full px-6 text-center pointer-events-none transition-opacity duration-500 ${activeCard ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`absolute bottom-24 md:bottom-32 left-1/2 -translate-x-1/2 z-[40] w-full px-6 text-center pointer-events-none transition-opacity duration-500 bg-[#030014]/50 backdrop-blur-md py-4 rounded-3xl max-w-4xl ${activeCard ? 'opacity-0' : 'opacity-100'}`}>
         <h2 className="text-xl md:text-4xl font-bold text-white tracking-widest uppercase mb-4 drop-shadow-lg">Do you have the courage to stand out?</h2>
         <p className="text-white/50 tracking-[0.2em] uppercase text-[10px] md:text-sm">Or will you settle for another template?</p>
       </div>
