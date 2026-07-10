@@ -20,21 +20,6 @@ const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator")
 import { NotificationMenu } from "./NotificationMenu"
 import { TimerWidget } from "./TimerWidget"
 
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true)
-  return (
-    <button 
-      onClick={() => {
-        setIsDark(!isDark)
-        document.documentElement.classList.toggle('light')
-      }}
-      className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 hover:bg-white/10 transition-colors"
-    >
-      {isDark ? <Moon className="w-4 h-4 text-white/80" /> : <Sun className="w-4 h-4 text-white/80" />}
-    </button>
-  )
-}
-
 function OrgHeader() {
   const org = useOrganization()
 
