@@ -265,6 +265,91 @@ function SketchAnnotations({ active }: { active: boolean }) {
 }
 
 // ─────────────────────────────────────────────
+// Elastic Boundary (Physics-Based Divider)
+// ─────────────────────────────────────────────
+function ElasticBoundary({ side, mousePos, windowSize }: { side: "agency" | "academy" | null, mousePos: { x: number, y: number }, windowSize: { w: number, h: number } }) {
+  const targetX = side === "agency" ? 0.58 * windowSize.w : side === "academy" ? 0.42 * windowSize.w : 0.5 * windowSize.w;
+  const springX = useSpring(targetX, { stiffness: 120, damping: 18, mass: 0.8 });
+  
+  useEffect(() => {
+    springX.set(targetX);
+  }, [targetX, springX]);
+
+  const pathRef = useRef<SVGPathElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let rafId: number;
+    let currentCtrlX = targetX;
+
+    const update = () => {
+      const baseX = springX.get();
+      
+      // Calculate tension/pull based on mouse proximity
+      const distX = mousePos.x - baseX;
+      const distY = Math.abs(mousePos.y - windowSize.h / 2);
+      
+      let pull = 0;
+      // If mouse is near the boundary, it pulls the string
+      if (Math.abs(distX) < windowSize.w * 0.15) {
+        // Tension increases as mouse gets closer to center vertically too, but mostly horizontally
+        const force = Math.max(0, 1 - Math.abs(distX) / (windowSize.w * 0.15));
+        pull = distX * force * 0.7; // The string bends towards the mouse
+      }
+
+      // Smoothly interpolate the control point X
+      currentCtrlX += (baseX + pull - currentCtrlX) * 0.15;
+
+      if (pathRef.current) {
+        // Draw quadratic bezier: Start at top baseX, control point at currentCtrlX & mouse.y, end at bottom baseX
+        // To make it look like a real string attached at top and bottom, the control point bends the middle.
+        const my = Math.max(100, Math.min(windowSize.h - 100, mousePos.y));
+        const d = `M ${baseX} 0 Q ${currentCtrlX} ${my} ${baseX} ${windowSize.h}`;
+        pathRef.current.setAttribute("d", d);
+      }
+
+      if (glowRef.current) {
+        // The glow pill follows the curve
+        const t = mousePos.y / windowSize.h;
+        // Approximation of bezier X at time t
+        const invT = 1 - t;
+        const pillX = (invT * invT * baseX) + (2 * invT * t * currentCtrlX) + (t * t * baseX);
+        glowRef.current.style.transform = `translate(${pillX}px, ${mousePos.y}px) translate(-50%, -50%)`;
+      }
+
+      rafId = requestAnimationFrame(update);
+    };
+
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
+  }, [mousePos, springX, targetX, windowSize]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-visible">
+      {/* Dynamic Drop Shadow for the fluid string */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ filter: "drop-shadow(0px 0px 10px rgba(200, 180, 120, 0.4))" }}>
+        <path ref={pathRef} fill="none" stroke="rgba(255, 240, 200, 0.25)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+      
+      {/* Glowing pill attached to the elastic string */}
+      <div 
+        ref={glowRef}
+        className="absolute top-0 left-0 pointer-events-none"
+        style={{
+          width: "12px", height: "60px",
+          background: "rgba(255, 240, 200, 0.2)", 
+          border: "1px solid rgba(255, 230, 150, 0.4)",
+          borderRadius: "8px",
+          boxShadow: "0 0 30px 4px rgba(255, 220, 100, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.5)",
+          transition: "opacity 0.3s ease",
+          opacity: side === null ? 0.8 : 0.2 // Glows brighter when deciding
+        }} 
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // MAIN LANDING
 // ─────────────────────────────────────────────
 export default function SplitReality() {
@@ -604,19 +689,7 @@ export default function SplitReality() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(14,15,20,0.45)", opacity: isAcademy ? 1 : 0, transition: "opacity 0.7s ease" }} />
       </motion.div>
 
-      <div className="absolute z-30 pointer-events-none h-full w-10 top-0 left-1/2 -translate-x-1/2" >
-        <div className="absolute inset-0"
-          style={{
-            background: isAcademy ? "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.15) 100%)",
-            transition: "background 0.5s ease",
-          }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            width: "12px", height: "60px",
-            background: "rgba(255,240,200,0.18)", border: "1px solid rgba(200,180,120,0.15)",
-            transform: "translateX(-50%) translateY(-50%) rotate(1deg)",
-          }} />
-      </div>
+      <ElasticBoundary side={side} mousePos={mousePos} windowSize={{ w: typeof window !== 'undefined' ? window.innerWidth : 1000, h: typeof window !== 'undefined' ? window.innerHeight : 1000 }} />
           <motion.div
         className="relative overflow-hidden"
         animate={{ 
