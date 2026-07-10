@@ -307,7 +307,7 @@ export default function CRMDashboard() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar bg-transparent p-6 lg:p-10 space-y-10 text-white relative">
+    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar bg-transparent p-6 lg:p-10 space-y-10 text-[var(--dash-text-primary)] relative">
       
       {/* Background Ambience */}
       <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[150px] rounded-full pointer-events-none" />
@@ -315,26 +315,26 @@ export default function CRMDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
+          <div className="w-12 h-12 rounded-xl bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
             <Globe className="w-6 h-6 text-blue-400 relative z-10" />
             <div className="absolute inset-0 bg-blue-500/20 animate-pulse mix-blend-overlay" />
           </div>
           <div>
             <p className="text-[10px] font-mono tracking-widest uppercase font-bold text-blue-400 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)] mb-1">CRM Hub</p>
-            <h1 className="text-3xl font-bold text-white tracking-tight leading-none">
+            <h1 className="text-3xl font-bold text-[var(--dash-text-primary)] tracking-tight leading-none">
               Lead Management
             </h1>
           </div>
         </div>
 
         {/* Business Unit Selector */}
-        <div className="flex bg-black/40 p-1 border border-white/10 rounded-xl">
+        <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
           <button
             onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); }}
             className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
               activeTab === 'AGENCY' 
-                ? 'bg-blue-600 text-white shadow-lg' 
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
+                : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
             }`}
           >
             Agency CRM
@@ -343,8 +343,8 @@ export default function CRMDashboard() {
             onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); }}
             className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
               activeTab === 'ACADEMY' 
-                ? 'bg-blue-600 text-white shadow-lg' 
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
+                : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
             }`}
           >
             Academy CRM
@@ -356,19 +356,19 @@ export default function CRMDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         <motion.div 
           layoutId="contacts-card"
-          className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 relative overflow-hidden group"
+          className="bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] backdrop-blur-md border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl p-6 relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
           <div className="flex items-center gap-3 mb-6 relative z-10">
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-[inset_0_0_10px_rgba(59,130,246,0.2)]">
               <Users className="w-5 h-5 text-blue-400" />
             </div>
-            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/50">
+            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
               {activeTab === 'AGENCY' ? "Total Agency Leads" : "Total Enquiries"}
             </h3>
           </div>
           <div className="relative z-10">
-            <span className="text-3xl md:text-4xl font-bold text-white tracking-tight truncate block">
+            <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
               {leadsLoading ? "..." : totalContacts}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
@@ -379,7 +379,7 @@ export default function CRMDashboard() {
 
         <motion.div 
           layoutId="pipeline-card"
-          className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 relative overflow-hidden group"
+          className="bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] backdrop-blur-md border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl p-6 relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl group-hover:bg-violet-500/20 transition-colors" />
           <div className="flex items-center gap-3 mb-6 relative z-10">
@@ -390,12 +390,12 @@ export default function CRMDashboard() {
                 <GraduationCap className="w-5 h-5 text-violet-400" />
               )}
             </div>
-            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/50">
+            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
               {activeTab === 'AGENCY' ? "Pipeline Value" : "Counselling Active"}
             </h3>
           </div>
           <div className="relative z-10">
-            <span className="text-3xl md:text-4xl font-bold text-white tracking-tight truncate block">
+            <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
               {leadsLoading ? "..." : activeTab === 'AGENCY' ? `₹${(pipelineValue / 100000).toFixed(1)}L` : academyLeads.filter((l: any) => l.status === 'COUNSELLING').length}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
@@ -406,19 +406,19 @@ export default function CRMDashboard() {
 
         <motion.div 
           layoutId="conversion-card"
-          className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 relative overflow-hidden group"
+          className="bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] backdrop-blur-md border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl p-6 relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
           <div className="flex items-center gap-3 mb-6 relative z-10">
             <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 shadow-[inset_0_0_10px_rgba(16,185,129,0.2)]">
               <Target className="w-5 h-5 text-emerald-400" />
             </div>
-            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/50">
+            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
               {activeTab === 'AGENCY' ? "Lead Win Rate" : "Enrolled Students"}
             </h3>
           </div>
           <div className="relative z-10">
-            <span className="text-3xl md:text-4xl font-bold text-white tracking-tight truncate block">
+            <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
               {leadsLoading ? "..." : activeTab === 'AGENCY' ? `${conversionRate}%` : academyLeads.filter((l: any) => l.status === 'ENROLLED_ACADEMY').length}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
@@ -429,25 +429,25 @@ export default function CRMDashboard() {
       </div>
 
       {/* Control Bar & Leads Table */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 space-y-6 relative z-10">
+      <div className="bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] backdrop-blur-md border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-3xl p-8 space-y-6 relative z-10">
         
         {/* Filters */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 w-full md:w-auto flex-1 max-w-md">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dash-text-primary)]/30" />
               <input 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={activeTab === 'AGENCY' ? "Search leads, company..." : "Search students, course interest..."} 
-                className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+                className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-primary)]/30"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              className="bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2 text-sm text-[var(--dash-text-primary)] focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               <option value="ALL">All Stages</option>
               {activeTab === 'AGENCY' ? (
@@ -473,7 +473,7 @@ export default function CRMDashboard() {
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
-            <label className="cursor-pointer group flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all">
+            <label className="cursor-pointer group flex items-center justify-center gap-2 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 text-[var(--dash-text-primary)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all">
               <Plus className="w-4 h-4 text-blue-400" /> Import CSV
               <input
                 type="file"
@@ -497,7 +497,7 @@ export default function CRMDashboard() {
             <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mb-3" />
           </div>
         ) : filteredLeads.length === 0 ? (
-          <div className="text-center py-20 text-white/40 font-mono text-xs uppercase border border-dashed border-white/10 rounded-2xl">
+          <div className="text-center py-20 text-[var(--dash-text-primary)]/40 font-mono text-xs uppercase border border-dashed border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl">
             No lead nodes matches filters.
           </div>
         ) : (
@@ -519,15 +519,15 @@ export default function CRMDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
-              <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
-                <h3 className="font-bold text-lg text-white">
+              <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
+                <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
                   {editingLead ? "Edit Lead Details" : `Create new ${activeTab === 'AGENCY' ? 'Agency Lead' : 'Academy Enquiry'}`}
                 </h3>
                 <button 
                   onClick={() => setIsLeadModalOpen(false)}
-                  className="text-white/40 hover:text-white transition-colors font-mono text-sm"
+                  className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
                   ✕ Close
                 </button>
@@ -536,40 +536,40 @@ export default function CRMDashboard() {
               <form onSubmit={handleSaveLead} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Contact Name *</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Contact Name *</label>
                     <input
                       required
                       value={leadForm.name}
                       onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
                       placeholder="e.g. Sameer Malhotra"
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Email Address</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Email Address</label>
                     <input
                       type="email"
                       value={leadForm.email}
                       onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
                       placeholder="sameer@example.com"
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Phone Number</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Phone Number</label>
                     <input
                       value={leadForm.phone}
                       onChange={(e) => setLeadForm({ ...leadForm, phone: e.target.value })}
                       placeholder="+91 98765 43210"
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Lead Source</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Lead Source</label>
                     <select
                       value={leadForm.source}
                       onChange={(e) => setLeadForm({ ...leadForm, source: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     >
                       <option value="WEBSITE">Website</option>
                       <option value="WHATSAPP">WhatsApp</option>
@@ -582,12 +582,12 @@ export default function CRMDashboard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Staff Assiginee ID</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Staff Assiginee ID</label>
                     <input
                       value={leadForm.assignedToId}
                       onChange={(e) => setLeadForm({ ...leadForm, assignedToId: e.target.value })}
                       placeholder="e.g. cl01xyz..."
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                 </div>
@@ -597,31 +597,31 @@ export default function CRMDashboard() {
                     <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Agency Parameters</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Company Name</label>
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Company Name</label>
                         <input
                           value={leadForm.company}
                           onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
                           placeholder="e.g. Acme Tech Inc."
-                          className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Estimated Budget (INR)</label>
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Estimated Budget (INR)</label>
                         <input
                           type="number"
                           value={leadForm.estimatedBudget}
                           onChange={(e) => setLeadForm({ ...leadForm, estimatedBudget: e.target.value })}
                           placeholder="e.g. 150000"
-                          className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white font-mono"
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Project Type Scope</label>
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Project Type Scope</label>
                         <input
                           value={leadForm.projectType}
                           onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value })}
                           placeholder="e.g. UI/UX Redesign"
-                          className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                         />
                       </div>
                     </div>
@@ -631,20 +631,20 @@ export default function CRMDashboard() {
                     <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Academy Parameters</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Course Interest</label>
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Course Interest</label>
                         <input
                           value={leadForm.courseInterest}
                           onChange={(e) => setLeadForm({ ...leadForm, courseInterest: e.target.value })}
                           placeholder="e.g. UI/UX Masterclass"
-                          className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Assign Batch</label>
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign Batch</label>
                         <select
                           value={leadForm.batchId}
                           onChange={(e) => setLeadForm({ ...leadForm, batchId: e.target.value })}
-                          className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                         >
                           <option value="">No Batch Assigned</option>
                           {batches.map((batch: any) => (
@@ -659,27 +659,27 @@ export default function CRMDashboard() {
                 )}
 
                 <div className="pt-2">
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Internal Notes</label>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Internal Notes</label>
                   <textarea
                     value={leadForm.notes}
                     onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })}
                     placeholder="Log important details, user expectations, availability details..."
                     rows={3}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white resize-none"
+                    className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] resize-none"
                   />
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setIsLeadModalOpen(false)}
-                    className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white transition-colors"
+                    className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white shadow-lg transition-colors"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
                   >
                     {editingLead ? "Apply Changes" : "Create Node"}
                   </button>
@@ -698,13 +698,13 @@ export default function CRMDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
-              <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
-                <h3 className="font-bold text-lg text-white">Log Activity for {activityLead?.name}</h3>
+              <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
+                <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">Log Activity for {activityLead?.name}</h3>
                 <button 
                   onClick={() => setIsActivityModalOpen(false)}
-                  className="text-white/40 hover:text-white transition-colors font-mono text-sm"
+                  className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
                   ✕ Close
                 </button>
@@ -712,11 +712,11 @@ export default function CRMDashboard() {
 
               <form onSubmit={handleSaveActivity} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Activity Type</label>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Activity Type</label>
                   <select
                     value={activityType}
                     onChange={(e) => setActivityType(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                    className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                   >
                     <option value="CALL">Call</option>
                     <option value="EMAIL">Email</option>
@@ -727,28 +727,28 @@ export default function CRMDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Content Notes *</label>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Content Notes *</label>
                   <textarea
                     required
                     value={activityContent}
                     onChange={(e) => setActivityContent(e.target.value)}
                     placeholder="Provide details about what happened during the activity..."
                     rows={4}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white resize-none"
+                    className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] resize-none"
                   />
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setIsActivityModalOpen(false)}
-                    className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white transition-colors"
+                    className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white shadow-lg transition-colors"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
                   >
                     Log Interaction
                   </button>
@@ -767,16 +767,16 @@ export default function CRMDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
-              <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-emerald-500/10">
+              <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center bg-emerald-500/10">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <h3 className="font-bold text-lg text-white">Enroll Student Profile</h3>
+                  <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">Enroll Student Profile</h3>
                 </div>
                 <button 
                   onClick={() => setIsConvertModalOpen(false)}
-                  className="text-white/40 hover:text-white transition-colors font-mono text-sm"
+                  className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
                   ✕ Close
                 </button>
@@ -789,57 +789,57 @@ export default function CRMDashboard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">First Name *</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">First Name *</label>
                     <input
                       required
                       value={convertForm.firstName}
                       onChange={(e) => setConvertForm({ ...convertForm, firstName: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Last Name *</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Last Name *</label>
                     <input
                       required
                       value={convertForm.lastName}
                       onChange={(e) => setConvertForm({ ...convertForm, lastName: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Enrollment Email Address *</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Enrollment Email Address *</label>
                     <input
                       required
                       type="email"
                       value={convertForm.email}
                       onChange={(e) => setConvertForm({ ...convertForm, email: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Contact Phone</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Contact Phone</label>
                     <input
                       value={convertForm.phone}
                       onChange={(e) => setConvertForm({ ...convertForm, phone: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Date of Birth</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Date of Birth</label>
                     <input
                       type="date"
                       value={convertForm.dateOfBirth}
                       onChange={(e) => setConvertForm({ ...convertForm, dateOfBirth: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white font-mono"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">Enrolled Batch *</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Enrolled Batch *</label>
                     <select
                       required
                       value={convertForm.batchId}
                       onChange={(e) => setConvertForm({ ...convertForm, batchId: e.target.value })}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-white"
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     >
                       <option value="">Select a batch...</option>
                       {batches.map((batch: any) => (
@@ -851,17 +851,17 @@ export default function CRMDashboard() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setIsConvertModalOpen(false)}
-                    className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white transition-colors"
+                    className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-white shadow-lg transition-colors"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
                   >
                     Finalize Admission
                   </button>

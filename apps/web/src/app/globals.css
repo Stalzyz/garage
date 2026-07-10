@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Dashboard Theme Variables */
+.dashboard-light {
+  --dash-bg-base: #f4f4f5;
+  --dash-bg-surface: #ffffff;
+  --dash-bg-elevated: #fafafa;
+  --dash-bg-card: #ffffff;
+  --dash-text-primary: #09090b;
+  --dash-text-secondary: #71717a;
+  --dash-border-subtle: rgba(0, 0, 0, 0.08);
+  --dash-border-strong: rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-dark {
+  --dash-bg-base: #050505;
+  --dash-bg-surface: rgba(10, 10, 10, 0.9);
+  --dash-bg-elevated: #1a1a26;
+  --dash-bg-card: #14141f;
+  --dash-text-primary: #ffffff;
+  --dash-text-secondary: rgba(255, 255, 255, 0.4);
+  --dash-border-subtle: rgba(255, 255, 255, 0.08);
+  --dash-border-strong: rgba(255, 255, 255, 0.15);
+}

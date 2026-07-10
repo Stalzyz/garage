@@ -4,11 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
+import { useOrganization } from "@/context/OrganizationContext"
+import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { cn } from "@/lib/utils"
 import { useSession, signOut } from "next-auth/react"
 import { 
   ChevronDown, ChevronRight, Menu, X, ShieldCheck, Moon, Sun, 
-  LayoutDashboard, BookOpen, Briefcase, MessageSquare, Layers, DollarSign, Bell 
+  LayoutDashboard, BookOpen, Briefcase, MessageSquare, Layers, DollarSign, Bell, LogOut, User
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
@@ -219,14 +221,17 @@ export function Sidebar() {
 
       {/* User footer */}
       <div className="p-4 relative z-10 border-t border-white/5 bg-gradient-to-t from-black/60 to-transparent">
-        <div onClick={() => signOut()} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/10" title="Click to logout">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">
-            {session?.user?.name?.charAt(0) || "U"}
+        <div className="flex items-center gap-3">
+          <div onClick={() => signOut()} className="flex-1 flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/10" title="Click to logout">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              {session?.user?.name?.charAt(0) || "U"}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold leading-none truncate tracking-wide text-white/90">{session?.user?.name || "System User"}</span>
+              <span className="text-xs text-white/40 mt-1.5 truncate font-mono">{session?.user?.email}</span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-semibold leading-none truncate tracking-wide text-white/90">{session?.user?.name || "System User"}</span>
-            <span className="text-xs text-white/40 mt-1.5 truncate font-mono">{session?.user?.email}</span>
-          </div>
+          <ThemeToggle />
         </div>
       </div>
     </div>

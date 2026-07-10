@@ -52,19 +52,19 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-[#111] border ${isDragging ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] opacity-50' : 'border-white/10 hover:border-white/20'} rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3`}
+      className={`bg-[var(--dash-bg-surface,#111)] border ${isDragging ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] opacity-50' : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-white/20'} rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3`}
       {...attributes}
       {...listeners}
     >
       <div className="flex justify-between items-start mb-2">
-        <h4 className="font-bold text-sm text-white truncate pr-2">{lead.name}</h4>
+        <h4 className="font-bold text-sm text-[var(--dash-text-primary)] truncate pr-2">{lead.name}</h4>
         <div className="flex items-center gap-1">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
           <span className="text-[10px] font-mono font-bold text-blue-400">{lead.score}</span>
         </div>
       </div>
       
-      {lead.company && <p className="text-xs text-white/60 mb-2 truncate">{lead.company}</p>}
+      {lead.company && <p className="text-xs text-[var(--dash-text-primary)]/60 mb-2 truncate">{lead.company}</p>}
       
       {lead.businessUnit === 'AGENCY' && lead.estimatedBudget && (
         <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono mb-2">
@@ -79,17 +79,17 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
       )}
 
       <div className="flex items-center justify-between mt-4 border-t border-white/5 pt-3">
-        <span className="text-[9px] font-mono tracking-widest uppercase bg-white/5 px-2 py-0.5 rounded text-white/50">{lead.source}</span>
+        <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">{lead.source}</span>
         <div className="flex gap-2">
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onLogActivity(lead); }}
-            className="text-white/40 hover:text-white transition-colors"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors"
           >
             <ClipboardList className="w-3.5 h-3.5" />
           </button>
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onOpenLead(lead); }}
-            className="text-white/40 hover:text-white transition-colors"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors"
           >
             <MoreVertical className="w-3.5 h-3.5" />
           </button>
@@ -107,10 +107,10 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity }: { id: str
   });
 
   return (
-    <div className="flex flex-col min-w-[280px] w-[280px] bg-black/40 border border-white/5 rounded-2xl h-full flex-shrink-0">
+    <div className="flex flex-col min-w-[280px] w-[280px] bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-white/5 rounded-2xl h-full flex-shrink-0">
       <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-white/70">{title}</h3>
-        <span className="bg-white/10 text-white/50 text-[10px] px-2 py-0.5 rounded-full font-mono">{leads.length}</span>
+        <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">{title}</h3>
+        <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono">{leads.length}</span>
       </div>
       <div ref={setNodeRef} className="p-3 flex-1 overflow-y-auto custom-scrollbar">
         <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
@@ -119,7 +119,7 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity }: { id: str
           ))}
         </SortableContext>
         {leads.length === 0 && (
-          <div className="h-full min-h-[100px] border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-white/20 text-xs font-mono">
+          <div className="h-full min-h-[100px] border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-[var(--dash-text-primary)]/20 text-xs font-mono">
             Drop here
           </div>
         )}
