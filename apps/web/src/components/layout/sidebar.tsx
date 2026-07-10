@@ -14,7 +14,6 @@ import {
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
-import { useOrganization } from "@/context/OrganizationContext"
 
 const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator"), { ssr: false })
 
