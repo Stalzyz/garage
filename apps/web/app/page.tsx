@@ -414,8 +414,39 @@ export default function SplitReality() {
                 exit={{ opacity: 0, scale: 1.1, y: -50 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
+                <div className="absolute inset-0 bg-[#0a0a0a]" />
+                <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` }} />
+                <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, backgroundSize: "48px 48px" }} />
                 
-                <button 
+                <div className="absolute inset-0 flex flex-col justify-between p-8 text-left z-10">
+                  <div className="mt-12">
+                    <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
+                    <div className="w-12 h-px bg-white/20" />
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <Image src="/visuals-logo.png" alt="Grekam Visuals" width={220} height={80} className="object-contain" />
+                    <div className="overflow-hidden mt-4">
+                      <h2 className="font-black uppercase leading-none"
+                        style={{
+                          fontFamily: "var(--font-barlow, system-ui), sans-serif",
+                          fontSize: "clamp(2rem, 12vw, 4rem)",
+                          color: "#ffffff",
+                          letterSpacing: "2px",
+                        }}
+                      >
+                        WE BUILD<br />DIGITAL<br />EXPERIENCES
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 mb-24 cursor-pointer" onClick={() => navigate("agency", "/agency")}>
+                    <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md">
+                      Enter Agency
+                    </div>
+                    <div className="text-white/30 text-xs font-mono">→</div>
+                  </div>
+                </div>                <button 
                   onClick={() => setSide(null)}
                   className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-mono text-[10px] uppercase tracking-widest z-[100]"
                 >
@@ -506,8 +537,86 @@ export default function SplitReality() {
         </div>
       ) : (
         <>
-          
-          
+          <motion.div
+        className="relative overflow-hidden"
+        animate={{ 
+          width: isMobile ? "100%" : (isAgency ? "58%" : isAcademy ? "42%" : "50%"),
+          height: "100%"
+        }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{ 
+          zIndex: isAgency ? 20 : 10,
+          cursor: `url('/cursor-agency.svg') 16 16, auto`
+        }}
+        onClick={() => !isMobile && setSide("agency")}
+      >
+        <div className="absolute inset-0" style={{ background: "linear-gradient(145deg, #111114 0%, #161820 40%, #0a0a0a 100%)" }} />
+        <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, backgroundSize: "48px 48px", opacity: isAgency ? 1 : 0.4, transition: "opacity 0.8s ease" }} />
+        <AgencyCanvas active={isAgency} mx={mousePos.x} my={mousePos.y} />
+        <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(220,210,255,0.05) 0%, transparent 70%)", opacity: isAgency ? 1 : 0.3, transition: "opacity 0.8s ease" }} />
+
+        <button
+          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left"
+          onClick={() => navigate("agency", "/agency")}
+          style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
+        >
+          <div style={{ opacity: isAgency ? 1 : 0.35, transition: "opacity 0.6s ease" }}>
+            <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
+            <div className="w-12 h-px bg-white/20" />
+          </div>
+
+          <div>
+            <motion.div animate={{ filter: isAgency ? "blur(0px)" : "blur(2px)", opacity: isAgency ? 1 : 0.3 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4">
+              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} />
+              <div className="overflow-hidden mt-4">
+                <motion.h2 className="font-black uppercase leading-none"
+                  style={{
+                    fontFamily: "var(--font-barlow, system-ui), sans-serif",
+                    fontSize: "clamp(2rem, 5vw, 6.5rem)",
+                    color: isAgency ? "#ffffff" : "rgba(255,255,255,0.25)",
+                    letterSpacing: isAgency ? "14px" : "0px",
+                    transition: "color 0.6s ease, letter-spacing 0.9s cubic-bezier(0.16,1,0.3,1)",
+                  }}
+                >
+                  WE BUILD<br />DIGITAL<br />EXPERIENCES
+                </motion.h2>
+              </div>
+            </motion.div>
+            <AnimatePresence>
+              {isAgency && (
+                <motion.div key="ui-lines" className="mt-8 space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.5, delay: 0.2 }}>
+                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/30" /><div className="h-px flex-1 bg-white/10" /><div className="text-[8px] font-mono text-white/20 tracking-widest">STRATEGY</div></div>
+                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/20" /><div className="h-px flex-1 bg-white/08" /><div className="text-[8px] font-mono text-white/15 tracking-widest">DESIGN</div></div>
+                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/15" /><div className="h-px flex-1 bg-white/06" /><div className="text-[8px] font-mono text-white/12 tracking-widest">TECHNOLOGY</div></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <motion.div className="flex items-center gap-4 mb-0" animate={{ opacity: isAgency ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+            <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md hover:bg-white hover:text-black transition-all duration-300">
+              Enter Agency
+            </div>
+            <div className="text-white/30 text-xs font-mono">→</div>
+          </motion.div>
+        </button>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(14,15,20,0.45)", opacity: isAcademy ? 1 : 0, transition: "opacity 0.7s ease" }} />
+      </motion.div>
+
+      <div className="absolute z-30 pointer-events-none h-full w-10 top-0 left-1/2 -translate-x-1/2" >
+        <div className="absolute inset-0"
+          style={{
+            background: isAcademy ? "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.15) 100%)",
+            transition: "background 0.5s ease",
+          }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          style={{
+            width: "12px", height: "60px",
+            background: "rgba(255,240,200,0.18)", border: "1px solid rgba(200,180,120,0.15)",
+            transform: "translateX(-50%) translateY(-50%) rotate(1deg)",
+          }} />
+      </div>
           <motion.div
         className="relative overflow-hidden"
         animate={{ 
