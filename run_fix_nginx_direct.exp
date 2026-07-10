@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn scp -o StrictHostKeyChecking=no fix_nginx_direct.sh root@72.61.231.187:/root/fix_nginx_direct.sh
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "chmod +x /root/fix_nginx_direct.sh && /root/fix_nginx_direct.sh\r"
+expect "# "
+send "exit\r"
+expect eof

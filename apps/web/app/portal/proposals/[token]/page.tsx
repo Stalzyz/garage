@@ -2,10 +2,11 @@
 
 import { useApi, fetchApi } from "@/lib/useApi"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, CheckCircle2, FileSignature, ShieldCheck, ChevronLeft } from "lucide-react"
-import { useState } from "react"
+import { Loader2, CheckCircle2, FileSignature, ShieldCheck, ChevronLeft, Eraser } from "lucide-react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { useOrganization } from "@/context/OrganizationContext"
+import SignatureCanvas from "react-signature-canvas"
 
 export default function PublicProposalPage() {
   const { token } = useParams()
@@ -16,6 +17,7 @@ export default function PublicProposalPage() {
   const [signatureName, setSignatureName] = useState("")
   const [agreed, setAgreed] = useState(false)
   const [isSigning, setIsSigning] = useState(false)
+  const signatureRef = useRef<SignatureCanvas>(null)
 
   if (isLoading) {
     return (
@@ -39,13 +41,20 @@ export default function PublicProposalPage() {
 
   const handleSign = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signatureName || !agreed) return;
+    if (!agreed) return;
+    
+    if (signatureRef.current?.isEmpty()) {
+      alert("Please provide your signature");
+      return;
+    }
+    
+    const signatureData = signatureRef.current?.getTrimmedCanvas().toDataURL('image/png')
     
     setIsSigning(true)
     try {
       await fetchApi(`/crm/public/proposals/${token}/sign`, {
         method: 'POST',
-        body: JSON.stringify({ signatureData: signatureName })
+        body: JSON.stringify({ signatureData })
       })
       mutate() // Refresh data to show signed state
     } catch (err) {
@@ -140,10 +149,15 @@ export default function PublicProposalPage() {
                   <h4 className="font-bold text-emerald-900 mb-1">Proposal Accepted</h4>
                   <p className="text-emerald-800 text-sm mb-4">This proposal was electronically signed and legally bound.</p>
                   <div className="text-xs text-emerald-700 font-mono bg-emerald-100/50 p-3 rounded border border-emerald-200/50">
-                    <p>Signed by: <strong>{proposal.signatureData}</strong></p>
+                    <p>Signature ID: <strong>{proposal.signatureData?.length > 100 ? "Stored Securely" : proposal.signatureData}</strong></p>
                     <p>Date: {new Date(proposal.signedAt).toLocaleString()}</p>
                     <p>Token ID: {proposal.publicToken}</p>
                   </div>
+                  {proposal.signatureData && proposal.signatureData.startsWith('data:image') && (
+                    <div className="mt-4 border border-emerald-200 bg-white p-2 rounded">
+                      <img src={proposal.signatureData} alt="Client Signature" className="h-16" />
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -152,15 +166,19 @@ export default function PublicProposalPage() {
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type your full name to sign</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={signatureName}
-                      onChange={e => setSignatureName(e.target.value)}
-                      placeholder="e.g. John Doe" 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-black font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                    />
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Draw your signature</label>
+                      <button type="button" onClick={() => signatureRef.current?.clear()} className="text-xs text-slate-400 hover:text-blue-500 flex items-center gap-1">
+                        <Eraser className="w-3 h-3" /> Clear
+                      </button>
+                    </div>
+                    <div className="border-2 border-slate-200 border-dashed rounded-lg bg-slate-50 overflow-hidden">
+                      <SignatureCanvas 
+                        ref={signatureRef}
+                        canvasProps={{ className: 'w-full h-32 cursor-crosshair' }}
+                        backgroundColor="rgba(255,255,255,0)"
+                      />
+                    </div>
                   </div>
 
                   <label className="flex items-start gap-3 cursor-pointer group">
@@ -179,7 +197,7 @@ export default function PublicProposalPage() {
                   </label>
 
                   <button 
-                    disabled={!signatureName || !agreed || isSigning}
+                    disabled={!agreed || isSigning}
                     type="submit" 
                     className="w-full mt-4 bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
                   >

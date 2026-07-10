@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "echo 'AUTH_SECRET=\"grekam-os-super-secret-key-2026\"' > /root/grekam-os/apps/academy-web/.env\r"
+expect "# "
+send "echo 'AUTH_URL=\"https://academy.grekam.in\"' >> /root/grekam-os/apps/academy-web/.env\r"
+expect "# "
+send "cd /root/grekam-os/apps/academy-web && pm2 restart grecakam-os-academy --update-env\r"
+expect "# "
+send "exit\r"
+expect eof

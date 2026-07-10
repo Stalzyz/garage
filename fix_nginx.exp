@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "sed -i 's/\\\\\\$host/\\$host/g' /etc/nginx/sites-available/academy.grekam.in\r"
+expect "# "
+send "sed -i 's/\\\\\\$http_upgrade/\\$http_upgrade/g' /etc/nginx/sites-available/academy.grekam.in\r"
+expect "# "
+send "sed -i 's/\\\\\\$remote_addr/\\$remote_addr/g' /etc/nginx/sites-available/academy.grekam.in\r"
+expect "# "
+send "sed -i 's/\\\\\\$proxy_add_x_forwarded_for/\\$proxy_add_x_forwarded_for/g' /etc/nginx/sites-available/academy.grekam.in\r"
+expect "# "
+send "sed -i 's/\\\\\\$scheme/\\$scheme/g' /etc/nginx/sites-available/academy.grekam.in\r"
+expect "# "
+send "nginx -s reload\r"
+expect "# "
+send "exit\r"
+expect eof

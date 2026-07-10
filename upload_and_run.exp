@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn scp -o StrictHostKeyChecking=no do_deploy.sh root@72.61.231.187:/root/do_deploy.sh
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "chmod +x /root/do_deploy.sh && nohup /root/do_deploy.sh >/dev/null 2>&1 &\r"
+expect "# "
+send "exit\r"
+expect eof

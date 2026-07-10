@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cat > /root/do_deploy.sh << 'SCRIPT'\n#!/bin/bash\nset -e\ncd /root/grekam-os\ngit pull origin main\npnpm install\npnpm --filter=web build\npnpm --filter=academy-web build\npm2 restart grekam-os-web\npm2 restart grecakam-os-academy\necho \"DEPLOY FINISHED\"\nSCRIPT\nchmod +x /root/do_deploy.sh\nnohup /root/do_deploy.sh > /root/deploy.log 2>&1 &\r"
+expect "# "
+send "exit\r"
+expect eof

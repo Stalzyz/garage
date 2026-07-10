@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=4000
+    ports:
+      - "4005:4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - DATABASE_URL=postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public
+    restart: always
+    depends_on:
+      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - AUTH_URL=${AUTH_URL}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - DATABASE_URL=postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public
+    ports:
+      - "3005:3000"
+
+  academy-web:
+    build:
+      context: .
+      dockerfile: apps/academy-web/Dockerfile
+      args:
+        - DATABASE_URL=postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public
+    restart: always
+    depends_on:
+      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4005/api/v1}
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:Photoshop09%40@172.17.0.1:5432/grekam_os?schema=public
+    ports:
+      - "3001:3001"

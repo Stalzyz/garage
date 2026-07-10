@@ -6,9 +6,8 @@ import PortalLayoutClient from "./portal-layout-client"
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   
-  if (!session?.user) {
-    redirect("/auth/login")
-  }
+  // Authentication check is handled by middleware (auth.config.ts)
+  // for all routes under /portal/ (except /portal itself)
 
   return (
     <SessionProvider session={session}>

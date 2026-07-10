@@ -603,8 +603,27 @@ model ProjectFile {
   clientNotes String?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  markers FileMarker[]
 
   @@map("project_files")
+}
+
+model FileMarker {
+  id         String   @id @default(cuid())
+  fileId     String
+  userId     String   // The client or staff who left the marker
+  xPercent   Float?   // X coordinate percentage (0-100)
+  yPercent   Float?   // Y coordinate percentage (0-100)
+  timestamp  Float?   // For videos (seconds)
+  comment    String
+  resolved   Boolean  @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  file       ProjectFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@map("file_markers")
 }
 
 model Brief {

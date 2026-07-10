@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "tail -n 30 /root/deploy.log"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

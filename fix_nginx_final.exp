@@ -1,0 +1,41 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cat << 'NGINX' > /etc/nginx/sites-available/academy.grekam.in
+server {
+    server_name academy.grekam.in;
+    location / {
+        proxy_pass http://localhost:3006;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/academy.grekam.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/academy.grekam.in/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+server {
+    if (\$host = academy.grekam.in) {
+        return 301 https://\$host\$request_uri;
+    }
+    listen 80;
+    server_name academy.grekam.in;
+    return 404;
+}
+NGINX\r"
+expect "# "
+send "nginx -s reload\r"
+expect "# "
+send "exit\r"
+expect eof

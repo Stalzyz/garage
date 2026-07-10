@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os\r"
+expect "# "
+send "pm2 delete grecakam-os-academy\r"
+expect "# "
+send "export AUTH_SECRET=\"grekam-os-super-secret-key-2026\"\r"
+expect "# "
+send "export AUTH_URL=\"https://academy.grekam.in\"\r"
+expect "# "
+send "pm2 start pnpm --name \"grecakam-os-academy\" -- --filter=academy-web start\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

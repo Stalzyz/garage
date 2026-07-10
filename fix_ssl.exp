@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "certbot --nginx -d academy.grekam.in --non-interactive --agree-tos -m admin@grekam.in --redirect\r"
+expect "# "
+send "exit\r"
+expect eof

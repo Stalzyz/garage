@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os/apps/academy-web\r"
+expect "# "
+send "pm2 delete grecakam-os-academy\r"
+expect "# "
+send "pm2 start \"npx next start -p 3006\" --name \"grecakam-os-academy\"\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

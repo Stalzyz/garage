@@ -164,6 +164,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const workspaceModule = (await import('./workspace')).default;
   await app.register(workspaceModule, { prefix: '/api/v1/workspace' });
 
+  const portalModule = (await import('./portal')).default;
+  await app.register(portalModule, { prefix: '/api/v1/portal' });
+
   // Email & Drip
   const emailRouter = (await import('./integrations/email.router')).default;
   await app.register(emailRouter, { prefix: '/api/v1/email' });

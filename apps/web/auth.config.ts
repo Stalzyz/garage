@@ -8,11 +8,11 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
-      const isOnPortal = nextUrl.pathname.startsWith('/portal')
+      const isOnPortalProtected = nextUrl.pathname.startsWith('/portal/')
       const isOnStudent = nextUrl.pathname.startsWith('/student')
       
 
-      if (isOnDashboard || isOnPortal || isOnStudent) {
+      if (isOnDashboard || isOnPortalProtected || isOnStudent) {
         if (isLoggedIn) return true
         return false // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {

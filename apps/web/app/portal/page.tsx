@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { useOrganization } from "@/context/OrganizationContext"
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
 
@@ -25,17 +26,25 @@ export default function ClientPortalLogin() {
     e.preventDefault()
     setError("")
     setIsLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
+    
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
 
-    const client = DEMO_CLIENTS.find(c => c.email === email && c.password === password)
-    if (client) {
-      // Store session in sessionStorage
-      sessionStorage.setItem("portal_client", JSON.stringify(client))
-      router.push("/portal/dashboard")
-    } else {
-      setError("Invalid email or password. Try redbrick@client.com / demo1234")
+      if (res?.error) {
+        setError("Invalid email or password.")
+      } else {
+        router.push("/portal/dashboard")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const handleQuickLogin = (client: typeof DEMO_CLIENTS[0]) => {
