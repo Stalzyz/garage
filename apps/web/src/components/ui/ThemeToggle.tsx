@@ -10,7 +10,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="relative inline-flex items-center justify-center p-2 rounded-xl bg-[var(--dash-bg-elevated,rgba(255,255,255,0.05))] hover:bg-[var(--dash-border-subtle,rgba(255,255,255,0.1))] transition-colors border border-[var(--dash-border-subtle,rgba(255,255,255,0.05))]"
+      className="relative inline-flex items-center justify-center p-2 rounded-xl bg-dash-bg-elevated hover:bg-dash-border-subtle transition-colors border border-dash-border-subtle"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (

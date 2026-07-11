@@ -119,6 +119,16 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Dashboard Theme Colors */
+  --color-dash-bg-base: var(--dash-bg-base, #050505);
+  --color-dash-bg-surface: var(--dash-bg-surface, rgba(10,10,10,0.9));
+  --color-dash-bg-elevated: var(--dash-bg-elevated, #1a1a26);
+  --color-dash-bg-card: var(--dash-bg-card, #14141f);
+  --color-dash-text-primary: var(--dash-text-primary, #ffffff);
+  --color-dash-text-secondary: var(--dash-text-secondary, rgba(255,255,255,0.4));
+  --color-dash-border-subtle: var(--dash-border-subtle, rgba(255,255,255,0.08));
+  --color-dash-border-strong: var(--dash-border-strong, rgba(255,255,255,0.15));
 }
 
 @layer base {
@@ -179,3 +189,26 @@ html.lenis, html.lenis body {
   pointer-events: none;
 }
 
+
+/* Dashboard Theme Variables */
+.dashboard-light {
+  --dash-bg-base: #f4f4f5;
+  --dash-bg-surface: #ffffff;
+  --dash-bg-elevated: #fafafa;
+  --dash-bg-card: #ffffff;
+  --dash-text-primary: #09090b;
+  --dash-text-secondary: #71717a;
+  --dash-border-subtle: rgba(0, 0, 0, 0.08);
+  --dash-border-strong: rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-dark {
+  --dash-bg-base: #050505;
+  --dash-bg-surface: rgba(10, 10, 10, 0.9);
+  --dash-bg-elevated: #1a1a26;
+  --dash-bg-card: #14141f;
+  --dash-text-primary: #ffffff;
+  --dash-text-secondary: rgba(255, 255, 255, 0.4);
+  --dash-border-subtle: rgba(255, 255, 255, 0.08);
+  --dash-border-strong: rgba(255, 255, 255, 0.15);
+}

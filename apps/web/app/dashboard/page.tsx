@@ -15,13 +15,13 @@ export default function DashboardHome() {
   const openTickets = overview?.support?.openTickets || 0
 
   return (
-    <div className="flex flex-col h-full bg-[#050505] text-white overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="px-8 py-10">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-dash-text-primary to-dash-text-secondary bg-clip-text text-transparent">
           Welcome back, {session?.user?.name || 'Commander'}
         </h1>
-        <p className="text-white/50 mt-2 text-lg">Here is your system overview for today.</p>
+        <p className="text-dash-text-secondary mt-2 text-lg">Here is your system overview for today.</p>
       </div>
 
       <div className="px-8 pb-10 space-y-8">
@@ -66,7 +66,7 @@ export default function DashboardHome() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Chart Area */}
-          <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 relative overflow-hidden">
+          <div className="lg:col-span-2 bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full" />
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-400" /> Revenue Growth
@@ -109,7 +109,7 @@ export default function DashboardHome() {
           </div>
 
           {/* Activity Feed */}
-          <div className="lg:col-span-1 bg-white/5 border border-white/10 rounded-3xl p-6">
+          <div className="lg:col-span-1 bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <Activity className="w-5 h-5 text-purple-400" /> Recent Activity
             </h2>
@@ -149,10 +149,10 @@ export default function DashboardHome() {
 
 function StatCard({ title, value, trend, icon, color, bg }: any) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group relative overflow-hidden">
-      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors" />
+    <div className="bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6 hover:bg-dash-bg-elevated transition-colors group relative overflow-hidden">
+      <div className="absolute -right-4 -top-4 w-24 h-24 bg-dash-bg-elevated rounded-full blur-2xl group-hover:bg-dash-border-subtle transition-colors" />
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-white/50 tracking-wider uppercase">{title}</h3>
+        <h3 className="text-sm font-bold text-dash-text-secondary tracking-wider uppercase">{title}</h3>
         <div className={`p-2 rounded-xl ${bg} ${color}`}>
           {icon}
         </div>
@@ -168,12 +168,12 @@ function ActivityItem({ title, desc, time, color }: any) {
     <div className="flex gap-4 relative">
       <div className="flex flex-col items-center">
         <div className={`w-2.5 h-2.5 rounded-full ${color} mt-1.5 ring-4 ring-black`} />
-        <div className="w-px h-full bg-white/10 mt-2" />
+        <div className="w-px h-full bg-dash-border-subtle mt-2" />
       </div>
       <div className="pb-2">
         <h4 className="text-sm font-bold">{title}</h4>
-        <p className="text-xs text-white/50 mt-0.5 mb-1">{desc}</p>
-        <span className="text-[10px] text-white/30 font-mono">{time}</span>
+        <p className="text-dash-text-secondary text-xs mt-2">{desc}</p>
+        <span className="text-[10px] text-dash-text-secondary font-mono">{time}</span>
       </div>
     </div>
   )

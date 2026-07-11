@@ -32,14 +32,9 @@ export function DashboardThemeProvider({ children }: { children: React.ReactNode
     })
   }
 
-  // Prevent flash of incorrect theme (hydration mismatch)
-  if (!mounted) {
-    return <div className="invisible">{children}</div>
-  }
-
   return (
     <DashboardThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div className={theme === "dark" ? "dashboard-dark" : "dashboard-light"}>
+      <div className={!mounted ? "invisible" : (theme === "dark" ? "dashboard-dark" : "dashboard-light")}>
         {children}
       </div>
     </DashboardThemeContext.Provider>
