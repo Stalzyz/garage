@@ -2,6 +2,8 @@
 
 import { signIn } from "../../../auth"
 import { AuthError } from "next-auth"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
 export async function authenticate(
   prevState: string | undefined,
@@ -12,6 +14,18 @@ export async function authenticate(
     const password = formData.get("password") as string;
     const code = formData.get("code") as string;
     console.log("Attempting sign in for:", email);
+
+    // Pre-check: validate credentials before calling signIn so we can return specific errors
+    if (!code) {
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user || !user.passwordHash) {
+        return "No account found with that email address.";
+      }
+      const passwordsMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordsMatch) {
+        return "Incorrect password. Please try again.";
+      }
+    }
     
     await signIn("credentials", {
       email,
@@ -37,7 +51,7 @@ export async function authenticate(
         case "CallbackRouteError":
           return "Invalid credentials."
         default:
-          return "Something went wrong."
+          return `Authentication error: ${error.type}`
       }
     }
     
