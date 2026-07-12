@@ -204,7 +204,19 @@ export async function buildApp(opts: any = {}): Promise<any> {
     wsClients.add(socket);
     app.log.info(`[WS] Client connected — total: ${wsClients.size}`);
 
+    // Keepalive ping to prevent Cloudflare idle timeout
+    const pingInterval = setInterval(() => {
+      if (socket.readyState === 1) { // 1 = OPEN
+        try {
+          socket.send(JSON.stringify({ type: 'PING', timestamp: new Date().toISOString() }));
+        } catch (e) {
+          app.log.error(`[WS] Ping failed: ${e}`);
+        }
+      }
+    }, 45000); // 45 seconds
+
     socket.on('close', () => {
+      clearInterval(pingInterval);
       wsClients.delete(socket);
       app.log.info(`[WS] Client disconnected — total: ${wsClients.size}`);
     });

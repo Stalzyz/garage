@@ -3,51 +3,45 @@
 # Exit on any error
 set -e
 
-echo "================================================="
-echo "   Grekam-OS VPS Deployment Script"
-echo "================================================="
+echo "======================================"
+echo "🚀 Starting Grekam OS Deployment (PM2)"
+echo "======================================"
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker and Docker Compose first."
-    echo "Run: curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh"
-    exit 1
-fi
+# 1. Pull latest code (if applicable)
+echo "📦 Pulling latest code..."
+git pull origin main || echo "No git repo or up to date."
 
-# Check if .env file exists
-if [ ! -f .env ]; then
-    echo "⚠️  .env file not found!"
-    echo "Creating one from .env.example..."
-    if [ -f .env.example ]; then
-        cp .env.example .env
-        echo "✅ Created .env. Please update it with your production secrets and run this script again."
-        exit 1
-    else
-        echo "❌ .env.example not found either. Please create a .env file manually."
-        exit 1
-    fi
-fi
+# 2. Install dependencies
+echo "🔧 Installing dependencies..."
+pnpm install
 
-echo "✅ Environment checks passed."
+# 3. Database Schema Push & Client Generation
+echo "🗄️ Pushing Prisma schema and generating client..."
+cd packages/db
+npx prisma db push --accept-data-loss
+npx prisma generate
+cd ../..
 
-# Pull latest changes from git
-echo "📥 Pulling latest changes from Git..."
-if [ -d ".git" ]; then
-    git pull
-else
-    echo "⚠️ Not a git repository, skipping git pull."
-fi
+# 4. Build API
+echo "⚙️ Building API..."
+pnpm --filter @grekam/api build
 
-echo "🔄 Building and starting Docker containers..."
+# 5. Build Web
+echo "🌐 Building Web App..."
+pnpm --filter @grekam/web build
 
-# Run docker-compose using the production config
-docker compose -f docker-compose.prod.yml up -d --build
+# 6. Setup Standalone Static Files for Next.js
+echo "📂 Copying Next.js static files to standalone directory..."
+# Remove old static files if they exist
+rm -rf apps/web/.next/standalone/grekam-os/apps/web/.next/static
+# Copy new static files and public assets
+cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/
+cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/
 
-echo "================================================="
-echo "✅ Deployment Successful!"
-echo "Your application should now be running."
-echo "API is available on port 4000"
-echo "Web is available on port 3000"
-echo "================================================="
-echo "To view logs, run: docker compose -f docker-compose.prod.yml logs -f"
-echo "================================================="
+# 7. Restart PM2 processes
+echo "🔄 Restarting PM2 processes..."
+pm2 restart grekam-os-api grekam-os-web
+
+echo "======================================"
+echo "✅ Deployment completed successfully!"
+echo "======================================"
