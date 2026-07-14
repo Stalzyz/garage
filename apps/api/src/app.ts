@@ -179,6 +179,10 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const paymentsRouter = (await import('./integrations/payments.router')).default;
   await app.register(paymentsRouter, { prefix: '/api/v1/payments' });
 
+  // Licenses / Subscriptions
+  const licensesRouter = (await import('./integrations/licenses.router')).default;
+  await app.register(licensesRouter, { prefix: '/api/v1/licenses' });
+
   // CSV Exports
   const csvExportsRouter = (await import('./exports/csv.router')).default;
   await app.register(csvExportsRouter, { prefix: '/api/v1/exports' });

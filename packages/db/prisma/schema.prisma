@@ -249,6 +249,26 @@ enum ClientTier {
   BRONZE
 }
 
+model ClientSubscription {
+  id               String   @id @default(cuid())
+  clientId         String
+  domain           String   // e.g., "atlas.grekam.in"
+  licenseKey       String   @unique
+  status           String   @default("ACTIVE") // ACTIVE, PAST_DUE, SUSPENDED, CANCELLED
+  expiryDate       DateTime
+  
+  // Razorpay Fields
+  razorpayPlanId   String?  // The automated monthly plan ID
+  razorpaySubId    String?  @unique // The active subscription ID
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  client           ClientProfile @relation(fields: [clientId], references: [id])
+
+  @@map("client_subscriptions")
+}
+
 model Lead {
   id              String     @id @default(cuid())
   name            String
@@ -365,6 +385,7 @@ model ClientProfile {
 
   user    User     @relation(fields: [userId], references: [id])
   contact Contact? @relation(fields: [contactId], references: [id])
+  subscriptions ClientSubscription[]
 
   @@map("client_profiles")
 }

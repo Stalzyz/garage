@@ -262,11 +262,57 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
           break;
         }
 
+        case 'subscription.charged': {
+          const subscriptionPayload = req.body.payload.subscription?.entity;
+          if (subscriptionPayload) {
+            app.log.info(`Subscription Charged: ${subscriptionPayload.id}`);
+            const clientSub = await app.prisma.clientSubscription.findUnique({
+              where: { razorpaySubId: subscriptionPayload.id }
+            });
+
+            if (clientSub) {
+              // Add 30 days to expiry (or 1 month)
+              const newExpiry = new Date();
+              newExpiry.setDate(newExpiry.getDate() + 30);
+
+              await app.prisma.clientSubscription.update({
+                where: { id: clientSub.id },
+                data: {
+                  status: 'ACTIVE',
+                  expiryDate: newExpiry
+                }
+              });
+              app.log.info(`Updated expiry date for Client Subscription ${clientSub.id} to ${newExpiry}`);
+            }
+          }
+          break;
+        }
+
+        case 'subscription.halted':
+        case 'subscription.cancelled': {
+          const subscriptionPayload = req.body.payload.subscription?.entity;
+          if (subscriptionPayload) {
+            app.log.info(`Subscription Halted/Cancelled: ${subscriptionPayload.id}`);
+            const clientSub = await app.prisma.clientSubscription.findUnique({
+              where: { razorpaySubId: subscriptionPayload.id }
+            });
+
+            if (clientSub) {
+              await app.prisma.clientSubscription.update({
+                where: { id: clientSub.id },
+                data: { status: 'SUSPENDED' }
+              });
+              app.log.info(`Suspended Client Subscription ${clientSub.id}`);
+            }
+          }
+          break;
+        }
+
         default:
           app.log.info(`Unhandled Razorpay event: ${event}`);
       }
 
-      return reply.code(200).send({ status: 'ok' });
+      return reply.send({ status: 'ok' });
     } catch (error) {
       app.log.error(error);
       return reply.code(500).send({ error: 'Webhook processing failed' });
