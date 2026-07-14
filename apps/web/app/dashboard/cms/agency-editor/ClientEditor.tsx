@@ -188,7 +188,34 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
                         )}
                         <div className="flex-1 space-y-2">
                           <input value={proj.title} onChange={e => updateProject(idx, pIdx, { title: e.target.value })} className="w-full bg-transparent border-b border-white/10 px-1 py-1 text-sm focus:border-purple-500 outline-none" placeholder="Project Title" />
-                          <input value={proj.image} onChange={e => updateProject(idx, pIdx, { image: e.target.value })} className="w-full bg-transparent border-b border-white/10 px-1 py-1 text-xs text-white/50 focus:border-purple-500 outline-none" placeholder="Image URL (https://...)" />
+                          <div className="flex gap-2">
+                            <input value={proj.image} onChange={e => updateProject(idx, pIdx, { image: e.target.value })} className="w-full bg-transparent border-b border-white/10 px-1 py-1 text-xs text-white/50 focus:border-purple-500 outline-none" placeholder="Image URL (https://...)" />
+                            <label className="cursor-pointer shrink-0 text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded flex items-center justify-center transition-colors">
+                              Upload
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const res = await fetch("/api/v1/storage/upload-url", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ filename: file.name, contentType: file.type, prefix: "cms/agency" }),
+                                    });
+                                    if (!res.ok) throw new Error("Upload URL failed");
+                                    const { uploadUrl, downloadUrl } = await res.json();
+                                    await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+                                    updateProject(idx, pIdx, { image: downloadUrl });
+                                  } catch (err) {
+                                    alert("Upload failed.");
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
                         <button onClick={() => removeProject(idx, pIdx)} className="p-2 text-white/30 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4"/></button>
                       </div>
