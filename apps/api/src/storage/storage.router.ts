@@ -77,9 +77,8 @@ export default async function storageRouter(app: FastifyInstance) {
     // MOCK UPLOAD LOGIC IF NO CREDENTIALS
     if (!process.env.R2_ACCESS_KEY_ID) {
       console.warn('[Storage] R2 Credentials missing. Returning mock upload URL.');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
       return {
-        uploadUrl: `${API_URL}/storage/mock-upload`,
+        uploadUrl: `/api/v1/storage/mock-upload`,
         key,
         downloadUrl: `https://dummyimage.com/600x400/000/fff&text=${safeFilename}`, // Mock image download
       };
