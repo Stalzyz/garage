@@ -9,6 +9,11 @@ export default async function storageRouter(app: FastifyInstance) {
   // Ensure only authenticated users can upload
   server.addHook('preHandler', app.requireAuth);
 
+  // Mock PUT endpoint for local development without S3
+  server.put('/mock-upload', async (req, reply) => {
+    return reply.code(200).send({ success: true });
+  });
+
   server.post('/upload-url', {
     schema: {
       body: z.object({

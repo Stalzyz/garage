@@ -38,6 +38,10 @@ const storagePlugin: FastifyPluginAsync = async (fastify, opts) => {
   const client = new S3Client(clientConfig);
 
   const generateUploadUrl = async (key: string, contentType: string) => {
+    if (!process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID === 'dummy-access') {
+      return '/api/v1/storage/mock-upload';
+    }
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -48,6 +52,11 @@ const storagePlugin: FastifyPluginAsync = async (fastify, opts) => {
   };
 
   const generateDownloadUrl = async (key: string) => {
+    if (!process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID === 'dummy-access') {
+      const filename = key.split('/').pop() || 'image';
+      return `https://dummyimage.com/600x400/000/fff&text=${filename}`;
+    }
+
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
