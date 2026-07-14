@@ -23,6 +23,11 @@ export default function CMSPageEditor() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
+    if (slug === 'agency') {
+      router.push('/dashboard/cms/agency-editor')
+      return
+    }
+
     fetchPage()
   }, [slug])
 
