@@ -19,7 +19,12 @@ import { registerGlobalListeners } from './automations/listeners';
 import { startCronJobs } from './cron/invoice-jobs';
 import { initSentry } from './sentry';
 
+import path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// fallback for development if run directly from apps/api
 dotenv.config();
+
 initSentry();
 
 // Temporary minimal setup
