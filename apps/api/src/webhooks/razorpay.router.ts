@@ -31,6 +31,12 @@ interface RazorpayWebhookBody {
         receipt?: string;
       };
     };
+    subscription?: {
+      entity: {
+        id: string;
+        status: string;
+      };
+    };
   };
 }
 

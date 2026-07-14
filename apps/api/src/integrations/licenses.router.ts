@@ -1,6 +1,4 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '@grekam/db';
-import { isBefore, addDays } from 'date-fns';
 
 export default async function licensesRouter(server: FastifyInstance) {
   
@@ -15,7 +13,8 @@ export default async function licensesRouter(server: FastifyInstance) {
 
       const licenseKey = authHeader.split(' ')[1];
 
-      const subscription = await prisma.clientSubscription.findUnique({
+      // @ts-ignore
+      const subscription = await server.prisma.clientSubscription.findUnique({
         where: { licenseKey }
       });
 
@@ -31,14 +30,15 @@ export default async function licensesRouter(server: FastifyInstance) {
       }
 
       // Check expiry date
-      if (isBefore(subscription.expiryDate, now)) {
+      if (subscription.expiryDate < now) {
         // Expired
         // If it's been less than 3 days since expiry, we might give a grace period (PAST_DUE)
         // But if it's already past due, we should suspend it.
         // Let's assume a strict 3-day grace period.
-        const graceEnd = addDays(subscription.expiryDate, 3);
+        const graceEnd = new Date(subscription.expiryDate);
+        graceEnd.setDate(graceEnd.getDate() + 3);
         
-        if (isBefore(graceEnd, now)) {
+        if (graceEnd < now) {
           // Grace period over -> block the site
           return reply.send({ valid: false, status: 'SUSPENDED', message: 'Subscription expired and grace period ended.' });
         } else {
