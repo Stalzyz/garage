@@ -33,6 +33,8 @@ const authPlugin: FastifyPluginAsync = async (fastify, opts) => {
         return reply.code(401).send({ error: 'Unauthorized', message: 'No session token found' });
       }
 
+      request.log.info(`[Auth] Token received. Secret length: ${process.env.AUTH_SECRET ? process.env.AUTH_SECRET.length : 0}`);
+      
       const decoded = await decode({
         token,
         secret: process.env.AUTH_SECRET || "fallback-dev-secret-if-env-fails-12345",
