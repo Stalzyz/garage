@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key } from "lucide-react"
+import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key, RefreshCcw } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
@@ -51,6 +51,24 @@ export default function ContactsPage() {
       setIsInviting(false);
     }
   };
+  const handleResetPin = async (e: any, contact: any) => {
+    e.stopPropagation();
+    if (!contact.email) return;
+    if (!confirm("Are you sure you want to reset this client's portal PIN?")) return;
+    
+    setIsInviting(true);
+    try {
+      const res = await fetchApi<any>(`/crm/contacts/${contact.id}/reset-pin`, { method: "POST", body: JSON.stringify({}) });
+      setInviteData(res.credentials);
+      setIsInviteOpen(true);
+      toast.success("PIN reset successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reset PIN");
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
 
   
   const handleEditClick = (contact: any) => {
@@ -202,6 +220,14 @@ export default function ContactsPage() {
                     >
                       <Key className="w-4 h-4" />
                     </button>
+                    <button 
+                      onClick={(e) => handleResetPin(e, contact)}
+                      disabled={isInviting || !contact.email}
+                      className="p-1.5 rounded bg-white/5 hover:bg-white/20 text-white/50 hover:text-white transition-colors group/btn relative"
+                      title="Reset PIN"
+                    >
+                      <RefreshCcw className="w-4 h-4" />
+                    </button>
                     <span className="text-[10px] font-mono tracking-widest uppercase bg-white/10 px-2 py-1 rounded text-white/60">
                       {contact.tier || 'BRONZE'}
                     </span>
@@ -316,7 +342,7 @@ export default function ContactsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-md p-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500" />
-            <h3 className="text-xl font-bold mb-2">Portal Credentials Generated</h3>
+            <h3 className="text-xl font-bold mb-2">Portal PIN Generated</h3>
             <p className="text-white/60 text-sm mb-6">Please securely share these credentials with the client. They will not be shown again.</p>
             
             <div className="space-y-4 mb-8">

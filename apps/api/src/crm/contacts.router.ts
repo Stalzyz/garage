@@ -182,8 +182,13 @@ export default async function contactsRouter(app: FastifyInstance) {
     let tempPassword = '';
     
     if (!user) {
-      // Generate temporary password
-      tempPassword = Math.random().toString(36).slice(-8) + 'A1!'; // Basic password rules
+      // Generate 4-digit PIN
+      if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
+        tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
+      } else {
+        tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
+      }
+      
       const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
       
       user = await app.prisma.user.create({
@@ -217,6 +222,39 @@ export default async function contactsRouter(app: FastifyInstance) {
       alreadyExists: !tempPassword
     };
   });
+
+  // POST /api/v1/crm/contacts/:id/reset-pin — Reset Client Portal PIN
+  app.post('/contacts/:id/reset-pin', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const contact = await app.prisma.contact.findUnique({ where: { id } });
+    if (!contact) return reply.notFound('Contact not found');
+    if (!contact.email) return reply.badRequest('Contact must have an email address.');
+
+    let user = await app.prisma.user.findUnique({ where: { email: contact.email } });
+    if (!user) return reply.badRequest('No portal account exists for this contact.');
+
+    // Generate 4-digit PIN
+    let tempPassword = '';
+    if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
+      tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
+    } else {
+      tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
+    }
+    
+    const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+    
+    await app.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash }
+    });
+
+    return { 
+      success: true, 
+      message: 'PIN has been reset.',
+      credentials: { email: user.email, password: tempPassword }
+    };
+  });
+
 
   // POST /api/v1/crm/contacts/import — import contacts from CSV
   app.post('/contacts/import', async (req, reply) => {

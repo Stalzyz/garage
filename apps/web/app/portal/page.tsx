@@ -160,11 +160,11 @@ export default function ClientPortalLogin() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Password</label>
+              <label className="text-xs font-medium text-white/60 uppercase tracking-wider">4-Digit PIN</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••"
+                  placeholder="••••" maxLength={4} inputMode="numeric" pattern="[0-9]*"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
                   autoComplete="current-password"
                 />
