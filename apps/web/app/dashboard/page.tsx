@@ -1,7 +1,7 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { Activity, Users, DollarSign, TrendingUp, Calendar, AlertCircle, Briefcase, GraduationCap, BookOpen } from "lucide-react"
+import { Activity, Users, DollarSign, TrendingUp, Calendar, AlertCircle, Briefcase, GraduationCap, BookOpen, CheckCircle, Clock, ArrowRight, UploadCloud, PlayCircle, Image as ImageIcon } from "lucide-react"
 import { useApi } from "@/lib/useApi"
 
 export default function DashboardHome() {
@@ -61,14 +61,177 @@ function EducatorDashboard() {
 
 function ClientDashboard() {
   return (
-    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-8">
-      <h1 className="text-3xl font-bold mb-2">Client Overview</h1>
-      <p className="text-dash-text-secondary mb-8">A snapshot of your active projects and billing.</p>
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-6 md:p-10 overflow-y-auto custom-scrollbar space-y-8">
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Active Projects" value="2" icon={<Briefcase className="w-5 h-5"/>} color="text-blue-400" bg="bg-blue-500/10" />
-        <StatCard title="Pending Invoices" value="1" icon={<DollarSign className="w-5 h-5"/>} color="text-amber-400" bg="bg-amber-500/10" />
-        <StatCard title="Support Tickets" value="0" icon={<AlertCircle className="w-5 h-5"/>} color="text-emerald-400" bg="bg-emerald-500/10" />
+      {/* 1. Welcome Header & Quick Actions */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-dash-text-primary to-dash-text-secondary bg-clip-text text-transparent">
+            Client Portal
+          </h1>
+          <p className="text-dash-text-secondary mt-2 text-lg">Your central hub for projects, assets, and billing.</p>
+        </div>
+        
+        <div className="flex flex-wrap gap-3">
+          <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all flex items-center gap-2">
+            <UploadCloud className="w-4 h-4" /> Upload Files
+          </button>
+          <button className="px-4 py-2 bg-dash-bg-elevated hover:bg-dash-border-subtle border border-dash-border-strong rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-purple-400" /> Book Call
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column (2/3 width) */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* 2. Visual Project "Pizza Tracker" */}
+          <div className="bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-1/4 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-blue-400" /> Website Redesign (V2)
+                </h2>
+                <p className="text-xs text-dash-text-secondary mt-1">Est. Completion: Aug 15, 2026</p>
+              </div>
+              <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-bold tracking-wider uppercase">
+                In Progress
+              </span>
+            </div>
+
+            <div className="relative pt-4 pb-2">
+              {/* Progress Line */}
+              <div className="absolute top-8 left-[10%] right-[10%] h-1 bg-dash-border-subtle rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 w-[60%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+              </div>
+              
+              <div className="flex justify-between relative z-10">
+                {/* Phase 1 */}
+                <div className="flex flex-col items-center gap-3 w-1/4">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-primary text-center">Kickoff</span>
+                </div>
+                {/* Phase 2 */}
+                <div className="flex flex-col items-center gap-3 w-1/4">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-primary text-center">Design</span>
+                </div>
+                {/* Phase 3 */}
+                <div className="flex flex-col items-center gap-3 w-1/4">
+                  <div className="w-8 h-8 rounded-full bg-dash-bg-elevated border-2 border-blue-500 text-blue-400 flex items-center justify-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 text-center">Revisions</span>
+                </div>
+                {/* Phase 4 */}
+                <div className="flex flex-col items-center gap-3 w-1/4">
+                  <div className="w-8 h-8 rounded-full bg-dash-bg-base border-2 border-dash-border-strong text-dash-text-secondary flex items-center justify-center">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-secondary text-center">Delivery</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Recent Deliverables Gallery */}
+          <div className="bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-purple-400" /> Recent Deliverables
+              </h2>
+              <button className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                View All <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="group relative aspect-video rounded-xl overflow-hidden bg-dash-bg-elevated border border-dash-border-strong cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm transition-opacity">
+                  <PlayCircle className="w-8 h-8 text-white mb-2" />
+                  <span className="text-xs font-bold text-white">Promo_v2.mp4</span>
+                </div>
+              </div>
+              <div className="group relative aspect-video rounded-xl overflow-hidden bg-dash-bg-elevated border border-dash-border-strong cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm transition-opacity">
+                  <ImageIcon className="w-8 h-8 text-white mb-2" />
+                  <span className="text-xs font-bold text-white">Logo_Final.png</span>
+                </div>
+              </div>
+              <div className="group relative aspect-video rounded-xl overflow-hidden bg-dash-bg-elevated border border-dash-border-strong cursor-pointer hidden md:block">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/20 group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm transition-opacity">
+                  <ImageIcon className="w-8 h-8 text-white mb-2" />
+                  <span className="text-xs font-bold text-white">Social_Banners.zip</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        {/* Right Column (1/3 width) */}
+        <div className="lg:col-span-1 space-y-8">
+          
+          {/* 3. Interactive Financial Summary */}
+          <div className="bg-gradient-to-br from-dash-bg-card to-dash-bg-base border border-dash-border-subtle rounded-3xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full group-hover:bg-amber-500/20 transition-colors pointer-events-none" />
+            
+            <h2 className="text-sm font-bold tracking-wider uppercase text-dash-text-secondary mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-amber-400" /> Outstanding Balance
+            </h2>
+            <p className="text-4xl font-black font-mono text-dash-text-primary tracking-tight mb-1">$2,450.00</p>
+            <p className="text-xs text-dash-text-secondary mb-6">Due on August 1st, 2026 (Invoice #1042)</p>
+            
+            <button className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all">
+              Pay Invoice Now
+            </button>
+          </div>
+
+          {/* 5. Live Activity Feed */}
+          <div className="bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6">
+            <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-emerald-400" /> Recent Activity
+            </h2>
+            <div className="space-y-6">
+              <ActivityItem 
+                title="Stalin uploaded 3 files" 
+                desc="Logo_Final.png and 2 others" 
+                time="2 hours ago" 
+                color="bg-emerald-500" 
+              />
+              <ActivityItem 
+                title="Invoice #1042 Generated" 
+                desc="Amount: $2,450.00" 
+                time="1 day ago" 
+                color="bg-amber-500" 
+              />
+              <ActivityItem 
+                title="Project Moved to Revisions" 
+                desc="Website Redesign (V2)" 
+                time="2 days ago" 
+                color="bg-blue-500" 
+              />
+              <ActivityItem 
+                title="Kickoff Meeting Completed" 
+                desc="Notes have been attached to project" 
+                time="1 week ago" 
+                color="bg-purple-500" 
+              />
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   )

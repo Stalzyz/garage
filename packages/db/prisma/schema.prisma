@@ -360,6 +360,7 @@ model Contact {
   company           Company?           @relation(fields: [companyId], references: [id])
   clientProfile     ClientProfile?
   communicationLogs CommunicationLog[]
+  proposals         Proposal[]
 
   @@map("contacts")
 }
@@ -402,6 +403,7 @@ enum ProposalStatus {
 model Proposal {
   id            String         @id @default(cuid())
   leadId        String?
+  contactId     String?
   title         String
   status        ProposalStatus @default(DRAFT)
   version       Int            @default(1)
@@ -417,6 +419,7 @@ model Proposal {
   updatedAt     DateTime       @updatedAt
 
   lead          Lead?               @relation(fields: [leadId], references: [id])
+  contact       Contact?            @relation(fields: [contactId], references: [id])
   items         ProposalItem[]
   generatedDocs GeneratedDocument[]
 
