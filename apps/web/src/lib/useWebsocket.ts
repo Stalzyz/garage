@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/ws';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? `wss://${window.location.host}/api/v1/ws` : 'ws://localhost:4000/ws');
 
 export function useWebsocket() {
   const [messages, setMessages] = useState<any[]>([]);
