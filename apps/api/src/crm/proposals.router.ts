@@ -12,6 +12,7 @@ const ProposalItemSchema = z.object({
 
 const CreateProposalSchema = z.object({
   leadId: z.string().optional(),
+  contactId: z.string().optional(),
   title: z.string().min(1),
   validUntil: z.string().datetime().optional(),
   currency: z.string().default('INR'),
@@ -44,6 +45,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
       include: {
         items: true,
         lead: { select: { id: true, name: true, company: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, company: { select: { name: true } } } },
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -99,6 +101,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const proposal = await app.prisma.proposal.create({
       data: {
         leadId: body.leadId,
+        contactId: body.contactId,
         title: body.title,
         validUntil: body.validUntil ? new Date(body.validUntil) : undefined,
         currency: body.currency,

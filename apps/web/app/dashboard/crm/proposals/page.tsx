@@ -14,7 +14,9 @@ export default function ProposalsPage() {
 
   const filteredProposals = proposals.filter((p: any) => 
     p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.lead?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    p.lead?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.contact?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.contact?.lastName?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const getStatusBadge = (status: string) => {
@@ -87,20 +89,26 @@ export default function ProposalsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredProposals.map((p: any) => (
-                  <tr 
-                    key={p.id} 
-                    onClick={() => window.location.href = `/dashboard/crm/proposals/${p.id}`}
-                    className="hover:bg-white/5 transition-colors group cursor-pointer"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-white">{p.title}</div>
-                      <div className="text-[10px] text-white/40 font-mono mt-1">ID: {p.id.slice(0, 8)}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-white/80">{p.lead?.name || "Unknown"}</div>
-                      <div className="text-[10px] text-white/40 mt-1">{p.lead?.company}</div>
-                    </td>
+                filteredProposals.map((p: any) => {
+                  const clientName = p.contact ? `${p.contact.firstName} ${p.contact.lastName}` : (p.lead?.name || "Unknown");
+                  const clientCompany = p.contact?.company?.name || p.lead?.company || "";
+                  
+                  return (
+                    <tr 
+                      key={p.id} 
+                      onClick={() => window.location.href = `/dashboard/crm/proposals/${p.id}`}
+                      className="hover:bg-white/5 transition-colors group cursor-pointer"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-white">{p.title}</div>
+                        <div className="text-[10px] text-white/40 font-mono mt-1">ID: {p.id.slice(0, 8)}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-white/80 flex items-center gap-2">
+                          {clientName} {p.contact && <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-sm text-[9px] uppercase tracking-wider font-bold">Contact</span>}
+                        </div>
+                        <div className="text-[10px] text-white/40 mt-1">{clientCompany}</div>
+                      </td>
                     <td className="px-6 py-4 font-mono font-medium text-white">
                       ${p.totalAmount?.toLocaleString() || '0'}
                     </td>
@@ -116,7 +124,8 @@ export default function ProposalsPage() {
                       </Link>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
