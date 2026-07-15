@@ -1056,7 +1056,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       .catch(console.error)
   }, [])
 
-  const baseCards = cmsData?.cards || INITIAL_CARDS
+  const baseCards = cmsData?.['agency-main-data'] || INITIAL_CARDS
   let currentCards = [...baseCards];
   
   // Dynamic CMS Portfolio Integration: If we have CMS portfolio, replace the DUMMY_PROJECTS

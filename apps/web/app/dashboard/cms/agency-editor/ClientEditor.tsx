@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Save, AlertCircle, CheckCircle2, Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon } from "lucide-react"
+import { Plus, GripVertical, Settings2, Image as ImageIcon, Trash2, Save, AlertCircle, CheckCircle2, ChevronUp, ChevronDown } from "lucide-react"
+import { toast } from "sonner"
 import { saveAgencyData } from "./actions"
 
 type ProjectData = { id: string; title: string; image: string }
@@ -22,9 +23,11 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
     const result = await saveAgencyData(JSON.stringify(cards, null, 2))
     if (result.success) {
       setSuccess(true)
+      toast.success("Agency page updated successfully!")
       setTimeout(() => setSuccess(false), 3000)
     } else {
       setError(result.error || "Failed to save")
+      toast.error("Failed to save changes")
     }
     setSaving(false)
   }
