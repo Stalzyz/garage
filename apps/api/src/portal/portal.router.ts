@@ -3,8 +3,8 @@ import { FastifyInstance } from 'fastify';
 export default async function portalRouter(app: FastifyInstance) {
   // Middleware to ensure user is a CLIENT and has a profile
   app.addHook('preHandler', async (req, reply) => {
-    if (!req.user || req.user.role !== 'CLIENT') {
-      return reply.forbidden('Only clients can access the portal API');
+    if (!req.user) {
+      return reply.forbidden('Authentication required');
     }
     
     // Find client profile
@@ -13,12 +13,12 @@ export default async function portalRouter(app: FastifyInstance) {
       include: { contact: true }
     });
     
-    if (!profile || !profile.contact || !profile.contact.companyId) {
-      return reply.forbidden('Client profile or associated company not found');
+    if (!profile || !profile.contact) {
+      return reply.forbidden('Client profile not found');
     }
     
     // Attach companyId to request for easy access in handlers
-    (req as any).companyId = profile.contact.companyId;
+    (req as any).companyId = profile.contact.companyId || null;
     (req as any).contactId = profile.contact.id;
   });
 
