@@ -14,12 +14,17 @@ export default function InteractiveProposalBuilder() {
   const { data: leadsData } = useApi<any>("/crm/leads")
   const leads = leadsData?.data || []
 
+  const { data: contactsData } = useApi<any>("/crm/contacts")
+  const contacts = contactsData?.data || []
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   
   const [formData, setFormData] = useState({
     title: "Brand Strategy & Web Development",
     leadId: "",
+    contactId: "",
+    assignToType: "LEAD", // 'LEAD' or 'CONTACT'
     content: "## Overview\nWe are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.\n\n## Scope of Work\n1. **Brand Identity Design**\n2. **UI/UX Prototyping**\n3. **Full-stack Development**\n\n## Timeline\nThis project will take approximately 6 weeks to complete from the signing of this proposal.",
   })
 
@@ -88,8 +93,11 @@ export default function InteractiveProposalBuilder() {
         }))
       };
 
-      if (formData.leadId) {
+      if (formData.assignToType === "LEAD" && formData.leadId) {
         payload.leadId = formData.leadId;
+      }
+      if (formData.assignToType === "CONTACT" && formData.contactId) {
+        payload.contactId = formData.contactId;
       }
 
       await fetchApi("/crm/proposals", {
@@ -159,17 +167,35 @@ export default function InteractiveProposalBuilder() {
               </div>
               
               <div>
-                <label className="text-xs text-white/50 mb-1.5 block font-medium">Assign to Lead / Client</label>
-                <select 
-                  value={formData.leadId} 
-                  onChange={e => setFormData({...formData, leadId: e.target.value})} 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500/50 transition-colors text-white appearance-none"
-                >
-                  <option value="">Select a Lead...</option>
-                  {leads.map((lead: any) => (
-                    <option key={lead.id} value={lead.id}>{lead.name} ({lead.company || 'No Company'})</option>
-                  ))}
-                </select>
+                <label className="text-xs text-white/50 mb-1.5 block font-medium">Assign to</label>
+                <div className="flex gap-2 mb-3">
+                  <button type="button" onClick={() => setFormData({...formData, assignToType: 'LEAD', contactId: ''})} className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-colors ${formData.assignToType === 'LEAD' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}>Lead</button>
+                  <button type="button" onClick={() => setFormData({...formData, assignToType: 'CONTACT', leadId: ''})} className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-colors ${formData.assignToType === 'CONTACT' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}>Contact</button>
+                </div>
+                
+                {formData.assignToType === 'LEAD' ? (
+                  <select 
+                    value={formData.leadId} 
+                    onChange={e => setFormData({...formData, leadId: e.target.value})} 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500/50 transition-colors text-white appearance-none"
+                  >
+                    <option value="">Select a Lead...</option>
+                    {leads.map((lead: any) => (
+                      <option key={lead.id} value={lead.id}>{lead.name} ({lead.company || 'No Company'})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <select 
+                    value={formData.contactId} 
+                    onChange={e => setFormData({...formData, contactId: e.target.value})} 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500/50 transition-colors text-white appearance-none"
+                  >
+                    <option value="">Select a Contact...</option>
+                    {contacts.map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.firstName} {c.lastName} ({c.company?.name || 'No Company'})</option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
