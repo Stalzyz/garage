@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { Plus, Trash2, Save, Send, CreditCard, Loader2 } from "lucide-react"
 
 export function FinanceTab({ projectId, budget }: { projectId: string, budget: number }) {
-  const { data: schedule, isLoading, mutate } = useApi(`/api/v1/projects/${projectId}/billing-schedule`)
+  const { data: schedule, isLoading, mutate } = useApi<any>(`/api/v1/projects/${projectId}/billing-schedule`)
   
   const [type, setType] = useState<"ONE_TIME" | "INSTALLMENTS">("ONE_TIME")
   const [milestones, setMilestones] = useState<any[]>([])
@@ -44,13 +44,13 @@ export function FinanceTab({ projectId, budget }: { projectId: string, budget: n
 
     setIsSaving(true)
     try {
-      const res = await fetchApi(`/api/v1/projects/${projectId}/billing-schedule`, {
+      const res = await fetchApi<any>(`/api/v1/projects/${projectId}/billing-schedule`, {
         method: "PUT",
         body: JSON.stringify({ type, milestones: type === "ONE_TIME" ? [] : milestones })
       })
       if (res.success) {
         toast.success("Billing schedule saved")
-        mutate(res.schedule)
+        mutate()
       } else {
         toast.error("Failed to save schedule")
       }
@@ -63,7 +63,7 @@ export function FinanceTab({ projectId, budget }: { projectId: string, budget: n
 
   const handleGenerateInvoice = async (milestoneId: string) => {
     try {
-      const res = await fetchApi(`/api/v1/projects/${projectId}/billing-milestones/${milestoneId}/generate-invoice`, {
+      const res = await fetchApi<any>(`/api/v1/projects/${projectId}/billing-milestones/${milestoneId}/generate-invoice`, {
         method: "POST"
       })
       if (res.success) {

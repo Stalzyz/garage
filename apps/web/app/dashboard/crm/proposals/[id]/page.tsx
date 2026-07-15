@@ -6,7 +6,6 @@ import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { format } from "date-fns"
 import { useOrganization } from "@/context/OrganizationContext"
-import { OrgAvatar } from "@/components/OrgAvatar"
 
 export default function ProposalDetailPage() {
   const params = useParams()

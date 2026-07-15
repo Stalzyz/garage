@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Sparkles, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2 } from "lucide-react"
+import { X, Sparkles, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays } from "lucide-react"
 
 // --- DATA ---
 type ProjectData = { id: string; title: string; image: string }
@@ -42,6 +42,64 @@ const renderIcon = (iconName?: string, fallbackIcon?: React.ReactNode, className
     return <IconComponent className={className || "w-8 h-8 md:w-12 md:h-12"} />
   }
   return fallbackIcon || <Sparkles className={className || "w-8 h-8 md:w-12 md:h-12"} />
+}
+
+// --- CUSTOM CURSOR ---
+const CustomCursor = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [cursorText, setCursorText] = useState("")
+  const [cursorActive, setCursorActive] = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  useEffect(() => {
+    if (isMobile) return
+
+    const mouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
+    }
+
+    const mouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      // Check if target or parent has a data-cursor attribute
+      const cursorEl = target.closest('[data-cursor]')
+      if (cursorEl) {
+        setCursorText(cursorEl.getAttribute('data-cursor') || "")
+        setCursorActive(true)
+      } else {
+        setCursorActive(false)
+        setCursorText("")
+      }
+    }
+
+    window.addEventListener("mousemove", mouseMove)
+    window.addEventListener("mouseover", mouseOver)
+
+    return () => {
+      window.removeEventListener("mousemove", mouseMove)
+      window.removeEventListener("mouseover", mouseOver)
+    }
+  }, [isMobile])
+
+  if (isMobile) return null
+
+  return (
+    <motion.div 
+      className="fixed top-0 left-0 z-[9999] pointer-events-none flex items-center justify-center mix-blend-difference"
+      animate={{ 
+        x: mousePosition.x - (cursorActive ? 32 : 8), 
+        y: mousePosition.y - (cursorActive ? 32 : 8),
+        width: cursorActive ? 64 : 16,
+        height: cursorActive ? 64 : 16,
+      }}
+      transition={{ type: "spring", stiffness: 500, damping: 28, mass: 0.5 }}
+    >
+      <div className={`w-full h-full rounded-full border border-white bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all ${cursorActive ? 'scale-100' : 'scale-100'}`}>
+        {cursorActive && (
+          <span className="text-white text-[8px] font-bold tracking-widest uppercase">{cursorText}</span>
+        )}
+      </div>
+    </motion.div>
+  )
 }
 
 // --- UNIVERSAL CONTACT FORM ---
@@ -168,7 +226,7 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
                         <div className="text-left text-xs uppercase tracking-widest text-white/30 mb-4">Featured Projects</div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
                            {activeCard.projects.map(proj => (
-                              <div key={proj.id} className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-colors">
+                              <div key={proj.id} data-cursor="VIEW" className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-colors">
                                  <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden">
                                     <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                  </div>
@@ -999,8 +1057,19 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   }, [])
 
   const baseCards = cmsData?.cards || INITIAL_CARDS
-  const currentCards = [...baseCards];
+  let currentCards = [...baseCards];
   
+  // Dynamic CMS Portfolio Integration: If we have CMS portfolio, replace the DUMMY_PROJECTS
+  if (cmsData?.portfolio && cmsData.portfolio.length > 0) {
+    const portfolioProjects = cmsData.portfolio.map((p: any) => ({ id: p.id, title: p.title, image: p.image }))
+    currentCards = currentCards.map(c => {
+      if (c.id === 'branding' || c.id === 'webdev') {
+        return { ...c, projects: portfolioProjects.slice(0, 3) }
+      }
+      return c
+    })
+  }
+
   // Auto-inject the special cards if they are missing so changes reflect immediately
   if (!currentCards.find(c => c.id === 'products' || c.isProducts)) {
     const defaultProductCard = INITIAL_CARDS.find(c => c.id === 'products');
@@ -1033,8 +1102,11 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const isLightMode = ['editorial', 'canvas', 'bento', 'organic', 'minimal', 'paper', 'swiss'].includes(activeLayout)
   const isBrutal = activeLayout === 'brutalism'
 
+  const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
+
   return (
-    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
+    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black cursor-none">
+      <CustomCursor />
       
       <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
         
@@ -1112,6 +1184,53 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
           return null;
         })}
       </div>
+
+      {/* Floating Strategy Call Widget */}
+      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[1000] pointer-events-auto">
+        <button 
+          onClick={() => setIsStrategyModalOpen(true)}
+          className="group relative flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-full shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] hover:scale-105 transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-white/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <CalendarDays className="w-5 h-5 relative z-10" />
+          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest relative z-10">Book Strategy Call</span>
+        </button>
+      </div>
+
+      {/* Strategy Call Modal */}
+      <AnimatePresence>
+        {isStrategyModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1001] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 pointer-events-auto"
+            onClick={() => setIsStrategyModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-3xl p-8 shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsStrategyModalOpen(false)}
+                className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">Book a Strategy Call</h2>
+                <p className="text-white/50 text-sm">Schedule a free 30-minute consultation with our lead architects to discuss your project requirements.</p>
+              </div>
+
+              <UniversalContactForm 
+                ctaText="Schedule Now" 
+                inputClass="p-4 w-full bg-white/5 border border-white/10 rounded-xl outline-none focus:border-white/30 transition-colors text-white placeholder:text-white/30 text-sm mb-2"
+                btnClass="p-4 w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold tracking-widest uppercase transition-all mt-4 flex justify-center items-center gap-2"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
     </div>
   )

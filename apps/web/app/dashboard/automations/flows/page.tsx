@@ -209,7 +209,7 @@ export default function WhatsAppFlowBuilder() {
             fitView
             className="bg-[#050505]"
           >
-            <Background color="#ffffff" gap={20} size={1} opacity={0.05} />
+            <Background color="#ffffff" gap={20} size={1} style={{ opacity: 0.05 }} />
             <Controls className="bg-white/5 border-white/10 fill-white" />
           </ReactFlow>
         </main>

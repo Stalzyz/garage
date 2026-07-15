@@ -1,11 +1,9 @@
 'use client';
 
-"use client"
-
-import { useState } from "react";
-import { fetchApi } from "@/lib/useApi";
+import { useState, useEffect } from "react";
+import { fetchApi, useApi } from "@/lib/useApi";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Trash2, Save, Calculator } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Save, Calculator, Users } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency"
@@ -13,6 +11,14 @@ import { useCurrency } from "@/hooks/useCurrency"
 export default function NewInvoicePage() {
   const { symbol } = useCurrency()
   const router = useRouter();
+  
+  const { data: leadsData } = useApi<any>("/crm/leads")
+  const leads = leadsData?.data || []
+
+  const { data: contactsData } = useApi<any>("/crm/contacts")
+  const contacts = contactsData?.data || []
+  
+  const [assignType, setAssignType] = useState<"MANUAL" | "LEAD" | "CONTACT">("MANUAL")
   
   const [invoice, setInvoice] = useState({
     invoiceNumber: `INV-${new Date().getTime().toString().slice(-6)}`,
@@ -77,6 +83,28 @@ export default function NewInvoicePage() {
     }
   };
 
+  const handleCrmSelect = (id: string) => {
+    if (assignType === "LEAD") {
+      const lead = leads.find((l: any) => l.id === id)
+      if (lead) {
+        setInvoice(prev => ({
+          ...prev,
+          clientName: lead.company || lead.name,
+          clientEmail: lead.email || prev.clientEmail,
+        }))
+      }
+    } else if (assignType === "CONTACT") {
+      const contact = contacts.find((c: any) => c.id === id)
+      if (contact) {
+        setInvoice(prev => ({
+          ...prev,
+          clientName: contact.company?.name || `${contact.firstName} ${contact.lastName}`,
+          clientEmail: contact.email || prev.clientEmail,
+        }))
+      }
+    }
+  }
+
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 lg:p-10 text-white relative">
       <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
@@ -140,7 +168,42 @@ export default function NewInvoicePage() {
 
             {/* Client Info */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
-              <h2 className="text-sm font-bold mb-4 font-mono uppercase tracking-widest text-white/50 border-b border-white/10 pb-2">Bill To</h2>
+              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
+                <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white/50">Bill To</h2>
+                
+                {/* CRM Autofill */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-1"><Users className="w-3 h-3"/> Auto-fill:</span>
+                  <select
+                    className="bg-black/40 border border-white/10 rounded text-xs px-2 py-1 outline-none focus:border-emerald-500"
+                    value={assignType}
+                    onChange={(e) => setAssignType(e.target.value as any)}
+                  >
+                    <option value="MANUAL">Manual Entry</option>
+                    <option value="LEAD">From Leads</option>
+                    <option value="CONTACT">From Contacts</option>
+                  </select>
+                </div>
+              </div>
+
+              {assignType !== "MANUAL" && (
+                <div className="mb-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg">
+                  <label className="block text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Select {assignType === "LEAD" ? "Lead" : "Contact"}</label>
+                  <select
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    onChange={(e) => handleCrmSelect(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Select...</option>
+                    {assignType === "LEAD" ? (
+                      leads.map((l: any) => <option key={l.id} value={l.id}>{l.name} ({l.company || 'No Company'})</option>)
+                    ) : (
+                      contacts.map((c: any) => <option key={c.id} value={c.id}>{c.firstName} {c.lastName} ({c.company?.name || 'No Company'})</option>)
+                    )}
+                  </select>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Client / Company Name *</label>

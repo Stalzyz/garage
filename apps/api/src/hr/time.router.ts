@@ -27,9 +27,12 @@ export default async function timeRoutes(app: FastifyInstance) {
       })
     }
   }, async (req, reply) => {
-    // Assuming user 1 for demo purposes
-    const userId = "cuid-user-1"; 
+    // Use actual authenticated user ID
+    const userId = (req as any).user?.id; 
     
+    if (!userId) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
     const data = req.body;
     const log = await server.prisma.timeLog.create({
       data: {

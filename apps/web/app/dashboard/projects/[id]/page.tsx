@@ -6,6 +6,7 @@ import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, Chevro
 import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { FinanceTab } from "./FinanceTab"
+import { SlideOver } from "@/components/SlideOver"
 
 const TABS = [
   { id: "tasks", label: "Tasks", icon: KanbanSquare },
@@ -22,7 +23,7 @@ const STAGES = [
   { id: "DONE", label: "Done", color: "bg-emerald-500" },
 ]
 
-function TaskCard({ task, onStatusChange }: { task: any, onStatusChange: (taskId: string, newStatus: string) => void }) {
+function TaskCard({ task, employees, onStatusChange }: { task: any, employees: any[], onStatusChange: (taskId: string, newStatus: string) => void }) {
   const prioColor = task.priority === "CRITICAL" ? "text-red-400 bg-red-400/10 border-red-400/20" :
                     task.priority === "HIGH" ? "text-orange-400 bg-orange-400/10 border-orange-400/20" :
                     "text-slate-400 bg-slate-400/10 border-slate-400/20"
@@ -30,6 +31,10 @@ function TaskCard({ task, onStatusChange }: { task: any, onStatusChange: (taskId
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("taskId", task.id);
   }
+
+  const assignee = employees.find(e => e.userId === task.assigneeId || e.id === task.assigneeId)
+  const assigneeInitials = assignee ? (assignee.user?.firstName?.charAt(0) || assignee.firstName?.charAt(0) || "?").toUpperCase() : "?"
+  const assigneeName = assignee ? `${assignee.user?.firstName || assignee.firstName}` : "Unassigned"
 
   return (
     <div 
@@ -50,8 +55,8 @@ function TaskCard({ task, onStatusChange }: { task: any, onStatusChange: (taskId
         <div className="flex gap-1.5">
           <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${prioColor}`}>{task.priority}</span>
         </div>
-        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[9px] border border-primary/30" title="Assignee">
-          {task.assigneeId ? task.assigneeId.slice(0, 1).toUpperCase() : '?'}
+        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[9px] border border-primary/30" title={assigneeName}>
+          {task.assigneeId ? assigneeInitials : <Plus className="w-3 h-3" />}
         </div>
       </div>
     </div>
@@ -65,8 +70,15 @@ export default function ProjectDetailsPage() {
   
   const { data: project, isLoading: isProjectLoading } = useApi<any>(`/projects/${projectId}`)
   const { data: tasksData, isLoading: isTasksLoading, mutate } = useApi<any>(`/projects/${projectId}/tasks`)
+  const { data: hrData } = useApi<any>("/hr/employees")
+  
+  const employees = hrData?.employees || []
 
   const [tasks, setTasks] = useState<any[]>([])
+  
+  // Task Modal State
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "NORMAL", assigneeId: "", status: "TODO" })
 
   useEffect(() => {
     if (tasksData?.data) {
@@ -112,21 +124,24 @@ export default function ProjectDetailsPage() {
     }
   }
 
-  const handleAddTask = async (status: string) => {
-    const title = prompt("Task title:");
-    if (!title) return;
+  const handleOpenTaskModal = (status: string) => {
+    setTaskForm({ title: "", description: "", priority: "NORMAL", assigneeId: "", status })
+    setIsTaskModalOpen(true)
+  }
 
+  const submitTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskForm.title) return;
     try {
       const newTask = await fetchApi<any>("/projects/tasks", {
         method: "POST",
         body: JSON.stringify({
           projectId,
-          title,
-          status,
-          priority: "NORMAL"
+          ...taskForm
         })
       });
       setTasks(prev => [newTask, ...prev]);
+      setIsTaskModalOpen(false);
     } catch (err) {
       console.error(err);
       alert("Failed to create task");
@@ -178,7 +193,7 @@ export default function ProjectDetailsPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 overflow-x-auto overflow-y-auto">
         {activeTab === "tasks" && (
           <div className="flex gap-4 h-full p-6 min-w-max">
             {STAGES.map(stage => {
@@ -186,7 +201,7 @@ export default function ProjectDetailsPage() {
               return (
                 <div 
                   key={stage.id} 
-                  className="flex flex-col w-72 bg-muted/20 rounded-2xl border border-border/40"
+                  className="flex flex-col w-72 bg-muted/20 rounded-2xl border border-border/40 max-h-full"
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, stage.id)}
                 >
@@ -200,9 +215,9 @@ export default function ProjectDetailsPage() {
                   </div>
 
                   {/* Tasks */}
-                  <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
+                  <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 custom-scrollbar">
                     {stageTasks.map(task => (
-                      <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                      <TaskCard key={task.id} task={task} employees={employees} onStatusChange={handleStatusChange} />
                     ))}
                     {stageTasks.length === 0 && (
                       <div className="flex items-center justify-center h-24 text-xs text-muted-foreground/50 border-2 border-dashed border-border/30 rounded-xl">
@@ -213,7 +228,7 @@ export default function ProjectDetailsPage() {
 
                   {/* Add button */}
                   <div className="flex-none p-2.5">
-                    <button onClick={() => handleAddTask(stage.id)} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                    <button onClick={() => handleOpenTaskModal(stage.id)} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
                       <Plus className="w-3.5 h-3.5" />
                       Add task
                     </button>
@@ -224,16 +239,134 @@ export default function ProjectDetailsPage() {
           </div>
         )}
 
+        {activeTab === "brief" && (
+          <div className="p-6 max-w-4xl mx-auto h-full">
+            <div className="bg-card border border-border/60 rounded-2xl p-8 max-w-none">
+              <h2 className="text-xl font-bold text-foreground mb-6 border-b border-border pb-4">Project Brief</h2>
+              {project.description ? (
+                <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                  {project.description}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground text-sm border-2 border-dashed border-border/30 rounded-xl">
+                  No brief provided for this project. Update the project description to show it here.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "files" && (
+          <div className="p-6 max-w-6xl mx-auto h-full">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-foreground">Project Deliverables & Files</h2>
+              <button className="flex items-center gap-2 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                <Plus className="w-4 h-4" /> Upload File
+              </button>
+            </div>
+            {project.files && project.files.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {project.files.map((file: any) => (
+                  <div key={file.id} className="bg-card border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:border-primary/50 transition-colors cursor-pointer group">
+                    <FileText className="w-10 h-10 text-muted-foreground group-hover:text-primary mb-3 transition-colors" />
+                    <p className="text-xs font-bold text-foreground truncate w-full">{file.name}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 uppercase">{file.type}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-card border border-border/60 rounded-2xl border-dashed">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                  <LayoutList className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-foreground font-bold mb-1">No files yet</p>
+                <p className="text-muted-foreground text-xs">Upload design files, contracts, or final deliverables here.</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === "finance" && (
           <FinanceTab projectId={project.id} budget={project.budget || 0} />
         )}
 
-        {activeTab !== "tasks" && activeTab !== "finance" && (
+        {activeTab === "settings" && (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} view placeholder
+            Settings view placeholder
           </div>
         )}
       </div>
+
+      {/* Task Creation SlideOver */}
+      <SlideOver title="Add New Task" open={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)}>
+        <form onSubmit={submitTask} className="p-6 space-y-6">
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Title</label>
+            <input 
+              required 
+              value={taskForm.title} 
+              onChange={e => setTaskForm({...taskForm, title: e.target.value})} 
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-4 py-3 text-foreground focus:border-primary outline-none" 
+              placeholder="e.g. Design Homepage Wireframe"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Description</label>
+            <textarea 
+              value={taskForm.description} 
+              onChange={e => setTaskForm({...taskForm, description: e.target.value})} 
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-4 py-3 text-foreground focus:border-primary outline-none h-24 resize-none" 
+              placeholder="Task details..."
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Priority</label>
+              <select 
+                value={taskForm.priority} 
+                onChange={e => setTaskForm({...taskForm, priority: e.target.value})} 
+                className="w-full bg-muted/30 border border-border/50 rounded-lg px-4 py-3 text-foreground focus:border-primary outline-none"
+              >
+                <option value="LOW">Low</option>
+                <option value="NORMAL">Normal</option>
+                <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Status</label>
+              <select 
+                value={taskForm.status} 
+                onChange={e => setTaskForm({...taskForm, status: e.target.value})} 
+                className="w-full bg-muted/30 border border-border/50 rounded-lg px-4 py-3 text-foreground focus:border-primary outline-none"
+              >
+                {STAGES.map(s => (
+                  <option key={s.id} value={s.id}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Assign To</label>
+            <select 
+              value={taskForm.assigneeId} 
+              onChange={e => setTaskForm({...taskForm, assigneeId: e.target.value})} 
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-4 py-3 text-foreground focus:border-primary outline-none"
+            >
+              <option value="">Unassigned</option>
+              {employees.map((emp: any) => (
+                <option key={emp.id} value={emp.userId || emp.id}>
+                  {emp.user?.firstName || emp.firstName} {emp.user?.lastName || emp.lastName} ({emp.jobTitle})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <button type="submit" className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-bold font-mono tracking-widest uppercase hover:bg-primary/90 transition-colors mt-8">
+            Create Task
+          </button>
+        </form>
+      </SlideOver>
     </div>
   )
 }
