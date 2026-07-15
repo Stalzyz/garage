@@ -146,27 +146,28 @@ export default function ClientDashboard() {
         </div>
       </nav>
 
-      {/* Tab Bar */}
-      <div className="px-6 pt-6 border-b border-white/8 flex gap-1">
-        {TABS.map(t => {
-          const Icon = t.icon
-          return (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-all border-b-2 ${
-                tab === t.id
-                  ? "text-white border-violet-500 bg-violet-500/5"
-                  : "text-white/40 border-transparent hover:text-white/70 hover:bg-white/3"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {t.label}
-            </button>
-          )
-        })}
-      </div>
+      <div className="flex flex-col md:flex-row flex-1">
+        {/* Sidebar */}
+        <aside className="w-full md:w-64 border-r border-white/8 p-4 md:p-6 space-y-1 shrink-0">
+          {TABS.map(t => {
+            const Icon = t.icon
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${
+                  tab === t.id
+                    ? "text-white bg-violet-500/10 border border-violet-500/20 shadow-lg shadow-violet-500/5"
+                    : "text-white/40 border border-transparent hover:text-white/70 hover:bg-white/5"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {t.label}
+              </button>
+            )
+          })}
+        </aside>
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+        {/* Content */}
+        <div className="flex-1 w-full max-w-5xl px-4 md:px-8 py-8 space-y-8">
 
         {/* ── OVERVIEW ── */}
         {tab === "overview" && (
@@ -482,6 +483,7 @@ export default function ClientDashboard() {
           </div>
         )}
 
+      </div>
       </div>
       
       {reviewFile && (

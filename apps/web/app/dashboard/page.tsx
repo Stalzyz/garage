@@ -1,11 +1,80 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { Activity, Users, DollarSign, TrendingUp, Calendar, AlertCircle, Briefcase, GraduationCap } from "lucide-react"
+import { Activity, Users, DollarSign, TrendingUp, Calendar, AlertCircle, Briefcase, GraduationCap, BookOpen } from "lucide-react"
 import { useApi } from "@/lib/useApi"
 
 export default function DashboardHome() {
   const { data: session } = useSession()
+  const role = session?.user?.role || "INTERN"
+
+  if (role === "STUDENT") {
+    return <StudentDashboard />
+  }
+  
+  if (role === "CLIENT") {
+    return <ClientDashboard />
+  }
+
+  if (role === "STAFF") {
+    return <EducatorDashboard />
+  }
+
+  // Super Admin / Manager view
+  return <AdminDashboard session={session} />
+}
+
+function StudentDashboard() {
+  return (
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-8">
+      <h1 className="text-3xl font-bold mb-2">My Academy</h1>
+      <p className="text-dash-text-secondary mb-8">Welcome back! Ready to continue learning?</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard title="Enrolled Courses" value="3" icon={<BookOpen className="w-5 h-5"/>} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard title="Completed" value="1" icon={<GraduationCap className="w-5 h-5"/>} color="text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard title="Pending Assignments" value="2" icon={<Briefcase className="w-5 h-5"/>} color="text-amber-400" bg="bg-amber-500/10" />
+      </div>
+
+      <div className="mt-8 bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><BookOpen className="w-5 h-5 text-blue-400"/> Continue Learning</h2>
+        <div className="text-sm text-dash-text-secondary">You are currently taking "Advanced Web Development". You have completed 45% of the course.</div>
+      </div>
+    </div>
+  )
+}
+
+function EducatorDashboard() {
+  return (
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-8">
+      <h1 className="text-3xl font-bold mb-2">Educator Portal</h1>
+      <p className="text-dash-text-secondary mb-8">Here is the overview of your classes and students.</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard title="Active Classes" value="4" icon={<BookOpen className="w-5 h-5"/>} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard title="Total Students" value="128" icon={<Users className="w-5 h-5"/>} color="text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard title="Assignments to Grade" value="15" icon={<AlertCircle className="w-5 h-5"/>} color="text-amber-400" bg="bg-amber-500/10" />
+      </div>
+    </div>
+  )
+}
+
+function ClientDashboard() {
+  return (
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-8">
+      <h1 className="text-3xl font-bold mb-2">Client Overview</h1>
+      <p className="text-dash-text-secondary mb-8">A snapshot of your active projects and billing.</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard title="Active Projects" value="2" icon={<Briefcase className="w-5 h-5"/>} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard title="Pending Invoices" value="1" icon={<DollarSign className="w-5 h-5"/>} color="text-amber-400" bg="bg-amber-500/10" />
+        <StatCard title="Support Tickets" value="0" icon={<AlertCircle className="w-5 h-5"/>} color="text-emerald-400" bg="bg-emerald-500/10" />
+      </div>
+    </div>
+  )
+}
+
+function AdminDashboard({ session }: { session: any }) {
   const { data: overview, isLoading } = useApi<any>("/analytics/overview")
   const { data: revenueData } = useApi<any>("/analytics/revenue?months=8")
 

@@ -33,7 +33,19 @@ export const navigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
+  },
+  {
+    title: "LMS & Academy",
+    href: "/dashboard/lms",
+    icon: BookOpen,
+    resource: "LMS",
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
+    children: [
+      { title: "My Courses", href: "/dashboard/lms" },
+      { title: "Assignments", href: "/dashboard/lms/assignments" },
+      { title: "Certificates", href: "/dashboard/lms/certificates" },
+    ],
   },
   {
     title: "My Workspace (ESS)",
@@ -158,7 +170,7 @@ export const navigation: NavItem[] = [
     title: "Chat Hub",
     href: "/dashboard/chat",
     icon: MessageSquare,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "STUDENT"],
   },
   {
     title: "Asset Drive",
@@ -170,13 +182,13 @@ export const navigation: NavItem[] = [
     title: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
   },
   {
     title: "Knowledge Base",
     href: "/dashboard/kb",
     icon: BookOpen,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
   },
   {
     title: "Settings",
