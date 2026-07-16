@@ -418,8 +418,8 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
   )
   
   return (
-    <div ref={containerRef} className="h-[100dvh] w-full bg-[#111] overflow-hidden flex items-center justify-center perspective-[1000px]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent)]" />
+    <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center perspective-[1000px] windy-mesh-bg">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
       
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:-translate-y-[60%] text-center pointer-events-none z-10 w-full px-6">
         <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight text-white drop-shadow-2xl">Do you have the courage to stand out?</h1>
@@ -487,7 +487,20 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
                setHasOpenedCard(true); playSound(); setActiveId(card.id) 
             }}
             initial={{ rotate: randomRot, x: randomX, y: 0 }}
-            animate={{ width: inactiveWidth, height: inactiveHeight }}
+            animate={{ 
+              width: inactiveWidth, 
+              height: inactiveHeight,
+              x: [randomX, randomX + 10, randomX - 5, randomX],
+              y: [0, -15, 5, 0],
+              rotate: [randomRot, randomRot + 3, randomRot - 3, randomRot]
+            }}
+            transition={{
+              width: { type: "spring", stiffness: 300, damping: 30 },
+              height: { type: "spring", stiffness: 300, damping: 30 },
+              x: { duration: 5 + (i % 3), repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 4 + (i % 2), repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: 6 + (i % 2), repeat: Infinity, ease: "easeInOut" }
+            }}
             style={{ zIndex: i + 20, opacity: isActive ? 0 : 1, pointerEvents: isActive ? 'none' : 'auto' }}
             className={`${baseClass} ${stateClass}`}
           >
