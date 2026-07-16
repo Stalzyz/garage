@@ -236,7 +236,8 @@ export const EmailTemplates = {
 
 export async function sendEmail(
   to: string, 
-  template: { subject: string; html: string; attachments?: any[] }
+  template: { subject: string; html: string; attachments?: any[] },
+  options?: { cc?: string | string[] }
 ) {
   const t = await getTransporter();
   const from = process.env.SMTP_FROM || '"Grekam Visuals" <no-reply@grekam.in>';
@@ -244,6 +245,7 @@ export async function sendEmail(
   const info = await t.sendMail({ 
     from, 
     to, 
+    cc: options?.cc,
     subject: template.subject, 
     html: template.html,
     attachments: template.attachments
@@ -256,4 +258,28 @@ export async function sendEmail(
   }
 
   return { messageId: info.messageId, previewUrl: previewUrl || null };
+}
+
+// ─── Contact Form Confirmation Template ──────────────────────────────────────
+
+export function contactConfirmationTemplate(name: string, notes?: string) {
+  return {
+    subject: `We received your message, ${name.split(' ')[0]} ✦`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 8px;">Thanks for reaching out 👋</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.6;margin:0 0 24px;">
+        Hi ${name}, we've received your request and our team will be in touch with you shortly.
+      </p>
+      ${notes ? `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:24px;">
+        <p style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;">Your message</p>
+        <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;margin:0;">${notes}</p>
+      </div>` : ''}
+      <div style="background:linear-gradient(135deg,rgba(76,29,149,0.3),rgba(30,58,138,0.3));border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:24px;">
+        <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0 0 4px;text-transform:uppercase;letter-spacing:2px;">What happens next?</p>
+        <p style="color:#fff;font-size:15px;font-weight:600;margin:0 0 12px;">Expect a response within 24 hours</p>
+        <p style="color:rgba(255,255,255,0.5);font-size:13px;line-height:1.6;margin:0;">Our lead architect will review your requirements and reach out to discuss the next steps.</p>
+      </div>
+    `, `We got your message — response within 24h`),
+  };
 }

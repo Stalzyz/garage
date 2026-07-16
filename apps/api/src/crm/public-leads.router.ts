@@ -1,6 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+import { sendEmail, contactConfirmationTemplate } from '../integrations/email.service';
+
+const CC_EMAIL = 'greeksacademy@gmail.com';
 
 const LeadSourceValues = ['WEBSITE', 'WHATSAPP', 'REFERRAL', 'COLD_OUTREACH', 'INSTAGRAM', 'LINKEDIN', 'ACADEMY_ALUMNI', 'OTHER'] as const;
 
@@ -46,18 +49,63 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     const body = CreateLeadSchema.parse(req.body);
     const score = calculateScore(body.estimatedBudget, body.source, body.projectType, body.businessUnit);
 
+    // 1. Create the lead
     const lead = await app.prisma.lead.create({
       data: { ...body, score },
     });
 
-    // Autopilot Trigger
+    // 2. Upsert into CRM contacts so this person shows up in the contacts list
+    try {
+      if (body.email) {
+        await (app.prisma as any).contact.upsert({
+          where: { email: body.email },
+          update: {
+            name: body.name,
+            phone: body.phone,
+            company: body.company,
+            source: body.source,
+            notes: body.notes ? `[Website enquiry] ${body.notes}` : undefined,
+          },
+          create: {
+            name: body.name,
+            email: body.email,
+            phone: body.phone,
+            company: body.company,
+            source: body.source,
+            notes: body.notes ? `[Website enquiry] ${body.notes}` : undefined,
+          },
+        }).catch(() => {
+          // Contact model may differ — log and continue
+          app.log.warn('[PublicLeads] Could not upsert contact (schema mismatch?)');
+        });
+      }
+    } catch (err) {
+      app.log.error(err as any, '[PublicLeads] Contact upsert failed');
+    }
+
+    // 3. Send confirmation email to submitter (CC greeksacademy@gmail.com)
+    try {
+      if (body.email) {
+        await sendEmail(
+          body.email,
+          contactConfirmationTemplate(body.name, body.notes),
+          { cc: CC_EMAIL }
+        );
+        app.log.info(`[PublicLeads] Confirmation email sent to ${body.email}, CC: ${CC_EMAIL}`);
+      }
+    } catch (err) {
+      // Never fail the request because of email — log and move on
+      app.log.error(err as any, '[PublicLeads] Confirmation email failed');
+    }
+
+    // 4. Autopilot Trigger
     if (lead.businessUnit === 'ACADEMY') {
       EventBus.emit(SystemEvents.ACADEMY_ENQUIRY_RECEIVED, lead);
     } else {
       EventBus.emit(SystemEvents.LEAD_CREATED, lead);
     }
 
-    // Real-Time Notification Broadcast
+    // 5. Real-Time Notification Broadcast
     try {
       (app as any).broadcast('telemetry-event', {
         event: 'New Lead Ingested',
@@ -77,3 +125,5 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     return lead;
   });
 }
+
+

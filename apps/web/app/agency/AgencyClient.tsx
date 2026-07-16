@@ -287,7 +287,7 @@ function getGoldenPositions(count: number, isMobile: boolean) {
   return positions
 }
 
-const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx }: any) => {
+const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx, containerRef }: any) => {
   // Both mobile and desktop show the same style card — just smaller on mobile
   const isDesktopShrunk = true
   const isSmallSquare = false
@@ -304,9 +304,9 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
   return (
     <motion.div
       drag
+      dragConstraints={containerRef}
       dragMomentum={false}
       dragElastic={0}
-      dragTransition={{ power: 0, timeConstant: 0 }}
       style={{ x, y, rotate: dragRotate, zIndex: zIdx, width: size, height: size, position: 'absolute' }}
       onDrag={(_, info) => {
         const tilt = Math.max(-18, Math.min(18, info.velocity.x / 40))
@@ -537,6 +537,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
           onTap={(id: string) => { setHasOpenedCard(true); playSound(); setActiveId(id) }}
           renderCardContent={renderCardContent}
           zIdx={i + 20}
+          containerRef={containerRef}
         />
       ))}
     </div>
