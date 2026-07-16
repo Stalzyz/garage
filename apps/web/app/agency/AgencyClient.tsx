@@ -487,20 +487,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
                setHasOpenedCard(true); playSound(); setActiveId(card.id) 
             }}
             initial={{ rotate: randomRot, x: randomX, y: 0 }}
-            animate={{ 
-              width: inactiveWidth, 
-              height: inactiveHeight,
-              x: [randomX, randomX + 10, randomX - 5, randomX],
-              y: [0, -15, 5, 0],
-              rotate: [randomRot, randomRot + 3, randomRot - 3, randomRot]
-            }}
-            transition={{
-              width: { type: "spring", stiffness: 300, damping: 30 },
-              height: { type: "spring", stiffness: 300, damping: 30 },
-              x: { duration: 5 + (i % 3), repeat: Infinity, ease: "easeInOut" },
-              y: { duration: 4 + (i % 2), repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 6 + (i % 2), repeat: Infinity, ease: "easeInOut" }
-            }}
+            animate={{ width: inactiveWidth, height: inactiveHeight }}
             style={{ zIndex: i + 20, opacity: isActive ? 0 : 1, pointerEvents: isActive ? 'none' : 'auto' }}
             className={`${baseClass} ${stateClass}`}
           >
