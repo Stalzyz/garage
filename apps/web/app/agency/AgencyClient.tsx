@@ -269,41 +269,37 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
 // Golden angle in radians: 360 * (1 - 1/φ) ≈ 137.508°
 const GOLDEN_ANGLE = 137.508 * (Math.PI / 180)
 
-function getGoldenPositions(count: number) {
-  // Fibonacci / golden spiral: each card placed at golden angle offset
-  // radius grows with sqrt(index) to fill space evenly like a sunflower
+function getGoldenPositions(count: number, isMobile: boolean) {
   const positions: { x: number; y: number; rotate: number }[] = []
-  const scale = 110 // spread factor in px
+  // Tighter scale — cards cluster close to center like a real scatter on a table
+  const scale = isMobile ? 45 : 70
   for (let i = 0; i < count; i++) {
     const angle = i * GOLDEN_ANGLE
     const radius = scale * Math.sqrt(i + 1)
     positions.push({
       x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius * 0.55, // flatten vertically so it fits viewport
+      y: Math.sin(angle) * radius * 0.52,
       rotate: (angle * 180 / Math.PI) % 360 > 180
-        ? -((angle * 180 / Math.PI) % 15) // subtle tilt, not full spiral angle
-        : ((angle * 180 / Math.PI) % 15),
+        ? -((angle * 180 / Math.PI) % 14)
+        : ((angle * 180 / Math.PI) % 14),
     })
   }
   return positions
 }
 
 const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx }: any) => {
-  const isSmallSquare = isMobile
-  const isDesktopShrunk = !isMobile
+  // Both mobile and desktop show the same style card — just smaller on mobile
+  const isDesktopShrunk = true
+  const isSmallSquare = false
 
-  // Track drag velocity for organic card tilt
   const x = useMotionValue(pos.x)
   const y = useMotionValue(pos.y)
   const dragRotate = useMotionValue(pos.rotate)
 
-  const baseClass = `absolute bg-zinc-900/90 backdrop-blur-sm border border-white/10 rounded-3xl flex cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden`
-  const stateClass = isSmallSquare
-    ? 'p-0 items-center justify-center'
-    : 'flex-col p-4 items-center justify-center min-w-[160px] min-h-[160px]'
+  const baseClass = `absolute bg-zinc-900/90 backdrop-blur-sm border border-white/10 rounded-2xl flex cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden`
+  const stateClass = 'flex-col p-3 items-center justify-center'
 
-  const width = isMobile ? '64px' : '170px'
-  const height = isMobile ? '64px' : '170px'
+  const size = isMobile ? '90px' : '152px'
 
   return (
     <motion.div
@@ -311,14 +307,12 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
       dragMomentum={false}
       dragElastic={0}
       dragTransition={{ power: 0, timeConstant: 0 }}
-      style={{ x, y, rotate: dragRotate, zIndex: zIdx, width, height, position: 'absolute' }}
+      style={{ x, y, rotate: dragRotate, zIndex: zIdx, width: size, height: size, position: 'absolute' }}
       onDrag={(_, info) => {
-        // Tilt card in direction of drag velocity — capped at ±18°
         const tilt = Math.max(-18, Math.min(18, info.velocity.x / 40))
         dragRotate.set(pos.rotate + tilt)
       }}
       onDragEnd={() => {
-        // Spring back to original tilt
         dragRotate.set(pos.rotate)
         setTimeout(() => { isDragging.current = false }, 50)
       }}
@@ -327,7 +321,7 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
         if (isDragging.current) return
         onTap(card.id)
       }}
-      whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(255,255,255,0.08)' }}
+      whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(255,255,255,0.10)' }}
       className={`${baseClass} ${stateClass}`}
     >
       {renderCardContent(card, false, false, isSmallSquare, isDesktopShrunk)}
@@ -348,7 +342,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const goldenPositions = getGoldenPositions(cards.length)
+  const goldenPositions = getGoldenPositions(cards.length, isMobile)
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
@@ -369,7 +363,10 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
       </div>
       
       {(!isSmallSquare) && (
-        <h2 className={`font-bold text-white ${isActive ? 'text-3xl md:text-5xl mb-2' : (isRectangle ? 'text-[11px] leading-tight text-left' : (isDesktopShrunk ? 'text-base leading-tight' : 'text-2xl mb-2'))}`}>{card.title}</h2>
+        <h2
+          style={{ fontFamily: 'var(--font-inter, Inter, system-ui), sans-serif' }}
+          className={`font-bold text-white ${isActive ? 'text-3xl md:text-5xl mb-2' : (isRectangle ? 'text-[11px] leading-tight text-left' : (isDesktopShrunk ? 'text-[11px] leading-tight text-center' : 'text-2xl mb-2'))}`}
+        >{card.title}</h2>
       )}
       
       {(!isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-8 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
@@ -492,9 +489,20 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
     <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center windy-mesh-bg">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04),transparent)] pointer-events-none" />
       
-      <div className="absolute top-8 md:top-12 left-0 right-0 text-center pointer-events-none z-10 px-6">
-        <h1 className="text-3xl md:text-6xl font-black mb-3 tracking-tight text-white drop-shadow-2xl">Do you have the courage to stand out?</h1>
-        <p className="text-base md:text-xl text-white/50 font-medium max-w-2xl mx-auto">Or will you settle for another template?</p>
+      {/* Centered headline — always in the middle */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none z-10 px-6">
+        <h1
+          className="font-black mb-3 tracking-tight text-white drop-shadow-2xl"
+          style={{ fontFamily: 'var(--font-inter, Inter, system-ui), sans-serif', fontSize: 'clamp(1.6rem, 5vw, 4.5rem)', lineHeight: 1.08 }}
+        >
+          Do you have the courage<br />to stand out?
+        </h1>
+        <p
+          className="text-white/50 font-medium max-w-lg"
+          style={{ fontFamily: 'var(--font-inter, Inter, system-ui), sans-serif', fontSize: 'clamp(0.85rem, 1.8vw, 1.15rem)' }}
+        >
+          Or will you settle for another template?
+        </p>
       </div>
 
       {/* Expanded card modal — no layoutId, instant open */}
