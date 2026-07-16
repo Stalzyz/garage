@@ -266,6 +266,75 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
 }
 
 // --- 02. SCATTERED CARDS ---
+// Golden angle in radians: 360 * (1 - 1/φ) ≈ 137.508°
+const GOLDEN_ANGLE = 137.508 * (Math.PI / 180)
+
+function getGoldenPositions(count: number) {
+  // Fibonacci / golden spiral: each card placed at golden angle offset
+  // radius grows with sqrt(index) to fill space evenly like a sunflower
+  const positions: { x: number; y: number; rotate: number }[] = []
+  const scale = 110 // spread factor in px
+  for (let i = 0; i < count; i++) {
+    const angle = i * GOLDEN_ANGLE
+    const radius = scale * Math.sqrt(i + 1)
+    positions.push({
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius * 0.55, // flatten vertically so it fits viewport
+      rotate: (angle * 180 / Math.PI) % 360 > 180
+        ? -((angle * 180 / Math.PI) % 15) // subtle tilt, not full spiral angle
+        : ((angle * 180 / Math.PI) % 15),
+    })
+  }
+  return positions
+}
+
+const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx }: any) => {
+  const isSmallSquare = isMobile
+  const isDesktopShrunk = !isMobile
+
+  // Track drag velocity for organic card tilt
+  const x = useMotionValue(pos.x)
+  const y = useMotionValue(pos.y)
+  const dragRotate = useMotionValue(pos.rotate)
+
+  const baseClass = `absolute bg-zinc-900/90 backdrop-blur-sm border border-white/10 rounded-3xl flex cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden`
+  const stateClass = isSmallSquare
+    ? 'p-0 items-center justify-center'
+    : 'flex-col p-4 items-center justify-center min-w-[160px] min-h-[160px]'
+
+  const width = isMobile ? '64px' : '170px'
+  const height = isMobile ? '64px' : '170px'
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0}
+      dragTransition={{ power: 0, timeConstant: 0 }}
+      style={{ x, y, rotate: dragRotate, zIndex: zIdx, width, height, position: 'absolute' }}
+      onDrag={(_, info) => {
+        // Tilt card in direction of drag velocity — capped at ±18°
+        const tilt = Math.max(-18, Math.min(18, info.velocity.x / 40))
+        dragRotate.set(pos.rotate + tilt)
+      }}
+      onDragEnd={() => {
+        // Spring back to original tilt
+        dragRotate.set(pos.rotate)
+        setTimeout(() => { isDragging.current = false }, 50)
+      }}
+      onDragStart={() => { isDragging.current = true }}
+      onClick={() => {
+        if (isDragging.current) return
+        onTap(card.id)
+      }}
+      whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(255,255,255,0.08)' }}
+      className={`${baseClass} ${stateClass}`}
+    >
+      {renderCardContent(card, false, false, isSmallSquare, isDesktopShrunk)}
+    </motion.div>
+  )
+}
+
 const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -278,6 +347,8 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  const goldenPositions = getGoldenPositions(cards.length)
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
@@ -418,14 +489,15 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
   )
   
   return (
-    <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center perspective-[1000px] windy-mesh-bg">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
+    <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center windy-mesh-bg">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04),transparent)] pointer-events-none" />
       
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:-translate-y-[60%] text-center pointer-events-none z-10 w-full px-6">
-        <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight text-white drop-shadow-2xl">Do you have the courage to stand out?</h1>
-        <p className="text-xl md:text-2xl text-white/60 font-medium max-w-2xl mx-auto drop-shadow-lg">Or will you settle for another template?</p>
+      <div className="absolute top-8 md:top-12 left-0 right-0 text-center pointer-events-none z-10 px-6">
+        <h1 className="text-3xl md:text-6xl font-black mb-3 tracking-tight text-white drop-shadow-2xl">Do you have the courage to stand out?</h1>
+        <p className="text-base md:text-xl text-white/50 font-medium max-w-2xl mx-auto">Or will you settle for another template?</p>
       </div>
 
+      {/* Expanded card modal — no layoutId, instant open */}
       <AnimatePresence>
         {activeId && <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-[100] backdrop-blur-md" onClick={() => setActiveId(null)} />}
         {activeId && (() => {
@@ -433,8 +505,12 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
           if (!activeCard) return null
           return (
             <motion.div
-              layoutId={`card-${activeCard.id}`}
+              key={`expanded-${activeCard.id}`}
               className="fixed inset-0 m-auto bg-zinc-900 border border-white/10 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,1)] w-[90vw] md:w-[900px] h-auto max-h-[90vh] z-[110] flex flex-col p-6 md:p-10 pb-24 md:pb-10 overflow-y-auto custom-scrollbar cursor-default pointer-events-auto"
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
               {renderCardContent(activeCard, true, false, false)}
             </motion.div>
@@ -442,62 +518,25 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
         })()}
       </AnimatePresence>
       
-      {cards.map((card: CardData, i: number) => {
-        const isActive = activeId === card.id
-        const randomRot = (i % 2 === 0 ? 1 : -1) * (i * 5 + 5)
-        const randomX = (i % 3 === 0 ? 1 : -1) * (i * 10)
-        
-        let inactiveWidth = '320px'
-        let inactiveHeight = '450px'
-        
-        if (isMobile) {
-          inactiveWidth = '64px'
-          inactiveHeight = '64px'
-        } else {
-          // Default desktop inactive cards are now always square
-          inactiveWidth = '180px'
-          inactiveHeight = '180px'
-        }
-        
-        const isSmallSquare = isMobile && !isActive;
-        const isRectangle = false;
-        const isDesktopShrunk = !isMobile && !isActive;
-        
-        // Ensure that even if text is empty, the container forces itself to a square
-        const baseClass = `absolute bg-zinc-900 border border-white/10 rounded-3xl flex cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden`;
-        let stateClass = '';
-        if (isSmallSquare) {
-          stateClass = 'p-0 items-center justify-center';
-        } else if (isRectangle) {
-          stateClass = 'flex-row p-3 items-center';
-        } else if (isDesktopShrunk) {
-          stateClass = 'flex-col p-4 items-center justify-center min-w-[180px] min-h-[180px]';
-        } else {
-          stateClass = 'flex-col p-6 md:p-10 overflow-y-auto custom-scrollbar';
-        }
-        return (
-          <motion.div
-            key={card.id} 
-            layoutId={`card-${card.id}`} 
-            drag dragConstraints={containerRef} dragMomentum={false}
-            onDragStart={() => isDragging.current = true}
-            onDragEnd={() => setTimeout(() => isDragging.current = false, 50)}
-            onClick={() => { 
-               if (isDragging.current) return;
-               setHasOpenedCard(true); playSound(); setActiveId(card.id) 
-            }}
-            initial={{ rotate: randomRot, x: randomX, y: 0 }}
-            animate={{ width: inactiveWidth, height: inactiveHeight }}
-            style={{ zIndex: i + 20, opacity: isActive ? 0 : 1, pointerEvents: isActive ? 'none' : 'auto' }}
-            className={`${baseClass} ${stateClass}`}
-          >
-            {renderCardContent(card, false, isRectangle, isSmallSquare, isDesktopShrunk)}
-          </motion.div>
-        )
-      })}
+      {/* Golden-ratio scattered cards */}
+      {cards.map((card: CardData, i: number) => (
+        <DraggableCard
+          key={card.id}
+          card={card}
+          pos={goldenPositions[i]}
+          isMobile={isMobile}
+          isDragging={isDragging}
+          onTap={(id: string) => { setHasOpenedCard(true); playSound(); setActiveId(id) }}
+          renderCardContent={renderCardContent}
+          zIdx={i + 20}
+        />
+      ))}
     </div>
   )
 }
+
+
+
 
 // --- 03. EDITORIAL MAGAZINE ---
 const LayoutEditorial = ({ cards }: any) => {
