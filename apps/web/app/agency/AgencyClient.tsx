@@ -288,18 +288,23 @@ function getGoldenPositions(count: number, isMobile: boolean) {
 }
 
 const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx, containerRef }: any) => {
-  // Both mobile and desktop show the same style card — just smaller on mobile
-  const isDesktopShrunk = true
-  const isSmallSquare = false
+  // We only want the icon when scattered
+  const isDesktopShrunk = false
+  const isSmallSquare = true
 
   const x = useMotionValue(pos.x)
   const y = useMotionValue(pos.y)
   const dragRotate = useMotionValue(pos.rotate)
 
-  const baseClass = `absolute bg-zinc-900/90 backdrop-blur-sm border border-white/10 rounded-2xl flex cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden`
-  const stateClass = 'flex-col p-3 items-center justify-center'
+  // Glow based on the card's accent color
+  const glowColor = card.colorHex || '#ffffff'
+  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.7), 0 0 25px ${glowColor}40, inset 0 0 0 1px rgba(255,255,255,0.05)`
+  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.8), 0 0 40px ${glowColor}60, inset 0 0 0 1px rgba(255,255,255,0.1)`
 
-  const size = isMobile ? '90px' : '152px'
+  const baseClass = `absolute bg-zinc-900/80 backdrop-blur-md rounded-3xl flex cursor-grab active:cursor-grabbing overflow-hidden`
+  const stateClass = 'p-0 items-center justify-center'
+
+  const size = isMobile ? '80px' : '110px'
 
   return (
     <motion.div
@@ -307,7 +312,15 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
       dragConstraints={containerRef}
       dragMomentum={false}
       dragElastic={0}
-      style={{ x, y, rotate: dragRotate, zIndex: zIdx, width: size, height: size, position: 'absolute' }}
+      style={{ 
+        x, y, 
+        rotate: dragRotate, 
+        zIndex: zIdx, 
+        width: size, 
+        height: size, 
+        position: 'absolute',
+        boxShadow: customBoxShadow
+      }}
       onDrag={(_, info) => {
         const tilt = Math.max(-18, Math.min(18, info.velocity.x / 40))
         dragRotate.set(pos.rotate + tilt)
@@ -321,7 +334,7 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
         if (isDragging.current) return
         onTap(card.id)
       }}
-      whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(255,255,255,0.10)' }}
+      whileHover={{ scale: 1.1, boxShadow: hoverBoxShadow }}
       className={`${baseClass} ${stateClass}`}
     >
       {renderCardContent(card, false, false, isSmallSquare, isDesktopShrunk)}
@@ -349,7 +362,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
       {(!isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
       
       <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-start items-center mb-6 md:mb-8'))}`}>
-         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6" : (isRectangle ? "w-5 h-5" : undefined))}</div>
+         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-8 h-8 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}</div>
          
          {isActive && (
            <button 
