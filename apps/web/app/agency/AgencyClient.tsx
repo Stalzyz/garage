@@ -276,35 +276,47 @@ function getGoldenPositions(count: number, isMobile: boolean) {
   for (let i = 0; i < count; i++) {
     const angle = i * GOLDEN_ANGLE
     const radius = scale * Math.sqrt(i + 1)
+    
+    // Pseudo-random stable tilt between -30 and +30 degrees based on index
+    const randomTilt = ((Math.sin(i * 12.9898) * 43758.5453) % 1) * 60 - 30
+
     positions.push({
       x: Math.cos(angle) * radius,
       y: Math.sin(angle) * radius * 0.52,
-      rotate: (angle * 180 / Math.PI) % 360 > 180
-        ? -((angle * 180 / Math.PI) % 14)
-        : ((angle * 180 / Math.PI) % 14),
+      rotate: randomTilt,
     })
   }
   return positions
 }
+
+import { animate } from 'framer-motion'
 
 const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx, containerRef }: any) => {
   // We only want the icon when scattered
   const isDesktopShrunk = false
   const isSmallSquare = true
 
-  const x = useMotionValue(pos.x)
-  const y = useMotionValue(pos.y)
-  const dragRotate = useMotionValue(pos.rotate)
+  // Start at 0 (center) and animate to scattered positions
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const dragRotate = useMotionValue(0)
 
-  // Glow based on the card's accent color
-  const glowColor = card.colorHex || '#ffffff'
-  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.7), 0 0 25px ${glowColor}40, inset 0 0 0 1px rgba(255,255,255,0.05)`
-  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.8), 0 0 40px ${glowColor}60, inset 0 0 0 1px rgba(255,255,255,0.1)`
+  useEffect(() => {
+    // Staggered shuffle animation when component mounts
+    const delay = (zIdx - 20) * 0.04
+    animate(x, pos.x, { type: "spring", stiffness: 70, damping: 14, delay })
+    animate(y, pos.y, { type: "spring", stiffness: 70, damping: 14, delay })
+    animate(dragRotate, pos.rotate, { type: "spring", stiffness: 70, damping: 14, delay })
+  }, [pos.x, pos.y, pos.rotate])
 
-  const baseClass = `absolute bg-zinc-900/80 backdrop-blur-md rounded-3xl flex cursor-grab active:cursor-grabbing overflow-hidden`
+  // Simple borders and dropshadow without the glow
+  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)`
+  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.1)`
+
+  const baseClass = `absolute bg-zinc-900/80 backdrop-blur-md rounded-2xl flex cursor-grab active:cursor-grabbing overflow-hidden`
   const stateClass = 'p-0 items-center justify-center'
 
-  const size = isMobile ? '80px' : '110px'
+  const size = isMobile ? '64px' : '110px'
 
   return (
     <motion.div
@@ -355,14 +367,14 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const goldenPositions = getGoldenPositions(cards.length, isMobile)
+  const goldenPositions = useMemo(() => getGoldenPositions(cards.length, isMobile), [cards.length, isMobile])
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
       {(!isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
       
       <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-start items-center mb-6 md:mb-8'))}`}>
-         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-8 h-8 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}</div>
+         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}</div>
          
          {isActive && (
            <button 
