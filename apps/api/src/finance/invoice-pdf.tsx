@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Document, Page, Text, View, StyleSheet, Font,
+  Document, Page, Text, View, StyleSheet, Font, Image
 } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
   brandBlock: {},
+  logo: { width: 120, height: 40, objectFit: 'contain', marginBottom: 8 },
   brandName: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 4 },
   brandSub: { fontSize: 9, color: '#888' },
   invoiceBlock: { alignItems: 'flex-end' },
@@ -87,16 +88,18 @@ interface InvoicePDFProps {
   };
   orgName: string;
   orgAddress?: string | null;
+  orgLogoUrl?: string | null;
   gstNumber?: string | null;
 }
 
-export const InvoicePDF = ({ invoice, orgName, orgAddress, gstNumber }: InvoicePDFProps) => (
+export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber }: InvoicePDFProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.brandBlock}>
-          <Text style={styles.brandName}>{orgName}</Text>
+          {orgLogoUrl && <Image src={orgLogoUrl} style={styles.logo} />}
+          {!orgLogoUrl && <Text style={styles.brandName}>{orgName}</Text>}
           {orgAddress && <Text style={styles.brandSub}>{orgAddress}</Text>}
           {gstNumber && <Text style={styles.brandSub}>GSTIN: {gstNumber}</Text>}
         </View>

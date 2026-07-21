@@ -134,6 +134,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
       },
       orgName: org?.name || 'Grekam Visuals',
       orgAddress: org?.billingAddress,
+      orgLogoUrl: org?.logoUrl,
       orgEmail: org?.supportEmail,
       orgPhone: org?.phone,
     });

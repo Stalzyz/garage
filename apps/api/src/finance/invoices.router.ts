@@ -120,6 +120,7 @@ export default async function invoicesRouter(app: FastifyInstance) {
       invoice: { ...invoice, createdAt: invoice.createdAt.toISOString(), dueDate: invoice.dueDate.toISOString() },
       orgName: org?.name || 'Grekam OS',
       orgAddress: org?.billingAddress,
+      orgLogoUrl: org?.logoUrl,
       gstNumber: financeSettings?.gstNumber,
     });
 

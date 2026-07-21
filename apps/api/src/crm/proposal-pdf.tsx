@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Document, Page, Text, View, StyleSheet
+  Document, Page, Text, View, StyleSheet, Image
 } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
   brandBlock: {},
+  logo: { width: 120, height: 40, objectFit: 'contain', marginBottom: 8 },
   brandName: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 4 },
   brandSub: { fontSize: 9, color: '#888' },
   proposalBlock: { alignItems: 'flex-end' },
@@ -80,16 +81,18 @@ interface ProposalPDFProps {
   };
   orgName: string;
   orgAddress?: string | null;
+  orgLogoUrl?: string | null;
   orgEmail?: string | null;
   orgPhone?: string | null;
 }
 
-export const ProposalPDF = ({ proposal, orgName, orgAddress, orgEmail, orgPhone }: ProposalPDFProps) => (
+export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmail, orgPhone }: ProposalPDFProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <View style={styles.brandBlock}>
-          <Text style={styles.brandName}>{orgName}</Text>
+          {orgLogoUrl && <Image src={orgLogoUrl} style={styles.logo} />}
+          {!orgLogoUrl && <Text style={styles.brandName}>{orgName}</Text>}
           {orgAddress && <Text style={styles.brandSub}>{orgAddress}</Text>}
           {orgEmail && <Text style={styles.brandSub}>{orgEmail}</Text>}
           {orgPhone && <Text style={styles.brandSub}>{orgPhone}</Text>}
