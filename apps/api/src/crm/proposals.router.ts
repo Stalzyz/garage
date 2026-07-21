@@ -116,7 +116,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     
     if (!proposal) return reply.notFound('Proposal not found');
 
-    const config = await app.prisma.config.findFirst();
+    const org = await app.prisma.organization.findFirst();
 
     const pdfBuffer = await generateProposalPDF({
       proposal: {
@@ -132,10 +132,10 @@ export default async function proposalsRouter(app: FastifyInstance) {
         notes: proposal.notes,
         items: proposal.items,
       },
-      orgName: config?.companyName || 'Grekam Visuals',
-      orgAddress: config?.companyAddress,
-      orgEmail: config?.supportEmail,
-      orgPhone: config?.companyPhone,
+      orgName: org?.name || 'Grekam Visuals',
+      orgAddress: org?.billingAddress,
+      orgEmail: org?.supportEmail,
+      orgPhone: org?.phone,
     });
 
     reply.header('Content-Type', 'application/pdf');

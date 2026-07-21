@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 600
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "cd /root/grekam-os && git reset --hard && git clean -fd && git pull origin main && pnpm install && cd packages/db && npx prisma db push && npx prisma generate && cd ../../ && pnpm --filter=api build && pm2 restart grekam-os-api && pnpm --filter=web build && rm -rf apps/web/.next/standalone/grekam-os/apps/web/.next/static && cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ && cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ && pm2 restart grekam-os-web"
+expect {
+  -re "(assword|assphrase)" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}
