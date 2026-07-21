@@ -7,17 +7,14 @@ import { useApi } from "@/lib/useApi"
 import { format } from "date-fns"
 
 export default function ProposalsPage() {
-  const { data, isLoading } = useApi<any>("/crm/proposals")
-  const proposals = data?.data || []
-
   const [searchQuery, setSearchQuery] = useState("")
+  const [page, setPage] = useState(1)
+  const [viewMode, setViewMode] = useState<'all' | 'templates'>('all')
+  const limit = 20
 
-  const filteredProposals = proposals.filter((p: any) => 
-    p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.lead?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.contact?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.contact?.lastName?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const { data, isLoading, mutate } = useApi<any>(`/crm/proposals?page=${page}&limit=${limit}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}${viewMode === 'templates' ? '&isTemplate=true' : ''}`)
+  const proposals = data?.data || []
+  const totalPages = data?.totalPages || 1
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -54,10 +51,27 @@ export default function ProposalsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <input 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search proposals..." 
               className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
             />
+          </div>
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+            <button 
+              onClick={() => { setViewMode('all'); setPage(1); }}
+              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${viewMode === 'all' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'}`}
+            >
+              All Proposals
+            </button>
+            <button 
+              onClick={() => { setViewMode('templates'); setPage(1); }}
+              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${viewMode === 'templates' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'}`}
+            >
+              Templates
+            </button>
           </div>
         </div>
       </div>
@@ -81,7 +95,7 @@ export default function ProposalsPage() {
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-white/50">Loading proposals...</td>
                 </tr>
-              ) : filteredProposals.length === 0 ? (
+              ) : proposals.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-white/50">
                     <FileText className="w-8 h-8 mx-auto mb-3 opacity-20" />
@@ -89,7 +103,7 @@ export default function ProposalsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredProposals.map((p: any) => {
+                proposals.map((p: any) => {
                   const clientName = p.contact ? `${p.contact.firstName} ${p.contact.lastName}` : (p.lead?.name || "Unknown");
                   const clientCompany = p.contact?.company?.name || p.lead?.company || "";
                   
@@ -130,6 +144,31 @@ export default function ProposalsPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 bg-white/5 p-4 rounded-xl border border-white/10">
+            <span className="text-sm text-white/50 font-mono">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 300
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "bash /root/grekam-os/remote_deploy.sh"
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}

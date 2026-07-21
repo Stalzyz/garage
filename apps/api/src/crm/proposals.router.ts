@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { auditLog } from '../utils/audit';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
+import { generateProposalPDF } from '../finance/pdf.service';
 
 const ProposalItemSchema = z.object({
   description: z.string().min(1),
@@ -36,20 +37,56 @@ function calcTotal(items: z.infer<typeof ProposalItemSchema>[]): number {
 export default async function proposalsRouter(app: FastifyInstance) {
   // GET /api/v1/crm/proposals
   app.get('/proposals', async (req, reply) => {
-    const { status, leadId } = req.query as { status?: string; leadId?: string };
-    const proposals = await app.prisma.proposal.findMany({
-      where: {
-        ...(status && { status: status as any }),
-        ...(leadId && { leadId }),
-      },
-      include: {
-        items: true,
-        lead: { select: { id: true, name: true, company: true } },
-        contact: { select: { id: true, firstName: true, lastName: true, company: { select: { name: true } } } },
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return { data: proposals, total: proposals.length };
+    const { status, leadId, page = '1', limit = '20', search, isTemplate } = req.query as { 
+      status?: string; 
+      leadId?: string; 
+      page?: string; 
+      limit?: string; 
+      search?: string;
+      isTemplate?: string;
+    };
+    
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const whereClause: any = {
+      ...(status && { status: status as any }),
+      ...(leadId && { leadId }),
+      ...(isTemplate !== undefined && { isTemplate: isTemplate === 'true' }),
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { lead: { name: { contains: search, mode: 'insensitive' } } },
+        { contact: { firstName: { contains: search, mode: 'insensitive' } } },
+        { contact: { lastName: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [proposals, total] = await Promise.all([
+      app.prisma.proposal.findMany({
+        where: whereClause,
+        include: {
+          items: true,
+          lead: { select: { id: true, name: true, company: true } },
+          contact: { select: { id: true, firstName: true, lastName: true, company: { select: { name: true } } } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+      app.prisma.proposal.count({ where: whereClause })
+    ]);
+
+    return { 
+      data: proposals, 
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum)
+    };
   });
 
   // GET /api/v1/crm/proposals/:id
@@ -66,13 +103,54 @@ export default async function proposalsRouter(app: FastifyInstance) {
     return proposal;
   });
 
+  // GET /api/v1/crm/proposals/:id/pdf
+  app.get('/proposals/:id/pdf', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const proposal = await app.prisma.proposal.findUnique({
+      where: { id },
+      include: {
+        items: true,
+        lead: { select: { id: true, name: true, company: true, email: true, phone: true } },
+      },
+    });
+    
+    if (!proposal) return reply.notFound('Proposal not found');
+
+    const config = await app.prisma.config.findFirst();
+
+    const pdfBuffer = await generateProposalPDF({
+      proposal: {
+        id: proposal.id,
+        title: proposal.title,
+        clientName: proposal.lead?.name || 'Client',
+        clientCompany: proposal.lead?.company,
+        status: proposal.status,
+        currency: proposal.currency,
+        validUntil: proposal.validUntil ? proposal.validUntil.toISOString() : null,
+        createdAt: proposal.createdAt.toISOString(),
+        totalAmount: proposal.totalAmount,
+        notes: proposal.notes,
+        items: proposal.items,
+      },
+      orgName: config?.companyName || 'Grekam Visuals',
+      orgAddress: config?.companyAddress,
+      orgEmail: config?.supportEmail,
+      orgPhone: config?.companyPhone,
+    });
+
+    reply.header('Content-Type', 'application/pdf');
+    reply.header('Content-Disposition', `attachment; filename="Proposal-${proposal.title.replace(/[^a-z0-9]/gi, '_')}.pdf"`);
+    return reply.send(pdfBuffer);
+  });
+
   // POST /api/v1/crm/proposals/generate — AI generate proposal content
   app.post('/proposals/generate', async (req, reply) => {
     const { title, items } = req.body as { title: string, items: any[] };
     
     try {
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || '',
+      });
 
       const prompt = `Write a professional executive summary and overview for a business proposal titled "${title}".
       The proposal includes the following line items:
@@ -81,8 +159,12 @@ export default async function proposalsRouter(app: FastifyInstance) {
       Format the response in Markdown. Include sections for Overview, Objectives, and Value Proposition.
       Do not include any introductory conversation, just the markdown content itself.`;
 
-      const result = await model.generateContent(prompt);
-      const content = result.response.text();
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const content = response.choices[0].message.content || '';
 
       return { content: content.trim() };
     } catch (error) {
@@ -238,6 +320,16 @@ export default async function proposalsRouter(app: FastifyInstance) {
     });
     reply.code(201);
     return duplicate;
+  });
+
+  // POST /api/v1/crm/proposals/:id/template — mark as template
+  app.post('/proposals/:id/template', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const proposal = await app.prisma.proposal.update({
+      where: { id },
+      data: { isTemplate: true },
+    });
+    return proposal;
   });
 
   // DELETE /api/v1/crm/proposals/:id

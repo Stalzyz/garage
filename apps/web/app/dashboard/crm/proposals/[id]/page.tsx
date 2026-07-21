@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ChevronLeft, Download, Send, CheckCircle2, Loader2, ArrowRight, Trash2, Edit } from "lucide-react"
+import { ChevronLeft, Download, Send, CheckCircle2, Loader2, ArrowRight, Trash2, Edit, Save, Plus } from "lucide-react"
 import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { format } from "date-fns"
@@ -38,22 +38,9 @@ export default function ProposalDetailPage() {
   }
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('printable-proposal');
-    if (!element) return;
-    
-    // @ts-ignore
-    const html2pdfModule = await import('html2pdf.js');
-    const html2pdf = html2pdfModule.default || html2pdfModule;
-    
-    const opt = {
-      margin: 10,
-      filename:     `Proposal-${proposal.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-      image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    } as any;
-    
-    html2pdf().set(opt).from(element).save();
+    // Open the backend PDF endpoint in a new tab
+    const pdfUrl = `/api/v1/crm/proposals/${proposalId}/pdf`;
+    window.open(pdfUrl, '_blank');
   }
 
   const markAsSent = async () => {
@@ -77,6 +64,29 @@ export default function ProposalDetailPage() {
     } catch (err: any) {
       console.error(err);
       alert(`Failed to delete proposal: ${err.message || String(err)}`);
+    }
+  }
+
+  const handleSaveAsTemplate = async () => {
+    if (!window.confirm("Save this proposal as a reusable template?")) return;
+    try {
+      await fetchApi(`/crm/proposals/${proposalId}/template`, { method: "POST" });
+      mutate();
+      alert("Saved as template!");
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to save as template.");
+    }
+  }
+
+  const handleDuplicate = async () => {
+    if (!window.confirm("Duplicate this proposal?")) return;
+    try {
+      const duplicated = await fetchApi(`/crm/proposals/${proposalId}/duplicate`, { method: "POST" });
+      window.location.href = `/dashboard/crm/proposals/${duplicated.id}/edit`;
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to duplicate.");
     }
   }
 
@@ -137,6 +147,14 @@ export default function ProposalDetailPage() {
             </div>
           </div>
           <div className="flex gap-3">
+            <button onClick={handleDuplicate} className="flex items-center gap-2 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-500/20 transition-colors">
+              <Plus className="w-4 h-4" /> {proposal.isTemplate ? "Use Template" : "Duplicate"}
+            </button>
+            {!proposal.isTemplate && (
+              <button onClick={handleSaveAsTemplate} className="flex items-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-500/20 transition-colors">
+                <Save className="w-4 h-4" /> Save as Template
+              </button>
+            )}
             <button onClick={handleDelete} className="flex items-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors">
               <Trash2 className="w-4 h-4" /> Delete
             </button>

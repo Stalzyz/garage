@@ -1,6 +1,10 @@
 #!/usr/bin/expect -f
 set timeout 60
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "pm2 restart grekam-os-web && pm2 restart grekam-os-api && pm2 restart grecakam-os-academy"
-expect "assword:"
-send "Photoshop09@\r"
-expect eof
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "pm2 restart grekam-os-web"
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}
