@@ -101,6 +101,12 @@ export default function EmployeeDirectory() {
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.designation || !formData.salary) {
+      toast.error("Please fill all required fields (Name, Email, Job Title, Salary)")
+      return
+    }
+    
     setIsSubmitting(true)
     try {
       const payload = {
@@ -136,6 +142,12 @@ export default function EmployeeDirectory() {
   const handleUpdateEmployee = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedEmployee) return
+    
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.designation || !formData.salary) {
+      toast.error("Please fill all required fields (Name, Email, Job Title, Salary)")
+      return
+    }
+    
     setIsSubmitting(true)
     try {
       const payload = {
@@ -617,20 +629,20 @@ export default function EmployeeDirectory() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">First Name</label>
-              <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+              <input value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
             </div>
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Last Name</label>
-              <input required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+              <input value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Email</label>
-            <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Job Title</label>
-            <input required value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Department</label>
@@ -648,7 +660,7 @@ export default function EmployeeDirectory() {
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Base Salary (INR)</label>
-            <input required type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           
           <div className="pt-4 border-t border-white/10 mt-4">
@@ -707,20 +719,20 @@ export default function EmployeeDirectory() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">First Name</label>
-              <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+              <input value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
             </div>
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Last Name</label>
-              <input required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+              <input value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Email</label>
-            <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Job Title</label>
-            <input required value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Department</label>
@@ -738,7 +750,7 @@ export default function EmployeeDirectory() {
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Base Salary (INR)</label>
-            <input required type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
+            <input type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" />
           </div>
           
           <div className="pt-4 border-t border-white/10 mt-4">
