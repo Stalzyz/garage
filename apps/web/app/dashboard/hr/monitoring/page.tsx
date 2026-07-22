@@ -64,6 +64,16 @@ export default function HRMonitoringDashboard() {
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         
+        {stats.totalActive === 0 && stats.totalIdle === 0 && (
+          <div className="mb-8 p-4 bg-violet-500/10 border border-violet-500/30 rounded-xl flex items-center gap-4 animate-pulse">
+            <Monitor className="w-6 h-6 text-violet-400" />
+            <div>
+              <h3 className="text-sm font-bold text-violet-400">Waiting for Data...</h3>
+              <p className="text-xs text-white/50">Telemetry requires the Grekam OS Desktop Client to be running on the employee's machine.</p>
+            </div>
+          </div>
+        )}
+
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white/5 border border-white/10 p-5 rounded-2xl flex flex-col justify-between">

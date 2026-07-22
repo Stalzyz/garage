@@ -165,7 +165,7 @@ export default async function attendanceRoutes(app: FastifyInstance) {
 
     const record = await server.prisma.attendance.updateMany({
       where: { employeeId, date: today },
-      data: { breakStart: new Date() }
+      data: { breakStart: new Date(), breakEnd: null }
     });
     return reply.status(200).send({ success: true, updated: record.count });
   });
