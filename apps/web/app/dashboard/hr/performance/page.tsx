@@ -2,17 +2,57 @@
 
 import { useState } from "react"
 import { useApi, fetchApi } from "@/lib/useApi"
-import { Target, TrendingUp, Award, Star, MessageSquare, ChevronDown, CheckCircle2, Circle } from "lucide-react"
+import { Target, TrendingUp, Award, Star, MessageSquare, ChevronDown, CheckCircle2, Circle, Loader2 } from "lucide-react"
+import { Modal } from "@/components/ui/modal"
+import { toast } from "sonner"
 
 export default function PerformanceManagement() {
   const [activeTab, setActiveTab] = useState("overview")
   const { data: cyclesData } = useApi<any>("/hr/performance/cycles")
   const cycles = cyclesData?.data || []
   
-  // Use a hardcoded employee ID or from session in real app
-  const employeeId = "cm1234567" // Just a placeholder string since we don't have auth context here easily
-  const { data: goalsData, mutate: mutateGoals } = useApi<any>(`/hr/performance/goals/${employeeId}`)
+  // Use a real employee from the HR system
+  const { data: employeesData } = useApi<any>("/hr/employees")
+  const employeeId = employeesData?.data?.[0]?.id || "mock-employee-id"
+  const employeeName = employeesData?.data?.[0]?.firstName ? `${employeesData.data[0].firstName} ${employeesData.data[0].lastName}` : "Stalin Kumar"
+  const { data: goalsData, mutate: mutateGoals } = useApi<any>(employeeId !== "mock-employee-id" ? `/hr/performance/goals/${employeeId}` : null)
   const goals = goalsData?.data || []
+
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [goalForm, setGoalForm] = useState({ title: "", description: "", targetDate: "" })
+
+  const handleCreateGoal = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/hr/performance/goals", {
+        method: "POST",
+        body: JSON.stringify({ ...goalForm, employeeId })
+      })
+      toast.success("Goal added successfully")
+      setIsGoalModalOpen(false)
+      setGoalForm({ title: "", description: "", targetDate: "" })
+      mutateGoals()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add goal")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleUpdateGoal = async (goalId: string, updates: any) => {
+    try {
+      await fetchApi(`/hr/performance/goals/${goalId}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates)
+      })
+      toast.success("Goal updated")
+      mutateGoals()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update goal")
+    }
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#050508] text-white overflow-y-auto custom-scrollbar font-sans">
@@ -69,9 +109,9 @@ export default function PerformanceManagement() {
               {/* Employee Summary Card */}
               <div className="md:col-span-1 bg-white/5 border border-white/10 rounded-3xl p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <img src="https://ui-avatars.com/api/?name=Stalin+Kumar&background=6d28d9&color=fff" className="w-16 h-16 rounded-2xl" />
+                  <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(employeeName)}&background=6d28d9&color=fff`} className="w-16 h-16 rounded-2xl" />
                   <div>
-                    <h2 className="font-bold text-lg">Stalin Kumar</h2>
+                    <h2 className="font-bold text-lg">{employeeName}</h2>
                     <p className="text-violet-400 text-sm font-medium">Senior Architect</p>
                   </div>
                 </div>
@@ -175,7 +215,10 @@ export default function PerformanceManagement() {
           <div className="max-w-5xl mx-auto space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Goals & Objectives</h2>
-              <button className="px-4 py-2 bg-violet-600 text-white font-bold rounded-lg text-sm hover:bg-violet-500">
+              <button 
+                onClick={() => setIsGoalModalOpen(true)}
+                className="px-4 py-2 bg-violet-600 text-white font-bold rounded-lg text-sm hover:bg-violet-500"
+              >
                 Add New Goal
               </button>
             </div>
@@ -194,22 +237,34 @@ export default function PerformanceManagement() {
                         <h3 className="font-bold text-lg">{g.title}</h3>
                         <p className="text-slate-400 text-sm mt-1">{g.description}</p>
                       </div>
-                      <span className={`px-2.5 py-1 text-xs font-bold uppercase rounded-md ${
-                        g.status === 'ACHIEVED' ? 'bg-emerald-500/20 text-emerald-400' :
-                        g.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-white/10 text-slate-300'
-                      }`}>
-                        {g.status || 'NOT_STARTED'}
-                      </span>
+                      <select 
+                        value={g.status || 'NOT_STARTED'} 
+                        onChange={(e) => handleUpdateGoal(g.id, { status: e.target.value })}
+                        className={`px-2.5 py-1 text-xs font-bold uppercase rounded-md border-0 focus:ring-0 cursor-pointer ${
+                          g.status === 'ACHIEVED' ? 'bg-emerald-500/20 text-emerald-400' :
+                          g.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-white/10 text-slate-300'
+                        }`}
+                      >
+                        <option value="NOT_STARTED">Not Started</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="ACHIEVED">Achieved</option>
+                        <option value="MISSED">Missed</option>
+                      </select>
                     </div>
                     <div>
                       <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
                         <span>Progress</span>
                         <span>{g.progress || 0}%</span>
                       </div>
-                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${g.progress || 0}%` }}></div>
-                      </div>
+                      <input 
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={g.progress || 0}
+                        onChange={(e) => handleUpdateGoal(g.id, { progress: parseInt(e.target.value) })}
+                        className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-violet-500"
+                      />
                     </div>
                   </div>
                 ))}
@@ -219,6 +274,62 @@ export default function PerformanceManagement() {
         )}
 
       </div>
+      
+      {isGoalModalOpen && (
+        <Modal onClose={() => setIsGoalModalOpen(false)}>
+          <div className="w-[500px] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Add New Goal</h2>
+            <form onSubmit={handleCreateGoal} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Goal Title</label>
+                <input 
+                  required
+                  type="text" 
+                  value={goalForm.title}
+                  onChange={e => setGoalForm({...goalForm, title: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-violet-500"
+                  placeholder="e.g. Increase sales by 20%"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Description</label>
+                <textarea 
+                  value={goalForm.description}
+                  onChange={e => setGoalForm({...goalForm, description: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-violet-500 min-h-[100px]"
+                  placeholder="Optional details..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Target Date</label>
+                <input 
+                  type="date" 
+                  value={goalForm.targetDate}
+                  onChange={e => setGoalForm({...goalForm, targetDate: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-violet-500"
+                />
+              </div>
+              <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsGoalModalOpen(false)}
+                  className="px-4 py-2 text-white font-bold rounded-lg hover:bg-white/5 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-violet-600 text-white font-bold rounded-lg hover:bg-violet-500 transition-colors text-sm flex items-center"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Create Goal
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

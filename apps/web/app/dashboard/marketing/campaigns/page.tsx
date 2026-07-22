@@ -1,12 +1,42 @@
 "use client"
 
 import { useState } from "react"
-import { useApi } from "@/lib/useApi"
-import { BarChart2, TrendingUp, DollarSign, Target, Plus, Search, Filter, CheckCircle2 } from "lucide-react"
+import { useApi, fetchApi } from "@/lib/useApi"
+import { BarChart2, TrendingUp, DollarSign, Target, Plus, Search, Filter, CheckCircle2, Loader2 } from "lucide-react"
+import { Modal } from "@/components/ui/modal"
+import { toast } from "sonner"
 
 export default function AdCampaignsDashboard() {
-  const { data } = useApi<any>("/marketing/campaigns")
+  const { data, mutate } = useApi<any>("/marketing/campaigns")
   const campaigns = data?.campaigns || []
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    type: "EMAIL",
+    status: "DRAFT",
+    targetAudience: "",
+    content: ""
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/marketing/campaigns", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      })
+      toast.success("Campaign created successfully!")
+      setIsModalOpen(false)
+      setFormData({ title: "", type: "EMAIL", status: "DRAFT", targetAudience: "", content: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create campaign")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -19,7 +49,10 @@ export default function AdCampaignsDashboard() {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Unified view of your ad spend, CPA, and ROAS across all platforms.</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-sm">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-sm"
+          >
             <Plus className="w-4 h-4" /> New Campaign
           </button>
         </div>
@@ -152,6 +185,90 @@ export default function AdCampaignsDashboard() {
 
         </div>
       </div>
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <div className="w-[500px] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Create New Campaign</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Campaign Title</label>
+                <input 
+                  required
+                  type="text" 
+                  value={formData.title}
+                  onChange={e => setFormData({...formData, title: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  placeholder="e.g. Summer Sale 2025"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm text-slate-400">Campaign Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={e => setFormData({...formData, type: e.target.value})}
+                    className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="EMAIL">Email</option>
+                    <option value="AD">Paid Ad</option>
+                    <option value="SOCIAL">Social</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-slate-400">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={e => setFormData({...formData, status: e.target.value})}
+                    className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="ACTIVE">Active</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Target Audience (Optional)</label>
+                <input 
+                  type="text" 
+                  value={formData.targetAudience}
+                  onChange={e => setFormData({...formData, targetAudience: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  placeholder="e.g. Enterprise Leads"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Brief Content/Budget (Optional)</label>
+                <textarea 
+                  value={formData.content}
+                  onChange={e => setFormData({...formData, content: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary min-h-[100px]"
+                  placeholder="Any details..."
+                />
+              </div>
+              
+              <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-white font-bold rounded-lg hover:bg-white/5 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-colors text-sm flex items-center"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Create Campaign
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
