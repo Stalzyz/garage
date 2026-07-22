@@ -127,6 +127,7 @@ export default function OrganizationSettingsPage() {
                   placeholder="#2563eb"
                 />
               </div>
+            </div>
             <div className="space-y-2">
               <label className="text-sm text-[#a1a1aa]">Secondary Color (Hex)</label>
               <div className="flex items-center space-x-3">
