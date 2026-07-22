@@ -3,6 +3,7 @@ import { Barlow_Condensed, Inter } from "next/font/google"
 import "./globals.css"
 import { SmoothScroll } from "@/components/SmoothScroll"
 import { OrganizationProvider } from "@/context/OrganizationContext"
+import { Toaster } from "sonner"
 
 const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
@@ -35,6 +36,7 @@ export default function RootLayout({
           <SmoothScroll>
             {children}
           </SmoothScroll>
+          <Toaster position="bottom-right" theme="dark" />
         </OrganizationProvider>
       </body>
     </html>
