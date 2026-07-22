@@ -26,6 +26,7 @@ export default function EmployeeDirectory() {
   
   const [isUploading, setIsUploading] = useState(false)
   const [uploadData, setUploadData] = useState({ name: "", type: "ID_PROOF" })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const [selectedTemplate, setSelectedTemplate] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -211,22 +212,48 @@ export default function EmployeeDirectory() {
   })
 
   const handleUpload = async () => {
-    if(!selectedEmployee) return
+    if(!selectedEmployee || !selectedFile) {
+      toast.error("Please select a file to upload");
+      return;
+    }
     setIsUploading(true)
     try {
-      const mockUrl = `https://example.com/docs/${uploadData.name.replace(/\s+/g, "_")}.pdf`
+      // 1. Get pre-signed upload URL
+      const { uploadUrl, downloadUrl } = await fetchApi<any>('/storage/upload-url', {
+        method: 'POST',
+        body: JSON.stringify({
+          filename: selectedFile.name,
+          contentType: selectedFile.type || "application/octet-stream",
+          prefix: `hr/employees/${selectedEmployee.id}`
+        })
+      });
+      
+      // 2. Upload file directly to R2/Storage using the presigned URL
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': selectedFile.type || "application/octet-stream" },
+        body: selectedFile
+      });
+      
+      if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
+
+      // 3. Save document reference to database
       await fetchApi(`/hr/employees/${selectedEmployee.id}/documents`, {
         method: "POST",
-        body: JSON.stringify({ name: uploadData.name, type: uploadData.type, url: mockUrl })
+        body: JSON.stringify({ name: uploadData.name || selectedFile.name, type: uploadData.type, url: downloadUrl })
       })
+      
+      toast.success("Document uploaded successfully")
       const res = await fetchApi<any>(`/hr/employees/${selectedEmployee.id}`)
       setSelectedEmployee(res.employee)
       mutate()
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
+      toast.error(e.message || "Failed to upload document")
     } finally {
       setIsUploading(false)
       setUploadData({ name: "", type: "ID_PROOF" })
+      setSelectedFile(null)
     }
   }
 
@@ -607,8 +634,24 @@ export default function EmployeeDirectory() {
                           </select>
                         </div>
                       </div>
+                      <div>
+                        <label className="block text-xs text-white/50 mb-1 font-mono uppercase tracking-widest">Select File</label>
+                        <input 
+                          type="file"
+                          onChange={e => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              setSelectedFile(file)
+                              if (!uploadData.name) {
+                                setUploadData({...uploadData, name: file.name.split('.')[0]})
+                              }
+                            }
+                          }}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500/50 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 transition-all"
+                        />
+                      </div>
                       <button 
-                        onClick={handleUpload} disabled={isUploading || !uploadData.name}
+                        onClick={handleUpload} disabled={isUploading || !selectedFile}
                         className="w-full py-3 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold font-mono tracking-widest uppercase hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
                       >
                         {isUploading ? "Uploading..." : "Save Document"}
