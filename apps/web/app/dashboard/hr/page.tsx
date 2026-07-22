@@ -128,6 +128,7 @@ export default function EmployeeDirectory() {
         method: "POST",
         body: JSON.stringify(payload)
       })
+      if (res.error) throw new Error(res.error)
       toast.success("Personnel created successfully")
       if (res.credentials) setCredentialsModal(res.credentials)
       setIsAddOpen(false)
@@ -218,24 +219,18 @@ export default function EmployeeDirectory() {
     }
     setIsUploading(true)
     try {
-      // 1. Get pre-signed upload URL
-      const { uploadUrl, downloadUrl } = await fetchApi<any>('/storage/upload-url', {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      
+      const { downloadUrl, success, error } = await fetchApi<any>('/storage/upload-local', {
         method: 'POST',
-        body: JSON.stringify({
-          filename: selectedFile.name,
-          contentType: selectedFile.type || "application/octet-stream",
-          prefix: `hr/employees/${selectedEmployee.id}`
-        })
+        body: formData as any,
+        headers: {
+          // Do not set Content-Type to application/json, let browser set multipart boundary
+        }
       });
       
-      // 2. Upload file directly to R2/Storage using the presigned URL
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': selectedFile.type || "application/octet-stream" },
-        body: selectedFile
-      });
-      
-      if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
+      if (!success) throw new Error(error || "Failed to upload file");
 
       // 3. Save document reference to database
       await fetchApi(`/hr/employees/${selectedEmployee.id}/documents`, {
@@ -695,15 +690,15 @@ export default function EmployeeDirectory() {
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Department</label>
             <select value={formData.departmentId} onChange={e => setFormData({...formData, departmentId: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none">
-              <option value="">Select Department...</option>
-              {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              <option value="" className="bg-[#090d16]">Select Department...</option>
+              {departments.map((d: any) => <option key={d.id} value={d.id} className="bg-[#090d16]">{d.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Access Role</label>
             <select value={formData.customRoleId} onChange={e => setFormData({...formData, customRoleId: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none">
-              <option value="">Default Access...</option>
-              {roles.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              <option value="" className="bg-[#090d16]">Default Access...</option>
+              {roles.map((r: any) => <option key={r.id} value={r.id} className="bg-[#090d16]">{r.name}</option>)}
             </select>
           </div>
           <div>
@@ -785,15 +780,15 @@ export default function EmployeeDirectory() {
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Department</label>
             <select value={formData.departmentId} onChange={e => setFormData({...formData, departmentId: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none">
-              <option value="">Select Department...</option>
-              {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              <option value="" className="bg-[#090d16]">Select Department...</option>
+              {departments.map((d: any) => <option key={d.id} value={d.id} className="bg-[#090d16]">{d.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Access Role</label>
             <select value={formData.customRoleId} onChange={e => setFormData({...formData, customRoleId: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none">
-              <option value="">Default Access...</option>
-              {roles.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              <option value="" className="bg-[#090d16]">Default Access...</option>
+              {roles.map((r: any) => <option key={r.id} value={r.id} className="bg-[#090d16]">{r.name}</option>)}
             </select>
           </div>
           <div>

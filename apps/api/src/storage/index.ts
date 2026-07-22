@@ -2,6 +2,9 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { randomUUID } from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { pipeline } from 'stream/promises';
 
 export default async function storageRouter(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -48,5 +51,29 @@ export default async function storageRouter(app: FastifyInstance) {
       server.log.error(err as any, 'Failed to generate presigned URL');
       return reply.code(500).send({ error: 'Storage Error', message: 'Failed to generate upload URL' });
     }
+  });
+
+  server.post('/upload-local', async (req, reply) => {
+    const data = await req.file();
+    if (!data) {
+      return reply.code(400).send({ error: 'No file uploaded' });
+    }
+    
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const uniqueId = Math.random().toString(36).substring(2, 10);
+    const safeFilename = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, '');
+    const key = `${Date.now()}_${uniqueId}_${safeFilename}`;
+    const destinationPath = path.join(uploadsDir, key);
+
+    await pipeline(data.file, fs.createWriteStream(destinationPath));
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+    const downloadUrl = `${API_URL}/uploads/${key}`;
+
+    return reply.send({ downloadUrl, key, success: true });
   });
 }

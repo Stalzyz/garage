@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, Send, Save, Eye, Users, Search, Type, Image as ImageIcon, Layout, Type as TypeIcon } from "lucide-react"
+import { Mail, Send, Save, Eye, Users, Search, Type, Image as ImageIcon, Layout, Type as TypeIcon, Sparkles, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { fetchApi, useApi } from "@/lib/useApi"
 
@@ -9,6 +9,7 @@ export default function EmailCampaignBuilder() {
   const [subject, setSubject] = useState("")
   const [audience, setAudience] = useState("all")
   const [content, setContent] = useState("<h1 style='color: white; text-align: center;'>Welcome to Grekam</h1>\n<p style='color: #aaa; text-align: center;'>We have exciting news...</p>")
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const handleSend = async () => {
     try {
@@ -25,6 +26,29 @@ export default function EmailCampaignBuilder() {
       toast.success("Campaign Scheduled successfully!")
     } catch (err: any) {
       toast.error("Failed to schedule campaign")
+    }
+  }
+
+  const handleAiGenerate = async () => {
+    if (!subject) {
+      toast.error("Please enter a subject line first")
+      return
+    }
+    setIsGenerating(true)
+    try {
+      const res = await fetchApi<any>("/ai/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          prompt: `Write an engaging email for this subject: "${subject}".`,
+          format: "html"
+        })
+      })
+      setContent(res.content)
+      toast.success("AI content generated!")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate AI content")
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -92,6 +116,15 @@ export default function EmailCampaignBuilder() {
             <div className="flex items-center justify-between mb-4">
               <label className="text-[10px] text-white/50 uppercase tracking-widest font-bold">HTML Content</label>
               <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleAiGenerate}
+                  disabled={isGenerating || !subject}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded text-xs font-bold transition-colors disabled:opacity-50 border border-blue-500/30"
+                >
+                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  AI Generate
+                </button>
+                <div className="w-px h-4 bg-white/10 mx-1"></div>
                 <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-white/50 hover:text-white"><TypeIcon className="w-3.5 h-3.5" /></button>
                 <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-white/50 hover:text-white"><ImageIcon className="w-3.5 h-3.5" /></button>
                 <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-white/50 hover:text-white"><Layout className="w-3.5 h-3.5" /></button>

@@ -233,9 +233,19 @@ export default function ProposalDetailPage() {
           </table>
 
           {/* Totals */}
-          <div className="flex justify-end border-t border-border/60 pt-6">
+          <div className="flex justify-end border-t border-border/60 pt-6 mb-10">
             <div className="w-72 space-y-3">
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{proposal.subtotal?.toLocaleString() ?? proposal.totalAmount.toLocaleString()}</span>
+              </div>
+              {(proposal.tax > 0) && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Tax</span>
+                  <span>{proposal.tax.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold border-t border-border/60 pt-3 mt-3">
                 <span className="text-foreground">Total Value ({proposal.currency})</span>
                 <span className="text-primary">{proposal.totalAmount.toLocaleString()}</span>
               </div>

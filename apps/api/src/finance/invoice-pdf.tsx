@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
   brandBlock: {},
-  logo: { width: 120, height: 40, objectFit: 'contain', marginBottom: 8 },
+  logo: { width: 135, height: 55, objectFit: 'contain', marginBottom: 8 },
   brandName: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 4 },
   brandSub: { fontSize: 9, color: '#888' },
   invoiceBlock: { alignItems: 'flex-end' },

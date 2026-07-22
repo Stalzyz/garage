@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "node -e \"
+const http = require('http');
+const req = http.request({
+  hostname: 'localhost',
+  port: 3001,
+  path: '/api/v1/hr/employees',
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+}, res => {
+  let data = '';
+  res.on('data', chunk => data += chunk);
+  res.on('end', () => console.log('STATUS:', res.statusCode, 'BODY:', data));
+});
+req.write(JSON.stringify({
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'test@example.com',
+  jobTitle: 'Dev',
+  joiningDate: new Date().toISOString()
+}));
+req.end();
+\""
+expect {
+  -re "(assword|assphrase)" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}

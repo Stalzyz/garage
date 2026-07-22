@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "curl -s -X POST -H 'Content-Type: application/json' -d '{\"firstName\":\"Test\",\"lastName\":\"User\",\"email\":\"test123456@grekamos.com\",\"jobTitle\":\"Developer\",\"joiningDate\":\"2024-01-01T00:00:00.000Z\",\"salary\":50000}' http://localhost:3001/api/v1/hr/employees"
+expect {
+  -re "(assword|assphrase)" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}

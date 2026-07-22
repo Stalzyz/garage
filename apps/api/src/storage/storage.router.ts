@@ -2,6 +2,9 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import fs from 'fs';
+import path from 'path';
+import { pipeline } from 'stream/promises';
 
 const GetUploadUrlSchema = z.object({
   filename: z.string(),
@@ -104,5 +107,30 @@ export default async function storageRouter(app: FastifyInstance) {
       console.error('Presigned URL Error:', err);
       return reply.code(500).send({ error: 'Failed to generate upload URL. Check R2 environment variables.' });
     }
+  });
+
+  // POST /api/v1/storage/upload-local
+  app.post('/upload-local', async (req, reply) => {
+    const data = await req.file();
+    if (!data) {
+      return reply.code(400).send({ error: 'No file uploaded' });
+    }
+    
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const uniqueId = Math.random().toString(36).substring(2, 10);
+    const safeFilename = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, '');
+    const key = `${Date.now()}_${uniqueId}_${safeFilename}`;
+    const destinationPath = path.join(uploadsDir, key);
+
+    await pipeline(data.file, fs.createWriteStream(destinationPath));
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+    const downloadUrl = `${API_URL}/uploads/${key}`;
+
+    return { downloadUrl, key, success: true };
   });
 }

@@ -30,9 +30,10 @@ export default async function attendanceRoutes(app: FastifyInstance) {
       const end = todayRecord.clockOut || new Date();
       loggedMinutes = Math.floor((end.getTime() - todayRecord.clockIn.getTime()) / 60000);
       
-      // Subtract break time
-      if (todayRecord.breakStart && todayRecord.breakEnd) {
-        const breakMins = Math.floor((todayRecord.breakEnd.getTime() - todayRecord.breakStart.getTime()) / 60000);
+      // Subtract break time (even if it's ongoing)
+      if (todayRecord.breakStart) {
+        const breakEnd = todayRecord.breakEnd || new Date();
+        const breakMins = Math.floor((breakEnd.getTime() - todayRecord.breakStart.getTime()) / 60000);
         loggedMinutes -= breakMins;
       }
     }

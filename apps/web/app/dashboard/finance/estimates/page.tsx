@@ -6,18 +6,15 @@ import { useCurrency } from "@/hooks/useCurrency"
 import { SlideOver } from "@/components/SlideOver"
 import { toast } from "sonner"
 
-// Mock Data
-const ESTIMATES = [
-  { id: "EST-2025-089", client: "RedBrick Realty", project: "Brand Identity Refresh", amount: 420000, date: "Jun 16, 2025", status: "APPROVED" },
-  { id: "EST-2025-088", client: "Techflow SaaS", project: "Landing Page Wireframes", amount: 295000, date: "Jun 15, 2025", status: "SENT" },
-  { id: "EST-2025-087", client: "Fitburst Gym", project: "Promo Video Edits", amount: 141600, date: "Jun 12, 2025", status: "DECLINED" },
-  { id: "EST-2025-086", client: "Spice Kitchen", project: "Menu Design & Social Assets", amount: 70800, date: "Jun 10, 2025", status: "DRAFT" },
-]
+import { useApi, fetchApi } from "@/lib/useApi"
+import { format } from "date-fns"
 
 export default function EstimatesDashboard() {
   const { symbol } = useCurrency()
+  const { data, mutate } = useApi<any>("/finance/estimates")
+  const estimatesList = data?.data || []
+  
   const [search, setSearch] = useState("")
-  const [estimatesList, setEstimatesList] = useState(ESTIMATES)
   
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editingEst, setEditingEst] = useState<any>(null)
@@ -27,24 +24,31 @@ export default function EstimatesDashboard() {
     amount: 0
   })
 
-  const filtered = estimatesList.filter(e => {
-    return search === "" || e.client.toLowerCase().includes(search.toLowerCase()) || e.id.toLowerCase().includes(search.toLowerCase())
+  const filtered = estimatesList.filter((e: any) => {
+    return search === "" || e.clientName?.toLowerCase().includes(search.toLowerCase()) || e.estimateNumber?.toLowerCase().includes(search.toLowerCase())
   })
 
-  const handleCreateEstimate = (e: React.FormEvent) => {
+  const handleCreateEstimate = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newEst = {
-      id: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      client: formData.client,
-      project: formData.project,
-      amount: Number(formData.amount),
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: "DRAFT"
+    try {
+      await fetchApi("/finance/estimates", {
+        method: "POST",
+        body: JSON.stringify({
+          estimateNumber: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+          clientName: formData.client,
+          clientEmail: "test@example.com", // Mock email for now since form doesn't ask for it
+          businessUnit: "AGENCY",
+          dueDate: new Date(Date.now() + 30 * 86400000).toISOString(), // +30 days validUntil
+          items: [{ description: formData.project, quantity: 1, unitPrice: Number(formData.amount) }]
+        })
+      })
+      toast.success("Estimate created as draft")
+      setIsAddOpen(false)
+      setFormData({ client: "", project: "", amount: 0 })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create estimate")
     }
-    setEstimatesList([newEst, ...estimatesList])
-    toast.success("Estimate created as draft")
-    setIsAddOpen(false)
-    setFormData({ client: "", project: "", amount: 0 })
   }
 
   return (
@@ -98,33 +102,33 @@ export default function EstimatesDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {filtered.map((est) => (
+                {filtered.map((est: any) => (
                   <tr key={est.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">{est.id}</div>
+                      <div className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">{est.estimateNumber}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-foreground">{est.client}</div>
-                      <div className="text-xs text-muted-foreground">{est.project}</div>
+                      <div className="font-semibold text-foreground">{est.clientName}</div>
+                      <div className="text-xs text-muted-foreground">{est.items?.[0]?.description || "No project specified"}</div>
                     </td>
                     <td className="px-6 py-4 font-bold text-foreground">
-                      {symbol}{est.amount.toLocaleString()}
+                      {symbol}{est.totalAmount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border ${
-                        est.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        est.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                         est.status === 'SENT' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                        est.status === 'DECLINED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                        est.status === 'REJECTED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                         'bg-slate-500/10 text-slate-500 border-slate-500/20'
                       }`}>
-                        {est.status === 'APPROVED' && <CheckCircle className="w-3 h-3" />}
+                        {est.status === 'ACCEPTED' && <CheckCircle className="w-3 h-3" />}
                         {est.status === 'SENT' && <Send className="w-3 h-3" />}
-                        {est.status === 'DECLINED' && <Clock className="w-3 h-3" />}
+                        {est.status === 'REJECTED' && <Clock className="w-3 h-3" />}
                         {est.status === 'DRAFT' && <FileText className="w-3 h-3" />}
                         {est.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">{est.date}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{format(new Date(est.createdAt), 'MMM d, yyyy')}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {est.status === 'APPROVED' ? (
@@ -142,14 +146,24 @@ export default function EstimatesDashboard() {
                             <button onClick={() => setEditingEst(est)} className="p-1.5 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-md transition-colors tooltip" title="Edit">
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            <button onClick={() => {
-                              const duplicated = {
-                                ...est,
-                                id: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-                                status: "DRAFT"
+                            <button onClick={async () => {
+                              try {
+                                await fetchApi("/finance/estimates", {
+                                  method: "POST",
+                                  body: JSON.stringify({
+                                    estimateNumber: `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+                                    clientName: est.clientName,
+                                    clientEmail: est.clientEmail,
+                                    businessUnit: est.businessUnit,
+                                    dueDate: new Date(Date.now() + 30 * 86400000).toISOString(),
+                                    items: est.items || []
+                                  })
+                                })
+                                mutate()
+                                toast.success("Estimate duplicated successfully!")
+                              } catch (err: any) {
+                                toast.error(err.message || "Failed to duplicate estimate")
                               }
-                              setEstimatesList([duplicated, ...estimatesList])
-                              toast.success("Estimate duplicated successfully!")
                             }} className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors tooltip" title="Duplicate">
                               <CopyPlus className="w-4 h-4" />
                             </button>

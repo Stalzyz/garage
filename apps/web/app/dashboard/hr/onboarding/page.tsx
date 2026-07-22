@@ -281,9 +281,9 @@ export default function OnboardingDashboard() {
                   required 
                   value={selectedEmpId} 
                   onChange={e => setSelectedEmpId(e.target.value)} 
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none"
                 >
-                  <option value="">Choose an employee...</option>
+                  <option value="" className="bg-[#090d16]">Choose an employee...</option>
                   {allEmployees.map((e: any) => (
                     <option key={e.id} value={e.id} className="bg-[#090d16]">{e.user?.firstName} {e.user?.lastName}</option>
                   ))}

@@ -7,6 +7,8 @@ import swaggerUi from '@fastify/swagger-ui';
 import websocket from '@fastify/websocket';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fastify-type-provider-zod';
 import { prisma } from './db';
 import dotenv from 'dotenv';
@@ -77,6 +79,17 @@ export async function buildApp(opts: any = {}): Promise<any> {
 
   await app.register(authPlugin);
   await app.register(storagePlugin);
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024 // 50MB
+    }
+  });
+
+  await app.register(fastifyStatic, {
+    root: path.join(__dirname, '../uploads'),
+    prefix: '/uploads/',
+  });
 
   // Swagger setup
   await app.register(swagger, {
@@ -205,6 +218,8 @@ export async function buildApp(opts: any = {}): Promise<any> {
   // AI Integration
   const aiMentorRouter = (await import('./ai/mentor.router')).default;
   await app.register(aiMentorRouter, { prefix: '/api/v1/ai/mentor' });
+  const aiGenerateRouter = (await import('./ai/generate.router')).default;
+  await app.register(aiGenerateRouter, { prefix: '/api/v1/ai' });
 
   // WebSocket — real-time broadcast hub
   const wsClients = new Set<any>();

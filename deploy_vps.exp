@@ -6,7 +6,7 @@ puts "\n======================================"
 puts "  GREKAM OS - VPS Deployment Script  "
 puts "======================================"
 
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "bash -s"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s"
 
 expect {
   "assword:" {

@@ -18,6 +18,7 @@ const CreateProposalSchema = z.object({
   validUntil: z.string().datetime().optional(),
   currency: z.string().default('INR'),
   notes: z.string().optional(),
+  tax: z.number().nonnegative().optional().default(0),
   items: z.array(ProposalItemSchema).min(1),
 });
 
@@ -179,7 +180,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
   // POST /api/v1/crm/proposals — create proposal with items
   app.post('/proposals', async (req, reply) => {
     const body = CreateProposalSchema.parse(req.body);
-    const totalAmount = calcTotal(body.items);
+    const subtotal = calcTotal(body.items);
+    const tax = body.tax || 0;
+    const totalAmount = subtotal + tax;
 
     const proposal = await app.prisma.proposal.create({
       data: {
@@ -189,6 +192,8 @@ export default async function proposalsRouter(app: FastifyInstance) {
         validUntil: body.validUntil ? new Date(body.validUntil) : undefined,
         currency: body.currency,
         notes: body.notes,
+        subtotal,
+        tax,
         totalAmount,
         items: {
           create: body.items.map(item => ({
@@ -211,10 +216,25 @@ export default async function proposalsRouter(app: FastifyInstance) {
   app.patch('/proposals/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = UpdateProposalSchema.parse(req.body);
-    const { items, ...rest } = body;
+    const { items, tax, ...rest } = body;
 
+    let subtotal: number | undefined;
     let totalAmount: number | undefined;
-    if (items) totalAmount = calcTotal(items);
+    let newTax = tax;
+
+    if (items) {
+      subtotal = calcTotal(items);
+      const existing = await app.prisma.proposal.findUnique({ where: { id } });
+      newTax = tax !== undefined ? tax : (existing?.tax || 0);
+      totalAmount = subtotal + newTax;
+    } else if (tax !== undefined) {
+      const existing = await app.prisma.proposal.findUnique({ where: { id } });
+      if (existing) {
+        subtotal = existing.subtotal;
+        newTax = tax;
+        totalAmount = subtotal + newTax;
+      }
+    }
 
     const proposal = await app.prisma.$transaction(async (tx) => {
       if (items) {
@@ -234,6 +254,8 @@ export default async function proposalsRouter(app: FastifyInstance) {
         where: { id },
         data: {
           ...rest,
+          ...(tax !== undefined && { tax }),
+          ...(subtotal !== undefined && { subtotal }),
           ...(totalAmount !== undefined && { totalAmount }),
           ...(rest.signedAt && { signedAt: new Date(rest.signedAt) }),
           ...(rest.validUntil && { validUntil: new Date(rest.validUntil) }),

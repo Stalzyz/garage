@@ -1,10 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import { useApi, fetchApi } from "@/lib/useApi"
 import { Target, TrendingUp, Award, Star, MessageSquare, ChevronDown, CheckCircle2, Circle } from "lucide-react"
 
 export default function PerformanceManagement() {
   const [activeTab, setActiveTab] = useState("overview")
+  const { data: cyclesData } = useApi<any>("/hr/performance/cycles")
+  const cycles = cyclesData?.data || []
+  
+  // Use a hardcoded employee ID or from session in real app
+  const employeeId = "cm1234567" // Just a placeholder string since we don't have auth context here easily
+  const { data: goalsData, mutate: mutateGoals } = useApi<any>(`/hr/performance/goals/${employeeId}`)
+  const goals = goalsData?.data || []
 
   return (
     <div className="flex flex-col h-full bg-[#050508] text-white overflow-y-auto custom-scrollbar font-sans">
@@ -160,6 +168,53 @@ export default function PerformanceManagement() {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {activeTab === 'goals' && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Goals & Objectives</h2>
+              <button className="px-4 py-2 bg-violet-600 text-white font-bold rounded-lg text-sm hover:bg-violet-500">
+                Add New Goal
+              </button>
+            </div>
+            
+            {goals.length === 0 ? (
+              <div className="p-8 bg-white/5 border border-white/10 rounded-2xl text-center">
+                <Target className="w-8 h-8 text-white/30 mx-auto mb-3" />
+                <p className="text-slate-400">No goals found for the current cycle.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {goals.map((g: any) => (
+                  <div key={g.id} className="bg-black/40 border border-white/10 rounded-2xl p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-bold text-lg">{g.title}</h3>
+                        <p className="text-slate-400 text-sm mt-1">{g.description}</p>
+                      </div>
+                      <span className={`px-2.5 py-1 text-xs font-bold uppercase rounded-md ${
+                        g.status === 'ACHIEVED' ? 'bg-emerald-500/20 text-emerald-400' :
+                        g.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-white/10 text-slate-300'
+                      }`}>
+                        {g.status || 'NOT_STARTED'}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
+                        <span>Progress</span>
+                        <span>{g.progress || 0}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${g.progress || 0}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

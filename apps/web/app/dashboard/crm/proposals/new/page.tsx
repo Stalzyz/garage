@@ -29,13 +29,17 @@ export default function InteractiveProposalBuilder() {
     content: "<h2>Overview</h2><p>We are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.</p><h2>Scope of Work</h2><ul><li><strong>Brand Identity Design</strong></li><li><strong>UI/UX Prototyping</strong></li><li><strong>Full-stack Development</strong></li></ul><h2>Timeline</h2><p>This project will take approximately 6 weeks to complete from the signing of this proposal.</p>",
   })
 
+  const [tax, setTax] = useState<number>(0)
+
   const [items, setItems] = useState([
     { name: "Brand Identity", description: "Logo, Color Palette, Typography", quantity: 1, unitPrice: 2500, total: 2500 },
     { name: "Web Development", description: "Frontend and Backend", quantity: 1, unitPrice: 5000, total: 5000 }
   ])
 
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + item.total, 0)
+  
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.total, 0)
+    return calculateSubtotal() + Number(tax)
   }
 
   const handleAddItem = () => {
@@ -87,6 +91,7 @@ export default function InteractiveProposalBuilder() {
       const payload: any = {
         title: formData.title,
         notes: formData.content,
+        tax: Number(tax),
         items: items.map(item => ({
           description: item.name + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice),
@@ -291,9 +296,24 @@ export default function InteractiveProposalBuilder() {
                 ))}
               </div>
               
-              <div className="flex justify-between items-center p-4 bg-violet-600/10 border border-violet-500/20 rounded-xl mt-4">
-                <span className="font-bold text-violet-400">Total Investment</span>
-                <span className="text-2xl font-black text-white">₹{calculateTotal().toLocaleString()}</span>
+              <div className="flex flex-col gap-2 p-4 bg-white/5 border border-white/10 rounded-xl mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-white/50">Subtotal</span>
+                  <span className="text-sm font-bold text-white/70">₹{calculateSubtotal().toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-white/50">Tax (Flat amount)</span>
+                  <input 
+                    type="number" 
+                    value={tax} 
+                    onChange={e => setTax(Number(e.target.value))}
+                    className="w-24 bg-black/50 border border-white/5 rounded px-2 py-1 text-sm text-right focus:outline-none focus:border-violet-500" 
+                  />
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-white/10 mt-1">
+                  <span className="font-bold text-violet-400">Total Investment</span>
+                  <span className="text-2xl font-black text-white">₹{calculateTotal().toLocaleString()}</span>
+                </div>
               </div>
             </div>
 

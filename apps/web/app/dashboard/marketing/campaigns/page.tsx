@@ -1,17 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useApi } from "@/lib/useApi"
 import { BarChart2, TrendingUp, DollarSign, Target, Plus, Search, Filter, CheckCircle2 } from "lucide-react"
 
-// Mock Data
-const ADS = [
-  { id: "A-01", platform: "Facebook", campaign: "Retargeting - Q3 Promo", status: "Active", spend: "$1,240.50", cpa: "$45.20", roas: "3.2x", leads: 28 },
-  { id: "A-02", platform: "Google", campaign: "Search - 'SaaS Marketing Agency'", status: "Active", spend: "$3,800.00", cpa: "$112.50", roas: "4.5x", leads: 34 },
-  { id: "A-03", platform: "LinkedIn", campaign: "InMail - Founder Outreach", status: "Paused", spend: "$850.00", cpa: "$210.00", roas: "1.1x", leads: 4 },
-  { id: "A-04", platform: "TikTok", campaign: "Brand Awareness Video 1", status: "Active", spend: "$450.00", cpa: "$12.80", roas: "0.8x", leads: 35 },
-]
-
 export default function AdCampaignsDashboard() {
+  const { data } = useApi<any>("/marketing/campaigns")
+  const campaigns = data?.campaigns || []
+
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
@@ -118,31 +114,37 @@ export default function AdCampaignsDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {ADS.map((ad) => (
+                  {campaigns.map((ad: any) => (
                     <tr key={ad.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full ${
-                            ad.platform === "Facebook" ? "bg-blue-600" :
-                            ad.platform === "Google" ? "bg-red-500" :
-                            ad.platform === "LinkedIn" ? "bg-blue-400" :
-                            "bg-black dark:bg-white"
+                            ad.type === "EMAIL" ? "bg-blue-600" :
+                            ad.type === "SMS" ? "bg-emerald-500" :
+                            "bg-purple-500"
                           }`} />
-                          <span className="text-sm font-medium text-foreground">{ad.platform}</span>
+                          <span className="text-sm font-medium text-foreground">{ad.type}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-sm text-foreground">{ad.campaign}</td>
+                      <td className="px-6 py-4 font-medium text-sm text-foreground">{ad.title}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${ad.status === "Active" ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${ad.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>
                           {ad.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-mono text-red-400 text-right">{ad.spend}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-foreground text-right">{ad.leads}</td>
-                      <td className="px-6 py-4 text-sm font-mono text-muted-foreground text-right">{ad.cpa}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-emerald-500 text-right">{ad.roas}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-red-400 text-right">-</td>
+                      <td className="px-6 py-4 text-sm font-medium text-foreground text-right">-</td>
+                      <td className="px-6 py-4 text-sm font-mono text-muted-foreground text-right">-</td>
+                      <td className="px-6 py-4 text-sm font-bold text-emerald-500 text-right">-</td>
                     </tr>
                   ))}
+                  {campaigns.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No campaigns found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "su postgres -c 'psql -d grekam_os -c \"SELECT count(*) FROM users;\"'"
+expect {
+  -re "(assword|assphrase)" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "pm2 logs grekam-os-api --lines 500 --nostream | grep -C 5 '/api/v1/hr/employees'"
+expect {
+  -re "(assword|assphrase)" {
+    send "Photoshop09@\r"
+    exp_continue
+  }
+  eof
+}

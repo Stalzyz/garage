@@ -27,6 +27,7 @@ export default function EditProposalPage() {
     status: "DRAFT"
   })
 
+  const [tax, setTax] = useState<number>(0)
   const [items, setItems] = useState<any[]>([])
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function EditProposalPage() {
         content: existingProposal.notes || "",
         status: existingProposal.status || "DRAFT"
       })
+      setTax(existingProposal.tax || 0)
       if (existingProposal.items && existingProposal.items.length > 0) {
         setItems(existingProposal.items.map((item: any) => {
           let name = item.description;
@@ -58,8 +60,10 @@ export default function EditProposalPage() {
     }
   }, [existingProposal])
 
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + item.total, 0)
+  
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.total, 0)
+    return calculateSubtotal() + Number(tax)
   }
 
   const handleAddItem = () => {
@@ -111,6 +115,7 @@ export default function EditProposalPage() {
       const payload: any = {
         ...formData,
         notes: formData.content,
+        tax: Number(tax),
         items: items.map(item => ({
           description: item.name + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice),
@@ -288,11 +293,16 @@ export default function EditProposalPage() {
             <div className="mt-6 pt-6 border-t border-white/10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-white/50">Subtotal</span>
-                <span className="font-mono text-white">${calculateTotal().toLocaleString()}</span>
+                <span className="font-mono text-white">${calculateSubtotal().toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-white/50">Tax (0%)</span>
-                <span className="font-mono text-white">$0</span>
+                <span className="text-sm text-white/50">Tax (Flat Amount)</span>
+                <input 
+                  type="number" 
+                  value={tax}
+                  onChange={e => setTax(Number(e.target.value))}
+                  className="w-24 bg-white/5 border border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 font-mono text-right" 
+                />
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4">
                 <span className="font-bold text-white">Total Value</span>
