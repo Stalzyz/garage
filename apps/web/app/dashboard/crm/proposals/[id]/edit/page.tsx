@@ -6,6 +6,7 @@ import Link from "next/link"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useParams, useRouter } from "next/navigation"
+import { RichTextEditor } from "@/components/ui/RichTextEditor"
 
 export default function EditProposalPage() {
   const router = useRouter()
@@ -212,16 +213,16 @@ export default function EditProposalPage() {
                 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 py-1.5 rounded-lg hover:bg-purple-500/20 transition-colors disabled:opacity-50"
               >
                 {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                {isGenerating ? "Generating..." : "AI Generate"}
-              </button>
+                  {isGenerating ? "Generating..." : "AI Generate Content"}
+                </button>
+              </div>
+              
+              <RichTextEditor 
+                content={formData.content} 
+                onChange={(html) => setFormData({...formData, content: html})} 
+                placeholder="Start typing your proposal content..."
+              />
             </div>
-            <textarea 
-              rows={12} 
-              value={formData.content} 
-              onChange={e => setFormData({...formData, content: e.target.value})} 
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 resize-y font-mono" 
-            />
-          </div>
         </div>
 
         {/* Right Col - Pricing Table */}
@@ -297,6 +298,12 @@ export default function EditProposalPage() {
                 <span className="font-bold text-white">Total Value</span>
                 <span className="font-mono font-bold text-xl text-emerald-400">${calculateTotal().toLocaleString()}</span>
               </div>
+              
+              {/* HTML Content Preview */}
+              <div 
+                className="prose prose-invert prose-violet max-w-none mb-12"
+                dangerouslySetInnerHTML={{ __html: formData.content }}
+              />
             </div>
 
           </div>

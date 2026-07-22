@@ -7,6 +7,7 @@ import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
+import { RichTextEditor } from "@/components/ui/RichTextEditor"
 
 export default function InteractiveProposalBuilder() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function InteractiveProposalBuilder() {
     leadId: "",
     contactId: "",
     assignToType: "LEAD", // 'LEAD' or 'CONTACT'
-    content: "## Overview\nWe are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.\n\n## Scope of Work\n1. **Brand Identity Design**\n2. **UI/UX Prototyping**\n3. **Full-stack Development**\n\n## Timeline\nThis project will take approximately 6 weeks to complete from the signing of this proposal.",
+    content: "<h2>Overview</h2><p>We are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.</p><h2>Scope of Work</h2><ul><li><strong>Brand Identity Design</strong></li><li><strong>UI/UX Prototyping</strong></li><li><strong>Full-stack Development</strong></li></ul><h2>Timeline</h2><p>This project will take approximately 6 weeks to complete from the signing of this proposal.</p>",
   })
 
   const [items, setItems] = useState([
@@ -215,11 +216,10 @@ export default function InteractiveProposalBuilder() {
                 </button>
               </div>
               
-              <textarea 
-                rows={10} 
-                value={formData.content} 
-                onChange={e => setFormData({...formData, content: e.target.value})} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-violet-500/50 transition-colors resize-y font-mono text-slate-300 leading-relaxed custom-scrollbar" 
+              <RichTextEditor 
+                content={formData.content} 
+                onChange={(html) => setFormData({...formData, content: html})} 
+                placeholder="Start typing your proposal content..."
               />
             </div>
 
@@ -323,19 +323,11 @@ export default function InteractiveProposalBuilder() {
               <p className="text-slate-400">Prepared for: {leads.find((l:any) => l.id === formData.leadId)?.company || 'Client Name'}</p>
             </div>
 
-            {/* Markdown Content Preview */}
-            <div className="prose prose-invert prose-violet max-w-none mb-12">
-              {formData.content.split('\n').map((line, i) => {
-                if (line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold text-white mt-8 mb-4 border-b border-white/5 pb-2">{line.replace('## ', '')}</h2>
-                if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold text-white mt-8 mb-4">{line.replace('# ', '')}</h1>
-                if (line.startsWith('- ')) return <li key={i} className="text-slate-300 ml-4 mb-1">{line.replace('- ', '')}</li>
-                if (line.startsWith('1. ') || line.startsWith('2. ') || line.startsWith('3. ')) {
-                   return <li key={i} className="text-slate-300 ml-4 mb-2 font-medium">{line.replace(/^\d+\.\s/, '')}</li>
-                }
-                if (line.trim() === '') return <br key={i} />
-                return <p key={i} className="text-slate-300 mb-4 leading-relaxed">{line.replace(/\*\*(.*?)\*\*/g, '$1')}</p>
-              })}
-            </div>
+            {/* HTML Content Preview */}
+            <div 
+              className="prose prose-invert prose-violet max-w-none mb-12"
+              dangerouslySetInnerHTML={{ __html: formData.content }}
+            />
 
             {/* Pricing Table Preview */}
             <div>

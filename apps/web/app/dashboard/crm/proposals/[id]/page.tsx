@@ -244,9 +244,11 @@ export default function ProposalDetailPage() {
 
           {/* Notes */}
           {proposal.notes && (
-            <div className="mt-16 pt-8 border-t border-border/40">
-              <h3 className="text-sm font-semibold text-foreground mb-2">Terms & Notes:</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{proposal.notes}</p>
+            <div className="mb-10">
+              <div 
+                className="prose prose-sm dark:prose-invert max-w-none prose-violet"
+                dangerouslySetInnerHTML={{ __html: proposal.notes }}
+              />
             </div>
           )}
         </div>

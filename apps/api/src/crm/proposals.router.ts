@@ -157,8 +157,8 @@ export default async function proposalsRouter(app: FastifyInstance) {
       The proposal includes the following line items:
       ${items.map((i: any) => `- ${i.title || i.name}: ${i.description}`).join('\n')}
       
-      Format the response in Markdown. Include sections for Overview, Objectives, and Value Proposition.
-      Do not include any introductory conversation, just the markdown content itself.`;
+      Format the response in basic HTML. Use tags like <h2>, <p>, <ul>, <li>, and <strong>. Include sections for Overview, Objectives, and Value Proposition.
+      Do not include any introductory conversation, just the raw HTML content itself (no markdown code blocks, no \`\`\`html).`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
