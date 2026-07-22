@@ -14,6 +14,7 @@ const UpdateOrganizationSchema = z.object({
   billingAddress: z.string().optional().or(z.literal('')),
   website: z.string().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
+  openAiKey: z.string().optional().or(z.literal('')),
 });
 
 export default async function organizationRouter(app: FastifyInstance) {

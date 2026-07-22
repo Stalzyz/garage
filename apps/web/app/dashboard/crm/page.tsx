@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { KanbanBoard } from "./KanbanBoard"
+import { AIAssistButton } from "@/components/ui/ai-assist-button"
 
 export default function CRMDashboard() {
   const { data: session } = useSession()
@@ -659,7 +660,15 @@ export default function CRMDashboard() {
                 )}
 
                 <div className="pt-2">
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Internal Notes</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Internal Notes</label>
+                    <AIAssistButton 
+                      format="text"
+                      context="CRM Internal notes summarizer. Make it brief."
+                      onGenerate={(text) => setLeadForm({ ...leadForm, notes: text })}
+                      buttonLabel="AI Notes"
+                    />
+                  </div>
                   <textarea
                     value={leadForm.notes}
                     onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })}
@@ -727,7 +736,15 @@ export default function CRMDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Content Notes *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Content Notes *</label>
+                    <AIAssistButton 
+                      format="text"
+                      context="CRM Activity Notes. Summarize the event or action taken."
+                      onGenerate={(text) => setActivityContent(text)}
+                      buttonLabel="AI Summarize"
+                    />
+                  </div>
                   <textarea
                     required
                     value={activityContent}

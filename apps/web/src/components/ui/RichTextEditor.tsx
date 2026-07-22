@@ -4,6 +4,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Undo, Redo, Strikethrough } from 'lucide-react'
 import { useEffect } from 'react'
+import { AIAssistButton } from './ai-assist-button'
 
 interface RichTextEditorProps {
   content: string;
@@ -128,6 +129,17 @@ export function RichTextEditor({ content, onChange, placeholder = "Start typing 
           onClick={() => editor.chain().focus().redo().run()} 
           disabled={!editor.can().redo()} 
           icon={Redo} 
+        />
+
+        <div className="flex-1" />
+        
+        <AIAssistButton 
+          format="html"
+          onGenerate={(generatedHtml) => {
+            // Append the generated HTML to the current content, or you could insert at cursor
+            editor.commands.insertContent(generatedHtml)
+          }}
+          buttonLabel="AI Assist"
         />
       </div>
 

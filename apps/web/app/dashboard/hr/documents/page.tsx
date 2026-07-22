@@ -5,6 +5,7 @@ import { FileText, Printer, Download, Search, Plus } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { format } from "date-fns"
+import { AIAssistButton } from "@/components/ui/ai-assist-button"
 import { useOrganization } from "@/context/OrganizationContext"
 
 export default function DocumentsPage() {
@@ -171,7 +172,14 @@ export default function DocumentsPage() {
               <div>
                 <label className="text-xs text-white/50 mb-1 flex items-center justify-between">
                   <span>Content (HTML/Text)</span>
-                  <span className="text-[10px] text-blue-400">Available: {'{{NAME}}, {{EMAIL}}, {{DESIGNATION}}, {{SALARY}}, {{CURRENCY}}, {{JOIN_DATE}}, {{EMPLOYEE_CODE}}, {{EMPLOYMENT_TYPE}}, {{DATE}}'}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-blue-400">Available: {'{{NAME}}, {{EMAIL}}, {{DESIGNATION}}, {{SALARY}}, {{CURRENCY}}, {{JOIN_DATE}}, {{EMPLOYEE_CODE}}, {{EMPLOYMENT_TYPE}}, {{DATE}}'}</span>
+                    <AIAssistButton 
+                      format="html"
+                      context="HR Document Template generation. Include placeholders like {{NAME}}, {{SALARY}} etc where appropriate."
+                      onGenerate={(text) => setFormData({...formData, content: text})}
+                    />
+                  </div>
                 </label>
                 <textarea rows={12} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none font-mono" placeholder="Use {{NAME}} to insert employee name dynamically..." />
               </div>

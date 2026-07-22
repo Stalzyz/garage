@@ -13,8 +13,15 @@ export default async function aiGenerateRouter(app: FastifyInstance) {
     const { prompt, systemPrompt, format } = GenerateSchema.parse(req.body);
 
     try {
+      const org = await app.prisma.organization.findFirst();
+      const apiKey = org?.openAiKey || process.env.OPENAI_API_KEY || '';
+      
+      if (!apiKey) {
+        throw new Error("OpenAI API Key is not configured. Please add it in Settings > Organization > AI Integrations.");
+      }
+
       const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY || '',
+        apiKey,
       });
 
       const messages: any[] = [];

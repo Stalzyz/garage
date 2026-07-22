@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Loader2, Palette, Image as ImageIcon, CheckCircle, BookOpen } from "lucide-react";
+import { Loader2, Palette, Image as ImageIcon, CheckCircle, BookOpen, Sparkles } from "lucide-react";
 
 export default function OrganizationSettingsPage() {
   const [org, setOrg] = useState<any>(null);
@@ -31,7 +31,9 @@ export default function OrganizationSettingsPage() {
       if (org.faviconUrl) payload.faviconUrl = org.faviconUrl
       if (org.supportEmail) payload.supportEmail = org.supportEmail
       if (org.billingAddress) payload.billingAddress = org.billingAddress
+      if (org.billingAddress) payload.billingAddress = org.billingAddress
       if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
+      if (org.openAiKey !== undefined) payload.openAiKey = org.openAiKey
 
       const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
@@ -236,6 +238,27 @@ export default function OrganizationSettingsPage() {
                 className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 min-h-[100px]"
                 placeholder="123 Creative Street..."
               />
+            </div>
+          </div>
+        </div>
+
+        {/* AI Integrations */}
+        <div className="bg-[#111111] border border-[#222] rounded-xl p-6">
+          <h2 className="text-lg font-medium text-white mb-6 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-500" /> AI Integrations
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">OpenAI API Key</label>
+              <input
+                type="password"
+                value={org?.openAiKey || ""}
+                onChange={(e) => setOrg({ ...org, openAiKey: e.target.value })}
+                className="w-full max-w-md bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono"
+                placeholder="sk-..."
+              />
+              <p className="text-xs text-[#666]">Used to power the AI assist features across document and notes editors.</p>
             </div>
           </div>
         </div>

@@ -179,6 +179,9 @@ model Organization {
   website        String?
   phone          String?
 
+  // API Integrations
+  openAiKey      String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

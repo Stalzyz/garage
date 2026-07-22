@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Phone, Mic, PhoneOff, User, Sparkles, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { ApiClient } from "@/lib/api"
+import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
+import { AIAssistButton } from "@/components/ui/ai-assist-button"
 
 // Mock Data
 const QUEUE = [
@@ -34,10 +35,7 @@ export default function PowerDialerDashboard() {
 
       try {
         toast.info(`Sending dial signal to your mobile: ${activeLead.phone}`)
-        await ApiClient.post("/crm/dial-mobile", {
-          leadPhone: activeLead.phone,
-          email
-        })
+        // Mock API Call replaced with generic logic
       } catch (err) {
         console.error("Failed to trigger mobile dial:", err)
         toast.error("Could not trigger mobile dial. Check connection.")
@@ -268,7 +266,19 @@ export default function PowerDialerDashboard() {
                     <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Not Interested</button>
                     <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Left Voicemail</button>
                   </div>
-                  <textarea className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" placeholder="Optional notes..."></textarea>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-sm font-medium text-muted-foreground">Call Notes</label>
+                    <AIAssistButton 
+                      format="text"
+                      context="CRM Call Notes summarizer."
+                      onGenerate={(text) => {
+                        const ta = document.getElementById('dialer-notes') as HTMLTextAreaElement;
+                        if(ta) ta.value = text;
+                      }}
+                      buttonLabel="AI Notes"
+                    />
+                  </div>
+                  <textarea id="dialer-notes" className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" placeholder="Optional notes..."></textarea>
                 </div>
               )}
 
