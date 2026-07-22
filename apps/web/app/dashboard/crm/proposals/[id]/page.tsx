@@ -215,6 +215,8 @@ export default function ProposalDetailPage() {
                 <th className="py-3 text-sm font-semibold text-muted-foreground w-[50%]">Service / Description</th>
                 <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Qty</th>
                 <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Rate</th>
+                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Disc %</th>
+                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Tax %</th>
                 <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Amount</th>
               </tr>
             </thead>
@@ -226,6 +228,8 @@ export default function ProposalDetailPage() {
                   </td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.quantity}</td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.unitPrice.toLocaleString()}</td>
+                  <td className="py-4 text-sm text-muted-foreground text-right">{item.discountRate || 0}%</td>
+                  <td className="py-4 text-sm text-muted-foreground text-right">{item.taxRate || 0}%</td>
                   <td className="py-4 text-sm font-semibold text-foreground text-right">{item.total.toLocaleString()}</td>
                 </tr>
               ))}
@@ -239,6 +243,12 @@ export default function ProposalDetailPage() {
                 <span>Subtotal</span>
                 <span>{proposal.subtotal?.toLocaleString() ?? proposal.totalAmount.toLocaleString()}</span>
               </div>
+              {(proposal.discountRate > 0) && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Overall Discount ({proposal.discountRate}%)</span>
+                  <span className="text-red-400">-{ (proposal.subtotal * (proposal.discountRate / 100)).toLocaleString() }</span>
+                </div>
+              )}
               {(proposal.tax > 0) && (
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Tax</span>

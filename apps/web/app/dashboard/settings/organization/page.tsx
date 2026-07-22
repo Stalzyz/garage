@@ -24,6 +24,8 @@ export default function OrganizationSettingsPage() {
       const payload: any = {
         name: org.name || "",
         primaryColor: org.primaryColor || "#2563eb",
+        secondaryColor: org.secondaryColor || "#1e40af",
+        accentColor: org.accentColor || "#10b981",
       }
       if (org.logoUrl) payload.logoUrl = org.logoUrl
       if (org.faviconUrl) payload.faviconUrl = org.faviconUrl
@@ -123,6 +125,42 @@ export default function OrganizationSettingsPage() {
                   onChange={(e) => setOrg({ ...org, primaryColor: e.target.value })}
                   className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
                   placeholder="#2563eb"
+                />
+              </div>
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Secondary Color (Hex)</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={org?.secondaryColor || "#1e40af"}
+                  onChange={(e) => setOrg({ ...org, secondaryColor: e.target.value })}
+                  className="w-10 h-10 rounded border-0 cursor-pointer bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={org?.secondaryColor || "#1e40af"}
+                  onChange={(e) => setOrg({ ...org, secondaryColor: e.target.value })}
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                  placeholder="#1e40af"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Accent Color (Hex)</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={org?.accentColor || "#10b981"}
+                  onChange={(e) => setOrg({ ...org, accentColor: e.target.value })}
+                  className="w-10 h-10 rounded border-0 cursor-pointer bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={org?.accentColor || "#10b981"}
+                  onChange={(e) => setOrg({ ...org, accentColor: e.target.value })}
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                  placeholder="#10b981"
                 />
               </div>
             </div>

@@ -13,11 +13,11 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
   brandBlock: {},
-  logo: { width: 120, height: 40, objectFit: 'contain', marginBottom: 8 },
+  logo: { width: 135, height: 55, objectFit: 'contain', marginBottom: 8 },
   brandName: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 4 },
   brandSub: { fontSize: 9, color: '#888' },
   proposalBlock: { alignItems: 'flex-end' },
-  proposalLabel: { fontSize: 22, fontWeight: 'bold', color: '#2563eb', marginBottom: 4, textTransform: 'uppercase' },
+  proposalLabel: { fontSize: 22, fontWeight: 'bold', marginBottom: 4, textTransform: 'uppercase' },
   proposalTitle: { fontSize: 14, color: '#333', marginBottom: 4, width: 250, textAlign: 'right' },
   statusBadge: {
     marginTop: 6,
@@ -45,18 +45,23 @@ const styles = StyleSheet.create({
   th: { fontSize: 8, fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 },
   td: { fontSize: 10, color: '#111' },
   colDesc: { flex: 3 },
-  colQty: { flex: 1, textAlign: 'right' },
-  colRate: { flex: 1.5, textAlign: 'right' },
-  colTotal: { flex: 1.5, textAlign: 'right' },
+  colQty: { flex: 0.8, textAlign: 'right' },
+  colRate: { flex: 1.2, textAlign: 'right' },
+  colDisc: { flex: 1, textAlign: 'right' },
+  colTax: { flex: 1, textAlign: 'right' },
+  colTotal: { flex: 1.2, textAlign: 'right' },
   totals: { alignItems: 'flex-end', marginBottom: 24 },
+  totalsRow: { flexDirection: 'row', justifyContent: 'space-between', width: 220, marginBottom: 4 },
+  totalsLabel: { fontSize: 9, color: '#6b7280' },
+  totalsValue: { fontSize: 10, color: '#111' },
   grandTotal: {
     flexDirection: 'row', justifyContent: 'space-between',
     width: 220, marginTop: 8,
-    borderTop: '2px solid #2563eb',
+    borderTopWidth: 2, borderTopStyle: 'solid',
     paddingTop: 8,
   },
   grandLabel: { fontSize: 12, fontWeight: 'bold', color: '#111' },
-  grandValue: { fontSize: 12, fontWeight: 'bold', color: '#2563eb' },
+  grandValue: { fontSize: 12, fontWeight: 'bold' },
   notes: { backgroundColor: '#f8fafc', borderRadius: 4, padding: 12, marginBottom: 24 },
   notesLabel: { fontSize: 8, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
   notesText: { fontSize: 9, color: '#374151' },
@@ -64,7 +69,7 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 8, color: '#9ca3af' },
 });
 
-interface ProposalItem { description: string; quantity: number; unitPrice: number; total: number }
+interface ProposalItem { description: string; quantity: number; unitPrice: number; discountRate?: number; taxRate?: number; total: number }
 interface ProposalPDFProps {
   proposal: {
     id: string;
@@ -75,6 +80,10 @@ interface ProposalPDFProps {
     currency: string;
     validUntil?: string | null;
     createdAt: string;
+    subtotal: number;
+    discountRate?: number;
+    taxRate?: number;
+    tax: number;
     totalAmount: number;
     notes?: string | null;
     items: ProposalItem[];
@@ -84,9 +93,19 @@ interface ProposalPDFProps {
   orgLogoUrl?: string | null;
   orgEmail?: string | null;
   orgPhone?: string | null;
+  themeColors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
 }
 
-export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmail, orgPhone }: ProposalPDFProps) => (
+export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmail, orgPhone, themeColors }: ProposalPDFProps) => {
+  const primaryColor = themeColors?.primary || '#2563eb';
+  const secondaryColor = themeColors?.secondary || '#1e40af';
+  const accentColor = themeColors?.accent || '#10b981';
+
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -98,7 +117,7 @@ export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmai
           {orgPhone && <Text style={styles.brandSub}>{orgPhone}</Text>}
         </View>
         <View style={styles.proposalBlock}>
-          <Text style={styles.proposalLabel}>PROPOSAL</Text>
+          <Text style={{ ...styles.proposalLabel, color: primaryColor }}>PROPOSAL</Text>
           <Text style={styles.proposalTitle}>{proposal.title}</Text>
           <View style={styles.statusBadge}>
             <Text style={styles.statusText}>{proposal.status}</Text>
@@ -127,10 +146,12 @@ export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmai
       </View>
 
       <View style={styles.table}>
-        <View style={styles.tableHeader}>
+        <View style={{ ...styles.tableHeader, backgroundColor: primaryColor + '15' }}>
           <Text style={{ ...styles.th, ...styles.colDesc }}>Service / Description</Text>
           <Text style={{ ...styles.th, ...styles.colQty }}>Qty</Text>
           <Text style={{ ...styles.th, ...styles.colRate }}>Rate ({proposal.currency})</Text>
+          <Text style={{ ...styles.th, ...styles.colDisc }}>Disc %</Text>
+          <Text style={{ ...styles.th, ...styles.colTax }}>Tax %</Text>
           <Text style={{ ...styles.th, ...styles.colTotal }}>Total ({proposal.currency})</Text>
         </View>
         {proposal.items.map((item, i) => (
@@ -140,15 +161,33 @@ export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmai
             </View>
             <Text style={{ ...styles.td, ...styles.colQty }}>{item.quantity}</Text>
             <Text style={{ ...styles.td, ...styles.colRate }}>{item.unitPrice.toLocaleString('en-IN')}</Text>
+            <Text style={{ ...styles.td, ...styles.colDisc }}>{item.discountRate || 0}%</Text>
+            <Text style={{ ...styles.td, ...styles.colTax }}>{item.taxRate || 0}%</Text>
             <Text style={{ ...styles.td, ...styles.colTotal }}>{item.total.toLocaleString('en-IN')}</Text>
           </View>
         ))}
       </View>
 
       <View style={styles.totals}>
-        <View style={styles.grandTotal}>
+        <View style={styles.totalsRow}>
+          <Text style={styles.totalsLabel}>Subtotal</Text>
+          <Text style={styles.totalsValue}>{proposal.currency} {proposal.subtotal.toLocaleString('en-IN')}</Text>
+        </View>
+        {(proposal.discountRate && proposal.discountRate > 0) ? (
+          <View style={styles.totalsRow}>
+            <Text style={styles.totalsLabel}>Overall Discount ({proposal.discountRate}%)</Text>
+            <Text style={{ ...styles.totalsValue, color: '#ef4444' }}>-{proposal.currency} {(proposal.subtotal * (proposal.discountRate / 100)).toLocaleString('en-IN')}</Text>
+          </View>
+        ) : null}
+        {(proposal.tax && proposal.tax > 0) ? (
+          <View style={styles.totalsRow}>
+            <Text style={styles.totalsLabel}>Tax</Text>
+            <Text style={styles.totalsValue}>{proposal.currency} {proposal.tax.toLocaleString('en-IN')}</Text>
+          </View>
+        ) : null}
+        <View style={{ ...styles.grandTotal, borderTopColor: primaryColor }}>
           <Text style={styles.grandLabel}>Total Investment</Text>
-          <Text style={styles.grandValue}>{proposal.currency} {proposal.totalAmount.toLocaleString('en-IN')}</Text>
+          <Text style={{ ...styles.grandValue, color: primaryColor }}>{proposal.currency} {proposal.totalAmount.toLocaleString('en-IN')}</Text>
         </View>
       </View>
 
@@ -163,6 +202,6 @@ export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmai
         <Text style={styles.footerText}>Thank you for the opportunity to work with you.</Text>
         <Text style={styles.footerText}>Generated by {orgName}</Text>
       </View>
-    </Page>
   </Document>
-);
+  );
+};

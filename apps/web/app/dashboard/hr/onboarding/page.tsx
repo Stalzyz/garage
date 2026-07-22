@@ -46,7 +46,7 @@ export default function OnboardingDashboard() {
 
   const handleTaskComplete = async (taskId: string) => {
     try {
-      await fetchApi(`/hr/onboarding/${taskId}/complete`, { method: "PATCH" })
+      await fetchApi(`/hr/onboarding/${taskId}/complete`, { method: "PATCH", body: JSON.stringify({}) })
       mutate()
     } catch (e: any) {
       console.error(e)

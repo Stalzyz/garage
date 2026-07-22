@@ -145,11 +145,9 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     }
   }, async (req, reply) => {
     const { employeeId, photoUrl } = req.body;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const record = await server.prisma.attendance.updateMany({
-      where: { employeeId, date: today },
+      where: { employeeId, clockOut: null },
       data: { clockOut: new Date(), clockOutPhotoUrl: photoUrl }
     });
     return reply.status(200).send({ success: true, updated: record.count });
@@ -161,11 +159,9 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     }
   }, async (req, reply) => {
     const { employeeId } = req.body;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const record = await server.prisma.attendance.updateMany({
-      where: { employeeId, date: today },
+      where: { employeeId, clockOut: null, breakEnd: null },
       data: { breakStart: new Date(), breakEnd: null }
     });
     return reply.status(200).send({ success: true, updated: record.count });
@@ -177,11 +173,9 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     }
   }, async (req, reply) => {
     const { employeeId } = req.body;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const record = await server.prisma.attendance.updateMany({
-      where: { employeeId, date: today },
+      where: { employeeId, clockOut: null, breakEnd: null },
       data: { breakEnd: new Date() }
     });
     return reply.status(200).send({ success: true, updated: record.count });

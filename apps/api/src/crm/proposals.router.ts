@@ -9,6 +9,8 @@ const ProposalItemSchema = z.object({
   quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
   unit: z.string().default('units'),
+  discountRate: z.number().nonnegative().optional().default(0),
+  taxRate: z.number().nonnegative().optional().default(0),
 });
 
 const CreateProposalSchema = z.object({
@@ -18,7 +20,8 @@ const CreateProposalSchema = z.object({
   validUntil: z.string().datetime().optional(),
   currency: z.string().default('INR'),
   notes: z.string().optional(),
-  tax: z.number().nonnegative().optional().default(0),
+  taxRate: z.number().nonnegative().optional().default(0),
+  discountRate: z.number().nonnegative().optional().default(0),
   items: z.array(ProposalItemSchema).min(1),
 });
 
@@ -28,11 +31,16 @@ const UpdateProposalSchema = CreateProposalSchema.partial().extend({
   signatureUrl: z.string().url().optional(),
 });
 
+function calcItemTotal(item: z.infer<typeof ProposalItemSchema>): number {
+  const base = item.quantity * item.unitPrice;
+  const discount = base * ((item.discountRate || 0) / 100);
+  const afterDiscount = base - discount;
+  const tax = afterDiscount * ((item.taxRate || 0) / 100);
+  return afterDiscount + tax;
+}
+
 function calcTotal(items: z.infer<typeof ProposalItemSchema>[]): number {
-  return items.reduce((sum, item) => {
-    const subtotal = item.quantity * item.unitPrice;
-    return sum + subtotal;
-  }, 0);
+  return items.reduce((sum, item) => sum + calcItemTotal(item), 0);
 }
 
 export default async function proposalsRouter(app: FastifyInstance) {
@@ -129,6 +137,10 @@ export default async function proposalsRouter(app: FastifyInstance) {
         currency: proposal.currency,
         validUntil: proposal.validUntil ? proposal.validUntil.toISOString() : null,
         createdAt: proposal.createdAt.toISOString(),
+        subtotal: proposal.subtotal,
+        discountRate: proposal.discountRate,
+        taxRate: proposal.taxRate,
+        tax: proposal.tax,
         totalAmount: proposal.totalAmount,
         notes: proposal.notes,
         items: proposal.items,
@@ -138,6 +150,11 @@ export default async function proposalsRouter(app: FastifyInstance) {
       orgLogoUrl: org?.logoUrl,
       orgEmail: org?.supportEmail,
       orgPhone: org?.phone,
+      themeColors: {
+        primary: org?.primaryColor,
+        secondary: org?.secondaryColor,
+        accent: org?.accentColor
+      }
     });
 
     reply.header('Content-Type', 'application/pdf');
@@ -181,8 +198,11 @@ export default async function proposalsRouter(app: FastifyInstance) {
   app.post('/proposals', async (req, reply) => {
     const body = CreateProposalSchema.parse(req.body);
     const subtotal = calcTotal(body.items);
-    const tax = body.tax || 0;
-    const totalAmount = subtotal + tax;
+    
+    const overallDiscount = subtotal * ((body.discountRate || 0) / 100);
+    const afterOverallDiscount = subtotal - overallDiscount;
+    const tax = afterOverallDiscount * ((body.taxRate || 0) / 100);
+    const totalAmount = afterOverallDiscount + tax;
 
     const proposal = await app.prisma.proposal.create({
       data: {
@@ -193,6 +213,8 @@ export default async function proposalsRouter(app: FastifyInstance) {
         currency: body.currency,
         notes: body.notes,
         subtotal,
+        discountRate: body.discountRate || 0,
+        taxRate: body.taxRate || 0,
         tax,
         totalAmount,
         items: {
@@ -201,7 +223,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             unit: item.unit,
-            total: item.quantity * item.unitPrice,
+            discountRate: item.discountRate || 0,
+            taxRate: item.taxRate || 0,
+            total: calcItemTotal(item),
           })),
         },
       },
@@ -216,23 +240,35 @@ export default async function proposalsRouter(app: FastifyInstance) {
   app.patch('/proposals/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = UpdateProposalSchema.parse(req.body);
-    const { items, tax, ...rest } = body;
+    const { items, taxRate, discountRate, ...rest } = body;
 
     let subtotal: number | undefined;
     let totalAmount: number | undefined;
-    let newTax = tax;
+    let newTaxRate = taxRate;
+    let newDiscountRate = discountRate;
+    let calculatedTax: number | undefined;
 
     if (items) {
       subtotal = calcTotal(items);
       const existing = await app.prisma.proposal.findUnique({ where: { id } });
-      newTax = tax !== undefined ? tax : (existing?.tax || 0);
-      totalAmount = subtotal + newTax;
-    } else if (tax !== undefined) {
+      newTaxRate = taxRate !== undefined ? taxRate : (existing?.taxRate || 0);
+      newDiscountRate = discountRate !== undefined ? discountRate : (existing?.discountRate || 0);
+      
+      const overallDiscount = subtotal * (newDiscountRate / 100);
+      const afterOverallDiscount = subtotal - overallDiscount;
+      calculatedTax = afterOverallDiscount * (newTaxRate / 100);
+      totalAmount = afterOverallDiscount + calculatedTax;
+    } else if (taxRate !== undefined || discountRate !== undefined) {
       const existing = await app.prisma.proposal.findUnique({ where: { id } });
       if (existing) {
         subtotal = existing.subtotal;
-        newTax = tax;
-        totalAmount = subtotal + newTax;
+        newTaxRate = taxRate !== undefined ? taxRate : (existing.taxRate || 0);
+        newDiscountRate = discountRate !== undefined ? discountRate : (existing.discountRate || 0);
+        
+        const overallDiscount = subtotal * (newDiscountRate / 100);
+        const afterOverallDiscount = subtotal - overallDiscount;
+        calculatedTax = afterOverallDiscount * (newTaxRate / 100);
+        totalAmount = afterOverallDiscount + calculatedTax;
       }
     }
 
@@ -246,7 +282,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             unit: item.unit,
-            total: item.quantity * item.unitPrice,
+            discountRate: item.discountRate || 0,
+            taxRate: item.taxRate || 0,
+            total: calcItemTotal(item),
           })),
         });
       }
@@ -254,7 +292,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
         where: { id },
         data: {
           ...rest,
-          ...(tax !== undefined && { tax }),
+          ...(taxRate !== undefined && { taxRate }),
+          ...(discountRate !== undefined && { discountRate }),
+          ...(calculatedTax !== undefined && { tax: calculatedTax }),
           ...(subtotal !== undefined && { subtotal }),
           ...(totalAmount !== undefined && { totalAmount }),
           ...(rest.signedAt && { signedAt: new Date(rest.signedAt) }),
@@ -329,12 +369,17 @@ export default async function proposalsRouter(app: FastifyInstance) {
         totalAmount: original.totalAmount,
         currency: original.currency,
         notes: original.notes ?? undefined,
+        discountRate: original.discountRate,
+        taxRate: original.taxRate,
+        tax: original.tax,
         items: {
           create: original.items.map(item => ({
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             unit: item.unit,
+            discountRate: item.discountRate,
+            taxRate: item.taxRate,
             total: item.total,
           })),
         },

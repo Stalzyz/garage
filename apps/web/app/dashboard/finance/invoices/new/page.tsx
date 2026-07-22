@@ -28,25 +28,33 @@ export default function NewInvoicePage() {
     businessUnit: "AGENCY",
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     currency: "INR",
+    discountRate: 0,
   });
 
   const [items, setItems] = useState([
-    { id: 1, description: "", quantity: 1, unitPrice: 0, taxRate: 18, hsnCode: "" }
+    { id: 1, description: "", quantity: 1, unitPrice: 0, discountRate: 0, taxRate: 18, hsnCode: "" }
   ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auto-calculated totals
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-  const totalTax = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice * (item.taxRate / 100)), 0);
-  const grandTotal = subtotal + totalTax;
+  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)), 0);
+  const overallDiscountAmt = subtotal * ((invoice.discountRate || 0) / 100);
+  const taxableAmount = subtotal - overallDiscountAmt;
+
+  const totalTax = items.reduce((sum, item) => {
+    const itemSubtotal = item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100);
+    const finalItemTaxable = itemSubtotal * (1 - (invoice.discountRate || 0) / 100);
+    return sum + (finalItemTaxable * ((item.taxRate || 0) / 100));
+  }, 0);
+  const grandTotal = taxableAmount + totalTax;
 
   const handleItemChange = (id: number, field: string, value: any) => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
   const addItem = () => {
-    setItems([...items, { id: Date.now(), description: "", quantity: 1, unitPrice: 0, taxRate: 18, hsnCode: "" }]);
+    setItems([...items, { id: Date.now(), description: "", quantity: 1, unitPrice: 0, discountRate: 0, taxRate: 18, hsnCode: "" }]);
   };
 
   const removeItem = (id: number) => {
@@ -69,6 +77,7 @@ export default function NewInvoicePage() {
             description: i.description,
             quantity: Number(i.quantity),
             unitPrice: Number(i.unitPrice),
+            discountRate: Number(i.discountRate || 0),
             taxRate: Number(i.taxRate),
             hsnCode: i.hsnCode || null
           }))
@@ -276,6 +285,15 @@ export default function NewInvoicePage() {
                             onChange={e => handleItemChange(item.id, 'unitPrice', e.target.value)}
                           />
                         </div>
+                        <div className="w-16">
+                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Disc %</label>
+                          <input 
+                            type="number" min="0" max="100"
+                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 font-mono text-center"
+                            value={item.discountRate}
+                            onChange={e => handleItemChange(item.id, 'discountRate', e.target.value)}
+                          />
+                        </div>
                         <div className="w-24">
                           <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">HSN/SAC</label>
                           <input 
@@ -297,7 +315,7 @@ export default function NewInvoicePage() {
                       </div>
                     </div>
                     <div className="pt-8 w-24 text-right">
-                      <p className="font-mono text-sm font-bold text-white mb-2">{(item.quantity * item.unitPrice).toLocaleString()}</p>
+                      <p className="font-mono text-sm font-bold text-white mb-2">{((item.quantity * item.unitPrice * (1 - (item.discountRate || 0)/100)) * (1 + (item.taxRate || 0)/100)).toLocaleString()}</p>
                       <button onClick={() => removeItem(item.id)} className="text-white/20 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -321,6 +339,15 @@ export default function NewInvoicePage() {
                 <div className="flex justify-between items-center text-white/60">
                   <span>Subtotal</span>
                   <span className="font-mono">{subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-white/60">
+                  <span>Overall Discount %</span>
+                  <input 
+                    type="number" min="0" max="100"
+                    className="w-16 bg-black/40 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono"
+                    value={invoice.discountRate}
+                    onChange={e => setInvoice({...invoice, discountRate: Number(e.target.value)})}
+                  />
                 </div>
                 <div className="flex justify-between items-center text-white/60">
                   <span>Estimated Tax</span>

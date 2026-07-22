@@ -24,6 +24,7 @@ const InvoiceItemSchema = z.object({
   quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
   taxRate: z.number().min(0).max(100).default(18),
+  discountRate: z.number().min(0).max(100).default(0),
   hsnCode: z.string().optional().nullable(),
 });
 
@@ -37,6 +38,7 @@ const CreateInvoiceSchema = z.object({
   dueDate: z.string().datetime(),
   currency: z.string().default('INR'),
   notes: z.string().optional(),
+  discountRate: z.number().min(0).max(100).default(0),
   isRecurring: z.boolean().default(false),
   recurringPeriod: z.string().optional(),
   items: z.array(InvoiceItemSchema).min(1),
@@ -47,7 +49,7 @@ const UpdateInvoiceSchema = CreateInvoiceSchema.partial().extend({
   paidAmount: z.number().nonnegative().optional(),
 });
 
-function calculateTaxesAndTotals(items: z.infer<typeof InvoiceItemSchema>[], clientGst?: string, orgGst?: string) {
+function calculateTaxesAndTotals(items: z.infer<typeof InvoiceItemSchema>[], clientGst?: string, orgGst?: string, overallDiscountRate: number = 0) {
   let subtotal = 0, cgst = 0, sgst = 0, igst = 0;
   
   const cleanClient = clientGst?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || '';
@@ -59,9 +61,14 @@ function calculateTaxesAndTotals(items: z.infer<typeof InvoiceItemSchema>[], cli
   const isInterstate = cleanClient.length >= 2 && cleanOrg.length >= 2 && clientStateCode !== orgStateCode;
 
   for (const item of items) {
-    const itemSubtotal = item.quantity * item.unitPrice;
+    const baseSubtotal = item.quantity * item.unitPrice;
+    const itemDiscount = baseSubtotal * ((item.discountRate || 0) / 100);
+    const itemSubtotal = baseSubtotal - itemDiscount;
     subtotal += itemSubtotal;
-    const taxAmount = itemSubtotal * (item.taxRate / 100);
+    
+    // Proportional overall discount on this item
+    const finalItemTaxable = itemSubtotal * (1 - overallDiscountRate / 100);
+    const taxAmount = finalItemTaxable * ((item.taxRate || 0) / 100);
     
     if (isInterstate) {
       igst += taxAmount;
@@ -70,7 +77,9 @@ function calculateTaxesAndTotals(items: z.infer<typeof InvoiceItemSchema>[], cli
       sgst += taxAmount / 2;
     }
   }
-  return { subtotal, cgst, sgst, igst, totalAmount: subtotal + cgst + sgst + igst };
+  
+  const taxableAmount = subtotal * (1 - overallDiscountRate / 100);
+  return { subtotal, cgst, sgst, igst, totalAmount: taxableAmount + cgst + sgst + igst, discountRate: overallDiscountRate };
 }
 
 export default async function invoicesRouter(app: FastifyInstance) {
@@ -117,11 +126,16 @@ export default async function invoicesRouter(app: FastifyInstance) {
     if (!invoice) return reply.notFound('Invoice not found');
 
     const pdfBuffer = await generateInvoicePDF({
-      invoice: { ...invoice, createdAt: invoice.createdAt.toISOString(), dueDate: invoice.dueDate.toISOString() },
+      invoice: { ...invoice, createdAt: invoice.createdAt.toISOString(), dueDate: invoice.dueDate.toISOString(), paidAmount: invoice.paidAmount },
       orgName: org?.name || 'Grekam OS',
       orgAddress: org?.billingAddress,
       orgLogoUrl: org?.logoUrl,
       gstNumber: financeSettings?.gstNumber,
+      themeColors: {
+        primary: org?.primaryColor,
+        secondary: org?.secondaryColor,
+        accent: org?.accentColor
+      }
     });
 
     reply.header('Content-Type', 'application/pdf');
@@ -149,7 +163,7 @@ export default async function invoicesRouter(app: FastifyInstance) {
     const body = CreateInvoiceSchema.parse(req.body);
     const orgSettings = await app.prisma.financeSettings.findFirst();
     const orgGst = orgSettings?.gstNumber;
-    const totals = calculateTaxesAndTotals(body.items, body.clientGst, orgGst || undefined);
+    const totals = calculateTaxesAndTotals(body.items, body.clientGst, orgGst || undefined, body.discountRate);
     const invoice = await app.prisma.invoice.create({
       data: {
         invoiceNumber: body.invoiceNumber,
@@ -170,8 +184,9 @@ export default async function invoicesRouter(app: FastifyInstance) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             taxRate: item.taxRate,
+            discountRate: item.discountRate || 0,
             hsnCode: item.hsnCode,
-            total: item.quantity * item.unitPrice * (1 + item.taxRate / 100),
+            total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 + item.taxRate / 100),
             sortOrder: index,
           })),
         },
@@ -208,7 +223,8 @@ export default async function invoicesRouter(app: FastifyInstance) {
       totals = calculateTaxesAndTotals(
         items,
         body.clientGst ?? originalInvoice.clientGst ?? undefined,
-        orgGst || undefined
+        orgGst || undefined,
+        body.discountRate !== undefined ? body.discountRate : originalInvoice.discountRate
       );
     }
 
@@ -222,8 +238,9 @@ export default async function invoicesRouter(app: FastifyInstance) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             taxRate: item.taxRate,
+            discountRate: item.discountRate || 0,
             hsnCode: item.hsnCode,
-            total: item.quantity * item.unitPrice * (1 + item.taxRate / 100),
+            total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 + item.taxRate / 100),
             sortOrder: index,
           })),
         });
@@ -321,6 +338,42 @@ export default async function invoicesRouter(app: FastifyInstance) {
 
     const mockPaymentUrl = `https://rzp.io/i/mock_${id.slice(0, 6)}`;
     return { isLive: false, paymentUrl: mockPaymentUrl };
+  });
+
+  // POST /api/v1/finance/invoices/:id/payments
+  app.post('/invoices/:id/payments', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { amount, method, transactionId, notes } = req.body as { amount: number, method: string, transactionId?: string, notes?: string };
+    
+    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) return reply.notFound('Invoice not found');
+    
+    if (amount <= 0) return reply.badRequest('Amount must be positive');
+    
+    const newPaidAmount = invoice.paidAmount + amount;
+    const isFullyPaid = newPaidAmount >= invoice.totalAmount;
+
+    const [payment, updatedInvoice] = await app.prisma.$transaction([
+      app.prisma.payment.create({
+        data: {
+          invoiceId: id,
+          amount,
+          method,
+          transactionId,
+          notes,
+          paidAt: new Date(),
+        }
+      }),
+      app.prisma.invoice.update({
+        where: { id },
+        data: {
+          paidAmount: newPaidAmount,
+          status: isFullyPaid ? 'PAID' : 'PARTIALLY_PAID'
+        }
+      })
+    ]);
+
+    return { success: true, payment, invoice: updatedInvoice };
   });
 
   // POST /api/v1/finance/invoices/:id/mock-pay

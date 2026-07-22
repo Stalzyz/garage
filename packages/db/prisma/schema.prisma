@@ -169,6 +169,8 @@ model Organization {
   academyLogoUrl  String? // Separate logo for academy/student documents
   faviconUrl      String?
   primaryColor    String  @default("#2563eb") // Default Blue
+  secondaryColor  String  @default("#1e40af")
+  accentColor     String  @default("#10b981")
   darkModeDefault Boolean @default(true)
 
   // Contact Info
@@ -409,6 +411,8 @@ model Proposal {
   version       Int            @default(1)
   validUntil    DateTime?
   subtotal      Float          @default(0)
+  discountRate  Float          @default(0)
+  taxRate       Float          @default(0)
   tax           Float          @default(0)
   totalAmount   Float
   currency      String         @default("INR")
@@ -436,6 +440,8 @@ model ProposalItem {
   quantity    Float
   unitPrice   Float
   unit        String // hours | days | units | license
+  discountRate Float @default(0)
+  taxRate      Float @default(0)
   total       Float
   sortOrder   Int    @default(0)
 
@@ -1068,6 +1074,7 @@ model Invoice {
   status          InvoiceStatus @default(DRAFT)
   businessUnit    BusinessUnit
   subtotal        Float
+  discountRate    Float         @default(0)
   cgst            Float         @default(0)
   sgst            Float         @default(0)
   igst            Float         @default(0)
@@ -1098,6 +1105,7 @@ model InvoiceItem {
   description String
   quantity    Float
   unitPrice   Float
+  discountRate Float  @default(0)
   taxRate     Float   @default(18)
   hsnCode     String?
   total       Float

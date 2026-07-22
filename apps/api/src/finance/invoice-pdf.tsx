@@ -13,11 +13,11 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
   brandBlock: {},
-  logo: { width: 135, height: 55, objectFit: 'contain', marginBottom: 8 },
+  logo: { width: 150, height: 70, objectFit: 'contain', marginBottom: 8 },
   brandName: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 4 },
   brandSub: { fontSize: 9, color: '#888' },
   invoiceBlock: { alignItems: 'flex-end' },
-  invoiceLabel: { fontSize: 22, fontWeight: 'bold', color: '#2563eb', marginBottom: 4 },
+  invoiceLabel: { fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
   invoiceNumber: { fontSize: 10, color: '#888' },
   statusBadge: {
     marginTop: 6,
@@ -45,9 +45,10 @@ const styles = StyleSheet.create({
   th: { fontSize: 8, fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 },
   td: { fontSize: 10, color: '#111' },
   colDesc: { flex: 3 },
-  colQty: { flex: 1, textAlign: 'right' },
-  colRate: { flex: 1.5, textAlign: 'right' },
-  colTotal: { flex: 1.5, textAlign: 'right' },
+  colQty: { flex: 0.8, textAlign: 'right' },
+  colRate: { flex: 1.2, textAlign: 'right' },
+  colDisc: { flex: 1, textAlign: 'right' },
+  colTotal: { flex: 1.2, textAlign: 'right' },
   totals: { alignItems: 'flex-end', marginBottom: 24 },
   totalsRow: { flexDirection: 'row', justifyContent: 'space-between', width: 220, marginBottom: 4 },
   totalsLabel: { fontSize: 9, color: '#6b7280' },
@@ -55,11 +56,11 @@ const styles = StyleSheet.create({
   grandTotal: {
     flexDirection: 'row', justifyContent: 'space-between',
     width: 220, marginTop: 8,
-    borderTop: '2px solid #2563eb',
+    borderTopWidth: 2, borderTopStyle: 'solid',
     paddingTop: 8,
   },
   grandLabel: { fontSize: 12, fontWeight: 'bold', color: '#111' },
-  grandValue: { fontSize: 12, fontWeight: 'bold', color: '#2563eb' },
+  grandValue: { fontSize: 12, fontWeight: 'bold' },
   notes: { backgroundColor: '#f8fafc', borderRadius: 4, padding: 12, marginBottom: 24 },
   notesLabel: { fontSize: 8, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
   notesText: { fontSize: 9, color: '#374151' },
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 8, color: '#9ca3af' },
 });
 
-interface InvoiceItem { description: string; quantity: number; unitPrice: number; taxRate: number; hsnCode?: string | null; total: number }
+interface InvoiceItem { description: string; quantity: number; unitPrice: number; taxRate: number; discountRate?: number; hsnCode?: string | null; total: number }
 interface InvoicePDFProps {
   invoice: {
     invoiceNumber: string;
@@ -79,10 +80,12 @@ interface InvoicePDFProps {
     dueDate: string;
     createdAt: string;
     subtotal: number;
+    discountRate?: number;
     cgst: number;
     sgst: number;
     igst: number;
     totalAmount: number;
+    paidAmount: number;
     notes?: string | null;
     items: InvoiceItem[];
   };
@@ -90,9 +93,19 @@ interface InvoicePDFProps {
   orgAddress?: string | null;
   orgLogoUrl?: string | null;
   gstNumber?: string | null;
+  themeColors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
 }
 
-export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber }: InvoicePDFProps) => (
+export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber, themeColors }: InvoicePDFProps) => {
+  const primaryColor = themeColors?.primary || '#2563eb';
+  const secondaryColor = themeColors?.secondary || '#1e40af';
+  const accentColor = themeColors?.accent || '#10b981';
+
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -104,7 +117,7 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
           {gstNumber && <Text style={styles.brandSub}>GSTIN: {gstNumber}</Text>}
         </View>
         <View style={styles.invoiceBlock}>
-          <Text style={styles.invoiceLabel}>INVOICE</Text>
+          <Text style={{ ...styles.invoiceLabel, color: primaryColor }}>INVOICE</Text>
           <Text style={styles.invoiceNumber}>#{invoice.invoiceNumber}</Text>
           <View style={styles.statusBadge}>
             <Text style={styles.statusText}>{invoice.status}</Text>
@@ -132,10 +145,11 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
 
       {/* Table */}
       <View style={styles.table}>
-        <View style={styles.tableHeader}>
+        <View style={{ ...styles.tableHeader, backgroundColor: primaryColor + '15' }}>
           <Text style={{ ...styles.th, ...styles.colDesc }}>Description</Text>
           <Text style={{ ...styles.th, ...styles.colQty }}>Qty</Text>
           <Text style={{ ...styles.th, ...styles.colRate }}>Rate ({invoice.currency})</Text>
+          <Text style={{ ...styles.th, ...styles.colDisc }}>Disc %</Text>
           <Text style={{ ...styles.th, ...styles.colTotal }}>Total ({invoice.currency})</Text>
         </View>
         {invoice.items.map((item, i) => (
@@ -148,6 +162,7 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
             </View>
             <Text style={{ ...styles.td, ...styles.colQty }}>{item.quantity}</Text>
             <Text style={{ ...styles.td, ...styles.colRate }}>{item.unitPrice.toLocaleString('en-IN')}</Text>
+            <Text style={{ ...styles.td, ...styles.colDisc }}>{item.discountRate || 0}%</Text>
             <Text style={{ ...styles.td, ...styles.colTotal }}>{item.total.toLocaleString('en-IN')}</Text>
           </View>
         ))}
@@ -159,6 +174,12 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
           <Text style={styles.totalsLabel}>Subtotal</Text>
           <Text style={styles.totalsValue}>{invoice.currency} {invoice.subtotal.toLocaleString('en-IN')}</Text>
         </View>
+        {(invoice.discountRate && invoice.discountRate > 0) ? (
+          <View style={styles.totalsRow}>
+            <Text style={styles.totalsLabel}>Overall Discount ({invoice.discountRate}%)</Text>
+            <Text style={{ ...styles.totalsValue, color: '#ef4444' }}>-{invoice.currency} {(invoice.subtotal * (invoice.discountRate / 100)).toLocaleString('en-IN')}</Text>
+          </View>
+        ) : null}
         {invoice.cgst > 0 && (
           <View style={styles.totalsRow}>
             <Text style={styles.totalsLabel}>CGST</Text>
@@ -177,9 +198,17 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
             <Text style={styles.totalsValue}>{invoice.currency} {invoice.igst.toLocaleString('en-IN')}</Text>
           </View>
         )}
-        <View style={styles.grandTotal}>
-          <Text style={styles.grandLabel}>Total Due</Text>
-          <Text style={styles.grandValue}>{invoice.currency} {invoice.totalAmount.toLocaleString('en-IN')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: 220, marginBottom: 4, marginTop: 4 }}>
+          <Text style={styles.totalsLabel}>Total</Text>
+          <Text style={styles.totalsValue}>{invoice.currency} {invoice.totalAmount.toLocaleString('en-IN')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: 220, marginBottom: 4 }}>
+          <Text style={styles.totalsLabel}>Amount Paid</Text>
+          <Text style={styles.totalsValue}>{invoice.currency} {invoice.paidAmount.toLocaleString('en-IN')}</Text>
+        </View>
+        <View style={{ ...styles.grandTotal, borderTopColor: primaryColor }}>
+          <Text style={styles.grandLabel}>Amount Due</Text>
+          <Text style={{ ...styles.grandValue, color: primaryColor }}>{invoice.currency} {(invoice.totalAmount - invoice.paidAmount).toLocaleString('en-IN')}</Text>
         </View>
       </View>
 
@@ -195,6 +224,6 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
         <Text style={styles.footerText}>Thank you for your business.</Text>
         <Text style={styles.footerText}>Generated by {orgName}</Text>
       </View>
-    </Page>
   </Document>
-);
+  );
+};

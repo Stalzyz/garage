@@ -7,6 +7,8 @@ const UpdateOrganizationSchema = z.object({
   academyLogoUrl: z.string().url().optional().or(z.literal('')),
   faviconUrl: z.string().url().optional().or(z.literal('')),
   primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+  secondaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+  accentColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
   darkModeDefault: z.boolean().optional(),
   supportEmail: z.string().email().optional().or(z.literal('')),
   billingAddress: z.string().optional().or(z.literal('')),

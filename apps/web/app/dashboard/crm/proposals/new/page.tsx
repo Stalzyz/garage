@@ -29,21 +29,34 @@ export default function InteractiveProposalBuilder() {
     content: "<h2>Overview</h2><p>We are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.</p><h2>Scope of Work</h2><ul><li><strong>Brand Identity Design</strong></li><li><strong>UI/UX Prototyping</strong></li><li><strong>Full-stack Development</strong></li></ul><h2>Timeline</h2><p>This project will take approximately 6 weeks to complete from the signing of this proposal.</p>",
   })
 
-  const [tax, setTax] = useState<number>(0)
+  const [discountRate, setDiscountRate] = useState<number>(0)
+  const [taxRate, setTaxRate] = useState<number>(0)
 
   const [items, setItems] = useState([
-    { name: "Brand Identity", description: "Logo, Color Palette, Typography", quantity: 1, unitPrice: 2500, total: 2500 },
-    { name: "Web Development", description: "Frontend and Backend", quantity: 1, unitPrice: 5000, total: 5000 }
+    { name: "Brand Identity", description: "Logo, Color Palette, Typography", quantity: 1, unitPrice: 2500, discountRate: 0, taxRate: 0, total: 2500 },
+    { name: "Web Development", description: "Frontend and Backend", quantity: 1, unitPrice: 5000, discountRate: 0, taxRate: 0, total: 5000 }
   ])
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + item.total, 0)
+  const calculateItemTotal = (qty: any, price: any, disc: any, tax: any) => {
+    const base = Number(qty) * Number(price);
+    const discountAmt = base * (Number(disc || 0) / 100);
+    const afterDiscount = base - discountAmt;
+    const taxAmt = afterDiscount * (Number(tax || 0) / 100);
+    return afterDiscount + taxAmt;
+  }
+
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + calculateItemTotal(item.quantity, item.unitPrice, item.discountRate, item.taxRate), 0)
   
   const calculateTotal = () => {
-    return calculateSubtotal() + Number(tax)
+    const subtotal = calculateSubtotal();
+    const overallDiscount = subtotal * (Number(discountRate || 0) / 100);
+    const afterDiscount = subtotal - overallDiscount;
+    const taxAmt = afterDiscount * (Number(taxRate || 0) / 100);
+    return afterDiscount + taxAmt;
   }
 
   const handleAddItem = () => {
-    setItems([...items, { name: "New Item", description: "", quantity: 1, unitPrice: 0, total: 0 }])
+    setItems([...items, { name: "New Item", description: "", quantity: 1, unitPrice: 0, discountRate: 0, taxRate: 0, total: 0 }])
   }
 
   const handleItemChange = (index: number, field: string, value: string | number) => {
@@ -53,8 +66,8 @@ export default function InteractiveProposalBuilder() {
     // @ts-ignore
     item[field] = value
     
-    if (field === 'quantity' || field === 'unitPrice') {
-      item.total = Number(item.quantity) * Number(item.unitPrice)
+    if (['quantity', 'unitPrice', 'discountRate', 'taxRate'].includes(field)) {
+      item.total = calculateItemTotal(item.quantity, item.unitPrice, item.discountRate, item.taxRate)
     }
     
     setItems(newItems)
@@ -91,11 +104,14 @@ export default function InteractiveProposalBuilder() {
       const payload: any = {
         title: formData.title,
         notes: formData.content,
-        tax: Number(tax),
+        discountRate: Number(discountRate),
+        taxRate: Number(taxRate),
         items: items.map(item => ({
           description: item.name + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice),
-          quantity: Number(item.quantity)
+          quantity: Number(item.quantity),
+          discountRate: Number(item.discountRate || 0),
+          taxRate: Number(item.taxRate || 0)
         }))
       };
 
@@ -285,7 +301,25 @@ export default function InteractiveProposalBuilder() {
                           className="w-full bg-black/50 border border-white/5 rounded-lg px-2 py-1.5 text-sm focus:outline-none" 
                         />
                       </div>
-                      <div className="col-span-4 mt-2">
+                      <div className="col-span-2 mt-2">
+                        <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Disc %</label>
+                        <input 
+                          type="number" 
+                          value={item.discountRate} 
+                          onChange={(e) => handleItemChange(index, 'discountRate', e.target.value)}
+                          className="w-full bg-black/50 border border-white/5 rounded-lg px-2 py-1.5 text-sm focus:outline-none" 
+                        />
+                      </div>
+                      <div className="col-span-2 mt-2">
+                        <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Tax %</label>
+                        <input 
+                          type="number" 
+                          value={item.taxRate} 
+                          onChange={(e) => handleItemChange(index, 'taxRate', e.target.value)}
+                          className="w-full bg-black/50 border border-white/5 rounded-lg px-2 py-1.5 text-sm focus:outline-none" 
+                        />
+                      </div>
+                      <div className="col-span-2 mt-2">
                         <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Total</label>
                         <div className="w-full bg-black/20 border border-transparent rounded-lg px-2 py-1.5 text-sm text-emerald-400 font-bold flex items-center h-[34px]">
                           ₹{item.total.toLocaleString()}
@@ -302,11 +336,20 @@ export default function InteractiveProposalBuilder() {
                   <span className="text-sm font-bold text-white/70">₹{calculateSubtotal().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-white/50">Tax (Flat amount)</span>
+                  <span className="text-sm font-medium text-white/50">Overall Discount %</span>
                   <input 
                     type="number" 
-                    value={tax} 
-                    onChange={e => setTax(Number(e.target.value))}
+                    value={discountRate} 
+                    onChange={e => setDiscountRate(Number(e.target.value))}
+                    className="w-24 bg-black/50 border border-white/5 rounded px-2 py-1 text-sm text-right focus:outline-none focus:border-violet-500" 
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-white/50">Overall Tax %</span>
+                  <input 
+                    type="number" 
+                    value={taxRate} 
+                    onChange={e => setTaxRate(Number(e.target.value))}
                     className="w-24 bg-black/50 border border-white/5 rounded px-2 py-1 text-sm text-right focus:outline-none focus:border-violet-500" 
                   />
                 </div>
@@ -360,6 +403,8 @@ export default function InteractiveProposalBuilder() {
                       <th className="px-6 py-4 font-bold">Module / Phase</th>
                       <th className="px-6 py-4 font-bold text-right">Qty</th>
                       <th className="px-6 py-4 font-bold text-right">Price</th>
+                      <th className="px-6 py-4 font-bold text-right">Disc %</th>
+                      <th className="px-6 py-4 font-bold text-right">Tax %</th>
                       <th className="px-6 py-4 font-bold text-right">Total</th>
                     </tr>
                   </thead>
@@ -372,13 +417,15 @@ export default function InteractiveProposalBuilder() {
                         </td>
                         <td className="px-6 py-4 text-right text-slate-300">{item.quantity}</td>
                         <td className="px-6 py-4 text-right text-slate-300">₹{Number(item.unitPrice).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right text-slate-300">{item.discountRate}%</td>
+                        <td className="px-6 py-4 text-right text-slate-300">{item.taxRate}%</td>
                         <td className="px-6 py-4 text-right font-medium text-white">₹{item.total.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="bg-violet-600/10 border-t border-white/10">
-                      <td colSpan={3} className="px-6 py-4 text-right font-bold text-violet-400">Total Investment</td>
+                      <td colSpan={5} className="px-6 py-4 text-right font-bold text-violet-400">Total Investment</td>
                       <td className="px-6 py-4 text-right font-black text-white text-lg">₹{calculateTotal().toLocaleString()}</td>
                     </tr>
                   </tfoot>
