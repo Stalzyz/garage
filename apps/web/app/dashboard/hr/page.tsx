@@ -34,7 +34,7 @@ export default function EmployeeDirectory() {
   const roles = rolesData?.roles || []
 
   const { data: deptData, mutate: mutateDepts } = useApi<any>("/hr/departments")
-  const departments = deptData?.departments || []
+  const departments = deptData?.data || []
 
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
