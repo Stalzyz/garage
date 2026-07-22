@@ -240,7 +240,12 @@ export default function EmployeeDirectory() {
       // 3. Save document reference to database
       await fetchApi(`/hr/employees/${selectedEmployee.id}/documents`, {
         method: "POST",
-        body: JSON.stringify({ name: uploadData.name || selectedFile.name, type: uploadData.type, url: downloadUrl })
+        body: JSON.stringify({ 
+          name: uploadData.name || selectedFile.name, 
+          type: uploadData.type, 
+          fileUrl: downloadUrl,
+          uploadedBy: "HR Administrator"
+        })
       })
       
       toast.success("Document uploaded successfully")
