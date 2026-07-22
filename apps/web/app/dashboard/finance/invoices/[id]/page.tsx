@@ -251,8 +251,20 @@ export default function InvoiceBuilderPage() {
 
           <div className="pt-8 border-t border-white/10">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Notes / Terms</p>
-            <p className="text-sm text-slate-300 leading-relaxed">{invoice.notes || "Thank you for your business."}</p>
+            <p className="text-sm text-slate-300 leading-relaxed mb-8">{invoice.notes || "Thank you for your business."}</p>
           </div>
+
+          {org.bankName && (
+            <div className="pt-8 border-t border-white/10">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Bank Transfer Details</p>
+              <div className="grid grid-cols-2 gap-2 text-sm text-slate-300">
+                <div>Bank Name: <span className="text-white font-medium">{org.bankName}</span></div>
+                <div>Account Number: <span className="text-white font-medium font-mono">{org.bankAccountNo}</span></div>
+                <div>IFSC Code: <span className="text-white font-medium font-mono">{org.bankIfsc}</span></div>
+                <div>Branch: <span className="text-white font-medium">{org.bankBranch}</span></div>
+              </div>
+            </div>
+          )}
 
           {invoice.payments?.length > 0 && (
             <div className="pt-8 mt-8 border-t border-white/10">

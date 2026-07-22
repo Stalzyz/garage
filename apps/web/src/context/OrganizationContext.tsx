@@ -14,6 +14,10 @@ export interface Organization {
   billingAddress?: string | null;
   website?: string | null;
   phone?: string | null;
+  bankName?: string | null;
+  bankAccountNo?: string | null;
+  bankIfsc?: string | null;
+  bankBranch?: string | null;
 }
 
 const defaultOrg: Organization = {
@@ -28,6 +32,10 @@ const defaultOrg: Organization = {
   billingAddress: null,
   website: null,
   phone: null,
+  bankName: null,
+  bankAccountNo: null,
+  bankIfsc: null,
+  bankBranch: null,
 };
 
 const OrganizationContext = createContext<Organization>(defaultOrg);

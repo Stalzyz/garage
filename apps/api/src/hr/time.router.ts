@@ -5,8 +5,14 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 export default async function timeRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
+  server.addHook('onRequest', app.requireAuth);
+
   server.get('/', async (req, reply) => {
+    const user = (req as any).user;
+    const isPrivileged = user?.role === 'SUPER_ADMIN' || user?.role === 'MANAGER';
+    
     const timeLogs = await server.prisma.timeLog.findMany({
+      where: isPrivileged ? {} : { userId: user?.id },
       include: {
         project: { select: { name: true } },
         task: { select: { title: true } }

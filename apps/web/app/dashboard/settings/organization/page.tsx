@@ -34,6 +34,10 @@ export default function OrganizationSettingsPage() {
       if (org.billingAddress) payload.billingAddress = org.billingAddress
       if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
       if (org.openAiKey !== undefined) payload.openAiKey = org.openAiKey
+      if (org.bankName !== undefined) payload.bankName = org.bankName
+      if (org.bankAccountNo !== undefined) payload.bankAccountNo = org.bankAccountNo
+      if (org.bankIfsc !== undefined) payload.bankIfsc = org.bankIfsc
+      if (org.bankBranch !== undefined) payload.bankBranch = org.bankBranch
 
       const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
@@ -259,6 +263,56 @@ export default function OrganizationSettingsPage() {
                 placeholder="sk-..."
               />
               <p className="text-xs text-[#666]">Used to power the AI assist features across document and notes editors.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bank Details */}
+        <div className="bg-[#111111] border border-[#222] rounded-xl p-6">
+          <h2 className="text-lg font-medium text-white mb-6 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-indigo-500" /> Bank Details
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Bank Name</label>
+              <input
+                type="text"
+                value={org?.bankName || ""}
+                onChange={(e) => setOrg({ ...org, bankName: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                placeholder="e.g. HDFC Bank"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Account Number</label>
+              <input
+                type="text"
+                value={org?.bankAccountNo || ""}
+                onChange={(e) => setOrg({ ...org, bankAccountNo: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                placeholder="e.g. 50100234567890"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">IFSC Code</label>
+              <input
+                type="text"
+                value={org?.bankIfsc || ""}
+                onChange={(e) => setOrg({ ...org, bankIfsc: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                placeholder="e.g. HDFC0001234"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Branch Name</label>
+              <input
+                type="text"
+                value={org?.bankBranch || ""}
+                onChange={(e) => setOrg({ ...org, bankBranch: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                placeholder="e.g. Connaught Place"
+              />
             </div>
           </div>
         </div>

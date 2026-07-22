@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, UserCheck, Clock, CheckCircle2, XCircle, LogIn, LogOut, Calendar, Download } from "lucide-react"
+import { Search, Plus, Filter, UserCheck, Clock, CheckCircle2, XCircle, LogIn, LogOut, Calendar, Download, Eye } from "lucide-react"
 import { SlideOver } from "@/components/SlideOver"
 import { toast } from "sonner"
+import { Modal } from "@/components/ui/modal"
 
 import { useApi, fetchApi } from "@/lib/useApi"
 
@@ -20,6 +21,37 @@ export default function StaffAttendanceDashboard() {
     checkIn: "09:00 AM",
     checkOut: "05:00 PM"
   })
+
+  const [selectedLog, setSelectedLog] = useState<any | null>(null)
+  const [overrideStatus, setOverrideStatus] = useState("")
+  const [overrideNotes, setOverrideNotes] = useState("")
+  const [isSavingOverride, setIsSavingOverride] = useState(false)
+
+  const handleOpenReview = (log: any) => {
+    setSelectedLog(log)
+    setOverrideStatus(log.status || "PRESENT")
+    setOverrideNotes(log.notes || "")
+  }
+
+  const handleSaveOverride = async () => {
+    setIsSavingOverride(true)
+    try {
+      await fetchApi(`/hr/attendance/override/${selectedLog.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          status: overrideStatus,
+          notes: overrideNotes
+        })
+      })
+      toast.success("Attendance log updated")
+      setSelectedLog(null)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update attendance")
+    } finally {
+      setIsSavingOverride(false)
+    }
+  }
 
   const filteredLogs = logs.filter((log: any) => {
     if (filter !== "all" && log.status?.toLowerCase() !== filter) return false
@@ -194,7 +226,12 @@ export default function StaffAttendanceDashboard() {
                         : "--"}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-primary hover:underline text-xs font-medium">Edit Log</button>
+                      <button 
+                        onClick={() => handleOpenReview(log)} 
+                        className="text-primary hover:underline text-xs font-medium flex items-center gap-1.5 ml-auto"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> Review Log
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -259,6 +296,89 @@ export default function StaffAttendanceDashboard() {
           </div>
         </form>
       </SlideOver>
+
+      {selectedLog && (
+        <Modal onClose={() => setSelectedLog(null)}>
+          <div className="p-6 w-[500px] text-white">
+            <h2 className="text-xl font-bold mb-4">Review Attendance Log</h2>
+            <p className="text-xs text-white/50 mb-6 font-mono">
+              Employee: {selectedLog.employee?.user?.firstName} {selectedLog.employee?.user?.lastName}
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mb-2">Check In Photo</p>
+                <div className="w-full aspect-video bg-black/40 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center">
+                  {selectedLog.clockInPhotoUrl ? (
+                    <img src={selectedLog.clockInPhotoUrl} alt="Clock In Selfie" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-white/30 font-mono">No photo</span>
+                  )}
+                </div>
+                <p className="text-xs text-white/60 mt-1 font-mono text-center">
+                  {selectedLog.clockIn ? new Date(selectedLog.clockIn).toLocaleTimeString() : "N/A"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mb-2">Check Out Photo</p>
+                <div className="w-full aspect-video bg-black/40 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center">
+                  {selectedLog.clockOutPhotoUrl ? (
+                    <img src={selectedLog.clockOutPhotoUrl} alt="Clock Out Selfie" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-white/30 font-mono">No photo</span>
+                  )}
+                </div>
+                <p className="text-xs text-white/60 mt-1 font-mono text-center">
+                  {selectedLog.clockOut ? new Date(selectedLog.clockOut).toLocaleTimeString() : "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-white/50 mb-2">Override Status</label>
+                <select 
+                  value={overrideStatus} 
+                  onChange={e => setOverrideStatus(e.target.value)} 
+                  className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                >
+                  <option value="PRESENT">Present</option>
+                  <option value="LATE">Late</option>
+                  <option value="ABSENT">Absent</option>
+                  <option value="HALF_DAY">Half Day</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-white/50 mb-2">Admin Notes</label>
+                <textarea 
+                  value={overrideNotes} 
+                  onChange={e => setOverrideNotes(e.target.value)} 
+                  placeholder="Reason for overriding or verification details"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 text-white h-20 resize-none"
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+                <button 
+                  onClick={() => setSelectedLog(null)}
+                  className="px-4 py-2 text-xs font-mono font-bold uppercase tracking-widest border border-white/10 text-white/60 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  disabled={isSavingOverride}
+                  onClick={handleSaveOverride}
+                  className="px-5 py-2 text-xs font-mono font-bold uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isSavingOverride ? "Saving..." : "Save Override"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

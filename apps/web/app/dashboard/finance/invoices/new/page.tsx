@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { fetchApi, useApi } from "@/lib/useApi";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Trash2, Save, Calculator, Users } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Save, Calculator, Users, Eye } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency"
+import { useOrganization } from "@/context/OrganizationContext"
+import { Modal } from "@/components/ui/modal"
 
 export default function NewInvoicePage() {
   const { symbol } = useCurrency()
@@ -62,6 +64,9 @@ export default function NewInvoicePage() {
     setItems(items.filter(item => item.id !== id));
   };
 
+  const org = useOrganization()
+  const [showPreview, setShowPreview] = useState(false)
+
   const handleSave = async () => {
     if (!invoice.clientName) return alert("Client name is required");
     if (items.some(i => !i.description)) return alert("All items must have a description");
@@ -72,6 +77,9 @@ export default function NewInvoicePage() {
         method: "POST",
         body: JSON.stringify({
           ...invoice,
+          clientEmail: invoice.clientEmail.trim() || undefined,
+          clientGst: invoice.clientGst.trim() || undefined,
+          discountRate: Number(invoice.discountRate || 0),
           dueDate: new Date(invoice.dueDate).toISOString(),
           items: items.map(i => ({
             description: i.description,
@@ -128,13 +136,21 @@ export default function NewInvoicePage() {
             <h1 className="text-3xl font-bold tracking-tight">Invoice Builder</h1>
             <p className="text-xs font-mono text-white/40 mt-1 tracking-widest uppercase">Create new tax invoice</p>
           </div>
-          <button 
-            onClick={handleSave} 
-            disabled={isSubmitting}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowPreview(true)}
+              className="flex items-center gap-2 bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 text-xs px-5 py-3 rounded-xl transition-all"
+            >
+              <Eye className="w-4 h-4" /> Preview
+            </button>
+            <button 
+              onClick={handleSave} 
+              disabled={isSubmitting}
+              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -276,7 +292,7 @@ export default function NewInvoicePage() {
                             onChange={e => handleItemChange(item.id, 'quantity', e.target.value)}
                           />
                         </div>
-                        <div className="flex-1">
+                        <div className="w-40">
                           <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Rate ({invoice.currency})</label>
                           <input 
                             type="number" min="0"
@@ -361,9 +377,109 @@ export default function NewInvoicePage() {
               </div>
             </motion.div>
           </div>
-
         </div>
       </div>
+
+      {showPreview && (
+        <Modal onClose={() => setShowPreview(false)}>
+          <div className="w-[800px] max-w-full bg-[#0f0f13] border border-white/5 rounded-2xl p-10 shadow-2xl text-left overflow-y-auto max-h-[85vh] custom-scrollbar text-white relative">
+            <div className="flex justify-between items-start border-b border-white/10 pb-8 mb-8">
+              <div>
+                <h2 className="text-white font-bold text-lg">{org.name}</h2>
+                {org.billingAddress && <p className="text-slate-500 text-sm mt-1 whitespace-pre-wrap">{org.billingAddress}</p>}
+                {org.supportEmail && <p className="text-slate-500 text-sm mt-1">{org.supportEmail}</p>}
+              </div>
+              <div className="text-right">
+                <h1 className="text-4xl font-black tracking-tight text-white/20 uppercase mb-2">Invoice</h1>
+                <p className="text-white font-bold">{invoice.invoiceNumber}</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-4 text-right text-slate-400">
+                  <span>Due:</span> <span className="text-white font-medium">{invoice.dueDate}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-12">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Billed To</p>
+              <h3 className="text-lg font-bold text-white">{invoice.clientName || "Client Name"}</h3>
+              {invoice.clientEmail && <p className="text-slate-400 text-sm mt-1">{invoice.clientEmail}</p>}
+              {invoice.clientGst && <p className="text-slate-400 text-sm mt-1">GSTIN: {invoice.clientGst}</p>}
+            </div>
+
+            <table className="w-full text-sm text-left mb-8">
+              <thead className="bg-white/5 text-xs uppercase text-slate-400 border-b border-white/10">
+                <tr>
+                  <th className="px-4 py-3 font-bold">Description</th>
+                  <th className="px-4 py-3 font-bold text-right">Qty</th>
+                  <th className="px-4 py-3 font-bold text-right">Rate</th>
+                  <th className="px-4 py-3 font-bold text-right">Disc %</th>
+                  <th className="px-4 py-3 font-bold text-right">Tax %</th>
+                  <th className="px-4 py-3 font-bold text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {items.map((item, i) => {
+                  const itemSubtotal = item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100);
+                  const itemTotal = itemSubtotal * (1 + (item.taxRate || 0) / 100);
+                  return (
+                    <tr key={i}>
+                      <td className="px-4 py-4 text-white font-medium">{item.description || "Unspecified item"}</td>
+                      <td className="px-4 py-4 text-right text-slate-400">{item.quantity}</td>
+                      <td className="px-4 py-4 text-right text-slate-400">{symbol}{item.unitPrice.toLocaleString()}</td>
+                      <td className="px-4 py-4 text-right text-slate-400">{item.discountRate}%</td>
+                      <td className="px-4 py-4 text-right text-slate-400">{item.taxRate}%</td>
+                      <td className="px-4 py-4 text-right font-bold text-white">{symbol}{itemTotal.toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div className="flex justify-end mb-12">
+              <div className="w-64 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Subtotal</span>
+                  <span className="text-white">{symbol}{subtotal.toLocaleString()}</span>
+                </div>
+                {invoice.discountRate > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Overall Discount ({invoice.discountRate}%)</span>
+                    <span className="text-red-400">-{symbol}{(subtotal * (invoice.discountRate / 100)).toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Estimated Tax</span>
+                  <span className="text-white">{symbol}{totalTax.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-white/10 pt-3">
+                  <span className="font-bold uppercase tracking-widest text-sm text-blue-400">Total</span>
+                  <span className="text-xl font-bold text-white">{symbol}{grandTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {org.bankName && (
+              <div className="pt-8 border-t border-white/10 mb-8">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Bank Details</p>
+                <div className="grid grid-cols-2 gap-2 text-sm text-slate-300">
+                  <div>Bank Name: <span className="text-white font-medium">{org.bankName}</span></div>
+                  <div>Account Number: <span className="text-white font-medium font-mono">{org.bankAccountNo}</span></div>
+                  <div>IFSC Code: <span className="text-white font-medium font-mono">{org.bankIfsc}</span></div>
+                  <div>Branch: <span className="text-white font-medium">{org.bankBranch}</span></div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              <button 
+                onClick={() => setShowPreview(false)}
+                className="px-5 py-2.5 bg-white/5 border border-white/10 text-white font-medium rounded-xl hover:bg-white/10 text-sm"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
