@@ -107,10 +107,17 @@ export default function EditProposalPage() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
+      const validItems = items.filter(item => item.name.trim() !== "");
+      if (validItems.length === 0) {
+        toast.error("Please add at least one valid item");
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload: any = {
         ...formData,
         notes: formData.content,
-        items: items.map(item => ({
+        items: validItems.map(item => ({
           description: item.name + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice),
           quantity: Number(item.quantity),

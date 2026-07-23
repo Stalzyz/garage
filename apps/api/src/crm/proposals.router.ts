@@ -154,7 +154,12 @@ export default async function proposalsRouter(app: FastifyInstance) {
         primary: org?.primaryColor,
         secondary: org?.secondaryColor,
         accent: org?.accentColor
-      }
+      },
+      orgBankName: org?.bankName,
+      orgAccountName: org?.accountName,
+      orgAccountNumber: org?.accountNumber,
+      orgIfscCode: org?.ifscCode,
+      orgSwiftCode: org?.swiftCode
     });
 
     reply.header('Content-Type', 'application/pdf');

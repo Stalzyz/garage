@@ -40,6 +40,13 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+    {
+      name: 'academy',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+      testMatch: /academy-dashboard\.spec\.ts/,
+    }
     // We can add Firefox/Webkit later for comprehensive matrix testing
   ],
 });

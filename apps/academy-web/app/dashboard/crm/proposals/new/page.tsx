@@ -78,10 +78,17 @@ export default function InteractiveProposalBuilder() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
+      const validItems = items.filter(item => item.name.trim() !== "");
+      if (validItems.length === 0) {
+        toast.error("Please add at least one valid item");
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload: any = {
         title: formData.title,
         notes: formData.content,
-        items: items.map(item => ({
+        items: validItems.map(item => ({
           description: item.name + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice),
           quantity: Number(item.quantity)
@@ -236,7 +243,7 @@ export default function InteractiveProposalBuilder() {
                         />
                       </div>
                       
-                      <div className="col-span-4 mt-2">
+                      <div className="col-span-3 mt-2">
                         <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Qty</label>
                         <input 
                           type="number" 
@@ -254,7 +261,7 @@ export default function InteractiveProposalBuilder() {
                           className="w-full bg-black/50 border border-white/5 rounded-lg px-2 py-1.5 text-sm focus:outline-none" 
                         />
                       </div>
-                      <div className="col-span-4 mt-2">
+                      <div className="col-span-5 mt-2">
                         <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Total</label>
                         <div className="w-full bg-black/20 border border-transparent rounded-lg px-2 py-1.5 text-sm text-emerald-400 font-bold flex items-center h-[34px]">
                           ₹{item.total.toLocaleString()}
@@ -371,6 +378,19 @@ export default function InteractiveProposalBuilder() {
               </div>
             </div>
 
+            {/* Bank Details Block */}
+            {(org?.bankName || org?.accountNumber) && (
+              <div className="mt-8 pt-6 border-t border-white/5">
+                <h3 className="text-sm font-bold text-white mb-3">Bank Details</h3>
+                <div className="grid grid-cols-2 gap-4 text-xs text-slate-400">
+                  {org.bankName && <div><span className="text-white/40 uppercase tracking-widest block mb-1">Bank Name</span><span className="font-medium text-white">{org.bankName}</span></div>}
+                  {org.accountName && <div><span className="text-white/40 uppercase tracking-widest block mb-1">Account Name</span><span className="font-medium text-white">{org.accountName}</span></div>}
+                  {org.accountNumber && <div><span className="text-white/40 uppercase tracking-widest block mb-1">Account No</span><span className="font-mono text-white">{org.accountNumber}</span></div>}
+                  {org.ifscCode && <div><span className="text-white/40 uppercase tracking-widest block mb-1">IFSC Code</span><span className="font-mono text-white">{org.ifscCode}</span></div>}
+                  {org.swiftCode && <div><span className="text-white/40 uppercase tracking-widest block mb-1">SWIFT Code</span><span className="font-mono text-white">{org.swiftCode}</span></div>}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -182,7 +182,7 @@ export default function BatchesPage() {
             >
               <option value="">Select a course...</option>
               {courses.map((c: any) => (
-                <option key={c.id || c.courseId} value={c.id || c.courseId}>{c.title || c.name || "Unknown Course"}</option>
+                <option key={c.courseId || c.id} value={c.courseId || c.id}>{c.course?.name || c.name || "Unknown Course"}</option>
               ))}
             </select>
           </div>

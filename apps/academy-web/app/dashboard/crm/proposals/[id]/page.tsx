@@ -225,6 +225,20 @@ export default function ProposalDetailPage() {
             </div>
           </div>
 
+          {/* Bank Details */}
+          {(org.bankName || org.accountNumber) && (
+            <div className="mt-12 pt-8 border-t border-border/40">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Bank Details:</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                {org.bankName && <div><span className="block text-xs uppercase tracking-wider mb-1">Bank Name</span><span className="font-medium text-foreground">{org.bankName}</span></div>}
+                {org.accountName && <div><span className="block text-xs uppercase tracking-wider mb-1">Account Name</span><span className="font-medium text-foreground">{org.accountName}</span></div>}
+                {org.accountNumber && <div><span className="block text-xs uppercase tracking-wider mb-1">Account No</span><span className="font-mono text-foreground">{org.accountNumber}</span></div>}
+                {org.ifscCode && <div><span className="block text-xs uppercase tracking-wider mb-1">IFSC Code</span><span className="font-mono text-foreground">{org.ifscCode}</span></div>}
+                {org.swiftCode && <div><span className="block text-xs uppercase tracking-wider mb-1">SWIFT Code</span><span className="font-mono text-foreground">{org.swiftCode}</span></div>}
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           {proposal.notes && (
             <div className="mt-16 pt-8 border-t border-border/40">

@@ -180,12 +180,28 @@ export default function StaffAttendanceDashboard() {
                       <div className="flex items-center gap-2 text-foreground">
                         <LogIn className="w-3.5 h-3.5 text-muted-foreground" />
                         {log.clockIn ? new Date(log.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--"}
+                        {log.clockInPhotoUrl && (
+                          <div className="group relative ml-2">
+                            <img src={log.clockInPhotoUrl} alt="Clock In Selfie" className="w-6 h-6 rounded-full object-cover border border-border/50 cursor-pointer hover:ring-2 hover:ring-primary transition-all" />
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50">
+                              <img src={log.clockInPhotoUrl} alt="Selfie Enlarge" className="w-32 h-32 rounded-xl object-cover border-2 border-border/50 shadow-xl" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-foreground">
                         <LogOut className="w-3.5 h-3.5 text-muted-foreground" />
                         {log.clockOut ? new Date(log.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--"}
+                        {log.clockOutPhotoUrl && (
+                          <div className="group relative ml-2">
+                            <img src={log.clockOutPhotoUrl} alt="Clock Out Selfie" className="w-6 h-6 rounded-full object-cover border border-border/50 cursor-pointer hover:ring-2 hover:ring-primary transition-all" />
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50">
+                              <img src={log.clockOutPhotoUrl} alt="Selfie Enlarge" className="w-32 h-32 rounded-xl object-cover border-2 border-border/50 shadow-xl" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 font-mono font-medium text-foreground">

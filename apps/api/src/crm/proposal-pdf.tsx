@@ -98,9 +98,17 @@ interface ProposalPDFProps {
     secondary?: string;
     accent?: string;
   };
+  orgBankName?: string | null;
+  orgAccountName?: string | null;
+  orgAccountNumber?: string | null;
+  orgIfscCode?: string | null;
+  orgSwiftCode?: string | null;
 }
 
-export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmail, orgPhone, themeColors }: ProposalPDFProps) => {
+export const ProposalPDF = ({ 
+  proposal, orgName, orgAddress, orgLogoUrl, orgEmail, orgPhone, themeColors,
+  orgBankName, orgAccountName, orgAccountNumber, orgIfscCode, orgSwiftCode 
+}: ProposalPDFProps) => {
   const primaryColor = themeColors?.primary || '#2563eb';
   const secondaryColor = themeColors?.secondary || '#1e40af';
   const accentColor = themeColors?.accent || '#10b981';
@@ -195,6 +203,44 @@ export const ProposalPDF = ({ proposal, orgName, orgAddress, orgLogoUrl, orgEmai
         <View style={styles.notes}>
           <Text style={styles.notesLabel}>Notes & Scope of Work</Text>
           <Text style={styles.notesText}>{proposal.notes}</Text>
+        </View>
+      )}
+
+      {(orgBankName || orgAccountNumber) && (
+        <View style={{ ...styles.notes, backgroundColor: '#f0fdf4', marginTop: 12 }}>
+          <Text style={styles.notesLabel}>Bank Details</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
+            {orgBankName && (
+              <View style={{ width: '50%', marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: '#6b7280', textTransform: 'uppercase' }}>Bank Name</Text>
+                <Text style={{ fontSize: 9, color: '#111', fontWeight: 'bold' }}>{orgBankName}</Text>
+              </View>
+            )}
+            {orgAccountName && (
+              <View style={{ width: '50%', marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: '#6b7280', textTransform: 'uppercase' }}>Account Name</Text>
+                <Text style={{ fontSize: 9, color: '#111', fontWeight: 'bold' }}>{orgAccountName}</Text>
+              </View>
+            )}
+            {orgAccountNumber && (
+              <View style={{ width: '50%', marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: '#6b7280', textTransform: 'uppercase' }}>Account No</Text>
+                <Text style={{ fontSize: 9, color: '#111', fontWeight: 'bold' }}>{orgAccountNumber}</Text>
+              </View>
+            )}
+            {orgIfscCode && (
+              <View style={{ width: '50%', marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: '#6b7280', textTransform: 'uppercase' }}>IFSC Code</Text>
+                <Text style={{ fontSize: 9, color: '#111', fontWeight: 'bold' }}>{orgIfscCode}</Text>
+              </View>
+            )}
+            {orgSwiftCode && (
+              <View style={{ width: '50%', marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: '#6b7280', textTransform: 'uppercase' }}>SWIFT Code</Text>
+                <Text style={{ fontSize: 9, color: '#111', fontWeight: 'bold' }}>{orgSwiftCode}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )}
 

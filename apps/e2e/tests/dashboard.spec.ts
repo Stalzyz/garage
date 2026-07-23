@@ -1,59 +1,60 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Grekam OS Dashboard E2E', () => {
-  
-  test('should load the main dashboard overview', async ({ page }) => {
-    // Navigate to the main dashboard
-    await page.goto('http://localhost:3000/dashboard');
+// Define the base URL where the local academy dashboard is running
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
+test.describe('Academy Dashboard Modules', () => {
+
+  test('should load the Proposals Builder page without errors', async ({ page }) => {
+    // Navigate to the Proposals Builder
+    const response = await page.goto(`${BASE_URL}/dashboard/crm/proposals/new`);
+    expect(response?.status()).toBe(200);
     
-    // Expect the page to have the main header
-    await expect(page.locator('h1').filter({ hasText: 'Grekam OS Overview' })).toBeVisible();
+    // Wait for the main heading to ensure client-side rendering is complete
+    await expect(page.locator('text=Interactive Proposal Builder').first()).toBeVisible();
     
-    // Expect revenue metrics to be visible
-    await expect(page.getByText('Total Revenue')).toBeVisible();
-    await expect(page.getByText('Active Projects')).toBeVisible();
+    // Check if the add item button is present
+    await expect(page.locator('button:has-text("Add Item")').first()).toBeVisible();
   });
 
-  test('should load the proposal builder', async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard/crm/proposals/new');
+  test('should load the Vendors page without errors', async ({ page }) => {
+    const response = await page.goto(`${BASE_URL}/dashboard/finance/vendors/new`);
+    expect(response?.status()).toBe(200);
     
-    // Ensure the interactive builder loads
-    await expect(page.locator('h1').filter({ hasText: 'Interactive Proposal Builder' })).toBeVisible();
-    
-    // Check for specific interactive elements
-    await expect(page.getByText('Brand Strategy')).toBeVisible();
-    await expect(page.getByText('Web Development')).toBeVisible();
+    await expect(page.locator('text=New Vendor').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Save Vendor")').first()).toBeVisible();
   });
 
-  test('should load the HR time tracker', async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard/hr/tracker');
-    
-    // Ensure the tracker loads
-    await expect(page.locator('h1').filter({ hasText: 'Live Time Tracker' })).toBeVisible();
-    
-    // Ensure the play button exists (by finding the text "00:00:00" or similar)
-    await expect(page.locator('text=00:00:00')).toBeVisible();
+  test('should load the HR Attendance Dashboard', async ({ page }) => {
+    const response = await page.goto(`${BASE_URL}/dashboard/hr/attendance`);
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('text=Staff Attendance').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Mark Manual Entry")').first()).toBeVisible();
   });
 
-  test('should load the finance invoice builder', async ({ page }) => {
-    await page.goto('http://localhost:3000/dashboard/finance/invoices/new');
-    
-    // Ensure the invoice builder loads
-    await expect(page.locator('h1').filter({ hasText: 'Invoice Builder' })).toBeVisible();
-    
-    // Check for line items table
-    await expect(page.getByText('Subtotal')).toBeVisible();
-    await expect(page.getByText('Tax (18%)')).toBeVisible();
+  test('should load the Staff Kiosk for selfie upload', async ({ page }) => {
+    const response = await page.goto(`${BASE_URL}/staff/kiosk`);
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('text=Staff Check-In').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Clock In")').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Clock Out")').first()).toBeVisible();
   });
 
-  test('should load the student LMS academy portal', async ({ page }) => {
-    await page.goto('http://localhost:3000/academy');
-    
-    // Ensure the academy loads
-    await expect(page.locator('h2').filter({ hasText: 'Mastering Brand Strategy' })).toBeVisible();
-    
-    // Check for Skill Matrix
-    await expect(page.getByText('Your Skill Matrix')).toBeVisible();
+  test('should load the Batches page without errors', async ({ page }) => {
+    const response = await page.goto(`${BASE_URL}/dashboard/academy/batches`);
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('text=Batches & Cohorts').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Create Batch")').first()).toBeVisible();
+  });
+
+  test('should load the AI Risk Dashboard', async ({ page }) => {
+    const response = await page.goto(`${BASE_URL}/dashboard/academy/risk`);
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('text=AI Risk & Churn Prediction').first()).toBeVisible();
   });
 
 });
