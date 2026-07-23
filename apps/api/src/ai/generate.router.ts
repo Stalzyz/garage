@@ -14,10 +14,24 @@ export default async function aiGenerateRouter(app: FastifyInstance) {
 
     try {
       const org = await app.prisma.organization.findFirst();
-      const apiKey = org?.openAiKey || process.env.OPENAI_API_KEY || '';
+      let apiKey = org?.openAiKey;
       
       if (!apiKey) {
-        throw new Error("OpenAI API Key is not configured. Please add it in Settings > Organization > AI Integrations.");
+        const integrationKey = await app.prisma.integrationKey.findFirst({
+          where: { service: 'OPENAI', keyName: 'OPENAI_API_KEY', isActive: true }
+        });
+        if (integrationKey?.encryptedValue) {
+          const { decrypt } = require('../settings/integrations.router');
+          apiKey = decrypt(integrationKey.encryptedValue);
+        }
+      }
+      
+      if (!apiKey) {
+        apiKey = process.env.OPENAI_API_KEY || '';
+      }
+      
+      if (!apiKey || apiKey === '***ENCRYPTED***') {
+        throw new Error("OpenAI API Key is not configured. Please add it in Settings > Integrations > OpenAI API Key.");
       }
 
       const openai = new OpenAI({

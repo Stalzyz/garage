@@ -34,7 +34,7 @@ function maskValue(value: string): string {
 }
 
 const UpsertKeySchema = z.object({
-  service:  z.enum(['RAZORPAY', 'PHONEPE', 'STRIPE', 'SMTP', 'WHATSAPP', 'GOOGLE']),
+  service:  z.enum(['RAZORPAY', 'PHONEPE', 'STRIPE', 'SMTP', 'WHATSAPP', 'GOOGLE', 'OPENAI']),
   keyName:  z.string().min(1),
   value:    z.string().min(1),
   isActive: z.boolean().optional().default(true),

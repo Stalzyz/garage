@@ -22,9 +22,10 @@ const SERVICE_META: Record<Service, { label: string; icon: any; color: string; b
   SMTP:      { label: "SMTP",      icon: Mail,       color: "text-cyan-400",   bg: "bg-cyan-500/10",    border: "border-cyan-500/20",    desc: "Transactional email delivery" },
   WHATSAPP:  { label: "WhatsApp",  icon: Zap,        color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "WhatsApp Business Autopilot messages" },
   GOOGLE:    { label: "Google",    icon: Video,      color: "text-red-400",    bg: "bg-red-500/10",     border: "border-red-500/20",     desc: "OAuth, Meet & Calendar integrations" },
+  OPENAI:    { label: "OpenAI",    icon: Zap,        color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "AI integrations for generating proposals, CRM notes, and email copy" },
 }
 
-const SERVICES: Service[] = ["RAZORPAY", "PHONEPE", "STRIPE", "SMTP", "WHATSAPP", "GOOGLE"]
+const SERVICES: Service[] = ["RAZORPAY", "PHONEPE", "STRIPE", "SMTP", "WHATSAPP", "GOOGLE", "OPENAI"]
 
 const API = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
@@ -69,6 +70,7 @@ export default function IntegrationsDashboard() {
     PHONEPE: ["PHONEPE_MERCHANT_ID", "PHONEPE_SALT_KEY", "PHONEPE_SALT_INDEX"],
     STRIPE: ["STRIPE_PUBLISHABLE_KEY", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
     GOOGLE: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI"],
+    OPENAI: ["OPENAI_API_KEY"],
   }
 
   const load = useCallback(async () => {
