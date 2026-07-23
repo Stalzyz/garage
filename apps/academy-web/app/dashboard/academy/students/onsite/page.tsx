@@ -15,7 +15,7 @@ export default function StudentDirectory() {
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false)
   const [enrollForm, setEnrollForm] = useState({ firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", batchId: "" })
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editForm, setEditForm] = useState({ id: "", firstName: "", lastName: "", phone: "", batchId: "" })
+  const [editForm, setEditForm] = useState({ id: "", firstName: "", lastName: "", phone: "", batchId: "", parentName: "", parentPhone: "", address: "", portfolio: "" })
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { data: studentsData, mutate: refreshStudents } = useApi<any>("/academy/students?deliveryMode=ONSITE")
@@ -77,7 +77,11 @@ export default function StudentDirectory() {
           firstName: editForm.firstName,
           lastName: editForm.lastName,
           phone: editForm.phone,
-          batchId: editForm.batchId || undefined
+          batchId: editForm.batchId || undefined,
+          parentName: editForm.parentName || undefined,
+          parentPhone: editForm.parentPhone || undefined,
+          address: editForm.address || undefined,
+          portfolio: editForm.portfolio || undefined
         })
       })
       toast.success("Student updated successfully!")
@@ -259,7 +263,17 @@ export default function StudentDirectory() {
                     <button 
                       onClick={(e) => { 
                         e.stopPropagation(); 
-                        setEditForm({ id: student.id, firstName: student.firstName, lastName: student.lastName, phone: student.phone === 'N/A' ? '' : student.phone, batchId: student.batchId }); 
+                        setEditForm({ 
+                          id: student.id, 
+                          firstName: student.firstName, 
+                          lastName: student.lastName, 
+                          phone: student.phone === 'N/A' ? '' : student.phone, 
+                          batchId: student.batchId,
+                          parentName: student.parentName || "",
+                          parentPhone: student.parentPhone || "",
+                          address: student.address || "",
+                          portfolio: student.portfolio || ""
+                        }); 
                         setIsEditModalOpen(true); 
                       }} 
                       className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors border border-white/10 px-2 py-1 rounded-lg">Edit</button>
@@ -315,7 +329,17 @@ export default function StudentDirectory() {
                       <button 
                         onClick={(e) => { 
                           e.stopPropagation(); 
-                          setEditForm({ id: student.id, firstName: student.firstName, lastName: student.lastName, phone: student.phone === 'N/A' ? '' : student.phone, batchId: student.batchId }); 
+                          setEditForm({ 
+                            id: student.id, 
+                            firstName: student.firstName, 
+                            lastName: student.lastName, 
+                            phone: student.phone === 'N/A' ? '' : student.phone, 
+                            batchId: student.batchId,
+                            parentName: student.parentName || "",
+                            parentPhone: student.parentPhone || "",
+                            address: student.address || "",
+                            portfolio: student.portfolio || ""
+                          }); 
                           setIsEditModalOpen(true); 
                         }}
                         className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white transition-colors border border-white/10 px-2 py-1 rounded-lg">Edit</button>
@@ -510,9 +534,29 @@ export default function StudentDirectory() {
                     <input required value={editForm.lastName} onChange={e => setEditForm({...editForm, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Phone</label>
+                    <input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Portfolio URL</label>
+                    <input value={editForm.portfolio} onChange={e => setEditForm({...editForm, portfolio: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
+                </div>
                 <div>
-                  <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Phone</label>
-                  <input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Address</label>
+                  <textarea value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50 min-h-[60px]" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Parent Name</label>
+                    <input value={editForm.parentName} onChange={e => setEditForm({...editForm, parentName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Parent Phone</label>
+                    <input value={editForm.parentPhone} onChange={e => setEditForm({...editForm, parentPhone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Assign Batch</label>

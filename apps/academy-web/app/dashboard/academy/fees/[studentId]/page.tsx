@@ -115,6 +115,18 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
     }
   }
 
+  const handleSendInvoice = async (installmentId: string) => {
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/academy/fees/installment/${installmentId}/send`, { method: "POST" })
+      toast.success("Invoice sent to student successfully!")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send invoice")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   if (isLoading && !student) {
     return <div className="flex h-full items-center justify-center text-white"><Loader2 className="animate-spin w-6 h-6" /></div>
   }
@@ -185,6 +197,10 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
                   <button onClick={() => setFollowModal(inst.id)}
                     className="flex items-center gap-1.5 text-xs font-bold bg-white/5 text-white/60 border border-white/10 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors">
                     <Phone className="w-3 h-3" /> Log Follow-Up
+                  </button>
+                  <button onClick={() => handleSendInvoice(inst.id)} disabled={isSubmitting}
+                    className="flex items-center gap-1.5 text-xs font-bold bg-violet-500/10 text-violet-400 border border-violet-500/20 px-3 py-2 rounded-xl hover:bg-violet-500/20 transition-colors disabled:opacity-50">
+                    <Mail className="w-3 h-3" /> Send Invoice
                   </button>
                 </div>
               </div>

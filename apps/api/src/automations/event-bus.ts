@@ -28,6 +28,7 @@ export const SystemEvents = {
   FEE_PAID: 'fee.paid',
   FEE_DUE_REMINDER: 'fee.due_reminder',
   FEE_OVERDUE: 'fee.overdue',
+  FEE_INVOICE_SENT: 'fee.invoice_sent',
 
   // Projects
   PROJECT_STARTED: 'project.started',

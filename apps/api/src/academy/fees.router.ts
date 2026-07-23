@@ -206,4 +206,44 @@ export default async function feesRouter(app: FastifyInstance) {
     reply.code(201);
     return followUp;
   });
+
+  // ─────────────────────────────────────────────────────────────
+  // POST /api/v1/academy/fees/installment/:id/send — Send Invoice Email
+  // ─────────────────────────────────────────────────────────────
+  app.post('/fees/installment/:id/send', async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    const installment = await app.prisma.feeInstallment.findUnique({
+      where: { id },
+      include: {
+        enrollment: {
+          include: {
+            student: { include: { user: true } },
+            batch: { select: { name: true, course: { select: { name: true } } } }
+          }
+        }
+      }
+    });
+
+    if (!installment) return reply.notFound('Installment not found');
+
+    const student = installment.enrollment.student;
+    
+    // Fire event for automations (Resend API will catch this if configured)
+    EventBus.emit(SystemEvents.FEE_INVOICE_SENT, {
+      studentId: student.id,
+      studentName: `${student.user.firstName} ${student.user.lastName}`,
+      studentEmail: student.user.email,
+      studentPhone: student.user.phone,
+      amount: `₹${installment.amount.toLocaleString('en-IN')}`,
+      taxAmount: `₹${installment.taxAmount.toLocaleString('en-IN')}`,
+      totalDue: `₹${(installment.amount - installment.paidAmount).toLocaleString('en-IN')}`,
+      dueDate: new Date(installment.dueDate).toLocaleDateString('en-IN'),
+      batchName: installment.enrollment.batch.name,
+      notes: installment.notes || ''
+    });
+
+    reply.code(200);
+    return { success: true, message: 'Invoice sent successfully' };
+  });
 }
