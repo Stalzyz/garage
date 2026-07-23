@@ -3,12 +3,40 @@
 import { useState } from "react"
 import { Search, Plus, MoreVertical, Clock, HelpCircle, CheckCircle2 } from "lucide-react"
 
-import { useApi } from "@/lib/useApi"
+import { useApi, fetchApi } from "@/lib/useApi"
+import { toast } from "sonner"
+import { X, Loader2 } from "lucide-react"
 
 export default function QuizBuilderPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const { data: quizzesData, isLoading } = useApi<any>("/lms/quizzes")
+  const { data: quizzesData, isLoading, mutate } = useApi<any>("/lms/quizzes")
   const quizzes = quizzesData?.data || []
+
+  const [editModal, setEditModal] = useState<{isOpen: boolean, quizId: string, title: string, passingScore: number}>({
+    isOpen: false, quizId: "", title: "", passingScore: 70
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleEditQuiz = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/lms/quizzes/${editModal.quizId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: editModal.title,
+          passingScore: Number(editModal.passingScore)
+        })
+      })
+      toast.success("Quiz updated successfully!")
+      setEditModal({ isOpen: false, quizId: "", title: "", passingScore: 70 })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update quiz")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
@@ -85,7 +113,10 @@ export default function QuizBuilderPage() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     {quiz._count?.attempts || 0} Completions
                   </div>
-                  <button className="text-purple-400 text-sm font-medium hover:text-purple-300 transition-colors">
+                  <button 
+                    onClick={() => setEditModal({ isOpen: true, quizId: quiz.id, title: quiz.title, passingScore: quiz.passingScore || 70 })}
+                    className="text-purple-400 text-sm font-medium hover:text-purple-300 transition-colors"
+                  >
                     Edit Quiz
                   </button>
                 </div>
@@ -104,6 +135,34 @@ export default function QuizBuilderPage() {
         </div>
         )}
       </div>
+
+      {/* Edit Quiz Modal */}
+      {editModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Edit Quiz Details</h2>
+              <button onClick={() => setEditModal({ isOpen: false, quizId: "", title: "", passingScore: 70 })}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+            <form onSubmit={handleEditQuiz} className="space-y-4">
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Quiz Title</label>
+                <input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                  value={editModal.title} onChange={e => setEditModal(p => ({...p, title: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Passing Score (%)</label>
+                <input required type="number" min={0} max={100} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                  value={editModal.passingScore} onChange={e => setEditModal(p => ({...p, passingScore: Number(e.target.value)}))} />
+              </div>
+              <button disabled={isSubmitting} type="submit"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50 mt-4 flex justify-center items-center gap-2">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Quiz Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

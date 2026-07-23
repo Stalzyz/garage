@@ -91,4 +91,24 @@ export default async function quizzesRouter(app: FastifyInstance) {
       attemptId: attempt.id
     };
   });
+
+  // PATCH /api/v1/lms/quizzes/:id
+  app.patch('/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const schema = z.object({
+      title: z.string().optional(),
+      passingScore: z.number().optional(),
+    });
+    const body = schema.parse(req.body);
+
+    const updated = await app.prisma.quiz.update({
+      where: { id },
+      data: {
+        ...(body.title !== undefined && { title: body.title }),
+        ...(body.passingScore !== undefined && { passingScore: body.passingScore }),
+      }
+    });
+
+    return { data: updated };
+  });
 }

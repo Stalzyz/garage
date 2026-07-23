@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { CheckCircle2, Loader2, GraduationCap, Star } from "lucide-react"
+import { fetchApi } from "@/lib/useApi"
 
 const INTERESTS = [
   "Graphic Design", "UI/UX Design", "Web Development",
@@ -57,15 +58,12 @@ export default function KioskPage() {
     }
     setIsSubmitting(true)
     try {
-      const res = await fetch("http://localhost:4000/api/v1/academy/walk-ins", {
+      const data = await fetchApi("/academy/walk-ins", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Registration failed")
       // Generate a simple token number
-      setTokenNumber(`GRK-${Date.now().toString().slice(-5)}`)
+      setTokenNumber(data?.tokenNumber || `GRK-${Date.now().toString().slice(-5)}`)
       setStep("SUCCESS")
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.")

@@ -138,6 +138,25 @@ export default async function walkInsRouter(app: FastifyInstance) {
       }
     });
 
+    // Automatically sync to CRM Leads for ACADEMY business unit
+    try {
+      await app.prisma.lead.create({
+        data: {
+          name: body.name,
+          phone: body.phone,
+          email: body.email,
+          courseInterest: body.interestArea,
+          businessUnit: 'ACADEMY',
+          status: 'ENQUIRY',
+          source: body.source as any || 'WEBSITE',
+          assignedToId: counsellorId || undefined,
+          notes: `Kiosk Walk-In (${body.type}). Notes: ${body.notes || 'N/A'}`
+        }
+      });
+    } catch (crmErr) {
+      console.error('[Walk-in to CRM sync warning]:', crmErr);
+    }
+
     // Auto-send WhatsApp immediately
     const welcomeMsg = `👋 Hi ${body.name}!\n\nThank you for visiting *Grekam Academy*! 🎓\n\nWe've registered your interest in *${body.interestArea}*.\n\nOne of our counsellors will reach out to you shortly.\n\n_We look forward to having you with us!_`;
     await sendWalkInWhatsApp(body.phone, body.name, welcomeMsg, whatsappProvider, whatsappToken);

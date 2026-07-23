@@ -37,6 +37,29 @@ export default async function assignmentsRoutes(app: FastifyInstance) {
     return { assignments };
   });
 
+  server.post('/', {
+    schema: {
+      body: z.object({
+        lessonId: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        dueDate: z.string().optional(),
+      })
+    }
+  }, async (req, reply) => {
+    const { lessonId, title, description, dueDate } = req.body;
+    const assignment = await server.prisma.assignment.create({
+      data: {
+        lessonId,
+        title,
+        description,
+        dueDate: dueDate ? new Date(dueDate) : undefined
+      }
+    });
+    reply.status(201);
+    return { data: assignment };
+  });
+
   server.post('/submit', {
     schema: {
       body: z.object({

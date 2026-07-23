@@ -18,6 +18,9 @@ export default function FeeManagementPage() {
   const [form, setForm] = useState({
     enrollmentId: "",
     amount: "",
+    taxRate: "18",
+    discount: "0",
+    referralCode: "",
     dueDate: "",
     notes: ""
   })
@@ -46,13 +49,16 @@ export default function FeeManagementPage() {
         body: JSON.stringify({
           enrollmentId: form.enrollmentId,
           amount: Number(form.amount),
+          taxRate: Number(form.taxRate),
+          discount: Number(form.discount),
+          referralCode: form.referralCode || undefined,
           dueDate: new Date(form.dueDate).toISOString(),
           notes: form.notes
         })
       })
       toast.success("Invoice created successfully")
       setIsSlideOverOpen(false)
-      setForm({ enrollmentId: "", amount: "", dueDate: "", notes: "" })
+      setForm({ enrollmentId: "", amount: "", taxRate: "18", discount: "0", referralCode: "", dueDate: "", notes: "" })
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to create invoice")
@@ -242,18 +248,44 @@ export default function FeeManagementPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-white/70">Invoice Amount (₹)</label>
-                <input required type="number" min="1" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none" placeholder="e.g. 50000" />
+                <label className="text-xs font-semibold text-white/70">Base Course Fee (₹)</label>
+                <input required type="number" min="1" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none text-white" placeholder="e.g. 50000" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/70">GST / Tax Rate (%)</label>
+                  <input type="number" min="0" value={form.taxRate} onChange={e => setForm(p => ({...p, taxRate: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none text-white" placeholder="18" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/70">Fee Reduction / Discount (₹)</label>
+                  <input type="number" min="0" value={form.discount} onChange={e => setForm(p => ({...p, discount: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none text-white" placeholder="0" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Referral Code (Optional)</label>
+                <input value={form.referralCode} onChange={e => setForm(p => ({...p, referralCode: e.target.value.toUpperCase()}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none text-white font-mono uppercase" placeholder="e.g. ALUMNI50" />
               </div>
               
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-white/70">Due Date</label>
-                <input required type="date" value={form.dueDate} onChange={e => setForm(p => ({...p, dueDate: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none [color-scheme:dark]" />
+                <input required type="date" value={form.dueDate} onChange={e => setForm(p => ({...p, dueDate: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none [color-scheme:dark] text-white" />
+              </div>
+
+              <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs space-y-1 font-mono">
+                <div className="flex justify-between text-white/70"><span>Base Fee:</span> <span>₹{Number(form.amount || 0)}</span></div>
+                <div className="flex justify-between text-white/70"><span>GST ({form.taxRate}%):</span> <span>+₹{(Number(form.amount || 0) * Number(form.taxRate || 0)) / 100}</span></div>
+                <div className="flex justify-between text-white/70"><span>Discount:</span> <span>-₹{Number(form.discount || 0)}</span></div>
+                <div className="flex justify-between text-purple-400 font-bold border-t border-purple-500/30 pt-1.5 text-sm">
+                  <span>Net Payable Amount:</span> 
+                  <span>₹{Math.max(0, Number(form.amount || 0) + ((Number(form.amount || 0) * Number(form.taxRate || 0)) / 100) - Number(form.discount || 0))}</span>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-white/70">Notes / Remarks</label>
-                <textarea rows={4} value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none resize-none" placeholder="Optional notes regarding this installment" />
+                <textarea rows={3} value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none resize-none text-white" placeholder="Optional notes regarding this installment" />
               </div>
             </form>
 

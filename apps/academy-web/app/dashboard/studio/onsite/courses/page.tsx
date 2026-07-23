@@ -7,9 +7,12 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 export default function OnsiteCoursesPage() {
-  const { data: courses, isLoading, mutate } = useApi<any[]>("/academy/batches")
-  const { data: educatorsData } = useApi<any[]>("/academy/educators")
-  const educators = educatorsData?.filter(e => e.deliveryMode === 'ONSITE') || []
+  const { data: batchesRes, isLoading, mutate } = useApi<any>("/academy/batches")
+  const courses = Array.isArray(batchesRes?.data) ? batchesRes.data : Array.isArray(batchesRes) ? batchesRes : []
+
+  const { data: educatorsData } = useApi<any>("/academy/educators")
+  const educatorsList = Array.isArray(educatorsData?.data) ? educatorsData.data : Array.isArray(educatorsData) ? educatorsData : []
+  const educators = educatorsList.filter((e: any) => e.deliveryMode === 'ONSITE')
 
   const [assignModal, setAssignModal] = useState<{isOpen: boolean, batchId: string, currentEducatorId: string}>({isOpen: false, batchId: "", currentEducatorId: ""})
   const [isSubmitting, setIsSubmitting] = useState(false)

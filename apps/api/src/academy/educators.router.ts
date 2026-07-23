@@ -67,4 +67,48 @@ export default async function educatorsRouter(app: FastifyInstance) {
     reply.code(201);
     return educator;
   });
+
+  // PATCH /api/v1/academy/educators/:id
+  app.patch('/educators/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const schema = z.object({
+      designation: z.string().optional(),
+      company: z.string().optional(),
+      yearsExperience: z.number().optional(),
+      skills: z.array(z.string()).optional(),
+      bio: z.string().optional(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+    });
+    const body = schema.parse(req.body);
+
+    const educator = await app.prisma.$transaction(async (tx) => {
+      const existing = await tx.educator.findUnique({ where: { id }, include: { user: true } });
+      if (!existing) throw new Error("Educator not found");
+
+      if (body.firstName || body.lastName) {
+        await tx.user.update({
+          where: { id: existing.userId },
+          data: {
+            ...(body.firstName && { firstName: body.firstName }),
+            ...(body.lastName && { lastName: body.lastName }),
+          }
+        });
+      }
+
+      return await tx.educator.update({
+        where: { id },
+        data: {
+          ...(body.designation !== undefined && { designation: body.designation }),
+          ...(body.company !== undefined && { company: body.company }),
+          ...(body.yearsExperience !== undefined && { yearsExperience: body.yearsExperience }),
+          ...(body.skills !== undefined && { skills: body.skills }),
+          ...(body.bio !== undefined && { bio: body.bio }),
+        },
+        include: { user: true }
+      });
+    });
+
+    return { data: educator };
+  });
 }

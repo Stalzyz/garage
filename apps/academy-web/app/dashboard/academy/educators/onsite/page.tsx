@@ -10,11 +10,22 @@ export default function OnsiteEducatorsPage() {
   const educators = educatorsData?.filter(e => e.deliveryMode === 'ONSITE') || []
   
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    designation: "",
+    company: "",
+    yearsExperience: 0,
+    skills: "",
+    bio: ""
+  })
+  const [editForm, setEditForm] = useState({
+    id: "",
+    firstName: "",
+    lastName: "",
     designation: "",
     company: "",
     yearsExperience: 0,
@@ -40,6 +51,30 @@ export default function OnsiteEducatorsPage() {
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to add educator")
+    } finally {
+      setIsSubmitting(false)
+    }
+  const handleEditEducator = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/academy/educators/${editForm.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          firstName: editForm.firstName,
+          lastName: editForm.lastName,
+          designation: editForm.designation,
+          company: editForm.company,
+          yearsExperience: Number(editForm.yearsExperience),
+          skills: editForm.skills ? editForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+          bio: editForm.bio
+        })
+      })
+      toast.success("Educator updated successfully!")
+      setIsEditOpen(false)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update educator")
     } finally {
       setIsSubmitting(false)
     }
@@ -103,7 +138,7 @@ export default function OnsiteEducatorsPage() {
               </div>
               
               {educator.skills && educator.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10 mb-4">
                   {educator.skills.slice(0, 3).map((skill: string, i: number) => (
                     <span key={i} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white/70">{skill}</span>
                   ))}
@@ -112,6 +147,25 @@ export default function OnsiteEducatorsPage() {
                   )}
                 </div>
               )}
+
+              <button
+                onClick={() => {
+                  setEditForm({
+                    id: educator.id,
+                    firstName: educator.user.firstName,
+                    lastName: educator.user.lastName,
+                    designation: educator.designation || "",
+                    company: educator.company || "",
+                    yearsExperience: educator.yearsExperience || 0,
+                    skills: educator.skills ? educator.skills.join(", ") : "",
+                    bio: educator.bio || ""
+                  })
+                  setIsEditOpen(true)
+                }}
+                className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-colors text-violet-400 hover:text-white"
+              >
+                Edit Faculty Details
+              </button>
             </div>
           ))}
           
@@ -196,6 +250,53 @@ export default function OnsiteEducatorsPage() {
         </div>
       )}
 
+      {/* SlideOver for Edit Educator */}
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+          <div className="w-[450px] bg-[#111] h-full border-l border-[#222] relative flex flex-col shadow-2xl z-10 animate-in slide-in-from-right overflow-y-auto">
+            <div className="p-6 border-b border-[#222] flex items-center justify-between">
+              <h2 className="text-lg font-bold">Edit Faculty Details</h2>
+              <button onClick={() => setIsEditOpen(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5 text-white/50" /></button>
+            </div>
+            
+            <form onSubmit={handleEditEducator} className="flex-1 p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/70">First Name</label>
+                  <input required value={editForm.firstName} onChange={e => setEditForm(p => ({...p, firstName: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/70">Last Name</label>
+                  <input required value={editForm.lastName} onChange={e => setEditForm(p => ({...p, lastName: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Designation / Role</label>
+                <input value={editForm.designation} onChange={e => setEditForm(p => ({...p, designation: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Company / Organization</label>
+                <input value={editForm.company} onChange={e => setEditForm(p => ({...p, company: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Years of Experience</label>
+                <input type="number" value={editForm.yearsExperience} onChange={e => setEditForm(p => ({...p, yearsExperience: Number(e.target.value)}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Skills (Comma separated)</label>
+                <input value={editForm.skills} onChange={e => setEditForm(p => ({...p, skills: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-sm focus:border-violet-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Bio</label>
+                <textarea rows={3} value={editForm.bio} onChange={e => setEditForm(p => ({...p, bio: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg p-3 text-sm focus:border-violet-500 outline-none resize-none" />
+              </div>
+              <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 mt-4">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

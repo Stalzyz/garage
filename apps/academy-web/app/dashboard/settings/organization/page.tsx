@@ -30,6 +30,8 @@ export default function OrganizationSettingsPage() {
       if (org.faviconUrl) payload.faviconUrl = org.faviconUrl
       if (org.supportEmail) payload.supportEmail = org.supportEmail
       if (org.billingAddress) payload.billingAddress = org.billingAddress
+      if (org.invoiceColor) payload.invoiceColor = org.invoiceColor
+      if (org.documentColor) payload.documentColor = org.documentColor
       if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
       if (org.openAiKey !== undefined) payload.openAiKey = org.openAiKey
       if (org.resendApiKey !== undefined) payload.resendApiKey = org.resendApiKey
@@ -98,7 +100,7 @@ export default function OrganizationSettingsPage() {
             <Palette className="w-5 h-5 mr-2 text-blue-500" /> Branding
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm text-[#a1a1aa]">OS Display Name</label>
               <input
@@ -111,7 +113,7 @@ export default function OrganizationSettingsPage() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm text-[#a1a1aa]">Primary Color (Hex)</label>
+              <label className="text-sm text-[#a1a1aa]">Primary App Color</label>
               <div className="flex items-center space-x-3">
                 <input
                   type="color"
@@ -123,8 +125,27 @@ export default function OrganizationSettingsPage() {
                   type="text"
                   value={org?.primaryColor || "#2563eb"}
                   onChange={(e) => setOrg({ ...org, primaryColor: e.target.value })}
-                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
                   placeholder="#2563eb"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Invoice Header Color</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={org?.invoiceColor || "#7c3aed"}
+                  onChange={(e) => setOrg({ ...org, invoiceColor: e.target.value })}
+                  className="w-10 h-10 rounded border-0 cursor-pointer bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={org?.invoiceColor || "#7c3aed"}
+                  onChange={(e) => setOrg({ ...org, invoiceColor: e.target.value })}
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
+                  placeholder="#7c3aed"
                 />
               </div>
             </div>

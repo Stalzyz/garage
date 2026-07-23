@@ -88,18 +88,34 @@ export default async function feesRouter(app: FastifyInstance) {
       enrollmentId: z.string(),
       dueDate: z.string(), // ISO date string
       amount: z.number().positive(),
+      taxRate: z.number().nonnegative().optional(),
       taxAmount: z.number().nonnegative().optional(),
+      discount: z.number().nonnegative().optional(),
+      referralCode: z.string().optional(),
       notes: z.string().optional()
     });
     const body = schema.parse(req.body);
+
+    const baseAmount = body.amount;
+    const taxRate = body.taxRate || 0;
+    const discount = body.discount || 0;
+    const computedTax = body.taxAmount !== undefined ? body.taxAmount : (baseAmount * taxRate) / 100;
+    const netPayable = baseAmount + computedTax - discount;
+
+    const fullNotes = [
+      body.notes,
+      body.referralCode ? `Referral Code: ${body.referralCode}` : null,
+      discount > 0 ? `Discount Applied: ₹${discount}` : null,
+      taxRate > 0 ? `GST Rate: ${taxRate}% (₹${computedTax})` : null
+    ].filter(Boolean).join(" | ");
 
     const installment = await app.prisma.feeInstallment.create({
       data: {
         enrollmentId: body.enrollmentId,
         dueDate: new Date(body.dueDate),
-        amount: body.amount,
-        taxAmount: body.taxAmount || 0,
-        notes: body.notes
+        amount: Math.max(netPayable, 0),
+        taxAmount: computedTax,
+        notes: fullNotes
       },
       include: {
         enrollment: {

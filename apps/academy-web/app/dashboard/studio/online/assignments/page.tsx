@@ -13,7 +13,10 @@ import {
   Award,
   ChevronRight,
   FileText,
-  CheckSquare
+  CheckSquare,
+  Plus,
+  X,
+  Loader2
 } from "lucide-react"
 
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -51,6 +54,34 @@ export default function AssignmentsReview() {
   const [gradeInput, setGradeInput] = useState<string>("")
   const [feedbackInput, setFeedbackInput] = useState<string>("")
 
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false)
+  const [createForm, setCreateForm] = useState({ title: "", description: "", lessonId: "general", dueDate: "" })
+
+  const handleCreateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmittingCreate(true)
+    try {
+      await fetchApi("/lms/assignments", {
+        method: "POST",
+        body: JSON.stringify({
+          title: createForm.title,
+          description: createForm.description,
+          lessonId: createForm.lessonId,
+          dueDate: createForm.dueDate || undefined
+        })
+      })
+      toast.success("Assignment created successfully!")
+      setIsCreateOpen(false)
+      setCreateForm({ title: "", description: "", lessonId: "general", dueDate: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create assignment")
+    } finally {
+      setIsSubmittingCreate(false)
+    }
+  }
+
   return (
     <div className="h-full flex bg-[#050505] text-white overflow-hidden">
       
@@ -59,9 +90,17 @@ export default function AssignmentsReview() {
         
         {/* Header & Filters */}
         <div className="p-6 border-b border-white/10 space-y-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight mb-1">Assessments</h1>
-            <p className="text-sm text-white/50">Review and grade student submissions.</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight mb-1">Assessments</h1>
+              <p className="text-sm text-white/50">Review and grade student submissions.</p>
+            </div>
+            <button 
+              onClick={() => setIsCreateOpen(true)}
+              className="p-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+            >
+              <Plus className="w-4 h-4" /> New
+            </button>
           </div>
           
           <div className="flex gap-2">
@@ -279,6 +318,41 @@ export default function AssignmentsReview() {
           </div>
         )}
       </div>
+
+      {/* Create Assignment Modal */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Create New Assignment</h2>
+              <button onClick={() => setIsCreateOpen(false)}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+            <form onSubmit={handleCreateAssignment} className="space-y-4">
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Assignment Title</label>
+                <input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                  placeholder="e.g. Final Portfolio Project"
+                  value={createForm.title} onChange={e => setCreateForm(p => ({...p, title: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Description / Instructions</label>
+                <textarea rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white resize-none"
+                  placeholder="Provide instructions for the students..."
+                  value={createForm.description} onChange={e => setCreateForm(p => ({...p, description: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Due Date (Optional)</label>
+                <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
+                  value={createForm.dueDate} onChange={e => setCreateForm(p => ({...p, dueDate: e.target.value}))} />
+              </div>
+              <button disabled={isSubmittingCreate || !createForm.title} type="submit"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50 mt-4 flex justify-center items-center gap-2">
+                {isSubmittingCreate ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Assignment"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

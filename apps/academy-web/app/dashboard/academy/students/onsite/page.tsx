@@ -28,6 +28,7 @@ export default function StudentDirectory() {
   
   const [selectedTemplate, setSelectedTemplate] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isCertificatesOpen, setIsCertificatesOpen] = useState(false)
 
   const mappedStudents = students.map((s: any) => ({
     id: s.id,
@@ -91,6 +92,17 @@ export default function StudentDirectory() {
       toast.error(err.message || "Error updating student")
     } finally {
       setIsSubmitting(false)
+    }
+  const handleToggleStatus = async (studentId: string, isAlumni: boolean) => {
+    try {
+      await fetchApi(`/academy/students/${studentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isAlumni: !isAlumni })
+      })
+      toast.success(!isAlumni ? "Marked as Completed / Alumni" : "Marked as Enrolled")
+      refreshStudents()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status")
     }
   }
 
@@ -189,11 +201,17 @@ export default function StudentDirectory() {
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button 
-                onClick={() => setViewMode("LIST")}
-                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'LIST' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}
-              >
-                <ListIcon className="w-4 h-4" />
-              </button>
+              onClick={() => setIsCertificatesOpen(true)}
+              className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-bold px-4 py-3 rounded-xl transition-all text-xs font-mono tracking-widest uppercase"
+            >
+              <Printer className="w-4 h-4" /> Issued Certificates
+            </button>
+            <button 
+              onClick={() => setIsEnrollModalOpen(true)}
+              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 font-bold px-6 py-3 rounded-xl transition-all text-xs font-mono tracking-widest uppercase shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+            >
+              <Plus className="w-4 h-4" /> Enroll Student
+            </button>
             </div>
           </div>
         </div>
@@ -260,6 +278,15 @@ export default function StudentDirectory() {
                       className="flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 px-2 py-1 rounded-lg transition-all">
                       <ShieldCheck className="w-3 h-3" /> Passport
                     </Link>
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handleToggleStatus(student.id, student.status === 'ALUMNI');
+                      }} 
+                      className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 rounded-lg"
+                    >
+                      {student.status === 'ENROLLED' ? 'Mark Completed' : 'Mark Enrolled'}
+                    </button>
                     <button 
                       onClick={(e) => { 
                         e.stopPropagation(); 
@@ -579,6 +606,40 @@ export default function StudentDirectory() {
         )}
       </AnimatePresence>
 
+      {/* Issued Certificates Drawer */}
+      {isCertificatesOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
+          <div className="bg-[#111] border-l border-white/10 w-full max-w-lg h-full p-6 overflow-y-auto flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Printer className="w-5 h-5 text-emerald-400" /> Issued Certificates & Diplomas
+                </h2>
+                <p className="text-xs text-white/50">View all student certificates generated in Academy OS</p>
+              </div>
+              <button onClick={() => setIsCertificatesOpen(false)}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+
+            <div className="space-y-3 flex-1">
+              {mappedStudents.map((s: any) => (
+                <div key={s.id} className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-white text-sm">{s.name}</h4>
+                    <p className="text-xs text-white/50">{s.batch} • Code: {s.code}</p>
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase mt-1 inline-block">Certificate Issued</span>
+                  </div>
+                  <Link
+                    href={`/dashboard/academy/students/${s.id}/passport`}
+                    className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                  >
+                    <Printer className="w-3.5 h-3.5" /> View / Print
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -11,7 +11,9 @@ export default function PlacementEngine() {
 
   const [activeTab, setActiveTab] = useState<"JOBS" | "COMPANIES">("JOBS")
   const [isAddJobOpen, setIsAddJobOpen] = useState(false)
+  const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false)
   const [jobForm, setJobForm] = useState({ companyId: "", title: "", location: "", minCareerScore: 80 })
+  const [companyForm, setCompanyForm] = useState({ name: "", industry: "", website: "" })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleAddJob = async (e: React.FormEvent) => {
@@ -31,6 +33,23 @@ export default function PlacementEngine() {
     } finally {
       setIsSubmitting(false)
     }
+  const handleAddCompany = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/academy/placements/companies", {
+        method: "POST",
+        body: JSON.stringify(companyForm)
+      })
+      toast.success("Partner Company added successfully!")
+      setIsAddCompanyOpen(false)
+      setCompanyForm({ name: "", industry: "", website: "" })
+      refreshCompanies()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add company")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -42,9 +61,17 @@ export default function PlacementEngine() {
           </h1>
           <p className="text-white/50 mt-2">Manage partner companies, job openings, and student placements.</p>
         </div>
-        <button onClick={() => setIsAddJobOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition-colors">
-          <Plus className="w-4 h-4" /> Post New Job
-        </button>
+        <div className="flex items-center gap-3">
+          {activeTab === "JOBS" ? (
+            <button onClick={() => setIsAddJobOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+              <Plus className="w-4 h-4" /> Post New Job
+            </button>
+          ) : (
+            <button onClick={() => setIsAddCompanyOpen(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+              <Plus className="w-4 h-4" /> Add Partner Company
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4 border-b border-white/10 mb-6">
@@ -107,12 +134,18 @@ export default function PlacementEngine() {
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xl">
                 {company.name.charAt(0)}
               </div>
-              <div>
-                <h3 className="font-bold text-white">{company.name}</h3>
-                <p className="text-xs text-white/50">{company._count?.jobs || 0} active jobs</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-white truncate">{company.name}</h3>
+                <p className="text-xs text-white/50">{company.industry || 'Tech Partner'}</p>
+                <p className="text-[10px] text-blue-400 font-medium mt-1">{company._count?.jobs || 0} active jobs</p>
               </div>
             </div>
           ))}
+          {(companies || []).length === 0 && (
+            <div className="col-span-full py-12 text-center text-white/30 border border-dashed border-white/10 rounded-2xl">
+              No partner companies added yet. Click "Add Partner Company" to begin.
+            </div>
+          )}
         </div>
       )}
 
@@ -160,7 +193,40 @@ export default function PlacementEngine() {
             </form>
           </div>
         </div>
+      {/* Add Company Modal */}
+      {isAddCompanyOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Add Partner Company</h2>
+              <button onClick={() => setIsAddCompanyOpen(false)}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+            <form onSubmit={handleAddCompany} className="space-y-4">
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Company Name</label>
+                <input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="e.g. Google or Nexus Tech"
+                  value={companyForm.name} onChange={e => setCompanyForm(p => ({...p, name: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Industry</label>
+                <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="e.g. Software & AI"
+                  value={companyForm.industry} onChange={e => setCompanyForm(p => ({...p, industry: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Website URL</label>
+                <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="https://example.com"
+                  value={companyForm.website} onChange={e => setCompanyForm(p => ({...p, website: e.target.value}))} />
+              </div>
+              <button disabled={isSubmitting || !companyForm.name} type="submit"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50 mt-4 flex justify-center items-center gap-2">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Partner Company"}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
-    </div>
   )
 }

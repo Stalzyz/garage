@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
   useSortable
 } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { Plus, Search, Filter, Mail, Phone, Calendar, MoreHorizontal, X, Loader2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -40,8 +41,45 @@ const columns: { id: ColumnType, title: string, color: string }[] = [
   { id: 'DROPPED', title: 'Dropped', color: 'bg-red-500/20 text-red-400' },
 ]
 
+// Droppable Column Wrapper
+function KanbanColumn({ column, leads, onSelectLead }: { column: typeof columns[0], leads: Lead[], onSelectLead: (lead: Lead, tab?: string) => void }) {
+  const { setNodeRef, isOver } = useDroppable({ id: column.id })
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`flex flex-col w-80 shrink-0 border rounded-2xl overflow-hidden transition-colors ${
+        isOver ? 'bg-purple-500/10 border-purple-500/40' : 'bg-white/[0.02] border-white/5'
+      }`}
+    >
+      <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div className="flex items-center gap-2">
+          <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold tracking-wide ${column.color}`}>
+            {column.title}
+          </span>
+          <span className="text-white/40 text-sm font-medium">{leads.length}</span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[150px]">
+        <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
+          {leads.map(lead => (
+            <SortableLeadCard key={lead.id} lead={lead} onSelect={onSelectLead} />
+          ))}
+        </SortableContext>
+        
+        {leads.length === 0 && (
+          <div className="h-full min-h-[100px] border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-white/20 text-sm">
+            Drop leads here
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // Sortable Item Component
-function SortableLeadCard({ lead }: { lead: Lead }) {
+function SortableLeadCard({ lead, onSelect }: { lead: Lead, onSelect: (lead: Lead, action?: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: lead.id })
   
   const style = {
@@ -56,11 +94,16 @@ function SortableLeadCard({ lead }: { lead: Lead }) {
       style={style} 
       {...attributes} 
       {...listeners}
+      onClick={() => onSelect(lead, "CALL")}
       className="bg-[#0a0a0a] border border-white/10 hover:border-white/20 p-4 rounded-xl cursor-grab active:cursor-grabbing group relative z-10"
     >
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-bold text-white text-sm">{lead.name}</h4>
-        <button className="text-white/30 hover:text-white transition-colors" onPointerDown={(e) => e.stopPropagation()}>
+        <button 
+          className="text-white/30 hover:text-white transition-colors p-1" 
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onSelect(lead, "CALL"); }}
+        >
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
@@ -69,21 +112,33 @@ function SortableLeadCard({ lead }: { lead: Lead }) {
       <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
         <div className="flex items-center gap-2">
           <div className="flex -space-x-1">
-            <button className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors" onPointerDown={(e) => e.stopPropagation()}>
-              <Phone className="w-3 h-3" />
+            <button 
+              className="w-7 h-7 rounded-full bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 transition-colors" 
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onSelect(lead, "CALL"); }}
+            >
+              <Phone className="w-3.5 h-3.5" />
             </button>
-            <button className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors" onPointerDown={(e) => e.stopPropagation()}>
-              <Mail className="w-3 h-3" />
+            <button 
+              className="w-7 h-7 rounded-full bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 transition-colors" 
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onSelect(lead, "EMAIL"); }}
+            >
+              <Mail className="w-3.5 h-3.5" />
             </button>
-            <button className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors" onPointerDown={(e) => e.stopPropagation()}>
-              <Calendar className="w-3 h-3" />
+            <button 
+              className="w-7 h-7 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 transition-colors" 
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onSelect(lead, "MEETING"); }}
+            >
+              <Calendar className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">Score</span>
           <span className={`text-xs font-bold ${lead.score > 80 ? 'text-emerald-400' : lead.score > 50 ? 'text-amber-400' : 'text-red-400'}`}>
-            {lead.score}
+            {lead.score || 50}
           </span>
         </div>
       </div>
@@ -92,11 +147,48 @@ function SortableLeadCard({ lead }: { lead: Lead }) {
 }
 
 export default function AdmissionsPipelinePage() {
-  const { data: apiResponse, mutate } = useApi<any>("/crm/leads?businessUnit=ACADEMY")
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newLead, setNewLead] = useState({ name: "", email: "", phone: "", courseInterest: "", source: "WEBSITE" })
+  const [selectedLead, setSelectedLead] = useState<any | null>(null)
+  const [actionTab, setActionTab] = useState<"CALL" | "EMAIL" | "MEETING">("CALL")
+  const [actionNote, setActionNote] = useState("")
+  const [actionStatus, setActionStatus] = useState<ColumnType>("ENQUIRY")
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false)
+
+  const openLeadAction = (lead: Lead, action: string = "CALL") => {
+    setSelectedLead(lead)
+    setActionTab(action as any)
+    setActionStatus(lead.status)
+    setActionNote("")
+  }
+
+  const handleLogActivity = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedLead) return
+    setIsSubmittingAction(true)
+    try {
+      if (actionNote) {
+        await fetchApi(`/crm/leads/${selectedLead.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: actionTab,
+            content: `[${actionTab}] ${actionNote}`
+          })
+        })
+      }
+      if (actionStatus !== selectedLead.status) {
+        await fetchApi(`/crm/leads/${selectedLead.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: actionStatus })
+        })
+      }
+      toast.success("Lead activity updated!")
+      setSelectedLead(null)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to record activity")
+    } finally {
+      setIsSubmittingAction(false)
+    }
+  }
 
   useEffect(() => {
     if (apiResponse?.data) {
@@ -206,40 +298,13 @@ export default function AdmissionsPipelinePage() {
             
             {columns.map(column => {
               const columnLeads = leads.filter(l => l.status === column.id)
-              
               return (
-                <div key={column.id} className="flex flex-col w-80 shrink-0 bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-                  
-                  {/* Column Header */}
-                  <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold tracking-wide ${column.color}`}>
-                        {column.title}
-                      </span>
-                      <span className="text-white/40 text-sm font-medium">{columnLeads.length}</span>
-                    </div>
-                    <button className="text-white/30 hover:text-white transition-colors">
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Column Droppable Area */}
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                    <SortableContext items={columnLeads.map(l => l.id)} strategy={verticalListSortingStrategy}>
-                      {columnLeads.map(lead => (
-                        <SortableLeadCard key={lead.id} lead={lead} />
-                      ))}
-                    </SortableContext>
-                    
-                    {/* Empty State Droppable Area */}
-                    {columnLeads.length === 0 && (
-                      <div className="h-full min-h-[100px] border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-white/20 text-sm">
-                        Drop here
-                      </div>
-                    )}
-                  </div>
-
-                </div>
+                <KanbanColumn 
+                  key={column.id} 
+                  column={column} 
+                  leads={columnLeads} 
+                  onSelectLead={openLeadAction} 
+                />
               )
             })}
 
@@ -294,8 +359,67 @@ export default function AdmissionsPipelinePage() {
             </div>
           </div>
         </div>
-      )}
+      {/* Lead Action Modal */}
+      {selectedLead && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#111] border-l border-[#222] h-full flex flex-col p-6 shadow-2xl overflow-y-auto animate-in slide-in-from-right">
+            <div className="flex items-center justify-between border-b border-[#222] pb-4 mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-white">{selectedLead.name}</h3>
+                <p className="text-xs text-white/50">{selectedLead.courseInterest || 'General Enquiry'}</p>
+              </div>
+              <button onClick={() => setSelectedLead(null)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5 text-white/50" /></button>
+            </div>
 
-    </div>
-  )
-}
+            <div className="flex gap-2 border-b border-white/10 mb-6 pb-2">
+              {(['CALL', 'EMAIL', 'MEETING'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActionTab(tab)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-colors ${
+                    actionTab === tab ? 'bg-purple-600 border-purple-500 text-white' : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                  }`}
+                >
+                  {tab === 'CALL' ? '📞 Call' : tab === 'EMAIL' ? '✉️ Email' : '📅 Schedule'}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleLogActivity} className="space-y-4 flex-1">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Update Pipeline Status</label>
+                <select
+                  value={actionStatus}
+                  onChange={(e) => setActionStatus(e.target.value as any)}
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm text-white focus:border-purple-500 outline-none"
+                >
+                  {columns.map(c => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">
+                  {actionTab === 'CALL' ? 'Call Notes / Disposition' : actionTab === 'EMAIL' ? 'Email Summary / Notes' : 'Counselling / Meeting Details'}
+                </label>
+                <textarea
+                  rows={4}
+                  value={actionNote}
+                  onChange={(e) => setActionNote(e.target.value)}
+                  placeholder="Enter details..."
+                  className="w-full bg-[#050505] border border-[#333] rounded-lg p-3 text-sm text-white focus:border-purple-500 outline-none resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingAction}
+                className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 mt-6"
+              >
+                {isSubmittingAction ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save & Update Lead"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
