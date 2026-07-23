@@ -93,6 +93,8 @@ export default function StudentDirectory() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
   const handleToggleStatus = async (studentId: string, isAlumni: boolean) => {
     try {
       await fetchApi(`/academy/students/${studentId}`, {

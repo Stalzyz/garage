@@ -54,6 +54,8 @@ export default function OnsiteEducatorsPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
   const handleEditEducator = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
