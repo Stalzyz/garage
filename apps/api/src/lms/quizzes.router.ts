@@ -2,6 +2,29 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 export default async function quizzesRouter(app: FastifyInstance) {
+  // GET /api/v1/lms/quizzes
+  app.get('/', async (req, reply) => {
+    const quizzes = await app.prisma.quiz.findMany({
+      include: {
+        _count: {
+          select: { questions: true, attempts: true }
+        },
+        lesson: {
+          include: {
+            module: {
+              include: {
+                lmsCourse: {
+                  include: { course: true }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return { data: quizzes };
+  });
   // GET /api/v1/lms/quizzes/:id
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };

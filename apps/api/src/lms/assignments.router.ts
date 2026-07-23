@@ -18,9 +18,31 @@ export default async function assignmentsRoutes(app: FastifyInstance) {
 
     const assignments = await server.prisma.assignment.findMany({
       include: {
+        lesson: {
+          include: {
+            module: {
+              include: {
+                lmsCourse: {
+                  include: { course: true }
+                }
+              }
+            }
+          }
+        },
         submissions: studentId ? {
-          where: { studentId }
-        } : true
+          where: { studentId },
+          include: {
+            student: {
+              include: { user: true }
+            }
+          }
+        } : {
+          include: {
+            student: {
+              include: { user: true }
+            }
+          }
+        }
       }
     });
     return { assignments };

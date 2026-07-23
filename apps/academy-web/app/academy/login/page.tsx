@@ -7,7 +7,6 @@ import { AlertCircle, Fingerprint, Lock, Mail, ArrowRight, ShieldCheck,  Briefca
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
-import { FaGoogle, FaLinkedin, FaApple, FaMicrosoft, FaGithub } from "react-icons/fa"
 
 const testimonials = [
   { quote: "This platform completely changed how I learn to code. The AI mentor is game-changing.", author: "Sarah J.", role: "Frontend Developer" },
@@ -299,45 +298,6 @@ export default function LoginPage() {
               <LoginButton is2fa={is2faStage} mode={loginMode} />
             </div>
             
-            {/* Divider */}
-            {!is2faStage && (
-              <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-[#050505] text-white/40">Or continue with</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Social Logins */}
-            {!is2faStage && (
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" className="h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
-                  <FaGoogle className="w-4 h-4 text-white/80" />
-                  <span className="text-sm font-medium">Google</span>
-                </button>
-                <button type="button" className="h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
-                  <FaApple className="w-4 h-4 text-white/80" />
-                  <span className="text-sm font-medium">Apple</span>
-                </button>
-                <button type="button" className="h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
-                  <FaMicrosoft className="w-4 h-4 text-white/80" />
-                  <span className="text-sm font-medium">Microsoft</span>
-                </button>
-                <button type="button" className="h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
-                  <FaLinkedin className="w-4 h-4 text-[#0077b5]" />
-                  <span className="text-sm font-medium">LinkedIn</span>
-                </button>
-                {loginMode !== "ACADEMY" && (
-                  <button type="button" className="h-12 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors col-span-2">
-                    <FaGithub className="w-4 h-4 text-white/80" />
-                    <span className="text-sm font-medium">GitHub (Tech Courses)</span>
-                  </button>
-                )}
-              </div>
-            )}
           </form>
 
           {/* Registration Link */}

@@ -3,14 +3,12 @@
 import { useState } from "react"
 import { Search, Plus, MoreVertical, Clock, HelpCircle, CheckCircle2 } from "lucide-react"
 
-const dummyQuizzes = [
-  { id: 1, title: "React Fundamentals Assessment", course: "Advanced React", questions: 25, timeLimit: "30 mins", status: "Published", completions: 142 },
-  { id: 2, title: "UI/UX Color Theory Quiz", course: "UI/UX Design Masterclass", questions: 15, timeLimit: "15 mins", status: "Draft", completions: 0 },
-  { id: 3, title: "Next.js Routing & Data Fetching", course: "Next.js Enterprise", questions: 40, timeLimit: "60 mins", status: "Published", completions: 89 },
-]
+import { useApi } from "@/lib/useApi"
 
 export default function QuizBuilderPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const { data: quizzesData, isLoading } = useApi<any>("/lms/quizzes")
+  const quizzes = quizzesData?.data || []
 
   return (
     <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
@@ -41,17 +39,17 @@ export default function QuizBuilderPage() {
         </div>
 
         {/* Quizzes Grid */}
+        {isLoading ? (
+          <div className="text-white/50">Loading quizzes...</div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dummyQuizzes
-            .filter(q => q.title.toLowerCase().includes(searchQuery.toLowerCase()) || q.course.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((quiz) => (
+          {quizzes
+            .filter((q: any) => q.title.toLowerCase().includes(searchQuery.toLowerCase()) || (q.lesson?.module?.lmsCourse?.course?.name || "").toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((quiz: any) => (
             <div key={quiz.id} className="bg-white/5 border border-white/10 hover:border-white/20 transition-all rounded-2xl p-6 flex flex-col group">
               <div className="flex justify-between items-start mb-4">
-                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${
-                  quiz.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                  'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                }`}>
-                  {quiz.status}
+                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20`}>
+                  Published
                 </span>
                 <button className="text-white/40 hover:text-white transition-colors">
                   <MoreVertical className="w-5 h-5" />
@@ -59,7 +57,7 @@ export default function QuizBuilderPage() {
               </div>
               
               <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">{quiz.title}</h3>
-              <p className="text-white/50 text-sm mb-6 line-clamp-1">{quiz.course}</p>
+              <p className="text-white/50 text-sm mb-6 line-clamp-1">{quiz.lesson?.module?.lmsCourse?.course?.name || "Unassigned"}</p>
               
               <div className="mt-auto grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
@@ -68,7 +66,7 @@ export default function QuizBuilderPage() {
                   </div>
                   <div>
                     <div className="text-xs text-white/50">Questions</div>
-                    <div className="text-sm font-medium">{quiz.questions}</div>
+                    <div className="text-sm font-medium">{quiz._count?.questions || 0}</div>
                   </div>
                 </div>
                 
@@ -77,15 +75,15 @@ export default function QuizBuilderPage() {
                     <Clock className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-white/50">Time Limit</div>
-                    <div className="text-sm font-medium">{quiz.timeLimit}</div>
+                    <div className="text-xs text-white/50">Passing Score</div>
+                    <div className="text-sm font-medium">{quiz.passingScore}%</div>
                   </div>
                 </div>
                 
                 <div className="col-span-2 pt-4 mt-2 border-t border-white/10 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-white/60">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    {quiz.completions} Completions
+                    {quiz._count?.attempts || 0} Completions
                   </div>
                   <button className="text-purple-400 text-sm font-medium hover:text-purple-300 transition-colors">
                     Edit Quiz
@@ -104,6 +102,7 @@ export default function QuizBuilderPage() {
             <p className="text-white/50 text-sm max-w-[200px]">Add multiple choice, true/false, and coding questions.</p>
           </div>
         </div>
+        )}
       </div>
     </div>
   )

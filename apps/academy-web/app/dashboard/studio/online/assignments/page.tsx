@@ -16,54 +16,38 @@ import {
   CheckSquare
 } from "lucide-react"
 
+import { useApi, fetchApi } from "@/lib/useApi"
+import { toast } from "sonner"
+
 type SubmissionStatus = "UNDER_REVIEW" | "GRADED" | "RESUBMIT_REQUESTED"
 
-interface Submission {
-  id: string
-  studentName: string
-  avatar: string
-  course: string
-  assignmentTitle: string
-  submittedAt: string
-  status: SubmissionStatus
-  grade?: number
-  feedback?: string
-}
-
-const mockSubmissions: Submission[] = [
-  {
-    id: "sub-1",
-    studentName: "Alex Johnson",
-    avatar: "bg-blue-500",
-    course: "Advanced Web Architecture",
-    assignmentTitle: "Final Project: E-Commerce Store",
-    submittedAt: "2 hours ago",
-    status: "UNDER_REVIEW"
-  },
-  {
-    id: "sub-2",
-    studentName: "Samantha Reed",
-    avatar: "bg-pink-500",
-    course: "UI/UX Masterclass",
-    assignmentTitle: "Wireframing the Dashboard",
-    submittedAt: "5 hours ago",
-    status: "UNDER_REVIEW"
-  },
-  {
-    id: "sub-3",
-    studentName: "David Chen",
-    avatar: "bg-emerald-500",
-    course: "Advanced Web Architecture",
-    assignmentTitle: "API Design Document",
-    submittedAt: "1 day ago",
-    status: "GRADED",
-    grade: 92,
-    feedback: "Excellent work on the rate-limiting section."
-  }
-]
-
 export default function AssignmentsReview() {
-  const [activeSub, setActiveSub] = useState<Submission | null>(mockSubmissions[0])
+  const { data: assignmentsData, isLoading, mutate } = useApi<any>("/lms/assignments")
+  
+  // Flatten assignments into a single list of submissions
+  const submissions = (assignmentsData?.assignments || []).reduce((acc: any[], assignment: any) => {
+    const courseName = assignment.lesson?.module?.lmsCourse?.course?.name || "Unknown Course"
+    const assignmentTitle = assignment.title
+    
+    const subs = assignment.submissions?.map((sub: any) => ({
+      id: sub.id,
+      studentName: sub.student?.user ? `${sub.student.user.firstName} ${sub.student.user.lastName}` : "Unknown Student",
+      avatar: "bg-blue-500", // can be randomized or based on student data
+      course: courseName,
+      assignmentTitle: assignmentTitle,
+      submittedAt: new Date(sub.createdAt).toLocaleDateString(),
+      status: sub.status,
+      grade: sub.grade,
+      feedback: sub.feedback,
+      linkUrl: sub.linkUrl
+    })) || []
+    
+    return [...acc, ...subs]
+  }, [])
+
+  const [activeSubId, setActiveSubId] = useState<string | null>(null)
+  const activeSub = submissions.find((s: any) => s.id === activeSubId) || null
+
   const [gradeInput, setGradeInput] = useState<string>("")
   const [feedbackInput, setFeedbackInput] = useState<string>("")
 
@@ -97,11 +81,20 @@ export default function AssignmentsReview() {
 
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {mockSubmissions.map((sub) => (
+          {isLoading ? (
+            <div className="text-white/50 text-center py-4">Loading submissions...</div>
+          ) : submissions.length === 0 ? (
+            <div className="text-white/50 text-center py-4">No submissions yet.</div>
+          ) : (
+            submissions.map((sub: any) => (
             <div 
               key={sub.id}
-              onClick={() => setActiveSub(sub)}
-              className={`p-4 rounded-2xl cursor-pointer transition-all border \${
+              onClick={() => {
+                setActiveSubId(sub.id)
+                setGradeInput(sub.grade?.toString() || "")
+                setFeedbackInput(sub.feedback || "")
+              }}
+              className={`p-4 rounded-2xl cursor-pointer transition-all border ${
                 activeSub?.id === sub.id 
                   ? "bg-purple-500/10 border-purple-500/30 text-white" 
                   : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white"
@@ -109,13 +102,13 @@ export default function AssignmentsReview() {
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full \${sub.avatar} opacity-80`} />
+                  <div className={`w-8 h-8 rounded-full ${sub.avatar} opacity-80`} />
                   <div>
                     <h3 className="text-sm font-bold">{sub.studentName}</h3>
                     <p className="text-xs text-white/50">{sub.submittedAt}</p>
                   </div>
                 </div>
-                {sub.status === "UNDER_REVIEW" ? (
+                {sub.status === "UNDER_REVIEW" || sub.status === "SUBMITTED" ? (
                   <span className="w-2 h-2 rounded-full bg-yellow-400 mt-2 shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
                 ) : (
                   <span className="w-2 h-2 rounded-full bg-emerald-400 mt-2 shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
@@ -124,7 +117,8 @@ export default function AssignmentsReview() {
               <div className="text-xs font-semibold text-purple-400 mb-1">{sub.course}</div>
               <div className="text-sm truncate">{sub.assignmentTitle}</div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -158,36 +152,25 @@ export default function AssignmentsReview() {
                   <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-purple-400" /> Submitted Files
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
-                          <FileText className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">architecture_diagram.pdf</div>
-                          <div className="text-xs text-white/40">2.4 MB</div>
-                        </div>
-                      </div>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors">
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </div>
-                    
+                  <div className="grid grid-cols-1 gap-4">
+                    {activeSub.linkUrl ? (
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400">
                           <ExternalLink className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold">Live Project URL</div>
-                          <div className="text-xs text-white/40">vercel.app</div>
+                          <div className="text-sm font-semibold">Submitted Link</div>
+                          <div className="text-xs text-white/40">{activeSub.linkUrl}</div>
                         </div>
                       </div>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors">
+                      <a href={activeSub.linkUrl} target="_blank" rel="noreferrer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors">
                         <ExternalLink className="w-4 h-4" />
-                      </button>
+                      </a>
                     </div>
+                    ) : (
+                      <div className="text-white/50">No files or links provided.</div>
+                    )}
                   </div>
                 </section>
 
@@ -241,10 +224,43 @@ export default function AssignmentsReview() {
                       </div>
 
                       <div className="flex items-center gap-3 pt-4">
-                        <button className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+                        <button 
+                          onClick={async () => {
+                            try {
+                              await fetchApi(`/lms/assignments/submissions/${activeSub.id}`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({
+                                  grade: parseInt(gradeInput),
+                                  feedback: feedbackInput,
+                                  status: 'GRADED'
+                                })
+                              })
+                              toast.success("Grade submitted successfully")
+                              mutate()
+                            } catch (err) {
+                              toast.error("Failed to submit grade")
+                            }
+                          }}
+                          className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors shadow-[0_0_20px_rgba(168,85,247,0.3)]">
                           Submit Grade & Feedback
                         </button>
-                        <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors">
+                        <button 
+                          onClick={async () => {
+                            try {
+                              await fetchApi(`/lms/assignments/submissions/${activeSub.id}`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({
+                                  feedback: feedbackInput,
+                                  status: 'RESUBMIT_REQUESTED'
+                                })
+                              })
+                              toast.success("Requested resubmission")
+                              mutate()
+                            } catch (err) {
+                              toast.error("Failed to request resubmission")
+                            }
+                          }}
+                          className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors">
                           Request Resubmission
                         </button>
                       </div>

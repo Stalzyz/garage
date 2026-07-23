@@ -3,22 +3,17 @@
 import { useState } from "react"
 import { Phone, Mic, PhoneOff, User, Sparkles, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { ApiClient } from "@/lib/api"
-import { toast } from "sonner"
-
-// Mock Data
-const QUEUE = [
-  { id: "L-101", name: "Sarah Jenkins", company: "Nexus Health", role: "CMO", status: "Next", phone: "+1 (555) 019-2831" },
-  { id: "L-102", name: "David Chen", company: "Peak Performance", role: "Founder", status: "Queued", phone: "+1 (555) 832-1044" },
-  { id: "L-103", name: "Amanda Rossi", company: "Elevate AI", role: "VP Marketing", status: "Queued", phone: "+1 (555) 441-9920" },
-  { id: "L-104", name: "Marcus Johnson", company: "BlueOcean SaaS", role: "Director", status: "Queued", phone: "+1 (555) 772-0012" },
-]
+import { useApi, fetchApi } from "@/lib/useApi"
 
 export default function PowerDialerDashboard() {
+  const { data: leadsData, isLoading } = useApi<any>("/crm/leads?status=NEW")
+  const leadsQueue = leadsData?.data || []
+
   const [callState, setCallState] = useState<"idle" | "dialing" | "connected" | "voicemail" | "wrapup">("idle")
-  const [activeLead, setActiveLead] = useState(QUEUE[0])
   const [queuePos, setQueuePos] = useState(0)
+  const activeLead = leadsQueue[queuePos]
   const [routeThroughMobile, setRouteThroughMobile] = useState(false)
+  const [notes, setNotes] = useState("")
   const { data: session } = useSession()
 
   const handleStartDialer = async () => {
@@ -61,12 +56,52 @@ export default function PowerDialerDashboard() {
   }
 
   const handleNextLead = () => {
-    if (queuePos + 1 < QUEUE.length) {
-      setActiveLead(QUEUE[queuePos + 1])
+    if (queuePos + 1 < leadsQueue.length) {
       setQueuePos(queuePos + 1)
+      setCallState("idle")
+      setNotes("")
+    } else {
+      toast.info("No more leads in the queue.")
       setCallState("idle")
     }
   }
+
+  const handleDisposition = async (disposition: string) => {
+    if (!activeLead) return
+    try {
+      // Create an activity note
+      await fetchApi(`/crm/leads/${activeLead.id}/activities`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "CALL",
+          content: `Disposition: ${disposition}. Notes: ${notes}`
+        })
+      })
+
+      // Optionally update lead status based on disposition
+      let newStatus = activeLead.status
+      if (disposition === "Meeting Booked") newStatus = "QUALIFIED"
+      else if (disposition === "Not Interested") newStatus = "LOST"
+      else if (disposition === "Left Voicemail") newStatus = "CONTACTED"
+      else newStatus = "CONTACTED"
+
+      if (newStatus !== activeLead.status) {
+        await fetchApi(`/crm/leads/${activeLead.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus })
+        })
+      }
+
+      toast.success("Disposition logged.")
+      handleNextLead()
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to log disposition")
+    }
+  }
+
+  if (isLoading) return <div className="p-8 text-white">Loading dialer queue...</div>
+  if (leadsQueue.length === 0) return <div className="p-8 text-white">No leads to dial. Check your queue.</div>
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -97,7 +132,7 @@ export default function PowerDialerDashboard() {
                 <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${routeThroughMobile ? 'translate-x-3.5' : 'translate-x-0'}`} />
               </div>
             </label>
-            <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{QUEUE.length}</span>
+            <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{leadsQueue.length}</span>
             {callState === "idle" || callState === "wrapup" ? (
               <button 
                 onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
@@ -127,7 +162,7 @@ export default function PowerDialerDashboard() {
             </div>
             <div className="flex-1 overflow-y-auto p-2">
               <div className="space-y-1">
-                {QUEUE.map((lead, i) => (
+                {leadsQueue.map((lead: any, i: number) => (
                   <div key={lead.id} className={`p-3 rounded-xl border flex items-center gap-3 transition-colors ${
                     i === queuePos ? 'bg-primary/10 border-primary/30' : 
                     i < queuePos ? 'bg-muted/30 border-transparent opacity-50' : 
@@ -142,7 +177,7 @@ export default function PowerDialerDashboard() {
                     )}
                     <div className="flex-1">
                       <div className="font-medium text-foreground text-sm">{lead.name}</div>
-                      <div className="text-xs text-muted-foreground">{lead.company}</div>
+                      <div className="text-xs text-muted-foreground">{lead.company || lead.courseInterest || "N/A"}</div>
                     </div>
                   </div>
                 ))}
@@ -167,12 +202,12 @@ export default function PowerDialerDashboard() {
                 callState === "dialing" ? "bg-primary/20 text-primary shadow-[0_0_40px_rgba(139,92,246,0.3)] animate-pulse" :
                 "bg-muted text-muted-foreground"
               }`}>
-                {activeLead.name.split(" ").map(n => n[0]).join("")}
+                {(activeLead?.name || "X").split(" ").map((n: string) => n[0]).join("")}
               </div>
 
-              <h2 className="text-3xl font-bold text-foreground mb-1">{activeLead.name}</h2>
-              <p className="text-lg text-muted-foreground mb-2">{activeLead.role} @ {activeLead.company}</p>
-              <p className="text-sm font-mono text-muted-foreground mb-8">{activeLead.phone}</p>
+              <h2 className="text-3xl font-bold text-foreground mb-1">{activeLead?.name}</h2>
+              <p className="text-lg text-muted-foreground mb-2">{activeLead?.company || activeLead?.courseInterest || "N/A"}</p>
+              <p className="text-sm font-mono text-muted-foreground mb-8">{activeLead?.phone || "No Phone"}</p>
 
               {/* Status Display */}
               <div className="h-12 mb-8 flex items-center justify-center">
@@ -230,7 +265,7 @@ export default function PowerDialerDashboard() {
               <div className="space-y-2">
                 <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Prospect Context</div>
                 <div className="bg-muted/30 p-3 rounded-xl border border-border/50 text-sm text-foreground">
-                  {activeLead.name} recently downloaded the "State of SaaS Marketing 2025" whitepaper. Nexus Health just raised a Series B last month.
+                  {activeLead?.name} came via {activeLead?.source}. Current status: {activeLead?.status}.
                 </div>
               </div>
 
@@ -238,7 +273,7 @@ export default function PowerDialerDashboard() {
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Opening Line</div>
                 <div className="bg-primary/5 border-l-4 border-primary p-3 rounded-r-xl text-foreground font-medium text-lg">
-                  "Hi {activeLead.name.split(" ")[0]}, saw Nexus Health just closed your Series B — huge congrats! I'm calling because I noticed you downloaded our SaaS Marketing whitepaper..."
+                  "Hi {(activeLead?.name || "there").split(" ")[0]}, I noticed you reached out via {activeLead?.source} regarding {activeLead?.courseInterest || activeLead?.company || 'our services'}..."
                 </div>
               </div>
 
@@ -263,12 +298,16 @@ export default function PowerDialerDashboard() {
                     <FileText className="w-4 h-4" /> Quick Disposition
                   </div>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Meeting Booked</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Call Back Later</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Not Interested</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Left Voicemail</button>
+                    <button onClick={() => handleDisposition("Meeting Booked")} className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Meeting Booked</button>
+                    <button onClick={() => handleDisposition("Call Back Later")} className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Call Back Later</button>
+                    <button onClick={() => handleDisposition("Not Interested")} className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Not Interested</button>
+                    <button onClick={() => handleDisposition("Left Voicemail")} className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Left Voicemail</button>
                   </div>
-                  <textarea className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" placeholder="Optional notes..."></textarea>
+                  <textarea 
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" 
+                    placeholder="Optional notes..."></textarea>
                 </div>
               )}
 
