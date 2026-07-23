@@ -1,33 +1,30 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, Download, Plus, IndianRupee, TrendingUp, AlertCircle, FileText, CheckCircle2, Clock, XCircle } from "lucide-react"
+import { Search, Filter, Download, Plus, IndianRupee, TrendingUp, AlertCircle, FileText, CheckCircle2, Clock, XCircle, Loader2, X } from "lucide-react"
+import { useApi, fetchApi } from "@/lib/useApi"
+import { toast } from "sonner"
 
 // Types
 type InvoiceStatus = 'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE' | 'CANCELLED'
 
-interface Invoice {
-  id: string
-  student: string
-  course: string
-  amount: number
-  date: string
-  dueDate: string
-  status: InvoiceStatus
-}
-
-// Initial Data
-const dummyInvoices: Invoice[] = [
-  { id: 'INV-2024-001', student: 'John Doe', course: 'UI/UX Masterclass', amount: 45000, date: 'Oct 12, 2024', dueDate: 'Oct 19, 2024', status: 'PAID' },
-  { id: 'INV-2024-002', student: 'Jane Smith', course: 'Advanced React', amount: 30000, date: 'Oct 15, 2024', dueDate: 'Oct 22, 2024', status: 'PARTIAL' },
-  { id: 'INV-2024-003', student: 'Mike Johnson', course: 'Next.js Enterprise', amount: 60000, date: 'Oct 18, 2024', dueDate: 'Oct 25, 2024', status: 'PENDING' },
-  { id: 'INV-2024-004', student: 'Sarah Wilson', course: 'UI/UX Masterclass', amount: 45000, date: 'Sep 01, 2024', dueDate: 'Sep 08, 2024', status: 'OVERDUE' },
-  { id: 'INV-2024-005', student: 'Tom Brown', course: 'Advanced React', amount: 30000, date: 'Sep 15, 2024', dueDate: 'Sep 22, 2024', status: 'CANCELLED' },
-  { id: 'INV-2024-006', student: 'Emily Chen', course: 'UI/UX Masterclass', amount: 45000, date: 'Oct 20, 2024', dueDate: 'Oct 27, 2024', status: 'PENDING' },
-]
-
 export default function FeeManagementPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const { data: feesData, mutate, isLoading } = useApi<any>("/academy/fees")
+  const { data: enrollData } = useApi<any>("/academy/enroll/all")
+  
+  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [form, setForm] = useState({
+    enrollmentId: "",
+    amount: "",
+    dueDate: "",
+    notes: ""
+  })
+
+  const stats = feesData?.stats || { totalCollected: 0, totalOutstanding: 0, overdueCount: 0 }
+  const installments = feesData?.installments || []
+  const enrollments = enrollData?.data || []
 
   const getStatusConfig = (status: InvoiceStatus) => {
     switch (status) {
@@ -36,11 +33,43 @@ export default function FeeManagementPage() {
       case 'PENDING': return { color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: Clock }
       case 'OVERDUE': return { color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: AlertCircle }
       case 'CANCELLED': return { color: 'bg-white/5 text-white/40 border-white/10', icon: XCircle }
+      default: return { color: 'bg-white/5 text-white/40 border-white/10', icon: Clock }
     }
   }
 
+  const handleCreateInvoice = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/academy/fees/installment", {
+        method: "POST",
+        body: JSON.stringify({
+          enrollmentId: form.enrollmentId,
+          amount: Number(form.amount),
+          dueDate: new Date(form.dueDate).toISOString(),
+          notes: form.notes
+        })
+      })
+      toast.success("Invoice created successfully")
+      setIsSlideOverOpen(false)
+      setForm({ enrollmentId: "", amount: "", dueDate: "", notes: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create invoice")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const filteredInstallments = installments.filter((inv: any) => {
+    const search = searchQuery.toLowerCase()
+    const studentName = `${inv.enrollment?.student?.user?.firstName || ''} ${inv.enrollment?.student?.user?.lastName || ''}`.toLowerCase()
+    const courseName = inv.enrollment?.batch?.course?.name?.toLowerCase() || ''
+    return studentName.includes(search) || inv.id.toLowerCase().includes(search) || courseName.includes(search)
+  })
+
   return (
-    <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
+    <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white relative">
       <div className="p-8 max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
@@ -54,7 +83,7 @@ export default function FeeManagementPage() {
               <Download className="w-4 h-4" />
               Export
             </button>
-            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+            <button onClick={() => setIsSlideOverOpen(true)} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
               <Plus className="w-4 h-4" />
               New Invoice
             </button>
@@ -68,10 +97,10 @@ export default function FeeManagementPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4 relative z-10">
               <TrendingUp className="w-5 h-5 text-emerald-400" />
             </div>
-            <h3 className="text-white/50 text-sm font-medium mb-1 relative z-10">Total Collected (This Month)</h3>
+            <h3 className="text-white/50 text-sm font-medium mb-1 relative z-10">Total Collected</h3>
             <div className="flex items-center gap-1 text-3xl font-bold text-white relative z-10">
               <IndianRupee className="w-6 h-6 text-white/50" />
-              4,50,000
+              {stats.totalCollected.toLocaleString()}
             </div>
           </div>
 
@@ -83,7 +112,7 @@ export default function FeeManagementPage() {
             <h3 className="text-white/50 text-sm font-medium mb-1 relative z-10">Outstanding Dues</h3>
             <div className="flex items-center gap-1 text-3xl font-bold text-white relative z-10">
               <IndianRupee className="w-6 h-6 text-white/50" />
-              1,35,000
+              {stats.totalOutstanding.toLocaleString()}
             </div>
           </div>
 
@@ -94,8 +123,7 @@ export default function FeeManagementPage() {
             </div>
             <h3 className="text-white/50 text-sm font-medium mb-1 relative z-10">Overdue Invoices</h3>
             <div className="flex items-center gap-1 text-3xl font-bold text-white relative z-10">
-              <IndianRupee className="w-6 h-6 text-white/50" />
-              45,000
+              <span className="text-red-400 mr-2">{stats.overdueCount}</span> Invoices
             </div>
           </div>
         </div>
@@ -133,9 +161,11 @@ export default function FeeManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {dummyInvoices
-                  .filter(inv => inv.student.toLowerCase().includes(searchQuery.toLowerCase()) || inv.id.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((invoice) => {
+                {isLoading ? (
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-white/50"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />Loading Invoices...</td></tr>
+                ) : filteredInstallments.length === 0 ? (
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-white/50">No invoices found.</td></tr>
+                ) : filteredInstallments.map((invoice: any) => {
                   const statusConfig = getStatusConfig(invoice.status)
                   const StatusIcon = statusConfig.icon
                   
@@ -144,22 +174,23 @@ export default function FeeManagementPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 font-medium text-white/80">
                           <FileText className="w-4 h-4 text-white/40" />
-                          {invoice.id}
+                          {invoice.id.split('-')[0]}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-medium text-white">{invoice.student}</div>
-                        <div className="text-white/50 text-xs mt-0.5">{invoice.course}</div>
+                        <div className="font-medium text-white">{invoice.enrollment?.student?.user?.firstName} {invoice.enrollment?.student?.user?.lastName}</div>
+                        <div className="text-white/50 text-xs mt-0.5">{invoice.enrollment?.batch?.course?.name || "Unknown Course"}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-medium text-white flex items-center">
                           <IndianRupee className="w-3 h-3 text-white/50" />
                           {invoice.amount.toLocaleString()}
                         </div>
+                        {invoice.paidAmount > 0 && <div className="text-[10px] text-emerald-400 mt-0.5">Paid: ₹{invoice.paidAmount}</div>}
                       </td>
                       <td className="px-6 py-4 text-white/60">
-                        <div>{invoice.date}</div>
-                        <div className="text-[10px] text-white/40 mt-0.5">Due: {invoice.dueDate}</div>
+                        <div>{new Date(invoice.createdAt || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric'})}</div>
+                        <div className="text-[10px] text-white/40 mt-0.5">Due: {new Date(invoice.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric'})}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide border ${statusConfig.color}`}>
@@ -181,6 +212,63 @@ export default function FeeManagementPage() {
         </div>
 
       </div>
+
+      {/* SlideOver for Add Invoice */}
+      {isSlideOverOpen && (
+        <div className="absolute inset-0 z-50 flex justify-end">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsSlideOverOpen(false)} />
+          <div className="w-[450px] bg-[#111] h-full border-l border-[#222] relative flex flex-col shadow-2xl z-10 animate-in slide-in-from-right">
+            <div className="p-6 border-b border-[#222] flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-purple-500" />
+                Create New Invoice
+              </h2>
+              <button onClick={() => setIsSlideOverOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                <X className="w-5 h-5 text-white/50 hover:text-white" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateInvoice} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Select Student / Course Enrollment</label>
+                <select required value={form.enrollmentId} onChange={e => setForm(p => ({...p, enrollmentId: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none text-white appearance-none">
+                  <option value="">Select Enrollment...</option>
+                  {enrollments.map((enr: any) => (
+                    <option key={enr.id} value={enr.id}>
+                      {enr.student?.user?.firstName} {enr.student?.user?.lastName} - {enr.batch?.course?.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Invoice Amount (₹)</label>
+                <input required type="number" min="1" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none" placeholder="e.g. 50000" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Due Date</label>
+                <input required type="date" value={form.dueDate} onChange={e => setForm(p => ({...p, dueDate: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none [color-scheme:dark]" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Notes / Remarks</label>
+                <textarea rows={4} value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-sm focus:border-purple-500 outline-none resize-none" placeholder="Optional notes regarding this installment" />
+              </div>
+            </form>
+
+            <div className="p-6 border-t border-[#222] bg-[#111] flex gap-3">
+              <button disabled={isSubmitting} onClick={() => setIsSlideOverOpen(false)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold transition-colors">
+                Cancel
+              </button>
+              <button disabled={isSubmitting} onClick={handleCreateInvoice} className="flex-[2] py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-purple-500/20">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

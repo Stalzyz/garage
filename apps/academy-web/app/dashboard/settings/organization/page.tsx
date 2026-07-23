@@ -31,16 +31,16 @@ export default function OrganizationSettingsPage() {
       if (org.supportEmail) payload.supportEmail = org.supportEmail
       if (org.billingAddress) payload.billingAddress = org.billingAddress
       if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
+      if (org.openAiKey !== undefined) payload.openAiKey = org.openAiKey
 
       const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
       setSaved(true);
+      toast.success("Settings saved successfully!");
       setTimeout(() => setSaved(false), 3000);
-      
-      // Force reload to apply new branding globally
-      window.location.reload();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.message || "Failed to save settings");
     } finally {
       setSaving(false);
     }
@@ -199,6 +199,26 @@ export default function OrganizationSettingsPage() {
                 placeholder="123 Creative Street..."
               />
             </div>
+          </div>
+        </div>
+
+        {/* API Integrations */}
+        <div className="bg-[#111111] border border-[#222] rounded-xl p-6">
+          <h2 className="text-lg font-medium text-white mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg> 
+            API Integrations
+          </h2>
+          
+          <div className="space-y-2">
+            <label className="text-sm text-[#a1a1aa]">OpenAI API Key (For AI Features)</label>
+            <input
+              type="password"
+              value={org?.openAiKey || ""}
+              onChange={(e) => setOrg({ ...org, openAiKey: e.target.value })}
+              className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+              placeholder="sk-proj-..."
+            />
+            <p className="text-xs text-[#666]">Used for generating notes, descriptions, and AI documents.</p>
           </div>
         </div>
 

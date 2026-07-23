@@ -21,6 +21,7 @@ import {
   Link as LinkIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AIAssistantButton } from "@/components/AIAssistantButton"
 
 type LessonType = "VIDEO" | "TEXT" | "QUIZ" | "LINK"
 
@@ -262,9 +263,18 @@ export default function CourseBuilder() {
                     <input type="text" defaultValue="Advanced Web Architecture" className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50" />
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-xs font-semibold text-white/70 ml-1">Course Description</label>
-                    <textarea rows={4} defaultValue="Learn how to build scalable..." className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50 resize-none" />
+                    <textarea rows={4} defaultValue="Learn how to build scalable..." className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50 resize-none pb-12" />
+                    <div className="absolute bottom-2 right-2">
+                      <AIAssistantButton 
+                        onGenerate={(text) => {
+                          const ta = document.querySelector('textarea[defaultValue="Learn how to build scalable..."]') as HTMLTextAreaElement;
+                          if (ta) ta.value = text;
+                        }}
+                        contextPrompt="You are an expert course creator. Write a compelling, concise course description."
+                      />
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -383,12 +393,23 @@ export default function CourseBuilder() {
                   </div>
 
                   {/* Rich Text Block Mock */}
-                  <div className="group relative">
+                  <div className="group relative border border-white/5 rounded-xl bg-white/5 p-4 mt-4">
+                    <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+                      <h3 className="font-bold text-sm text-white/70">Lesson Notes / Content</h3>
+                      <AIAssistantButton 
+                        onGenerate={(text) => {
+                          const editor = document.getElementById('lesson-editor');
+                          if (editor) editor.innerHTML = text;
+                        }}
+                        format="html"
+                        contextPrompt="You are an expert instructor. Write comprehensive notes for this lesson."
+                      />
+                    </div>
                     <div className="absolute -left-12 top-0 bottom-0 flex items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button className="p-1 text-white/20 hover:text-white/60"><Plus className="w-5 h-5" /></button>
                       <button className="p-1 text-white/20 hover:text-white/60"><GripVertical className="w-5 h-5" /></button>
                     </div>
-                    <div className="min-h-[150px] w-full text-lg text-white/80 p-2 outline-none" contentEditable suppressContentEditableWarning>
+                    <div id="lesson-editor" className="min-h-[150px] w-full text-lg text-white/80 outline-none" contentEditable suppressContentEditableWarning>
                       Start writing your lesson notes here... Highlight text to format. Type '/' for commands like images, code blocks, or attachments.
                     </div>
                   </div>

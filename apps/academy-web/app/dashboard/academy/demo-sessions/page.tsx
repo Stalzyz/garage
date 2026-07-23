@@ -76,17 +76,17 @@ export default function DemoSessionsAdmin() {
               <input required placeholder="Demo Title (e.g. Intro to UI/UX)" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                 value={form.title} onChange={e => setForm(p => ({...p, title: e.target.value}))} />
               
-              <div className="flex gap-4">
-                <input required type="datetime-local" className="flex-[2] bg-white/5 border border-white/10 rounded-xl px-4 py-3 [color-scheme:dark]"
+              <div className="grid grid-cols-3 gap-4">
+                <input required type="datetime-local" className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 [color-scheme:dark]"
                   value={form.scheduledAt} onChange={e => setForm(p => ({...p, scheduledAt: e.target.value}))} />
-                <input required type="number" placeholder="Duration (mins)" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+                <input required type="number" placeholder="Duration (mins)" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.durationMins} onChange={e => setForm(p => ({...p, durationMins: parseInt(e.target.value)}))} />
               </div>
 
-              <div className="flex gap-4">
-                <input placeholder="Venue / Room" className="flex-[2] bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+              <div className="grid grid-cols-3 gap-4">
+                <input placeholder="Venue / Room" className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.venue} onChange={e => setForm(p => ({...p, venue: e.target.value}))} />
-                <input required type="number" placeholder="Capacity" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+                <input required type="number" placeholder="Capacity" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.capacity} onChange={e => setForm(p => ({...p, capacity: parseInt(e.target.value)}))} />
               </div>
 

@@ -109,4 +109,15 @@ export default async function enrollRouter(app: FastifyInstance) {
 
     return { data: enrollments };
   });
+
+  // GET /api/v1/academy/enroll/all
+  app.get('/enroll/all', async (req, reply) => {
+    const enrollments = await app.prisma.enrollment.findMany({
+      include: {
+        student: { include: { user: true } },
+        batch: { include: { course: true } }
+      }
+    });
+    return { data: enrollments };
+  });
 }

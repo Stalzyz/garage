@@ -3,9 +3,9 @@ import { z } from 'zod';
 
 const UpdateOrganizationSchema = z.object({
   name: z.string().optional(),
-  logoUrl: z.string().url().optional().or(z.literal('')),
-  academyLogoUrl: z.string().url().optional().or(z.literal('')),
-  faviconUrl: z.string().url().optional().or(z.literal('')),
+  logoUrl: z.string().optional().or(z.literal('')),
+  academyLogoUrl: z.string().optional().or(z.literal('')),
+  faviconUrl: z.string().optional().or(z.literal('')),
   primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
   secondaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
   accentColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
@@ -16,8 +16,10 @@ const UpdateOrganizationSchema = z.object({
   phone: z.string().optional().or(z.literal('')),
   openAiKey: z.string().optional().or(z.literal('')),
   bankName: z.string().optional().or(z.literal('')),
-  bankAccountNo: z.string().optional().or(z.literal('')),
-  bankIfsc: z.string().optional().or(z.literal('')),
+  accountName: z.string().optional().or(z.literal('')),
+  accountNumber: z.string().optional().or(z.literal('')),
+  ifscCode: z.string().optional().or(z.literal('')),
+  swiftCode: z.string().optional().or(z.literal('')),
   bankBranch: z.string().optional().or(z.literal('')),
 });
 

@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 600
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os && git pull origin main\r"
+expect "# "
+send "pnpm install\r"
+expect "# "
+send "pnpm --filter=api build\r"
+expect "# "
+send "pnpm --filter=web build\r"
+expect "# "
+send "pnpm --filter=academy-web build\r"
+expect "# "
+send "pm2 restart all\r"
+expect "# "
+send "exit\r"
+expect eof

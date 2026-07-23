@@ -1,17 +1,37 @@
 "use client"
 
 import { useApi, fetchApi } from "@/lib/useApi"
-import { FileText, Plus, Save, Trash2, ListChecks, Link, Loader2 } from "lucide-react"
+import { FileText, Plus, Save, Trash2, ListChecks, Link, Loader2, Edit3 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { AIAssistantButton } from "@/components/AIAssistantButton"
 
 export default function FormBuilderAdmin() {
   const { data: forms, mutate } = useApi<any[]>("/academy/forms")
   const [isBuilding, setIsBuilding] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formMeta, setFormMeta] = useState({ title: "", description: "", createLead: true })
   const [fields, setFields] = useState<any[]>([])
+
+  const startNewForm = () => {
+    setEditingId(null)
+    setFormMeta({ title: "", description: "", createLead: true })
+    setFields([])
+    setIsBuilding(true)
+  }
+
+  const editForm = (form: any) => {
+    setEditingId(form.id)
+    setFormMeta({ title: form.title, description: form.description || "", createLead: form.createLead })
+    // Ensure options are comma-separated string for editing
+    setFields(form.fields.map((f: any) => ({
+      ...f,
+      options: Array.isArray(f.options) ? f.options.join(", ") : f.options
+    })))
+    setIsBuilding(true)
+  }
 
   const addField = () => {
     setFields([...fields, { id: `field_${Date.now()}`, label: "", type: "TEXT", required: true, options: "" }])
@@ -44,13 +64,22 @@ export default function FormBuilderAdmin() {
           : []
       }))
 
-      await fetchApi("/academy/forms", {
-        method: "POST",
-        body: JSON.stringify({ ...formMeta, fields: cleanFields })
-      })
+      if (editingId) {
+        await fetchApi(`/academy/forms/${editingId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ ...formMeta, fields: cleanFields })
+        })
+        toast.success("Form updated successfully!")
+      } else {
+        await fetchApi("/academy/forms", {
+          method: "POST",
+          body: JSON.stringify({ ...formMeta, fields: cleanFields })
+        })
+        toast.success("Form published successfully!")
+      }
       
-      toast.success("Form published successfully!")
       setIsBuilding(false)
+      setEditingId(null)
       setFormMeta({ title: "", description: "", createLead: true })
       setFields([])
       mutate()
@@ -75,15 +104,17 @@ export default function FormBuilderAdmin() {
           </h1>
           <p className="text-white/50 mt-2">Create custom enquiry and registration forms instantly.</p>
         </div>
-        <button onClick={() => setIsBuilding(true)} className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 font-bold px-6 py-3 rounded-xl transition-colors">
-          <Plus className="w-4 h-4" /> Create New Form
-        </button>
+        {!isBuilding && (
+          <button onClick={startNewForm} className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 font-bold px-6 py-3 rounded-xl transition-colors">
+            <Plus className="w-4 h-4" /> Create New Form
+          </button>
+        )}
       </div>
 
       {!isBuilding && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(forms || []).map((form: any) => (
-            <div key={form.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col">
+            <div key={form.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col group relative">
               <div className="flex justify-between items-start mb-4">
                 <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase tracking-widest ${form.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
                   {form.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -97,9 +128,14 @@ export default function FormBuilderAdmin() {
                 <a href={`/dashboard/academy/forms/${form.id}`} className="text-sm font-bold text-rose-400 hover:text-rose-300">
                   {form._count?.submissions || 0} Submissions
                 </a>
-                <button onClick={() => copyLink(form.slug)} className="p-2 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors" title="Copy public link">
-                  <Link className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => editForm(form)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors" title="Edit form">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => copyLink(form.slug)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors" title="Copy public link">
+                    <Link className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -117,9 +153,17 @@ export default function FormBuilderAdmin() {
                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-lg font-bold placeholder:text-white/30 focus:border-rose-500 transition-colors outline-none"
                 value={formMeta.title} onChange={e => setFormMeta(p => ({...p, title: e.target.value}))} />
               
-              <textarea placeholder="Form Description (Optional)" rows={2}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm placeholder:text-white/30 focus:border-rose-500 transition-colors outline-none resize-none"
-                value={formMeta.description} onChange={e => setFormMeta(p => ({...p, description: e.target.value}))} />
+              <div className="relative">
+                <textarea placeholder="Form Description (Optional)" rows={4}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pb-12 text-sm placeholder:text-white/30 focus:border-rose-500 transition-colors outline-none resize-none"
+                  value={formMeta.description} onChange={e => setFormMeta(p => ({...p, description: e.target.value}))} />
+                <div className="absolute bottom-2 right-2">
+                  <AIAssistantButton 
+                    onGenerate={(text) => setFormMeta(p => ({...p, description: text}))}
+                    contextPrompt={`You are an expert form copywriter. Write a compelling, concise description for a form titled: '${formMeta.title}'. Make it inviting and professional.`}
+                  />
+                </div>
+              </div>
 
               <label className="flex items-center gap-3 p-4 bg-black/30 border border-white/5 rounded-xl cursor-pointer">
                 <input type="checkbox" className="w-5 h-5 accent-rose-500"
@@ -180,9 +224,9 @@ export default function FormBuilderAdmin() {
           </div>
 
           <div className="flex gap-4 sticky bottom-8">
-            <button onClick={() => setIsBuilding(false)} className="flex-1 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-xl rounded-2xl font-bold transition-colors">Cancel</button>
+            <button onClick={() => {setIsBuilding(false); setEditingId(null)}} className="flex-1 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-xl rounded-2xl font-bold transition-colors">Cancel</button>
             <button onClick={handleSaveForm} disabled={isSubmitting} className="flex-[2] py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-black shadow-xl shadow-rose-500/20 transition-colors flex justify-center items-center gap-2">
-              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Publish Form</>}
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> {editingId ? "Save Changes" : "Publish Form"}</>}
             </button>
           </div>
         </div>

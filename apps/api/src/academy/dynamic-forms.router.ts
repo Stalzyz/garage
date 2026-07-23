@@ -110,6 +110,25 @@ export default async function dynamicFormsRouter(app: FastifyInstance) {
     return { success: true, submissionId: submission.id };
   });
 
+  // ── PATCH /api/v1/academy/forms/:id ───────────────────────────────
+  // Admin updates an existing dynamic form
+  app.patch('/forms/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const schema = z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      fields: z.array(z.any()).optional(),
+      createLead: z.boolean().optional(),
+    });
+    const body = schema.parse(req.body);
+
+    const form = await app.prisma.enquiryForm.update({
+      where: { id },
+      data: body
+    });
+    return form;
+  });
+
   // ── PATCH /api/v1/academy/forms/:id/toggle ───────────────────────────────
   app.patch('/forms/:id/toggle', async (req, reply) => {
     const { id } = req.params as { id: string };

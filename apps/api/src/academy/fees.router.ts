@@ -50,6 +50,7 @@ export default async function feesRouter(app: FastifyInstance) {
       },
       overdue: overdueList,
       upcoming: upcomingList,
+      installments: allInstallments,
     };
   });
 

@@ -26,9 +26,21 @@ export default async function storageRouter(app: FastifyInstance) {
 
   const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'grekam-os-assets';
 
-  // Mock PUT endpoint for local development without S3
-  app.put('/mock-upload', async (req, reply) => {
-    // Simply accept the upload and do nothing
+  // Mock PUT endpoint for local development without S3, now saves locally!
+  app.put('/mock-upload/*', async (req, reply) => {
+    const key = (req.params as any)['*'];
+    if (!key) return reply.code(400).send({ error: 'Missing key' });
+
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    
+    const safeKey = key.replace(/\//g, '_');
+    const destinationPath = path.join(uploadsDir, safeKey);
+    
+    await pipeline(req.raw, fs.createWriteStream(destinationPath));
+    
     return reply.code(200).send({ success: true });
   });
 
@@ -79,11 +91,13 @@ export default async function storageRouter(app: FastifyInstance) {
 
     // MOCK UPLOAD LOGIC IF NO CREDENTIALS
     if (!process.env.R2_ACCESS_KEY_ID) {
-      console.warn('[Storage] R2 Credentials missing. Returning mock upload URL.');
+      console.warn('[Storage] R2 Credentials missing. Returning local fallback upload URL.');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+      const safeKey = key.replace(/\//g, '_');
       return {
-        uploadUrl: `/api/v1/storage/mock-upload`,
+        uploadUrl: `${API_URL}/storage/mock-upload/${encodeURIComponent(key)}`,
         key,
-        downloadUrl: `https://dummyimage.com/600x400/000/fff&text=${safeFilename}`, // Mock image download
+        downloadUrl: `${API_URL}/uploads/${safeKey}`,
       };
     }
 

@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import admissionsRouter from './admissions.router';
+import educatorsRouter from './educators.router';
 import studentsRouter from './students.router';
 import batchesRouter from './batches.router';
 import enrollRouter from './enroll.router';
@@ -28,6 +29,7 @@ import lmsStudentRoutes from './lms-student.router';
 
 export default async function academyModule(app: FastifyInstance) {
   await app.register(admissionsRouter);
+  await app.register(educatorsRouter);
   await app.register(studentsRouter);
   await app.register(batchesRouter);
   await app.register(enrollRouter);
