@@ -147,6 +147,12 @@ function SortableLeadCard({ lead, onSelect }: { lead: Lead, onSelect: (lead: Lea
 }
 
 export default function AdmissionsPipelinePage() {
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [newLead, setNewLead] = useState({ name: "", email: "", phone: "", courseInterest: "", source: "WEBSITE" })
+  const { data: apiResponse, mutate } = useApi<any>("/crm/leads")
+
   const [selectedLead, setSelectedLead] = useState<any | null>(null)
   const [actionTab, setActionTab] = useState<"CALL" | "EMAIL" | "MEETING">("CALL")
   const [actionNote, setActionNote] = useState("")
