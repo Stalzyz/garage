@@ -15,7 +15,7 @@ export default async function batchesRouter(app: FastifyInstance) {
 
   // GET /api/v1/academy/batches/sessions/upcoming
   app.get('/batches/sessions/upcoming', async (req, reply) => {
-    const sessions = await app.prisma.classSession.findMany({
+    const sessions = await app.prisma.batchSession.findMany({
       where: { startTime: { gte: new Date() } },
       include: {
         batch: { select: { name: true, course: { select: { name: true } } } },

@@ -113,8 +113,8 @@ export default async function walkInsRouter(app: FastifyInstance) {
 
     const total = await app.prisma.walkIn.count();
     const todayCount = await app.prisma.walkIn.count({ where: { createdAt: { gte: today } } });
-    const converted = await app.prisma.walkIn.count({ where: { status: 'ENROLLED' } });
-    const pending = await app.prisma.walkIn.count({ where: { status: 'WAITING' } });
+    const converted = await app.prisma.walkIn.count({ where: { status: 'CONVERTED' } });
+    const pending = await app.prisma.walkIn.count({ where: { status: { in: ['NEW', 'COUNSELLING', 'FOLLOW_UP'] } } });
 
     return {
       total,
