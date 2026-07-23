@@ -9,7 +9,7 @@ export default async function leavesRoutes(app: FastifyInstance) {
 
   server.get('/', async (req, reply) => {
     const leaves = await server.prisma.leaveRequest.findMany({
-      include: { employee: { include: { user: true } } },
+      include: { employee: { include: { user: true, department: true } } },
       orderBy: { createdAt: 'desc' }
     });
     return { leaves };

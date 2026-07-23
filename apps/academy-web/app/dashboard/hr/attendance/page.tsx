@@ -12,13 +12,17 @@ export default function StaffAttendanceDashboard() {
   const logs = attendanceData?.attendance || []
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
-  
   const [isManualOpen, setIsManualOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { data: empData } = useApi<any>("/hr/employees")
+  const allEmployees = empData?.employees || []
+
   const [formData, setFormData] = useState({
-    name: "",
+    employeeId: "",
     status: "PRESENT",
-    checkIn: "09:00 AM",
-    checkOut: "05:00 PM"
+    clockIn: "",
+    clockOut: ""
   })
 
   const filteredLogs = logs.filter((log: any) => {
@@ -29,10 +33,71 @@ export default function StaffAttendanceDashboard() {
     return true
   })
 
-  const presentCount = logs.filter(l => l.status === "PRESENT").length
-  const lateCount = logs.filter(l => l.status === "LATE").length
-  const absentCount = logs.filter(l => l.status === "ABSENT").length
-  const halfDayCount = logs.filter(l => l.status === "HALF_DAY").length
+  const presentCount = logs.filter((l: any) => l.status === "PRESENT").length
+  const lateCount = logs.filter((l: any) => l.status === "LATE").length
+  const absentCount = logs.filter((l: any) => l.status === "ABSENT").length
+  const halfDayCount = logs.filter((l: any) => l.status === "HALF_DAY").length
+
+  const handleManualEntry = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.employeeId) { toast.error("Please select an employee"); return }
+    setIsSubmitting(true)
+    try {
+      // Clock-in
+      await fetchApi("/hr/attendance/clock-in", {
+        method: "POST",
+        body: JSON.stringify({ employeeId: formData.employeeId })
+      })
+      // Then immediately override with the provided times if given
+      if (formData.clockIn || formData.clockOut) {
+        const todayRecord = await fetchApi<any>(`/hr/attendance/${formData.employeeId}`)
+        const latestLog = todayRecord?.attendance?.[0]
+        if (latestLog?.id) {
+          await fetchApi(`/hr/attendance/override/${latestLog.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              status: formData.status,
+              clockIn: formData.clockIn ? new Date(new Date().toDateString() + ' ' + formData.clockIn).toISOString() : undefined,
+              clockOut: formData.clockOut ? new Date(new Date().toDateString() + ' ' + formData.clockOut).toISOString() : undefined
+            })
+          })
+        }
+      }
+      toast.success("Attendance recorded successfully!")
+      setIsManualOpen(false)
+      setFormData({ employeeId: "", status: "PRESENT", clockIn: "", clockOut: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to record attendance")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleExport = () => {
+    const rows = [
+      ["Employee", "Date", "Status", "Clock In", "Clock Out", "Hours"],
+      ...logs.map((log: any) => [
+        log.employee?.user ? `${log.employee.user.firstName} ${log.employee.user.lastName}` : "Unknown",
+        new Date(log.date).toLocaleDateString('en-IN'),
+        log.status || "",
+        log.clockIn ? new Date(log.clockIn).toLocaleTimeString('en-IN') : "",
+        log.clockOut ? new Date(log.clockOut).toLocaleTimeString('en-IN') : "",
+        log.clockIn && log.clockOut
+          ? `${Math.floor((new Date(log.clockOut).getTime() - new Date(log.clockIn).getTime()) / 3600000)}h ${Math.floor(((new Date(log.clockOut).getTime() - new Date(log.clockIn).getTime()) % 3600000) / 60000)}m`
+          : "—"
+      ])
+    ]
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n")
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `attendance_${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success("Attendance exported as CSV")
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -44,9 +109,9 @@ export default function StaffAttendanceDashboard() {
             <p className="text-sm text-muted-foreground mt-1">Track daily check-ins, check-outs, and working hours.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50">
+            <button onClick={handleExport} className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50">
               <Download className="w-4 h-4" />
-              Export
+              Export CSV
             </button>
             <button onClick={() => setIsManualOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
               <UserCheck className="w-4 h-4" />
@@ -231,18 +296,17 @@ export default function StaffAttendanceDashboard() {
         open={isManualOpen}
         onClose={() => setIsManualOpen(false)}
         title="Mark Manual Entry"
-        subtitle="Manually update an employee's attendance record."
+        subtitle="Manually create or update an employee's attendance record."
       >
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          // Mock save
-          setIsManualOpen(false)
-          setFormData({ name: "", status: "PRESENT", checkIn: "09:00 AM", checkOut: "05:00 PM" })
-          toast.success("Manual entry saved")
-        }} className="space-y-5">
+        <form onSubmit={handleManualEntry} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Employee Name *</label>
-            <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white placeholder:text-white/30" />
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Employee *</label>
+            <select required value={formData.employeeId} onChange={e => setFormData({...formData, employeeId: e.target.value})} className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white">
+              <option value="">Select employee...</option>
+              {allEmployees.map((emp: any) => (
+                <option key={emp.id} value={emp.id}>{emp.user?.firstName} {emp.user?.lastName}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Status</label>
@@ -256,21 +320,22 @@ export default function StaffAttendanceDashboard() {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Check In</label>
-              <input value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Clock In (HH:MM)</label>
+              <input type="time" value={formData.clockIn} onChange={e => setFormData({...formData, clockIn: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Check Out</label>
-              <input value={formData.checkOut} onChange={e => setFormData({...formData, checkOut: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
+              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Clock Out (HH:MM)</label>
+              <input type="time" value={formData.clockOut} onChange={e => setFormData({...formData, clockOut: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50 text-white" />
             </div>
           </div>
           
           <div className="pt-4 mt-6 border-t border-white/10">
             <button 
               type="submit"
-              className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              Save Entry
+              {isSubmitting ? "Saving..." : "Save Entry"}
             </button>
           </div>
         </form>

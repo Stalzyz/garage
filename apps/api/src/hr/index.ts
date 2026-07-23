@@ -12,6 +12,7 @@ import telemetryRoutes from './telemetry.router';
 import performanceRoutes from './performance.router';
 import hrAnalyticsRoutes from './analytics.router';
 import hrWebhooksRoutes from './webhooks.router';
+import expensesRoutes from './expenses.router';
 
 export default async function hrModule(app: FastifyInstance) {
   // app.addHook('preHandler', app.requireAuth);
@@ -29,4 +30,5 @@ export default async function hrModule(app: FastifyInstance) {
   await app.register(performanceRoutes, { prefix: '/performance' });
   await app.register(hrAnalyticsRoutes, { prefix: '/analytics' });
   await app.register(hrWebhooksRoutes, { prefix: '/webhooks' });
+  await app.register(expensesRoutes, { prefix: '/expenses' });
 }

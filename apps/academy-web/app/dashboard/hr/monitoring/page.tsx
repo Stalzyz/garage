@@ -1,20 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Monitor, MousePointer2, Keyboard, Clock, Activity, Camera, AlertTriangle, Play, Pause } from "lucide-react"
 import { useApi } from "@/lib/useApi"
 import Image from "next/image"
 import { format } from "date-fns"
 
 export default function HRMonitoringDashboard() {
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("cuid-emp-1")
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("")
   
   // 1. Fetch All Employees for the selector
   const { data: empData } = useApi<any>("/hr/employees")
   const employees = empData?.employees || []
+
+  // Auto-select first real employee once loaded
+  useEffect(() => {
+    if (employees.length > 0 && !selectedEmployeeId) {
+      setSelectedEmployeeId(employees[0].id)
+    }
+  }, [employees, selectedEmployeeId])
   
   // 2. Fetch Telemetry for selected employee
-  const { data: telemetryData } = useApi<any>(`/hr/telemetry/report/${selectedEmployeeId}`)
+  const { data: telemetryData } = useApi<any>(selectedEmployeeId ? `/hr/telemetry/report/${selectedEmployeeId}` : null)
   
   const stats = telemetryData?.dailyStats || { totalActive: 0, totalIdle: 0, totalKeystrokes: 0, totalClicks: 0 }
   const screenshots = telemetryData?.screenshots || []
@@ -52,8 +59,7 @@ export default function HRMonitoringDashboard() {
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
               className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50"
             >
-              <option value="cuid-emp-1">Employee 1</option>
-              <option value="cuid-emp-2">Employee 2</option>
+              {employees.length === 0 && <option value="">Loading employees...</option>}
               {employees.map((emp: any) => (
                 <option key={emp.id} value={emp.id}>{emp.user?.firstName} {emp.user?.lastName}</option>
               ))}
