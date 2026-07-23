@@ -1,7 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/ws';
-
 export function useWebsocket() {
   const [messages, setMessages] = useState<any[]>([]);
   const ws = useRef<WebSocket | null>(null);
@@ -10,7 +8,13 @@ export function useWebsocket() {
     // Only connect on the client side
     if (typeof window === 'undefined') return;
 
-    ws.current = new WebSocket(WS_URL);
+    let wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+    if (!wsUrl) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}/api/v1/ws`;
+    }
+
+    ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
       console.log('Connected to Telemetry Hub');
