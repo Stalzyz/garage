@@ -12,6 +12,21 @@ const CreateBatchSchema = z.object({
 });
 
 export default async function batchesRouter(app: FastifyInstance) {
+
+  // GET /api/v1/academy/batches/sessions/upcoming
+  app.get('/batches/sessions/upcoming', async (req, reply) => {
+    const sessions = await app.prisma.classSession.findMany({
+      where: { startTime: { gte: new Date() } },
+      include: {
+        batch: { select: { name: true, course: { select: { name: true } } } },
+        educator: { select: { user: { select: { firstName: true, lastName: true } } } }
+      },
+      orderBy: { startTime: 'asc' },
+      take: 20
+    });
+    return { data: sessions };
+  });
+
   // GET /api/v1/academy/batches
   app.get('/batches', async (req, reply) => {
     const { isActive, courseId } = req.query as { isActive?: string; courseId?: string };

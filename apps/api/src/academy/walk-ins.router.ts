@@ -106,6 +106,25 @@ export default async function walkInsRouter(app: FastifyInstance) {
     return walkIns;
   });
 
+  // ── GET /api/v1/academy/walk-ins/stats ────────────────────────────────────
+  app.get('/walk-ins/stats', async (req, reply) => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const total = await app.prisma.walkIn.count();
+    const todayCount = await app.prisma.walkIn.count({ where: { createdAt: { gte: today } } });
+    const converted = await app.prisma.walkIn.count({ where: { status: 'ENROLLED' } });
+    const pending = await app.prisma.walkIn.count({ where: { status: 'WAITING' } });
+
+    return {
+      total,
+      todayCount,
+      converted,
+      pending,
+      conversionRate: total > 0 ? Math.round((converted / total) * 100) : 0
+    };
+  });
+
   // ── POST /api/v1/academy/walk-ins (Kiosk submission) ─────────────────────
   app.post('/walk-ins', async (req, reply) => {
     const schema = z.object({

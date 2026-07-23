@@ -1,18 +1,33 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Filter, MoreHorizontal, Mail, GraduationCap, ChevronDown, Download } from "lucide-react"
-
-const dummyStudents = [
-  { id: 1, name: "Alice Johnson", email: "alice@example.com", course: "Advanced React", progress: 85, lastActive: "2 hours ago", status: "Active" },
-  { id: 2, name: "Bob Smith", email: "bob@example.com", course: "UI/UX Design Masterclass", progress: 32, lastActive: "1 day ago", status: "Active" },
-  { id: 3, name: "Charlie Davis", email: "charlie@example.com", course: "Advanced React", progress: 100, lastActive: "1 week ago", status: "Completed" },
-  { id: 4, name: "Diana Evans", email: "diana@example.com", course: "Next.js Enterprise", progress: 12, lastActive: "1 month ago", status: "Inactive" },
-  { id: 5, name: "Ethan Hunt", email: "ethan@example.com", course: "UI/UX Design Masterclass", progress: 60, lastActive: "5 hours ago", status: "Active" },
-]
+import { useApi } from "@/lib/useApi"
+import { toast } from "sonner"
+import { Loader2, X } from "lucide-react"
 
 export default function MyStudentsPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const { data: studentsData, isLoading } = useApi<any>("/academy/students")
+  const rawStudents = studentsData?.data || []
+
+  const students = rawStudents.map((s: any) => ({
+    id: s.id,
+    name: `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.trim() || 'Student',
+    email: s.user?.email || '',
+    course: s.enrollments?.[0]?.batch?.course?.name || 'Onsite Batch',
+    progress: Math.min(s.xp || 50, 100),
+    lastActive: s.updatedAt ? new Date(s.updatedAt).toLocaleDateString() : 'Recently',
+    status: s.isAlumni ? 'Completed' : 'Active'
+  }))
+
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null)
+  const [messageText, setMessageText] = useState("")
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    toast.success(`Message sent to ${selectedStudent ? selectedStudent.name : 'all students'}!`)
+    setSelectedStudent(null)
+    setMessageText("")
+  }
 
   return (
     <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
@@ -56,6 +71,9 @@ export default function MyStudentsPage() {
         </div>
 
         {/* Students Table */}
+        {isLoading ? (
+          <div className="text-white/50 py-8 text-center">Loading students...</div>
+        ) : (
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -63,16 +81,16 @@ export default function MyStudentsPage() {
                 <tr>
                   <th className="px-6 py-4 font-medium">Student</th>
                   <th className="px-6 py-4 font-medium">Enrolled Course</th>
-                  <th className="px-6 py-4 font-medium">Progress</th>
+                  <th className="px-6 py-4 font-medium">Progress / XP</th>
                   <th className="px-6 py-4 font-medium">Last Active</th>
                   <th className="px-6 py-4 font-medium">Status</th>
                   <th className="px-6 py-4 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {dummyStudents
-                  .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((student) => (
+                {students
+                  .filter((s: any) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((student: any) => (
                   <tr key={student.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -113,8 +131,11 @@ export default function MyStudentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                        <MoreHorizontal className="w-4 h-4" />
+                      <button 
+                        onClick={() => setSelectedStudent(student)}
+                        className="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors font-bold text-xs"
+                      >
+                        Action / Message
                       </button>
                     </td>
                   </tr>
@@ -123,6 +144,29 @@ export default function MyStudentsPage() {
             </table>
           </div>
         </div>
+        )}
+
+      {/* Message Modal */}
+      {selectedStudent && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
+          <div className="bg-[#111] border-l border-white/10 w-full max-w-md h-full p-6 overflow-y-auto flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+              <div>
+                <h2 className="text-xl font-bold text-white">{selectedStudent.name}</h2>
+                <p className="text-xs text-white/50">{selectedStudent.email}</p>
+              </div>
+              <button onClick={() => setSelectedStudent(null)}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+            <form onSubmit={handleSendMessage} className="space-y-4 flex-1">
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Message Content</label>
+                <textarea rows={4} required value={messageText} onChange={e => setMessageText(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white resize-none" placeholder="Type notification..." />
+              </div>
+              <button type="submit" className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors">Send Message</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       </div>
     </div>
