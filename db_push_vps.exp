@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set timeout 300
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && git pull origin main && pnpm install --frozen-lockfile && cd packages/db && npx prisma generate && npx prisma db push --accept-data-loss && cd ../.. && pnpm --filter=api build && pnpm --filter=web build && pnpm --filter=academy-web build && pm2 restart all"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && git pull origin main && pnpm install --frozen-lockfile && cd packages/db && npx prisma generate && npx prisma db push --accept-data-loss && cd ../.. && pnpm --filter=api build && pnpm --filter=web build && pnpm --filter=academy-web build && cd apps/academy-web && cp -rf .next/static .next/standalone/apps/academy-web/.next/ && cp -rf public .next/standalone/apps/academy-web/ && cd ../web && cp -rf .next/static .next/standalone/apps/web/.next/ && cp -rf public .next/standalone/apps/web/ && cd ../.. && pm2 restart all"
 expect "assword:"
 send "Photoshop09@\r"
 expect eof
