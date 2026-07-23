@@ -183,10 +183,12 @@ model Organization {
   openAiKey      String?
 
   // Bank Details
-  bankName       String?
-  bankAccountNo  String?
-  bankIfsc       String?
-  bankBranch     String?
+  bankName      String?
+  accountName   String?
+  accountNumber String?
+  ifscCode      String?
+  swiftCode     String?
+  bankBranch    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
