@@ -10,6 +10,40 @@ export default function DemoSessionsAdmin() {
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [form, setForm] = useState({ title: "", scheduledAt: "", venue: "", meetLink: "", capacity: 20, durationMins: 60 })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGeneratingMeet, setIsGeneratingMeet] = useState(false)
+
+  const handleGenerateMeet = async () => {
+    if (!form.title || !form.scheduledAt) {
+      toast.error("Please enter a title and scheduled time first.")
+      return
+    }
+    
+    setIsGeneratingMeet(true)
+    try {
+      const startTime = new Date(form.scheduledAt)
+      const endTime = new Date(startTime.getTime() + form.durationMins * 60000)
+
+      const res = await fetchApi<any>("/google/meet", {
+        method: "POST",
+        body: JSON.stringify({
+          summary: form.title,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        })
+      })
+
+      if (res.meetUrl) {
+        setForm(p => ({ ...p, meetLink: res.meetUrl }))
+        toast.success("Google Meet link generated!")
+      } else {
+        throw new Error("No URL returned")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate Meet link. Check integrations.")
+    } finally {
+      setIsGeneratingMeet(false)
+    }
+  }
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,8 +127,20 @@ export default function DemoSessionsAdmin() {
               <div className="grid grid-cols-2 gap-4">
                 <input placeholder="Venue / Room" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.venue} onChange={e => setForm(p => ({...p, venue: e.target.value}))} />
-                <input placeholder="Google Meet Link (Optional)" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
-                  value={form.meetLink} onChange={e => setForm(p => ({...p, meetLink: e.target.value}))} />
+                
+                <div className="col-span-1 relative flex gap-2">
+                  <input placeholder="Google Meet Link (Optional)" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 min-w-0"
+                    value={form.meetLink} onChange={e => setForm(p => ({...p, meetLink: e.target.value}))} />
+                  <button 
+                    type="button"
+                    onClick={handleGenerateMeet}
+                    disabled={isGeneratingMeet}
+                    className="shrink-0 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3 py-3 rounded-xl font-bold transition-colors flex items-center justify-center min-w-[48px]"
+                    title="Auto-generate Google Meet Link"
+                  >
+                    {isGeneratingMeet ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlayCircle className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               
               <div className="grid grid-cols-3 gap-4">
