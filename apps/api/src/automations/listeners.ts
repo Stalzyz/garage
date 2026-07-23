@@ -278,5 +278,56 @@ export function registerGlobalListeners() {
       });
     }
   });
+
+  EventBus.on(SystemEvents.FEE_INVOICE_SENT, async (data) => {
+    console.log('[Autopilot] ✉️ Caught FEE_INVOICE_SENT:', data.studentName);
+    const org = await prisma.organization.findFirst();
+    const brandingColor = org?.primaryColor || '#2563eb';
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px;background:#f9f9f9;border-radius:12px;border:1px solid #eee;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <h2 style="color:${brandingColor};margin:0;font-size:24px;text-transform:uppercase;letter-spacing:1px;">${org?.name || 'Grekam Academy'}</h2>
+          <p style="color:#777;font-size:12px;margin:4px 0 0 0;">Official Fee Invoice / Receipt</p>
+        </div>
+        <p>Dear <strong>${data.studentName}</strong>,</p>
+        <p>Your fee installment invoice for the <strong>${data.batchName}</strong> batch has been generated.</p>
+        
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:24px 0;">
+          <table style="width:100%;font-size:14px;border-collapse:collapse;">
+            <tr style="border-b:1px solid #f3f4f6;">
+              <td style="padding:10px 0;color:#6b7280;">Basic Amount</td>
+              <td style="padding:10px 0;text-align:right;font-weight:bold;color:#1f2937;">${data.amount}</td>
+            </tr>
+            <tr style="border-b:1px solid #f3f4f6;">
+              <td style="padding:10px 0;color:#6b7280;">GST / Taxes</td>
+              <td style="padding:10px 0;text-align:right;font-weight:bold;color:#1f2937;">${data.taxAmount}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 0;color:#374151;font-weight:bold;font-size:16px;">Total Due</td>
+              <td style="padding:10px 0;text-align:right;font-weight:black;font-size:18px;color:${brandingColor};">${data.totalDue}</td>
+            </tr>
+          </table>
+        </div>
+
+        <table style="width:100%;font-size:13px;color:#4b5563;margin-bottom:24px;">
+          <tr>
+            <td style="padding:4px 0;"><strong>Due Date:</strong></td>
+            <td style="text-align:right;">${data.dueDate}</td>
+          </tr>
+          ${data.notes ? `
+          <tr>
+            <td style="padding:4px 0;vertical-align:top;"><strong>Notes:</strong></td>
+            <td style="text-align:right;color:#6b7280;max-width:200px;">${data.notes}</td>
+          </tr>` : ''}
+        </table>
+
+        <p style="color:#555;font-size:13px;line-height:1.5;">Please process this payment on or before the due date. Thank you for your continued dedication to learning!</p>
+        <p style="color:#888;font-size:12px;margin-top:32px;border-t:1px solid #eee;padding-top:16px;text-align:center;">— ${org?.name || 'Grekam Academy'} Support</p>
+      </div>`;
+
+    if (data.studentEmail) {
+      await EmailService.sendEmail(data.studentEmail, `✉️ Fee Invoice: ${data.totalDue} due for ${data.batchName}`, html);
+    }
+  });
 }
 
