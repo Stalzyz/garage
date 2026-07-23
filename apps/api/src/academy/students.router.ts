@@ -55,44 +55,70 @@ export default async function studentsRouter(app: FastifyInstance) {
   app.post('/students', async (req, reply) => {
     const body = CreateStudentSchema.parse(req.body);
     
-    // Using a default hash or generating one
+    const cleanBatchId = body.batchId && body.batchId.trim() !== '' ? body.batchId : undefined;
+    const cleanDob = body.dateOfBirth && body.dateOfBirth.trim() !== '' ? new Date(body.dateOfBirth) : undefined;
     const passwordHash = crypto.createHash('sha256').update('Grekam@2026').digest('hex');
-
     const studentCode = `GRA-${new Date().getFullYear() % 100}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
     const student = await app.prisma.$transaction(async (tx: any) => {
-      const user = await tx.user.create({
-        data: {
-          email: body.email,
-          passwordHash,
-          role: 'STUDENT',
-          status: 'ACTIVE',
-          firstName: body.firstName,
-          lastName: body.lastName,
-          phone: body.phone,
+      let user = await tx.user.findUnique({ where: { email: body.email } });
+
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            email: body.email,
+            passwordHash,
+            role: 'STUDENT',
+            status: 'ACTIVE',
+            firstName: body.firstName,
+            lastName: body.lastName,
+            phone: body.phone || undefined,
+          }
+        });
+      }
+
+      // Check if student profile exists for this user
+      let existingStudent = await tx.student.findUnique({ where: { userId: user.id } });
+      if (existingStudent) {
+        if (cleanBatchId) {
+          const batch = await tx.batch.findUnique({ where: { id: cleanBatchId }, include: { course: true } });
+          const existingEnroll = await tx.enrollment.findFirst({ where: { studentId: existingStudent.id, batchId: cleanBatchId } });
+          if (!existingEnroll) {
+            await tx.enrollment.create({
+              data: {
+                studentId: existingStudent.id,
+                batchId: cleanBatchId,
+                status: 'ACTIVE',
+                totalFee: batch?.course?.fee || 0,
+              }
+            });
+          }
         }
-      });
+        return existingStudent;
+      }
 
       const newStudent = await tx.student.create({
         data: {
           userId: user.id,
           studentCode,
-          dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
+          dateOfBirth: cleanDob && !isNaN(cleanDob.getTime()) ? cleanDob : undefined,
           leadId: body.leadId || undefined,
           deliveryMode: body.deliveryMode || 'ONSITE',
         }
       });
 
-      if (body.batchId) {
-        const batch = await tx.batch.findUnique({ where: { id: body.batchId }, include: { course: true } });
-        await tx.enrollment.create({
-          data: {
-            studentId: newStudent.id,
-            batchId: body.batchId,
-            status: 'ACTIVE',
-            totalFee: batch?.course?.fee || 0,
-          }
-        });
+      if (cleanBatchId) {
+        const batch = await tx.batch.findUnique({ where: { id: cleanBatchId }, include: { course: true } });
+        if (batch) {
+          await tx.enrollment.create({
+            data: {
+              studentId: newStudent.id,
+              batchId: cleanBatchId,
+              status: 'ACTIVE',
+              totalFee: batch?.course?.fee || 0,
+            }
+          });
+        }
       }
 
       return newStudent;

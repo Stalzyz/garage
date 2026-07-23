@@ -8,9 +8,10 @@ const LeadSourceValues = ['WEBSITE', 'WHATSAPP', 'REFERRAL', 'COLD_OUTREACH', 'I
 const CreateLeadSchema = z.object({
   name: z.string().min(1),
   email: z.union([z.string().email(), z.literal("")]).optional(),
-  phone: z.string().optional(),
+  phone: z.union([z.string(), z.literal("")]).optional(),
   company: z.string().optional(),
-  source: z.enum(LeadSourceValues),
+  source: z.enum(LeadSourceValues).optional().default('WEBSITE'),
+  status: z.enum(LeadStatusValues).optional().default('ENQUIRY'),
   estimatedBudget: z.number().optional(),
   projectType: z.string().optional(),
   notes: z.string().optional(),
@@ -105,24 +106,20 @@ export default async function leadsRouter(app: FastifyInstance) {
   app.post('/leads', async (req, reply) => {
     const body = CreateLeadSchema.parse(req.body);
 
-    if (body.email || body.phone) {
-      const existingLead = await app.prisma.lead.findFirst({
-        where: {
-          OR: [
-            ...(body.email ? [{ email: body.email }] : []),
-            ...(body.phone ? [{ phone: body.phone }] : [])
-          ]
-        }
-      });
-      if (existingLead) {
-        return reply.status(409).send({ error: 'A lead with this email or phone already exists.', leadId: existingLead.id });
-      }
-    }
+    const cleanEmail = body.email && body.email.trim() !== '' ? body.email.trim() : undefined;
+    const cleanPhone = body.phone && body.phone.trim() !== '' ? body.phone.trim() : undefined;
 
     const score = calculateScore(body.estimatedBudget, body.source, body.projectType, body.businessUnit);
 
     const lead = await app.prisma.lead.create({
-      data: { ...body, score },
+      data: { 
+        ...body, 
+        email: cleanEmail,
+        phone: cleanPhone,
+        source: body.source || 'WEBSITE',
+        status: body.status || 'ENQUIRY',
+        score 
+      },
     });
     
     // Autopilot Trigger

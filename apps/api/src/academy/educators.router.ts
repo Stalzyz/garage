@@ -47,18 +47,17 @@ export default async function educatorsRouter(app: FastifyInstance) {
       // Check if educator profile already exists for this user
       const existingEducator = await tx.educator.findUnique({ where: { userId: user.id } });
       if (existingEducator) {
-        throw new Error("An educator profile already exists for this email.");
+        return existingEducator;
       }
       return await tx.educator.create({
         data: {
           userId: user.id,
-          designation: body.designation,
-          company: body.company,
-          yearsExperience: body.yearsExperience,
+          designation: body.designation || undefined,
+          company: body.company || undefined,
+          yearsExperience: body.yearsExperience || 0,
           skills: body.skills || [],
-          bio: body.bio,
+          bio: body.bio || undefined,
           deliveryMode: body.deliveryMode || 'ONSITE',
-          verificationStatus: 'VERIFIED'
         },
         include: { user: true }
       });
