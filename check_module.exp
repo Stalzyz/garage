@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "find /root/grekam-os/node_modules/.pnpm -name 'boundary-components.js' 2>/dev/null | head -5\r"
+expect "# "
+send "ls /root/grekam-os/node_modules/.pnpm/ | grep 'next@16' | head -3\r"
+expect "# "
+send "grep -r 'MetadataBoundary' /root/grekam-os/apps/academy-web/.next/server/ 2>/dev/null | head -3\r"
+expect "# "
+send "cat /root/grekam-os/apps/academy-web/.next/react-client-manifest.json 2>/dev/null | head -5 || ls /root/grekam-os/apps/academy-web/.next/server/ | head -10\r"
+expect "# "
+send "exit\r"
+expect eof

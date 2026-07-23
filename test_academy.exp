@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "curl -s -o /dev/null -w '%{http_code}' http://localhost:3006/\r"
+expect "# "
+send "curl -s -o /dev/null -w '%{http_code}' https://academy.grekam.in/\r"
+expect "# "
+send "pm2 logs grecakam-os-academy --lines 3 --nostream | tail -10\r"
+expect "# "
+send "exit\r"
+expect eof

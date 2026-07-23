@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "ls /root/grekam-os/node_modules/.pnpm/ | grep 'next@16' | head -5\r"
+expect "# "
+send "find /root/grekam-os/node_modules -name 'boundary-components.js' 2>/dev/null | head -5\r"
+expect "# "
+send "ls /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/\r"
+expect "# "
+send "ls /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/node_modules/.pnpm/ 2>/dev/null | grep next | head -3 || echo 'no pnpm dir in standalone'\r"
+expect "# "
+send "exit\r"
+expect eof

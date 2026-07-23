@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "kill -9 3655405 2>/dev/null; sleep 1\r"
+expect "# "
+send "pm2 delete 12\r"
+expect "# "
+send "cd /root/grekam-os/apps/academy-web\r"
+expect "# "
+send "PORT=3006 pm2 start .next/standalone/apps/academy-web/server.js --name grecakam-os-academy --env production -- --port 3006\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "sleep 3 && netstat -tulnp | grep node\r"
+expect "# "
+send "exit\r"
+expect eof

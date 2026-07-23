@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "ls -la /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/.next/static && ls -la /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/public"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

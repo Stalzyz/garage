@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+# Add PORT to the standalone .env file so it's always picked up
+send "echo 'PORT=3006' >> /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/.env\r"
+expect "# "
+send "echo 'NEXT_PUBLIC_API_URL=https://academy.grekam.in/api/v1' >> /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/.env\r"
+expect "# "
+send "pm2 delete 13\r"
+expect "# "
+send "cd /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web\r"
+expect "# "
+send "PORT=3006 node server.js &\r"
+after 3000
+expect "# "
+send "netstat -tulnp | grep node\r"
+expect "# "
+send "kill %1 2>/dev/null\r"
+expect "# "
+send "cd /root/grekam-os/apps/academy-web\r"
+expect "# "
+send "pm2 start .next/standalone/apps/academy-web/server.js --name grecakam-os-academy --env production\r"
+expect "# "
+send "pm2 env 13 | grep PORT\r"
+expect "# "
+send "sleep 3 && netstat -tulnp | grep node\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

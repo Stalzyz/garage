@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+# The standalone dir needs access to the pnpm store
+# Create a symlink from standalone/node_modules/.pnpm -> /root/grekam-os/node_modules/.pnpm
+send "ln -sfn /root/grekam-os/node_modules/.pnpm /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/node_modules/.pnpm\r"
+expect "# "
+# Also symlink the next package itself
+send "ln -sfn /root/grekam-os/node_modules/.pnpm /root/grekam-os/apps/academy-web/.next/standalone/node_modules/.pnpm 2>/dev/null || true\r"
+expect "# "
+send "ls /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/node_modules/ | head\r"
+expect "# "
+send "pm2 restart 19 --update-env\r"
+expect "# "
+send "sleep 5 && netstat -tulnp | grep node\r"
+expect "# "
+send "pm2 logs grecakam-os-academy --lines 8 --nostream\r"
+expect "# "
+send "exit\r"
+expect eof

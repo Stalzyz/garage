@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { MonitorPlay, Loader2, ArrowRight } from "lucide-react"
+import { fetchApi } from "@/lib/useApi"
 
 export default function NewCoursePage() {
   const router = useRouter()
@@ -25,11 +26,9 @@ export default function NewCoursePage() {
     setLoading(true)
     setError("")
     try {
-      // Assuming API is accessible via API domain or proxy
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.raaghas.in" 
-      const res = await fetch(`${API_URL}/api/v1/lms/courses`, {
+      // Using fetchApi wrapper which handles credentials, errors, and endpoints relative to API_BASE_URL
+      const data: any = await fetchApi("/lms/courses", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           code: formData.code.toUpperCase(),
@@ -39,11 +38,6 @@ export default function NewCoursePage() {
         })
       })
 
-      if (!res.ok) {
-        throw new Error("Failed to create course")
-      }
-
-      const data = await res.json()
       // Redirect to builder with the newly created LMSCourse ID
       router.push(`/dashboard/studio/online/courses/builder/${data.id}`)
     } catch (err: any) {

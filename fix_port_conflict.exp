@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "pm2 delete 16 2>/dev/null; sleep 1\r"
+expect "# "
+# The issue is Next.js 16 standalone uses a secondary internal server. 
+# Setting __NEXT_PRIVATE_PREBUNDLED_REACT and the proper port differently
+# Direct fix: write a wrapper script that sets the env and calls server.js
+send "cat > /tmp/start_academy.sh << 'SCRIPT'\n#!/bin/bash\nexport PORT=3006\nexport HOSTNAME=0.0.0.0\nexport NODE_ENV=production\nexport AUTH_SECRET=grekam-os-super-secret-key-2026\nexport AUTH_TRUST_HOST=true\nexport NEXTAUTH_SECRET=grekam-os-super-secret-key-2026\nexport NEXTAUTH_URL=https://academy.grekam.in\nexport AUTH_URL=https://academy.grekam.in\nexport DATABASE_URL='postgresql://postgres:Photoshop09%40@localhost:5432/grekam_os?schema=public'\ncd /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web\nexec node server.js\nSCRIPT\r"
+expect "# "
+send "chmod +x /tmp/start_academy.sh\r"
+expect "# "
+send "pm2 start /tmp/start_academy.sh --name grecakam-os-academy --interpreter bash\r"
+expect "# "
+send "sleep 4\r"
+expect "# "
+send "netstat -tulnp | grep node\r"
+expect "# "
+send "pm2 logs grecakam-os-academy --lines 8 --nostream\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

@@ -24,6 +24,7 @@ import {
   Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { fetchApi } from "@/lib/useApi"
 
 import {
   DndContext,
@@ -94,13 +95,9 @@ export default function CourseBuilder() {
     fetchCourseData()
   }, [courseId])
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.raaghas.in"
-
   const fetchCourseData = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/lms/courses/${courseId}`)
-      if (!res.ok) throw new Error("Failed to load course")
-      const data = await res.json()
+      const data: any = await fetchApi(`/lms/courses/${courseId}`)
       const c = data.course
 
       setCourseState({
@@ -143,9 +140,8 @@ export default function CourseBuilder() {
 
     try {
       // 1. Save Course Metadata
-      await fetch(`${API_URL}/api/v1/lms/courses/${courseId}`, {
+      await fetchApi(`/lms/courses/${courseId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: courseState.title,
           description: courseState.description,
@@ -155,10 +151,9 @@ export default function CourseBuilder() {
         })
       })
 
-      // 2. Save Curriculum Tree
-      await fetch(`${API_URL}/api/v1/lms/courses/${courseId}/curriculum`, {
+      // 2. Save Curriculum Structure
+      await fetchApi(`/lms/courses/${courseId}/curriculum`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ modules })
       })
 

@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "echo '=== .env (root) ===' && cat /root/grekam-os/.env 2>/dev/null || echo MISSING\r"
+expect "# "
+send "echo '=== academy-web standalone .env ===' && cat /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/.env 2>/dev/null || echo MISSING\r"
+expect "# "
+send "echo '=== pm2 env for academy ===' && pm2 env 19 2>/dev/null | grep -E 'PORT|HOSTNAME|HOST'\r"
+expect "# "
+send "exit\r"
+expect eof

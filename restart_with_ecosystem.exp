@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os && git pull origin main\r"
+expect "# "
+# Stop and delete the ad-hoc academy process
+send "pm2 delete grecakam-os-academy 2>/dev/null; sleep 1\r"
+expect "# "
+# Start with ecosystem config for the academy only
+send "pm2 start ecosystem.config.js --only grecakam-os-academy\r"
+expect "# "
+send "sleep 3\r"
+expect "# "
+send "netstat -tulnp | grep node\r"
+expect "# "
+send "pm2 logs grecakam-os-academy --lines 5 --nostream\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+# Move web app to port 3005, free 3000 for turbopack worker
+send "pm2 stop 11 && pm2 delete 11 && sleep 1\r"
+expect "# "
+send "PORT=3005 pm2 start /root/grekam-os/apps/web/.next/standalone/apps/web/server.js --name grekam-os-web\r"
+expect "# "
+# Update nginx for app.grekam.in to use 3005
+send "sed -i 's/proxy_pass http:\\/\\/localhost:3000/proxy_pass http:\\/\\/localhost:3005/g' /etc/nginx/sites-available/app.grekam.in && nginx -t && systemctl reload nginx\r"
+expect "# "
+# Now stop and restart academy
+send "pm2 delete 17 2>/dev/null; sleep 1\r"
+expect "# "
+send "PORT=3006 HOSTNAME=0.0.0.0 NODE_ENV=production AUTH_SECRET=grekam-os-super-secret-key-2026 AUTH_TRUST_HOST=true NEXTAUTH_SECRET=grekam-os-super-secret-key-2026 NEXTAUTH_URL=https://academy.grekam.in AUTH_URL=https://academy.grekam.in DATABASE_URL='postgresql://postgres:Photoshop09%40@localhost:5432/grekam_os?schema=public' pm2 start /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/server.js --name grecakam-os-academy\r"
+expect "# "
+send "sleep 4\r"
+expect "# "
+send "netstat -tulnp | grep node\r"
+expect "# "
+send "pm2 logs grecakam-os-academy --lines 5 --nostream\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof
