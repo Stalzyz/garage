@@ -10,11 +10,14 @@ import { toast } from "sonner"
 export default function BatchesPage() {
   const { data, isLoading, mutate } = useApi<any>("/academy/batches")
   const { data: coursesData } = useApi<any>("/lms/courses")
+  const { data: educatorsData } = useApi<any>("/academy/educators")
   const batches = data?.data || data?.batches || []
   const courses = coursesData?.courses || []
+  const educators = Array.isArray(educatorsData) ? educatorsData : []
 
   const [searchQuery, setSearchQuery] = useState("")
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newBatch, setNewBatch] = useState({
     name: "",
@@ -22,7 +25,19 @@ export default function BatchesPage() {
     type: "ONLINE",
     capacity: 20,
     startDate: "",
-    endDate: ""
+    endDate: "",
+    educatorId: ""
+  })
+  const [editBatch, setEditBatch] = useState<any>({
+    id: "",
+    name: "",
+    courseId: "",
+    type: "ONLINE",
+    capacity: 20,
+    startDate: "",
+    endDate: "",
+    educatorId: "",
+    isActive: true
   })
 
   const handleCreateBatch = async (e: React.FormEvent) => {
@@ -35,15 +50,43 @@ export default function BatchesPage() {
           ...newBatch,
           startDate: new Date(newBatch.startDate).toISOString(),
           endDate: new Date(newBatch.endDate).toISOString(),
-          capacity: Number(newBatch.capacity)
+          capacity: Number(newBatch.capacity),
+          educatorId: newBatch.educatorId || undefined
         })
       })
       toast.success("Batch created successfully")
       setIsCreateOpen(false)
-      setNewBatch({ name: "", courseId: "", type: "ONLINE", capacity: 20, startDate: "", endDate: "" })
+      setNewBatch({ name: "", courseId: "", type: "ONLINE", capacity: 20, startDate: "", endDate: "", educatorId: "" })
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to create batch")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleUpdateBatch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/academy/batches/${editBatch.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: editBatch.name,
+          courseId: editBatch.courseId,
+          type: editBatch.type,
+          capacity: Number(editBatch.capacity),
+          startDate: new Date(editBatch.startDate).toISOString(),
+          endDate: new Date(editBatch.endDate).toISOString(),
+          educatorId: editBatch.educatorId || null,
+          isActive: editBatch.isActive
+        })
+      })
+      toast.success("Batch updated successfully")
+      setIsEditOpen(false)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update batch")
     } finally {
       setIsSubmitting(false)
     }
@@ -118,6 +161,9 @@ export default function BatchesPage() {
                     <div>
                       <h3 className="font-bold text-lg text-white leading-tight">{batch.name}</h3>
                       <p className="text-xs text-white/40 mt-0.5">{batch.course?.name}</p>
+                      <p className="text-[10px] text-blue-400 mt-1 font-medium">
+                        Instructor: {batch.educator?.user ? `${batch.educator.user.firstName} ${batch.educator.user.lastName}` : "Not Assigned"}
+                      </p>
                     </div>
                   </div>
                   {getStatusBadge(batch.status)}
@@ -150,7 +196,22 @@ export default function BatchesPage() {
                       +12
                     </div>
                   </div>
-                  <button className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors flex items-center gap-1">
+                  <button 
+                    onClick={() => {
+                      setEditBatch({
+                        id: batch.id,
+                        name: batch.name,
+                        courseId: batch.courseId,
+                        type: batch.type,
+                        capacity: batch.capacity,
+                        startDate: new Date(batch.startDate).toISOString().slice(0, 16),
+                        endDate: new Date(batch.endDate).toISOString().slice(0, 16),
+                        educatorId: batch.educatorId || "",
+                        isActive: batch.isActive ?? true
+                      })
+                      setIsEditOpen(true)
+                    }}
+                    className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors flex items-center gap-1">
                     Manage <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -234,9 +295,127 @@ export default function BatchesPage() {
               />
             </div>
           </div>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Instructor / Educator</label>
+            <select 
+              value={newBatch.educatorId}
+              onChange={e => setNewBatch({...newBatch, educatorId: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+            >
+              <option value="">Select Instructor...</option>
+              {educators.map((edu: any) => (
+                <option key={edu.id} value={edu.id}>{edu.user?.firstName} {edu.user?.lastName} ({edu.deliveryMode || "ANY"})</option>
+              ))}
+            </select>
+          </div>
           <div className="mt-4">
             <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold tracking-widest uppercase text-xs hover:bg-blue-500 transition-all disabled:opacity-50">
               {isSubmitting ? "Creating..." : "Create Batch"}
+            </button>
+          </div>
+        </form>
+      </SlideOver>
+
+      {/* Edit Batch SlideOver */}
+      <SlideOver title="Manage Batch" open={isEditOpen} onClose={() => setIsEditOpen(false)}>
+        <form onSubmit={handleUpdateBatch} className="p-6 flex flex-col gap-4">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Batch Name</label>
+            <input 
+              required
+              value={editBatch.name}
+              onChange={e => setEditBatch({...editBatch, name: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Course</label>
+            <select 
+              required
+              value={editBatch.courseId}
+              onChange={e => setEditBatch({...editBatch, courseId: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+            >
+              <option value="">Select a course...</option>
+              {courses.map((c: any) => (
+                <option key={c.courseId || c.id} value={c.courseId || c.id}>{c.course?.name || c.name || "Unknown Course"}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Batch Type</label>
+              <select 
+                value={editBatch.type}
+                onChange={e => setEditBatch({...editBatch, type: e.target.value})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+              >
+                <option value="ONLINE">Online</option>
+                <option value="MORNING">Morning (Onsite)</option>
+                <option value="EVENING">Evening (Onsite)</option>
+                <option value="WEEKEND">Weekend</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Capacity</label>
+              <input 
+                type="number"
+                required
+                min={1}
+                value={editBatch.capacity}
+                onChange={e => setEditBatch({...editBatch, capacity: parseInt(e.target.value) || 0})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Start Date</label>
+              <input 
+                type="datetime-local"
+                required
+                value={editBatch.startDate}
+                onChange={e => setEditBatch({...editBatch, startDate: e.target.value})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">End Date</label>
+              <input 
+                type="datetime-local"
+                required
+                value={editBatch.endDate}
+                onChange={e => setEditBatch({...editBatch, endDate: e.target.value})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white [color-scheme:dark]"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2 block">Instructor / Educator</label>
+            <select 
+              value={editBatch.educatorId}
+              onChange={e => setEditBatch({...editBatch, educatorId: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+            >
+              <option value="">Select Instructor...</option>
+              {educators.map((edu: any) => (
+                <option key={edu.id} value={edu.id}>{edu.user?.firstName} {edu.user?.lastName} ({edu.deliveryMode || "ANY"})</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 py-2">
+            <input 
+              type="checkbox"
+              id="isActive"
+              checked={editBatch.isActive}
+              onChange={e => setEditBatch({...editBatch, isActive: e.target.checked})}
+              className="w-4 h-4 accent-blue-600 rounded bg-black/40 border border-white/10"
+            />
+            <label htmlFor="isActive" className="text-xs text-white/70">Batch Active / Enrollments Enabled</label>
+          </div>
+          <div className="mt-4">
+            <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold tracking-widest uppercase text-xs transition-all disabled:opacity-50">
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
