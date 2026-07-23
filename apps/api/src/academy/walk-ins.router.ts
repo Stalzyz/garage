@@ -222,6 +222,7 @@ export default async function walkInsRouter(app: FastifyInstance) {
       scheduledAt: z.string(),
       durationMins: z.number().default(60),
       venue: z.string().optional(),
+      meetLink: z.string().optional(),
       capacity: z.number().default(20),
       mentorId: z.string().optional(),
     });

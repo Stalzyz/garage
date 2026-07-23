@@ -6,7 +6,8 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 export default function OnsiteEducatorsPage() {
-  const { data: educators, mutate, isLoading } = useApi<any[]>("/academy/educators")
+  const { data: educatorsData, mutate, isLoading } = useApi<any[]>("/academy/educators")
+  const educators = educatorsData?.filter(e => e.deliveryMode === 'ONSITE') || []
   
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)

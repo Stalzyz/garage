@@ -88,6 +88,7 @@ export default async function feesRouter(app: FastifyInstance) {
       enrollmentId: z.string(),
       dueDate: z.string(), // ISO date string
       amount: z.number().positive(),
+      taxAmount: z.number().nonnegative().optional(),
       notes: z.string().optional()
     });
     const body = schema.parse(req.body);
@@ -97,6 +98,7 @@ export default async function feesRouter(app: FastifyInstance) {
         enrollmentId: body.enrollmentId,
         dueDate: new Date(body.dueDate),
         amount: body.amount,
+        taxAmount: body.taxAmount || 0,
         notes: body.notes
       },
       include: {

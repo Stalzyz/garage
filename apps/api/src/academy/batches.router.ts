@@ -8,6 +8,7 @@ const CreateBatchSchema = z.object({
   capacity: z.number().int().positive().default(20),
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
+  educatorId: z.string().optional(),
 });
 
 export default async function batchesRouter(app: FastifyInstance) {
@@ -24,6 +25,7 @@ export default async function batchesRouter(app: FastifyInstance) {
       where: whereClause,
       include: {
         course: { select: { name: true, code: true } },
+        educator: { select: { user: { select: { firstName: true, lastName: true, email: true } } } },
         _count: { select: { enrollments: true, sessions: true } },
       },
       orderBy: { startDate: 'desc' },
@@ -38,6 +40,7 @@ export default async function batchesRouter(app: FastifyInstance) {
       where: { id },
       include: {
         course: true,
+        educator: { include: { user: true } },
         sessions: { orderBy: { startTime: 'asc' } },
         enrollments: { include: { student: { include: { user: true } } } },
       },
@@ -58,6 +61,51 @@ export default async function batchesRouter(app: FastifyInstance) {
     });
     reply.code(201);
     return batch;
+  });
+
+  // POST /api/v1/academy/batches/with-course
+  app.post('/batches/with-course', async (req, reply) => {
+    const schema = z.object({
+      courseName: z.string().min(1),
+      courseCode: z.string().min(1),
+      courseDuration: z.string().min(1),
+      courseFee: z.number().min(0),
+      batchName: z.string().min(1),
+      batchType: z.enum(['MORNING', 'EVENING', 'WEEKEND', 'ONLINE']),
+      startDate: z.string().datetime(),
+      endDate: z.string().datetime(),
+      capacity: z.number().int().positive().default(20)
+    });
+    const body = schema.parse(req.body);
+
+    const result = await app.prisma.$transaction(async (tx) => {
+      const course = await tx.course.create({
+        data: {
+          name: body.courseName,
+          code: body.courseCode,
+          duration: body.courseDuration,
+          fee: body.courseFee,
+          isPublished: true,
+        }
+      });
+
+      const batch = await tx.batch.create({
+        data: {
+          courseId: course.id,
+          name: body.batchName,
+          type: body.batchType,
+          startDate: new Date(body.startDate),
+          endDate: new Date(body.endDate),
+          capacity: body.capacity
+        },
+        include: { course: true }
+      });
+
+      return batch;
+    });
+
+    reply.code(201);
+    return result;
   });
 
   // PATCH /api/v1/academy/batches/:id

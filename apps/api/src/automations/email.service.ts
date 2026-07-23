@@ -1,16 +1,30 @@
 import nodemailer from 'nodemailer';
 import { prisma } from '../db';
 import { decrypt } from '../settings/integrations.router';
+import { Resend } from 'resend';
 
 export const EmailService = {
   async sendEmail(to: string, subject: string, htmlContent: string) {
     try {
-      // 1. Fetch SMTP keys from database
+      // 1. Check if Organization has Resend API Key
+      const org = await prisma.organization.findFirst();
+      if (org?.resendApiKey) {
+        const resend = new Resend(org.resendApiKey);
+        const data = await resend.emails.send({
+          from: 'Grekam OS <onboarding@resend.dev>', // Should ideally be configured or verified domain
+          to: [to],
+          subject,
+          html: htmlContent
+        });
+        console.log(`[EmailService] Sent email via Resend to ${to} | ID: ${data.data?.id}`);
+        return true;
+      }
+
+      // 2. Fallback to SMTP
       const keys = await prisma.integrationKey.findMany({
         where: { service: 'SMTP', isActive: true }
       });
 
-      // 2. Fallback to process.env if no keys in DB
       let host = process.env.SMTP_HOST || 'smtp.ethereal.email';
       let port = parseInt(process.env.SMTP_PORT || '587');
       let user = process.env.SMTP_USER || 'ethereal_user';
@@ -25,7 +39,6 @@ export const EmailService = {
         if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
       }
 
-      // 3. Create transporter dynamically
       const transporter = nodemailer.createTransport({
         host,
         port,
@@ -38,9 +51,8 @@ export const EmailService = {
         subject,
         html: htmlContent,
       });
-      console.log(`[EmailService] Sent email to ${to} | MessageId: ${info.messageId}`);
+      console.log(`[EmailService] Sent email via SMTP to ${to} | MessageId: ${info.messageId}`);
       
-      // If using Ethereal, log the preview URL so we can actually see the emails during dev
       if (info.messageId && nodemailer.getTestMessageUrl(info)) {
          console.log(`[EmailService] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
       }

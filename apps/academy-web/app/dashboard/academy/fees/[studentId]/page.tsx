@@ -32,8 +32,10 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
 
   const [payModal, setPayModal] = useState<string | null>(null)
   const [followModal, setFollowModal] = useState<string | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [payForm, setPayForm] = useState({ amount: "", paymentRef: "", notes: "" })
   const [followForm, setFollowForm] = useState({ channel: "CALL", notes: "", nextFollowUpAt: "" })
+  const [addForm, setAddForm] = useState({ amount: "", taxAmount: "", dueDate: "", notes: "" })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handlePay = async (e: React.FormEvent) => {
@@ -84,6 +86,35 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
     }
   }
 
+  const handleAddInvoice = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!student?.enrollments?.length) {
+      toast.error("Student has no enrollments to attach this invoice to.")
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/academy/fees/installment`, {
+        method: "POST",
+        body: JSON.stringify({
+          enrollmentId: student.enrollments[0].id,
+          amount: parseFloat(addForm.amount),
+          taxAmount: parseFloat(addForm.taxAmount || "0"),
+          dueDate: addForm.dueDate,
+          notes: addForm.notes || undefined
+        })
+      })
+      toast.success("Invoice created successfully!")
+      setIsAddModalOpen(false)
+      setAddForm({ amount: "", taxAmount: "", dueDate: "", notes: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create invoice")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   if (isLoading && !student) {
     return <div className="flex h-full items-center justify-center text-white"><Loader2 className="animate-spin w-6 h-6" /></div>
   }
@@ -111,6 +142,11 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
           <p className="text-white/40 text-sm">{student.user?.email} · {student.user?.phone || 'No phone'}</p>
           <p className="text-xs text-white/30 font-mono mt-1">{student.studentCode}</p>
         </div>
+        <div className="ml-auto">
+          <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all">
+            + New Invoice
+          </button>
+        </div>
       </div>
 
       {/* Installment Timeline */}
@@ -134,6 +170,7 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
                     <span className="text-white/40 text-xs">{inst.batchName}</span>
                   </div>
                   <p className="text-white font-bold text-lg">₹{inst.amount.toLocaleString('en-IN')}</p>
+                  {inst.taxAmount > 0 && <p className="text-white/40 text-xs">Tax: ₹{inst.taxAmount.toLocaleString('en-IN')}</p>}
                   <p className="text-white/40 text-xs">Due: {new Date(inst.dueDate).toLocaleDateString('en-IN')}</p>
                   {inst.paidAmount > 0 && <p className="text-emerald-400 text-xs mt-1">Paid: ₹{inst.paidAmount.toLocaleString('en-IN')} · Balance: ₹{balance.toLocaleString('en-IN')}</p>}
                   {inst.paymentRef && <p className="text-white/40 text-xs">Ref: {inst.paymentRef}</p>}
@@ -248,6 +285,48 @@ export default function StudentFeeLedgerPage({ params }: { params: Promise<{ stu
               <button type="submit" disabled={isSubmitting}
                 className="w-full bg-white text-black font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2">
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Follow-Up"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Invoice Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">Create New Invoice</h2>
+              <button onClick={() => setIsAddModalOpen(false)}><X className="w-5 h-5 text-white/50 hover:text-white" /></button>
+            </div>
+            <form onSubmit={handleAddInvoice} className="space-y-4">
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Base Amount (₹) *</label>
+                <input required type="number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="e.g. 5000"
+                  value={addForm.amount} onChange={e => setAddForm(p => ({...p, amount: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Tax Amount (₹)</label>
+                <input type="number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="e.g. 900"
+                  value={addForm.taxAmount} onChange={e => setAddForm(p => ({...p, taxAmount: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Due Date *</label>
+                <input required type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]"
+                  value={addForm.dueDate} onChange={e => setAddForm(p => ({...p, dueDate: e.target.value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-white/50 uppercase tracking-widest block mb-2">Notes</label>
+                <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm"
+                  placeholder="e.g. Term 2 Fee"
+                  value={addForm.notes} onChange={e => setAddForm(p => ({...p, notes: e.target.value}))} />
+              </div>
+              <p className="text-xs text-white/30">💡 An email invoice will be automatically sent if the organization's Resend API key is configured.</p>
+              <button type="submit" disabled={isSubmitting}
+                className="w-full bg-white text-black font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
               </button>
             </form>
           </div>

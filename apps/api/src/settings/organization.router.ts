@@ -15,6 +15,7 @@ const UpdateOrganizationSchema = z.object({
   website: z.string().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   openAiKey: z.string().optional().or(z.literal('')),
+  resendApiKey: z.string().optional().or(z.literal('')),
   bankName: z.string().optional().or(z.literal('')),
   accountName: z.string().optional().or(z.literal('')),
   accountNumber: z.string().optional().or(z.literal('')),

@@ -7,7 +7,7 @@ const LeadSourceValues = ['WEBSITE', 'WHATSAPP', 'REFERRAL', 'COLD_OUTREACH', 'I
 
 const CreateLeadSchema = z.object({
   name: z.string().min(1),
-  email: z.string().email().optional(),
+  email: z.union([z.string().email(), z.literal("")]).optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
   source: z.enum(LeadSourceValues),

@@ -140,23 +140,24 @@ export default function CRMDashboard() {
     e.preventDefault()
     try {
       const payload: any = {
-        name: leadForm.name,
-        email: leadForm.email || undefined,
-        phone: leadForm.phone || undefined,
+        name: leadForm.name.trim(),
+        email: leadForm.email.trim() || undefined,
+        phone: leadForm.phone.trim() || undefined,
         source: leadForm.source,
-        notes: leadForm.notes || undefined,
+        notes: leadForm.notes.trim() || undefined,
         assignedToId: leadForm.assignedToId || undefined,
         businessUnit: activeTab
       }
 
       if (activeTab === 'AGENCY') {
-        payload.company = leadForm.company || undefined
+        payload.company = leadForm.company.trim() || undefined
         payload.estimatedBudget = leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined
-        payload.projectType = leadForm.projectType || undefined
+        payload.projectType = leadForm.projectType.trim() || undefined
       } else {
-        payload.courseInterest = leadForm.courseInterest || undefined
+        payload.courseInterest = leadForm.courseInterest.trim() || undefined
         payload.batchId = leadForm.batchId || undefined
       }
+
 
       if (editingLead) {
         await fetchApi(`/crm/leads/${editingLead.id}`, {

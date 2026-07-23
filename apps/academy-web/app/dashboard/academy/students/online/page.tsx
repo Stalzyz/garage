@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, Users, GraduationCap, Mail, Phone, BookOpen, Fingerprint, X, Printer, LayoutGrid, List as ListIcon } from "lucide-react"
+import { Search, Plus, Filter, Users, GraduationCap, Mail, Phone, BookOpen, Fingerprint, X, Printer, LayoutGrid, List as ListIcon, ShieldCheck } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
+import Link from "next/link"
 
 export default function StudentDirectory() {
   const [search, setSearch] = useState("")
@@ -13,6 +14,8 @@ export default function StudentDirectory() {
   const [activeStudent, setActiveStudent] = useState<any>(null)
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false)
   const [enrollForm, setEnrollForm] = useState({ firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", batchId: "" })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editForm, setEditForm] = useState({ id: "", firstName: "", lastName: "", phone: "", batchId: "" })
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { data: studentsData, mutate: refreshStudents } = useApi<any>("/academy/students?deliveryMode=ONLINE")
@@ -31,9 +34,12 @@ export default function StudentDirectory() {
     userId: s.userId,
     code: s.studentCode,
     name: `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.trim(),
+    firstName: s.user?.firstName || '',
+    lastName: s.user?.lastName || '',
     email: s.user?.email || '',
     phone: s.user?.phone || 'N/A',
     batch: s.enrollments?.[0]?.batch?.name || 'Unassigned',
+    batchId: s.enrollments?.[0]?.batchId || '',
     status: s.isAlumni ? 'ALUMNI' : 'ENROLLED'
   }))
 
@@ -56,6 +62,29 @@ export default function StudentDirectory() {
       refreshStudents()
     } catch (err: any) {
       alert("Error enrolling student: " + err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi(`/academy/students/${editForm.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          firstName: editForm.firstName,
+          lastName: editForm.lastName,
+          phone: editForm.phone,
+          batchId: editForm.batchId || undefined
+        })
+      })
+      toast.success("Student updated successfully!")
+      setIsEditModalOpen(false)
+      refreshStudents()
+    } catch (err: any) {
+      toast.error(err.message || "Error updating student")
     } finally {
       setIsSubmitting(false)
     }
@@ -112,7 +141,7 @@ export default function StudentDirectory() {
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Remote Students</h1>
-              <p className="text-sm text-white/50 mt-2">Manage all active online academy enrollments</p>
+              <p className="text-sm text-white/50 mt-2">Manage all active virtual campus enrollments</p>
             </div>
           </div>
           <button onClick={() => setIsEnrollModalOpen(true)} className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
@@ -221,8 +250,21 @@ export default function StudentDirectory() {
                     {student.status === 'ENROLLED' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(16,185,129,0.8)]" />}
                     {student.status}
                   </span>
-                  
-                  <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white transition-colors">View &rarr;</button>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/academy/students/${student.id}/passport`}
+                      onClick={e => e.stopPropagation()}
+                      className="flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 px-2 py-1 rounded-lg transition-all">
+                      <ShieldCheck className="w-3 h-3" /> Passport
+                    </Link>
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setEditForm({ id: student.id, firstName: student.firstName, lastName: student.lastName, phone: student.phone === 'N/A' ? '' : student.phone, batchId: student.batchId }); 
+                        setIsEditModalOpen(true); 
+                      }} 
+                      className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors border border-white/10 px-2 py-1 rounded-lg">Edit</button>
+                    <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">View &rarr;</button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -269,7 +311,14 @@ export default function StudentDirectory() {
                         {student.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setEditForm({ id: student.id, firstName: student.firstName, lastName: student.lastName, phone: student.phone === 'N/A' ? '' : student.phone, batchId: student.batchId }); 
+                          setIsEditModalOpen(true); 
+                        }}
+                        className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white transition-colors border border-white/10 px-2 py-1 rounded-lg">Edit</button>
                       <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 hover:text-white transition-colors">View</button>
                     </td>
                   </tr>
@@ -417,9 +466,69 @@ export default function StudentDirectory() {
                   </select>
                 </div>
                 
-                <button disabled={isSubmitting} type="submit" className="mt-4 w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-bold tracking-widest uppercase text-xs rounded-xl transition-all disabled:opacity-50">
-                  {isSubmitting ? "Enrolling..." : "Create Student Profile"}
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
+                  <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
+                  <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50">
+                    {isSubmitting ? "Enrolling..." : "Enroll Student"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Student Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative bg-[#0f1115] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
+            >
+              <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <h3 className="text-lg font-bold text-white">Edit Student</h3>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-white/50 hover:text-white">
+                  <X className="w-5 h-5" />
                 </button>
+              </div>
+              <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">First Name *</label>
+                    <input required value={editForm.firstName} onChange={e => setEditForm({...editForm, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Last Name *</label>
+                    <input required value={editForm.lastName} onChange={e => setEditForm({...editForm, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Phone</label>
+                  <input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">Assign Batch</label>
+                  <select value={editForm.batchId} onChange={e => setEditForm({...editForm, batchId: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50">
+                    <option value="">No Batch</option>
+                    {batches.map((b: any) => (
+                      <option key={b.id} value={b.id}>{b.name} ({b.course?.name || "No Course"})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
+                  <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50">
+                    {isSubmitting ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
               </form>
             </motion.div>
           </div>

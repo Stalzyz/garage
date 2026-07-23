@@ -8,7 +8,7 @@ import { toast } from "sonner"
 export default function DemoSessionsAdmin() {
   const { data: sessions, mutate } = useApi<any[]>("/academy/demo-sessions")
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [form, setForm] = useState({ title: "", scheduledAt: "", venue: "", capacity: 20, durationMins: 60 })
+  const [form, setForm] = useState({ title: "", scheduledAt: "", venue: "", meetLink: "", capacity: 20, durationMins: 60 })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -57,6 +57,13 @@ export default function DemoSessionsAdmin() {
               <div className="flex items-center gap-2 text-xs text-white/60">
                 <MapPin className="w-4 h-4 text-white/30" /> {session.venue || "Campus Main Hall"}
               </div>
+              {session.meetLink && (
+                <div className="flex items-center gap-2 text-xs text-white/60 mt-1">
+                  <a href={session.meetLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-fuchsia-400 hover:text-fuchsia-300 font-bold transition-colors">
+                    <PlayCircle className="w-4 h-4" /> Join Google Meet
+                  </a>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-xs text-white/60">
                 <Users className="w-4 h-4 text-white/30" /> {session._count?.registrations || 0} / {session.capacity} Seats Booked
               </div>
@@ -83,9 +90,14 @@ export default function DemoSessionsAdmin() {
                   value={form.durationMins} onChange={e => setForm(p => ({...p, durationMins: parseInt(e.target.value)}))} />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <input placeholder="Venue / Room" className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+              <div className="grid grid-cols-2 gap-4">
+                <input placeholder="Venue / Room" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.venue} onChange={e => setForm(p => ({...p, venue: e.target.value}))} />
+                <input placeholder="Google Meet Link (Optional)" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+                  value={form.meetLink} onChange={e => setForm(p => ({...p, meetLink: e.target.value}))} />
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
                 <input required type="number" placeholder="Capacity" className="col-span-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   value={form.capacity} onChange={e => setForm(p => ({...p, capacity: parseInt(e.target.value)}))} />
               </div>

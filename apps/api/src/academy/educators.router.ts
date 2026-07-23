@@ -10,6 +10,7 @@ const CreateEducatorSchema = z.object({
   yearsExperience: z.number().optional(),
   skills: z.array(z.string()).optional(),
   bio: z.string().optional(),
+  deliveryMode: z.enum(['ONSITE', 'ONLINE']).optional(),
 });
 
 export default async function educatorsRouter(app: FastifyInstance) {
@@ -48,6 +49,7 @@ export default async function educatorsRouter(app: FastifyInstance) {
           yearsExperience: body.yearsExperience,
           skills: body.skills || [],
           bio: body.bio,
+          deliveryMode: body.deliveryMode || 'ONSITE',
           verificationStatus: 'VERIFIED'
         },
         include: { user: true }

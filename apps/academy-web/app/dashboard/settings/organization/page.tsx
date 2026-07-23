@@ -32,6 +32,7 @@ export default function OrganizationSettingsPage() {
       if (org.billingAddress) payload.billingAddress = org.billingAddress
       if (org.darkModeDefault !== undefined) payload.darkModeDefault = org.darkModeDefault
       if (org.openAiKey !== undefined) payload.openAiKey = org.openAiKey
+      if (org.resendApiKey !== undefined) payload.resendApiKey = org.resendApiKey
 
       const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
@@ -209,16 +210,30 @@ export default function OrganizationSettingsPage() {
             API Integrations
           </h2>
           
-          <div className="space-y-2">
-            <label className="text-sm text-[#a1a1aa]">OpenAI API Key (For AI Features)</label>
-            <input
-              type="password"
-              value={org?.openAiKey || ""}
-              onChange={(e) => setOrg({ ...org, openAiKey: e.target.value })}
-              className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
-              placeholder="sk-proj-..."
-            />
-            <p className="text-xs text-[#666]">Used for generating notes, descriptions, and AI documents.</p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">OpenAI API Key (For AI Features)</label>
+              <input
+                type="password"
+                value={org?.openAiKey || ""}
+                onChange={(e) => setOrg({ ...org, openAiKey: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                placeholder="sk-proj-..."
+              />
+              <p className="text-xs text-[#666]">Used for generating notes, descriptions, and AI documents.</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm text-[#a1a1aa]">Resend API Key (For Email Delivery)</label>
+              <input
+                type="password"
+                value={org?.resendApiKey || ""}
+                onChange={(e) => setOrg({ ...org, resendApiKey: e.target.value })}
+                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                placeholder="re_..."
+              />
+              <p className="text-xs text-[#666]">Used for delivering fee invoices and system notifications via email.</p>
+            </div>
           </div>
         </div>
 

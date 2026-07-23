@@ -181,6 +181,7 @@ model Organization {
 
   // API Integrations
   openAiKey      String?
+  resendApiKey   String?
 
   // Bank Details
   bankName      String?
@@ -1321,6 +1322,7 @@ model Course {
 model Batch {
   id        String   @id @default(cuid())
   courseId  String
+  educatorId String?
   name      String // e.g., "GD-Batch-24-Morning"
   type      String // MORNING | EVENING | WEEKEND | ONLINE
   capacity  Int      @default(20)
@@ -1330,6 +1332,7 @@ model Batch {
   createdAt DateTime @default(now())
 
   course      Course         @relation(fields: [courseId], references: [id])
+  educator    Educator?      @relation(fields: [educatorId], references: [id])
   enrollments Enrollment[]
   sessions    BatchSession[]
 
@@ -1385,6 +1388,7 @@ model FeeInstallment {
   enrollmentId String
   dueDate      DateTime  @db.Date
   amount       Float
+  taxAmount    Float     @default(0)
   paidAmount   Float     @default(0)
   status       FeeStatus @default(PENDING)
   paidAt       DateTime?
@@ -2434,6 +2438,7 @@ model Educator {
   updatedAt          DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batches Batch[]
   
   @@map("educators")
 }
@@ -2708,6 +2713,7 @@ model DemoSession {
   scheduledAt DateTime
   durationMins Int     @default(60)
   venue       String?
+  meetLink    String?
   capacity    Int      @default(20)
   mentorId    String?  // Presenter / mentor User ID
   isActive    Boolean  @default(true)
