@@ -52,7 +52,7 @@ export default async function assignmentsRoutes(app: FastifyInstance) {
       data: {
         lessonId,
         title,
-        description,
+        brief: description || title,
         dueDate: dueDate ? new Date(dueDate) : undefined
       }
     });
