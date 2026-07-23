@@ -194,6 +194,7 @@ export default function FormBuilderAdmin() {
                       <option value="EMAIL">Email</option>
                       <option value="PHONE">Phone Number</option>
                       <option value="DATE">Date Picker</option>
+                      <option value="FILE">File Upload</option>
                       <option value="SELECT">Dropdown Select</option>
                       <option value="RADIO">Radio Buttons</option>
                     </select>

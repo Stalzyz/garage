@@ -21,19 +21,47 @@ export default function PublicFormRenderer() {
     setFormData(prev => ({ ...prev, [id]: value }))
   }
 
+  const handleFileUpload = async (id: string, file: File) => {
+    if (!file) return;
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://garage.grekam.in/api/v1"
+      const res = await fetch(`${API_URL}/storage/upload-local`, {
+        method: "POST",
+        body: formData
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to upload file")
+      
+      handleInput(id, data.downloadUrl)
+    } catch (err: any) {
+      alert(err.message || "File upload failed")
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitError("")
     setIsSubmitting(true)
     
     try {
-      const res = await fetch(`http://localhost:3002/api/v1/academy/forms/${params.slug}/submit`, {
+      // Basic Validation: Ensure required FILE fields have an uploaded URL in formData
+      for (const field of form.fields) {
+        if (field.required && !formData[field.id]) {
+            throw new Error(`Field ${field.label} is required.`);
+        }
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://garage.grekam.in/api/v1"
+      const res = await fetch(`${API_URL}/academy/forms/${params.slug}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: formData })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Failed to submit")
+      if (!res.ok) throw new Error(data.message || data.error || "Failed to submit")
       setIsSuccess(true)
     } catch (err: any) {
       setSubmitError(err.message || "Something went wrong.")
@@ -86,6 +114,21 @@ export default function PublicFormRenderer() {
                 />
               )}
 
+              {field.type === "FILE" && (
+                <div className="space-y-2">
+                  <input 
+                    type="file"
+                    required={field.required && !formData[field.id]}
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-500/20 file:text-violet-400 hover:file:bg-violet-500/30"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(field.id, file);
+                    }}
+                  />
+                  {formData[field.id] && <div className="text-xs text-emerald-400 font-bold">✓ File uploaded successfully</div>}
+                </div>
+              )}
+
               {field.type === "TEXTAREA" && (
                 <textarea 
                   required={field.required}
@@ -130,6 +173,13 @@ export default function PublicFormRenderer() {
 
           {submitError && (
             <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
+              {submitError}
+            </div>
+          )}
+
+          
+          {submitError && (
+            <div className="bg-rose-500/20 border border-rose-500 text-rose-400 px-6 py-4 rounded-2xl font-medium">
               {submitError}
             </div>
           )}

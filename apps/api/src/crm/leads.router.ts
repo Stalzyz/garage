@@ -104,6 +104,21 @@ export default async function leadsRouter(app: FastifyInstance) {
   // POST /api/v1/crm/leads — create lead
   app.post('/leads', async (req, reply) => {
     const body = CreateLeadSchema.parse(req.body);
+
+    if (body.email || body.phone) {
+      const existingLead = await app.prisma.lead.findFirst({
+        where: {
+          OR: [
+            ...(body.email ? [{ email: body.email }] : []),
+            ...(body.phone ? [{ phone: body.phone }] : [])
+          ]
+        }
+      });
+      if (existingLead) {
+        return reply.status(409).send({ error: 'A lead with this email or phone already exists.', leadId: existingLead.id });
+      }
+    }
+
     const score = calculateScore(body.estimatedBudget, body.source, body.projectType, body.businessUnit);
 
     const lead = await app.prisma.lead.create({
