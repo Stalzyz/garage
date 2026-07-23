@@ -30,19 +30,8 @@ export default async function assignmentsRoutes(app: FastifyInstance) {
           }
         },
         submissions: studentId ? {
-          where: { studentId },
-          include: {
-            student: {
-              include: { user: true }
-            }
-          }
-        } : {
-          include: {
-            student: {
-              include: { user: true }
-            }
-          }
-        }
+          where: { studentId }
+        } : true
       }
     });
     return { assignments };
