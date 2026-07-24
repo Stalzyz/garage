@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
@@ -45,8 +45,9 @@ function OrgHeader() {
 }
 
 
-function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
+function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string; onClose?: () => void }) {
   const Icon = item.icon
+  const router = useRouter()
   const isGroupActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
   const [open, setOpen] = useState(isGroupActive)
 
@@ -54,6 +55,7 @@ function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
     return (
       <Link
         href={item.href}
+        onClick={onClose}
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group",
           isGroupActive
@@ -69,9 +71,15 @@ function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
 
   return (
     <div className="mb-1">
-      {/* Group header — toggles open/close */}
+      {/* Group header — toggles open/close AND navigates */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => {
+          setOpen(true)
+          if (item.href) {
+            router.push(item.href)
+            if (onClose) onClose()
+          }
+        }}
         className={cn(
           "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group",
           isGroupActive
@@ -100,6 +108,7 @@ function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
                 <Link
                   key={child.href}
                   href={child.href}
+                  onClick={onClose}
                   className={cn(
                     "flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-all group",
                     isChildActive
@@ -197,7 +206,7 @@ export function Sidebar() {
       {/* Nav items */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-3 space-y-1 pb-6 relative z-10">
         {navItems.map(item => (
-          <NavGroup key={item.href} item={item} pathname={pathname} />
+          <NavGroup key={item.href} item={item} pathname={pathname} onClose={() => setMobileOpen(false)} />
         ))}
       </div>
 
@@ -297,3 +306,4 @@ export function Sidebar() {
     </>
   )
 }
+ 

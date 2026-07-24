@@ -54,25 +54,31 @@ export default async function admissionsRouter(app: FastifyInstance) {
     
     // Create User, Student, and Application in a transaction
     const application = await app.prisma.$transaction(async (tx) => {
-      // 1. Create User
-      const user = await tx.user.create({
-        data: {
-          firstName: body.firstName,
-          lastName: body.lastName,
-          email: body.email,
-          role: 'STUDENT',
-          passwordHash: '$2a$10$x4R4Qz4hVfQW9y4r4hVfQ.W9y4r4hVfQW9y4r4hVfQW9y4r4hVfQ', // Dummy hash for now
-        }
-      });
+      // 1. Check if User exists
+      let user = await tx.user.findUnique({ where: { email: body.email } });
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            firstName: body.firstName,
+            lastName: body.lastName,
+            email: body.email,
+            role: 'STUDENT',
+            passwordHash: '$2a$10$x4R4Qz4hVfQW9y4r4hVfQ.W9y4r4hVfQW9y4r4hVfQW9y4r4hVfQ', // Dummy hash for now
+          }
+        });
+      }
 
-      // 2. Create Student
-      const studentCode = `STU-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-      const student = await tx.student.create({
-        data: {
-          userId: user.id,
-          studentCode,
-        }
-      });
+      // 2. Check if Student exists
+      let student = await tx.student.findUnique({ where: { userId: user.id } });
+      if (!student) {
+        const studentCode = `STU-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        student = await tx.student.create({
+          data: {
+            userId: user.id,
+            studentCode,
+          }
+        });
+      }
 
       // 3. Create Application
       return await tx.application.create({

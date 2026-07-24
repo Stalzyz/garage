@@ -515,12 +515,12 @@ export default function CRMDashboard() {
       {/* CREATE / EDIT LEAD MODAL */}
       <AnimatePresence>
         {isLeadModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm">
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-t-[2rem] md:rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl mt-auto md:mt-0"
             >
               <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
                 <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
@@ -534,7 +534,7 @@ export default function CRMDashboard() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveLead} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+              <form onSubmit={handleSaveLead} className="p-6 pb-0 space-y-4 max-h-[85vh] md:max-h-[75vh] overflow-y-auto custom-scrollbar relative">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Contact Name *</label>
@@ -678,7 +678,7 @@ export default function CRMDashboard() {
                   />
                 </div>
 
-                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
+                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3 sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
                   <button
                     type="button"
                     onClick={() => setIsLeadModalOpen(false)}
@@ -702,12 +702,12 @@ export default function CRMDashboard() {
       {/* LOG ACTIVITY MODAL */}
       <AnimatePresence>
         {isActivityModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm">
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-t-[2rem] md:rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl mt-auto md:mt-0"
             >
               <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
                 <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">Log Activity for {activityLead?.name}</h3>
@@ -755,7 +755,7 @@ export default function CRMDashboard() {
                   />
                 </div>
 
-                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
+                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3 sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
                   <button
                     type="button"
                     onClick={() => setIsActivityModalOpen(false)}
@@ -779,12 +779,12 @@ export default function CRMDashboard() {
       {/* CONVERT TO STUDENT MODAL */}
       <AnimatePresence>
         {isConvertModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm">
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-t-[2rem] md:rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl mt-auto md:mt-0"
             >
               <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center bg-emerald-500/10">
                 <div className="flex items-center gap-2">
@@ -868,7 +868,7 @@ export default function CRMDashboard() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3">
+                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3 sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
                   <button
                     type="button"
                     onClick={() => setIsConvertModalOpen(false)}

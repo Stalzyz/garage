@@ -493,7 +493,7 @@ export default function EmployeeDirectory() {
       {/* Profile Modal */}
       <AnimatePresence>
         {selectedEmployee && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelectedEmployee(null)}
@@ -503,7 +503,7 @@ export default function EmployeeDirectory() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-[#0f1115] border border-white/10 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[85vh]"
+              className="relative bg-[#0f1115] border border-white/10 rounded-t-[2rem] md:rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-[85vh] mt-auto md:mt-0"
             >
               {/* Profile Sidebar */}
               <div className="w-full md:w-1/3 bg-white/5 border-r border-white/10 p-8 flex flex-col items-center">
@@ -751,9 +751,11 @@ export default function EmployeeDirectory() {
             </div>
           </div>
 
-          <button disabled={isSubmitting} type="submit" className="w-full py-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg font-bold font-mono tracking-widest uppercase hover:bg-emerald-500/30 transition-colors disabled:opacity-50">
-            {isSubmitting ? "Processing..." : "Create Personnel"}
-          </button>
+          <div className="sticky bottom-0 bg-[#0a0a0a] pt-4 pb-6 -mb-6 -mx-6 px-6 border-t border-white/10 mt-6 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
+            <button disabled={isSubmitting} type="submit" className="w-full py-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg font-bold font-mono tracking-widest uppercase hover:bg-emerald-500/30 transition-colors disabled:opacity-50">
+              {isSubmitting ? "Processing..." : "Create Personnel"}
+            </button>
+          </div>
         </form>
       </SlideOver>
 
@@ -853,18 +855,20 @@ export default function EmployeeDirectory() {
             <label className="block text-xs font-mono uppercase tracking-widest text-white/50 mb-2">Department Name</label>
             <input required value={deptName} onChange={e => setDeptName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none" placeholder="e.g. Engineering" />
           </div>
-          <button type="submit" className="w-full py-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg font-bold font-mono tracking-widest uppercase hover:bg-emerald-500/30 transition-colors">
-            Create Department
-          </button>
+          <div className="sticky bottom-0 bg-[#0a0a0a] pt-4 pb-6 -mb-6 -mx-6 px-6 border-t border-white/10 mt-6 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
+            <button type="submit" className="w-full py-4 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg font-bold font-mono tracking-widest uppercase hover:bg-emerald-500/30 transition-colors">
+              Create Department
+            </button>
+          </div>
         </form>
       </SlideOver>
 
       {/* Credentials Modal */}
       <AnimatePresence>
         {credentialsModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setCredentialsModal(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-[#0f1115] border border-emerald-500/20 rounded-2xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center">
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-[#0f1115] border border-emerald-500/20 rounded-t-[2rem] md:rounded-2xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center mt-auto md:mt-0">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/30 text-emerald-400">
                 <CheckCircle2 className="w-8 h-8" />
               </div>

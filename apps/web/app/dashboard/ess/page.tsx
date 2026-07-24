@@ -3,23 +3,24 @@
 import { useState, useEffect } from "react"
 import { useApi } from "@/lib/useApi"
 import { ClockWidget } from "@/components/hr/ClockWidget"
-import { Calendar, CheckCircle, Clock, ListTodo, Target, FileText } from "lucide-react"
+import { Calendar, CheckCircle, Clock, ListTodo, Target, FileText, Lock } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
 
 export default function ESSDashboard() {
-  // Simple mock user switcher for testing
-  const [activeEmployeeId, setActiveEmployeeId] = useState("cuid-emp-1")
-  
-  // 1. Fetch Leave Balances
-  const { data: leavesData } = useApi<any>(`/hr/leaves/balances/${activeEmployeeId}`)
-  const balances = leavesData?.balances || []
-  
-  // 2. Fetch Employee Info
-  const { data: hrData } = useApi<any>(`/hr/employees/${activeEmployeeId}`)
+  const { data: session } = useSession()
+  const userId = session?.user?.id
+
+  // 1. Fetch Employee Info by userId
+  const { data: hrData } = useApi<any>(userId ? `/hr/employees/by-user/${userId}` : null)
   const employee = hrData?.employee
+  const activeEmployeeId = employee?.id
+
+  // 2. Fetch Leave Balances
+  const { data: leavesData } = useApi<any>(activeEmployeeId ? `/hr/leaves/balances/${activeEmployeeId}` : null)
+  const balances = leavesData?.balances || []
 
   // 3. Fetch Assigned Tasks
-  const { data: tasksData, mutate: mutateTasks } = useApi<any>(`/projects/user/${activeEmployeeId}`)
+  const { data: tasksData, mutate: mutateTasks } = useApi<any>(activeEmployeeId ? `/projects/user/${activeEmployeeId}` : null)
   const assignedTasks = tasksData?.data || []
 
   // 4. Fetch Recent TimeLogs
@@ -28,7 +29,7 @@ export default function ESSDashboard() {
   const myTimeLogs = allTimeLogs.filter((log: any) => log.userId === activeEmployeeId).slice(0, 5)
 
   // 5. Fetch Performance Goals
-  const { data: goalsData, mutate: mutateGoals } = useApi<any>(`/hr/performance/goals/${activeEmployeeId}`)
+  const { data: goalsData, mutate: mutateGoals } = useApi<any>(activeEmployeeId ? `/hr/performance/goals/${activeEmployeeId}` : null)
   const goals = goalsData?.data || []
 
   // 6. Fetch Payslips (We'll use a hypothetical user payslips endpoint, but we can mock it here for the ESS view since we haven't built a specific GET /payslips/:userId yet. Wait, we can fetch all and filter for now).
@@ -56,22 +57,11 @@ export default function ESSDashboard() {
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white p-8 overflow-y-auto custom-scrollbar">
       
-      {/* Header & User Switcher */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Workspace (ESS)</h1>
-          <p className="text-sm text-white/50 mt-2">Welcome back, {employee?.user?.firstName || "Employee"}</p>
-        </div>
-        <div className="flex items-center gap-4 bg-white/5 p-2 rounded-xl border border-white/10">
-          <span className="text-[10px] font-mono tracking-widest uppercase text-white/40 font-bold ml-2">Testing ID:</span>
-          <select 
-            value={activeEmployeeId}
-            onChange={(e) => setActiveEmployeeId(e.target.value)}
-            className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-mono focus:outline-none"
-          >
-            <option value="cuid-emp-1">Employee 1</option>
-            <option value="cuid-emp-2">Employee 2</option>
-          </select>
+          <p className="text-sm text-white/50 mt-2">Welcome back, {employee?.user?.firstName || session?.user?.name || "Employee"}</p>
         </div>
       </div>
 
@@ -80,7 +70,13 @@ export default function ESSDashboard() {
         {/* Left Column: Clock In & Leaves */}
         <div className="col-span-1 space-y-8">
           
-          <ClockWidget employeeId={activeEmployeeId} />
+          {activeEmployeeId ? (
+            <ClockWidget employeeId={activeEmployeeId} />
+          ) : (
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-6 text-center text-white/50 text-sm">
+              No employee profile found for your account. Please contact HR.
+            </div>
+          )}
 
           {/* Leave Balances */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -228,9 +224,72 @@ export default function ESSDashboard() {
             </div>
           </div>
 
+          {/* Security / Password Reset */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-purple-400" /> Security
+            </h3>
+            <ChangePasswordForm />
+          </div>
+
         </div>
 
       </div>
     </div>
+  )
+}
+
+function ChangePasswordForm() {
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const res = await fetch("/api/v1/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to change password")
+      
+      alert("Password changed successfully!")
+      setCurrentPassword("")
+      setNewPassword("")
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="text-xs font-bold text-white/50 block mb-1">Current Password</label>
+        <input 
+          type="password" required 
+          value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+        />
+      </div>
+      <div>
+        <label className="text-xs font-bold text-white/50 block mb-1">New Password (min 8 chars)</label>
+        <input 
+          type="password" required minLength={8}
+          value={newPassword} onChange={e => setNewPassword(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+        />
+      </div>
+      <button 
+        type="submit" disabled={loading}
+        className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold text-sm transition-colors disabled:opacity-50"
+      >
+        {loading ? "Updating..." : "Update Password"}
+      </button>
+    </form>
   )
 }

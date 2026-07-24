@@ -17,11 +17,31 @@ export default function DashboardHome() {
   }
 
   if (role === "STAFF") {
-    return <EducatorDashboard />
+    return <StaffDashboard />
   }
 
   // Super Admin / Manager view
   return <AdminDashboard session={session} />
+}
+
+function StaffDashboard() {
+  return (
+    <div className="flex flex-col h-full bg-dash-bg-surface text-dash-text-primary p-8">
+      <h1 className="text-3xl font-bold mb-2">Staff Portal</h1>
+      <p className="text-dash-text-secondary mb-8">Welcome to your workspace.</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard title="My Projects" value="4" icon={<Briefcase className="w-5 h-5"/>} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard title="Open Tasks" value="12" icon={<Activity className="w-5 h-5"/>} color="text-amber-400" bg="bg-amber-500/10" />
+        <StatCard title="Hours Logged" value="32h" icon={<Clock className="w-5 h-5"/>} color="text-emerald-400" bg="bg-emerald-500/10" />
+      </div>
+
+      <div className="mt-8 bg-dash-bg-card border border-dash-border-subtle rounded-3xl p-6">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-emerald-400"/> Recent Activity</h2>
+        <div className="text-sm text-dash-text-secondary">You recently completed the "Wireframing" task for Project X.</div>
+      </div>
+    </div>
+  )
 }
 
 function StudentDashboard() {

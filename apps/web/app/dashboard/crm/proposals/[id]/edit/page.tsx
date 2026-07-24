@@ -147,7 +147,7 @@ export default function EditProposalPage() {
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-y-auto">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-white/10 bg-black/40 sticky top-0 z-10 backdrop-blur-md flex items-center justify-between">
+      <div className="px-4 md:px-8 py-4 md:py-6 border-b border-white/10 bg-black/40 sticky top-0 z-10 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href="/dashboard/crm/proposals" className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors">
             <ChevronLeft className="w-4 h-4" />
@@ -158,16 +158,16 @@ export default function EditProposalPage() {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <button 
-            className="flex items-center gap-2 px-6 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10 flex-1 md:flex-none"
           >
             <Send className="w-4 h-4" /> Save as Draft
           </button>
           <button 
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 flex-1 md:flex-none"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? "Saving..." : "Save Changes"}

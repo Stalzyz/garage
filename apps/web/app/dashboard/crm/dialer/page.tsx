@@ -69,8 +69,8 @@ export default function PowerDialerDashboard() {
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex-none px-6 py-5 border-b border-border/50">
-        <div className="flex items-center justify-between">
+      <div className="flex-none px-4 md:px-6 py-4 md:py-5 border-b border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Phone className="w-6 h-6 text-primary" /> AI Power Dialer
@@ -81,8 +81,8 @@ export default function PowerDialerDashboard() {
                 : 'Auto-dialing through "Q3 High Intent Leads" campaign.'}
             </p>
           </div>
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2.5 cursor-pointer bg-muted/30 px-3 py-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-all select-none">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+            <label className="flex items-center justify-between md:justify-start gap-2.5 cursor-pointer bg-muted/30 px-3 py-2 md:py-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-all select-none">
               <Smartphone className={`w-4 h-4 transition-colors ${routeThroughMobile ? "text-primary" : "text-muted-foreground"}`} />
               <span className="text-xs font-bold text-foreground">Mobile Dialer Mode</span>
               <input 
@@ -95,22 +95,24 @@ export default function PowerDialerDashboard() {
                 <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${routeThroughMobile ? 'translate-x-3.5' : 'translate-x-0'}`} />
               </div>
             </label>
-            <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{QUEUE.length}</span>
-            {callState === "idle" || callState === "wrapup" ? (
-              <button 
-                onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
-                className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm"
-              >
-                <Phone className="w-4 h-4" /> {callState === "wrapup" ? "Dial Next Lead" : "Start Power Dialer"}
-              </button>
-            ) : (
-              <button 
-                onClick={handleEndCall}
-                className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-600 transition-all shadow-sm"
-              >
-                <PhoneOff className="w-4 h-4" /> End Call
-              </button>
-            )}
+            <div className="flex items-center justify-between md:justify-start gap-4">
+              <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{QUEUE.length}</span>
+              {callState === "idle" || callState === "wrapup" ? (
+                <button 
+                  onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
+                  className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm min-h-[44px]"
+                >
+                  <Phone className="w-4 h-4" /> {callState === "wrapup" ? "Dial Next Lead" : "Start Power Dialer"}
+                </button>
+              ) : (
+                <button 
+                  onClick={handleEndCall}
+                  className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-600 transition-all shadow-sm min-h-[44px]"
+                >
+                  <PhoneOff className="w-4 h-4" /> End Call
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

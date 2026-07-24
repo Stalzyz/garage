@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Hash, MessageSquare, Plus, Search, Send, Phone, Video, Info, Paperclip, Smile } from "lucide-react"
+import { Hash, MessageSquare, Plus, Search, Send, Phone, Video, Info, Paperclip, Smile, ArrowLeft } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { format } from "date-fns"
 import { useWebSocket } from "@/components/providers/WebSocketProvider"
@@ -47,7 +47,7 @@ export default function ChatPage() {
     <div className="flex h-full bg-[#050505] text-white overflow-hidden border-t border-white/10">
       
       {/* Sidebar - Channels & DMs */}
-      <div className="w-64 flex flex-col border-r border-white/10 bg-black/40">
+      <div className={`w-full md:w-64 flex-col border-r border-white/10 bg-black/40 ${activeChannelId ? 'hidden md:flex' : 'flex'}`}>
         
         {/* Workspace Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
@@ -115,7 +115,7 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed relative">
+      <div className={`flex-1 flex-col bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed relative ${activeChannelId ? 'flex' : 'hidden md:flex'}`}>
         <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
         
         <div className="relative z-10 h-full flex flex-col">
@@ -129,7 +129,10 @@ export default function ChatPage() {
               {/* Chat Header */}
               <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40 backdrop-blur-xl">
                 <div className="flex items-center gap-2">
-                  <Hash className="w-5 h-5 text-white/50" />
+                  <button className="md:hidden p-1.5 -ml-2 text-white/50 hover:text-white transition-colors" onClick={() => setActiveChannelId(null)}>
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <Hash className="w-5 h-5 text-white/50 hidden md:block" />
                   <h2 className="font-bold">{activeChannel?.name || 'general'}</h2>
                 </div>
                 <div className="flex items-center gap-4 text-white/50">

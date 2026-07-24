@@ -215,7 +215,7 @@ export default function ContactsPage() {
                     <button 
                       onClick={(e) => handleInvite(e, contact)}
                       disabled={isInviting || !contact.email}
-                      className="p-1.5 rounded bg-white/5 hover:bg-white/20 text-white/50 hover:text-white transition-colors group/btn relative"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-white/50 hover:text-white transition-colors group/btn relative"
                       title="Generate Portal Credentials"
                     >
                       <Key className="w-4 h-4" />
@@ -223,7 +223,7 @@ export default function ContactsPage() {
                     <button 
                       onClick={(e) => handleResetPin(e, contact)}
                       disabled={isInviting || !contact.email}
-                      className="p-1.5 rounded bg-white/5 hover:bg-white/20 text-white/50 hover:text-white transition-colors group/btn relative"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-white/50 hover:text-white transition-colors group/btn relative ml-1"
                       title="Reset PIN"
                     >
                       <RefreshCcw className="w-4 h-4" />

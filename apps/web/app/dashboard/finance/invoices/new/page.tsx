@@ -131,22 +131,22 @@ export default function NewInvoicePage() {
           <ChevronLeft className="w-3.5 h-3.5" /> Back to Finance Hub
         </Link>
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Invoice Builder</h1>
             <p className="text-xs font-mono text-white/40 mt-1 tracking-widest uppercase">Create new tax invoice</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <button 
               onClick={() => setShowPreview(true)}
-              className="flex items-center gap-2 bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 text-xs px-5 py-3 rounded-xl transition-all"
+              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 text-xs px-5 py-3 rounded-xl transition-all min-h-[44px]"
             >
               <Eye className="w-4 h-4" /> Preview
             </button>
             <button 
               onClick={handleSave} 
               disabled={isSubmitting}
-              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
+              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 min-h-[44px]"
             >
               <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
             </button>
@@ -378,6 +378,17 @@ export default function NewInvoicePage() {
             </motion.div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="md:hidden sticky bottom-0 -mx-6 lg:-mx-10 -mb-6 lg:-mb-10 p-4 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-50 mt-8">
+        <button 
+          onClick={handleSave} 
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 min-h-[44px]"
+        >
+          <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
+        </button>
       </div>
 
       {showPreview && (

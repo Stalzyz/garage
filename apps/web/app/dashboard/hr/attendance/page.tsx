@@ -69,18 +69,18 @@ export default function StaffAttendanceDashboard() {
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex-none px-6 py-5 border-b border-border/50">
-        <div className="flex items-center justify-between">
+      <div className="flex-none px-4 md:px-6 py-4 md:py-5 border-b border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Staff Attendance</h1>
             <p className="text-sm text-muted-foreground mt-1">Track daily check-ins, check-outs, and working hours.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 min-h-[44px]">
               <Download className="w-4 h-4" />
               Export
             </button>
-            <button onClick={() => setIsManualOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
+            <button onClick={() => setIsManualOpen(true)} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
               <UserCheck className="w-4 h-4" />
               Mark Manual Entry
             </button>

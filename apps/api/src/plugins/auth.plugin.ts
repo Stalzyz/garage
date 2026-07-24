@@ -27,7 +27,15 @@ const authPlugin: FastifyPluginAsync = async (fastify, opts) => {
   fastify.decorate('requireAuth', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const cookies = cookie.parse(request.headers.cookie || '');
-      const token = cookies['authjs.session-token'] || cookies['__Secure-authjs.session-token'];
+      let token = '';
+      let salt = '';
+      if (cookies['__Secure-authjs.session-token']) {
+        token = cookies['__Secure-authjs.session-token'];
+        salt = '__Secure-authjs.session-token';
+      } else if (cookies['authjs.session-token']) {
+        token = cookies['authjs.session-token'];
+        salt = 'authjs.session-token';
+      }
 
       if (!token) {
         return reply.code(401).send({ error: 'Unauthorized', message: 'No session token found' });
@@ -35,11 +43,27 @@ const authPlugin: FastifyPluginAsync = async (fastify, opts) => {
 
       request.log.info(`[Auth] Token received. Secret length: ${process.env.AUTH_SECRET ? process.env.AUTH_SECRET.length : 0}`);
       
-      const decoded = await decode({
-        token,
-        secret: process.env.AUTH_SECRET || "fallback-dev-secret-if-env-fails-12345",
-        salt: cookies['__Secure-authjs.session-token'] ? "__Secure-authjs.session-token" : "authjs.session-token"
-      });
+      const secretsToTry = [
+        process.env.AUTH_SECRET,
+        "fallback-dev-secret-if-env-fails-12345"
+      ].filter(Boolean) as string[];
+
+      const saltsToTry = [
+        '__Secure-authjs.session-token',
+        'authjs.session-token'
+      ];
+
+      let decoded = null;
+      for (const s of secretsToTry) {
+        for (const salt of saltsToTry) {
+          if (decoded) break;
+          try {
+            decoded = await decode({ token, secret: s, salt });
+          } catch (e) {
+            // Ignore decryption failure, try next combination
+          }
+        }
+      }
 
       if (!decoded) {
         return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid session token' });

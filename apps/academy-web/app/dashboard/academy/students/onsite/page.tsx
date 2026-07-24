@@ -151,9 +151,9 @@ export default function StudentDirectory() {
 
       {/* Header */}
       <div className="flex-none px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-10">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
+            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden shrink-0">
               <div className="absolute inset-0 bg-violet-500/20 animate-pulse mix-blend-overlay" />
               <GraduationCap className="w-6 h-6 text-violet-400 relative z-10" />
             </div>
@@ -162,7 +162,7 @@ export default function StudentDirectory() {
               <p className="text-sm text-white/50 mt-2">Manage all active physical campus enrollments</p>
             </div>
           </div>
-          <button onClick={() => setIsEnrollModalOpen(true)} className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
+          <button onClick={() => setIsEnrollModalOpen(true)} className="w-full md:w-auto group flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden min-h-[44px]">
             <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
             <Plus className="w-4 h-4" /> Enroll Student
           </button>
@@ -394,7 +394,7 @@ export default function StudentDirectory() {
       {/* Student Profile Modal */}
       <AnimatePresence>
         {activeStudent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setActiveStudent(null)}
@@ -404,7 +404,7 @@ export default function StudentDirectory() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-[#0f1115] border border-white/10 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px]"
+              className="relative bg-[#0f1115] border border-white/10 rounded-t-[2rem] md:rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px] max-h-[90vh] mt-auto md:mt-0"
             >
               {/* Profile Sidebar */}
               <div className="w-full md:w-1/3 bg-white/5 border-r border-white/10 p-8 flex flex-col items-center">
@@ -466,7 +466,7 @@ export default function StudentDirectory() {
       {/* Enroll Student Modal */}
       <AnimatePresence>
         {isEnrollModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsEnrollModalOpen(false)}
@@ -476,7 +476,7 @@ export default function StudentDirectory() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-[#0f1115] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
+              className="relative bg-[#0f1115] border border-white/10 rounded-t-[2rem] md:rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] mt-auto md:mt-0"
             >
               <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                 <h3 className="text-lg font-bold text-white">Enroll New Student</h3>
@@ -484,7 +484,7 @@ export default function StudentDirectory() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleEnrollSubmit} className="p-6 flex flex-col gap-4">
+              <form onSubmit={handleEnrollSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 relative">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">First Name *</label>
@@ -519,9 +519,9 @@ export default function StudentDirectory() {
                   </select>
                 </div>
                 
-                <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50">
+                <div className="sticky bottom-0 pt-4 px-6 -mx-6 -mb-6 pb-6 bg-[#0f1115]/90 backdrop-blur-xl border-t border-white/10 flex justify-end gap-3 z-10 mt-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
+                  <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="flex-1 md:flex-none px-6 py-3 md:py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors min-h-[44px]">Cancel</button>
+                  <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none px-6 py-3 md:py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50 min-h-[44px]">
                     {isSubmitting ? "Enrolling..." : "Enroll Student"}
                   </button>
                 </div>
@@ -534,7 +534,7 @@ export default function StudentDirectory() {
       {/* Edit Student Modal */}
       <AnimatePresence>
         {isEditModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsEditModalOpen(false)}
@@ -544,7 +544,7 @@ export default function StudentDirectory() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-[#0f1115] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
+              className="relative bg-[#0f1115] border border-white/10 rounded-t-[2rem] md:rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] mt-auto md:mt-0"
             >
               <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                 <h3 className="text-lg font-bold text-white">Edit Student</h3>
@@ -552,7 +552,7 @@ export default function StudentDirectory() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-4">
+              <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 relative">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-1 block">First Name *</label>
@@ -596,9 +596,9 @@ export default function StudentDirectory() {
                     ))}
                   </select>
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50">
+                <div className="sticky bottom-0 pt-4 px-6 -mx-6 -mb-6 pb-6 bg-[#0f1115]/90 backdrop-blur-xl border-t border-white/10 flex justify-end gap-3 z-10 mt-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 md:flex-none px-6 py-3 md:py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-white/50 hover:text-white hover:bg-white/5 transition-colors min-h-[44px]">Cancel</button>
+                  <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none px-6 py-3 md:py-2 rounded-lg text-xs font-bold font-mono tracking-widest uppercase text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50 min-h-[44px]">
                     {isSubmitting ? "Saving..." : "Save Changes"}
                   </button>
                 </div>

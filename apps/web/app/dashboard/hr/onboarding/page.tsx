@@ -120,8 +120,8 @@ export default function OnboardingDashboard() {
           </div>
         </div>
         
-        <div className="flex gap-4">
-          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+        <div className="flex gap-4 w-full md:w-auto">
+          <button onClick={() => setIsAddOpen(true)} className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] min-h-[44px]">
             <Plus className="w-4 h-4" /> Add Workflow
           </button>
         </div>

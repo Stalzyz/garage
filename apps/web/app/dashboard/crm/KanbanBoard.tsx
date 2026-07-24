@@ -83,13 +83,13 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
         <div className="flex gap-2">
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onLogActivity(lead); }}
-            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2.5 -m-2.5"
           >
             <ClipboardList className="w-3.5 h-3.5" />
           </button>
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onOpenLead(lead); }}
-            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2.5 -m-2.5"
           >
             <MoreVertical className="w-3.5 h-3.5" />
           </button>

@@ -32,12 +32,12 @@ export default function EducatorDashboard() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex gap-3"
+          className="flex flex-col md:flex-row gap-3 w-full md:w-auto"
         >
-          <button className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold text-sm transition-colors flex items-center gap-2">
+          <button className="w-full md:w-auto justify-center px-5 py-3 md:py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold text-sm transition-colors flex items-center gap-2 min-h-[44px]">
             <Video className="w-4 h-4" /> Go Live
           </button>
-          <Link href="/dashboard/studio/online/courses/builder" className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+          <Link href="/dashboard/studio/online/courses/builder" className="w-full md:w-auto justify-center px-5 py-3 md:py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] min-h-[44px]">
             <Plus className="w-4 h-4" /> New Course
           </Link>
         </motion.div>

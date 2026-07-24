@@ -34,4 +34,32 @@ export default async function meRouter(app: FastifyInstance) {
       }
     };
   });
+
+  app.post('/password', {
+    preHandler: [app.requireAuth],
+    schema: {
+      body: require('zod').z.object({
+        currentPassword: require('zod').z.string(),
+        newPassword: require('zod').z.string().min(8)
+      })
+    }
+  }, async (req: any, reply) => {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await app.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return reply.notFound('User not found');
+
+    const bcrypt = require('bcryptjs');
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) return reply.status(400).send({ error: 'Invalid current password' });
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await app.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash }
+    });
+
+    return { success: true };
+  });
 }

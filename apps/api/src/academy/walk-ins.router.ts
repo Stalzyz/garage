@@ -106,24 +106,7 @@ export default async function walkInsRouter(app: FastifyInstance) {
     return walkIns;
   });
 
-  // ── GET /api/v1/academy/walk-ins/stats ────────────────────────────────────
-  app.get('/walk-ins/stats', async (req, reply) => {
-    const today = new Date();
-    today.setHours(0,0,0,0);
 
-    const total = await app.prisma.walkIn.count();
-    const todayCount = await app.prisma.walkIn.count({ where: { createdAt: { gte: today } } });
-    const converted = await app.prisma.walkIn.count({ where: { status: 'CONVERTED' } });
-    const pending = await app.prisma.walkIn.count({ where: { status: { in: ['NEW', 'COUNSELLING', 'FOLLOW_UP'] } } });
-
-    return {
-      total,
-      todayCount,
-      converted,
-      pending,
-      conversionRate: total > 0 ? Math.round((converted / total) * 100) : 0
-    };
-  });
 
   // ── POST /api/v1/academy/walk-ins (Kiosk submission) ─────────────────────
   app.post('/walk-ins', async (req, reply) => {
@@ -191,8 +174,8 @@ export default async function walkInsRouter(app: FastifyInstance) {
           name: body.name,
           phone: body.phone,
           email: body.email,
-          source: 'WALKIN' as any,
-          status: 'NEW' as any,
+          source: 'OTHER',
+          status: 'NEW',
           notes: `Walk-in: ${body.type}. Interest: ${body.interestArea}.`
         }
       });

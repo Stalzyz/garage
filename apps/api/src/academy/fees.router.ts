@@ -4,22 +4,7 @@ import { EventBus, SystemEvents } from '../automations/event-bus';
 
 export default async function feesRouter(app: FastifyInstance) {
 
-  // ─────────────────────────────────────────────────────────────
-  // GET /api/v1/academy/enroll/all — Get enrollments for invoices
-  // ─────────────────────────────────────────────────────────────
-  app.get('/enroll/all', async (req, reply) => {
-    const enrollments = await app.prisma.enrollment.findMany({
-      include: {
-        student: {
-          include: {
-            user: { select: { firstName: true, lastName: true, email: true, phone: true } }
-          }
-        },
-        batch: { select: { name: true, course: { select: { name: true } } } }
-      }
-    });
-    return { data: enrollments };
-  });
+
 
   // ─────────────────────────────────────────────────────────────
   // GET /api/v1/academy/fees — Overview: stats + overdue board

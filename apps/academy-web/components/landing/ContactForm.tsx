@@ -3,7 +3,59 @@
 import { motion } from "framer-motion";
 import { Send, MapPin, Phone, Mail } from "lucide-react";
 
+import { useState } from "react";
+import { Send, MapPin, Phone, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+
 export function ContactForm() {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    courseInterest: "Graphic Designing",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.firstName) {
+      toast.error("Please provide your first name");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        source: "WEBSITE",
+        businessUnit: "ACADEMY",
+        courseInterest: formData.courseInterest,
+        notes: formData.message,
+      };
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+      const res = await fetch(`${API_URL}/crm/public/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to submit");
+      }
+
+      setIsSuccess(true);
+      toast.success("Message sent successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <section className="py-24" id="contact">
       <div className="container mx-auto px-4 md:px-6">
@@ -50,12 +102,15 @@ export function ContactForm() {
           <div className="w-full lg:w-3/5 p-10 md:p-14">
             <h3 className="text-2xl font-bold mb-8">Send us a message</h3>
             
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">First Name</label>
                   <input 
                     type="text" 
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow"
                     placeholder="John"
                   />
@@ -64,6 +119,8 @@ export function ContactForm() {
                   <label className="text-sm font-medium">Last Name</label>
                   <input 
                     type="text" 
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow"
                     placeholder="Doe"
                   />
@@ -74,6 +131,8 @@ export function ContactForm() {
                 <label className="text-sm font-medium">Email Address</label>
                 <input 
                   type="email" 
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow"
                   placeholder="john@example.com"
                 />
@@ -81,11 +140,15 @@ export function ContactForm() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Course of Interest</label>
-                <select className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow text-foreground">
-                  <option>Graphic Designing</option>
-                  <option>UI/UX Designing</option>
-                  <option>Web Development</option>
-                  <option>Other</option>
+                <select 
+                  value={formData.courseInterest}
+                  onChange={(e) => setFormData(prev => ({ ...prev, courseInterest: e.target.value }))}
+                  className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow text-foreground"
+                >
+                  <option value="Graphic Designing">Graphic Designing</option>
+                  <option value="UI/UX Designing">UI/UX Designing</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
 
@@ -93,6 +156,8 @@ export function ContactForm() {
                 <label className="text-sm font-medium">Message</label>
                 <textarea 
                   rows={4}
+                  value={formData.message}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                   className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#49abc9]/50 transition-shadow resize-none"
                   placeholder="How can we help you?"
                 ></textarea>
@@ -100,10 +165,16 @@ export function ContactForm() {
 
               <button 
                 type="submit"
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-academy text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#49abc9]/20 hover:shadow-[#49abc9]/40 hover:-translate-y-0.5 transition-all"
+                disabled={isSubmitting || isSuccess}
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-academy text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#49abc9]/20 hover:shadow-[#49abc9]/40 hover:-translate-y-0.5 transition-all disabled:opacity-70"
               >
-                Send Message
-                <Send size={18} />
+                {isSuccess ? (
+                  <>Sent Successfully <CheckCircle2 size={18} /></>
+                ) : isSubmitting ? (
+                  <>Sending... <Loader2 className="animate-spin" size={18} /></>
+                ) : (
+                  <>Send Message <Send size={18} /></>
+                )}
               </button>
             </form>
           </div>

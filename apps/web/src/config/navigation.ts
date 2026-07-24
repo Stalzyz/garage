@@ -35,18 +35,7 @@ export const navigation: NavItem[] = [
     icon: LayoutDashboard,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
   },
-  {
-    title: "LMS & Academy",
-    href: "/dashboard/lms",
-    icon: BookOpen,
-    resource: "LMS",
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "STUDENT", "INTERN"],
-    children: [
-      { title: "My Courses", href: "/dashboard/lms" },
-      { title: "Assignments", href: "/dashboard/lms/assignments" },
-      { title: "Certificates", href: "/dashboard/lms/certificates" },
-    ],
-  },
+
   {
     title: "My Workspace (ESS)",
     href: "/dashboard/ess",

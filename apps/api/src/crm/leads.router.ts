@@ -15,7 +15,7 @@ const CreateLeadSchema = z.object({
   estimatedBudget: z.number().optional(),
   projectType: z.string().optional(),
   notes: z.string().optional(),
-  assignedToId: z.string().optional(),
+  assignedToId: z.union([z.string(), z.literal("")]).optional().transform(val => val === "" ? undefined : val),
   businessUnit: z.enum(['AGENCY', 'ACADEMY']).optional(),
   courseInterest: z.string().optional(),
   batchId: z.string().optional(),

@@ -124,15 +124,27 @@ export default async function attendanceRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: "Already clocked in for today" });
     }
 
-    const record = await server.prisma.attendance.create({
-      data: {
-        employeeId,
-        date: today,
-        clockIn: new Date(),
-        clockInPhotoUrl: photoUrl,
-        status: "PRESENT"
-      }
-    });
+    let record;
+    if (existingRecord) {
+      record = await server.prisma.attendance.update({
+        where: { id: existingRecord.id },
+        data: {
+          clockIn: new Date(),
+          clockInPhotoUrl: photoUrl,
+          status: "PRESENT"
+        }
+      });
+    } else {
+      record = await server.prisma.attendance.create({
+        data: {
+          employeeId,
+          date: today,
+          clockIn: new Date(),
+          clockInPhotoUrl: photoUrl,
+          status: "PRESENT"
+        }
+      });
+    }
     return reply.status(201).send(record);
   });
 

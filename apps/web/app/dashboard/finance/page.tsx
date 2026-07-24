@@ -50,7 +50,7 @@ export default function FinanceDashboard() {
       <div className="max-w-7xl w-full mx-auto p-8 relative z-10">
         
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
               <div className="absolute inset-0 bg-emerald-500/20 animate-pulse mix-blend-overlay" />
@@ -61,13 +61,13 @@ export default function FinanceDashboard() {
               <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Invoicing, Expenses & Tax Telemetry</p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <button className="group flex items-center gap-2 bg-white/5 text-white font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-md">
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <button className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white/5 text-white font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-md min-h-[44px]">
               <Download className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" /> Export GST Report
             </button>
             <Link 
               href="/dashboard/finance/invoices/new"
-              className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
+              className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden min-h-[44px]"
             >
               <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
               <Plus className="w-4 h-4" /> New Invoice

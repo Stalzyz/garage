@@ -22,7 +22,7 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-[60] flex items-end md:items-stretch justify-end">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
@@ -30,7 +30,7 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
       />
       
       {/* Panel */}
-      <div className="relative w-full max-w-md h-full bg-[#0a0a0a] border-l border-white/10 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-md h-[90vh] md:h-full bg-[#0a0a0a] border-t md:border-t-0 md:border-l border-white/10 shadow-2xl flex flex-col animate-in slide-in-from-bottom md:slide-in-from-right duration-300 rounded-t-[2rem] md:rounded-none">
         {/* Header */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0">
           <div>

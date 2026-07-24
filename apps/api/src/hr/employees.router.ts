@@ -31,6 +31,24 @@ export default async function employeeRoutes(app: FastifyInstance) {
     return { employee };
   });
 
+  server.get('/by-user/:userId', {
+    schema: {
+      params: z.object({ userId: z.string() })
+    }
+  }, async (req, reply) => {
+    const employee = await server.prisma.employee.findUnique({
+      where: { userId: req.params.userId },
+      include: { 
+        user: true, 
+        department: true,
+        documents: true,
+        onboardingTasks: true
+      }
+    });
+    if (!employee) return reply.status(404).send({ error: 'Employee not found for this user' });
+    return { employee };
+  });
+
   server.post('/', {
     schema: {
       body: z.object({

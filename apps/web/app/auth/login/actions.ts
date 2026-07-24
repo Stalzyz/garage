@@ -31,7 +31,7 @@ export async function authenticate(
       email,
       password,
       code: code || "",
-      redirect: true,
+      redirectTo: "/dashboard",
     })
     console.log("Sign in successful!");
   } catch (error) {

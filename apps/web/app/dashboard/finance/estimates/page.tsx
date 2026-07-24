@@ -54,16 +54,18 @@ export default function EstimatesDashboard() {
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex-none px-6 py-5 border-b border-border/50">
-        <div className="flex items-center justify-between">
+      <div className="flex-none px-4 md:px-6 py-4 md:py-5 border-b border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Estimates & Quotes</h1>
             <p className="text-sm text-muted-foreground mt-1">Draft estimates, send for client approval, and convert to invoices.</p>
           </div>
-          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm">
-            <Plus className="w-4 h-4" />
-            Create Estimate
-          </button>
+          <div className="flex w-full md:w-auto">
+            <button onClick={() => setIsAddOpen(true)} className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
+              <Plus className="w-4 h-4" />
+              Create Estimate
+            </button>
+          </div>
         </div>
       </div>
 
@@ -240,10 +242,10 @@ export default function EstimatesDashboard() {
             <input required type="number" value={formData.amount || ''} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30" />
           </div>
           
-          <div className="pt-4 mt-6 border-t border-white/10">
+          <div className="sticky bottom-0 bg-[#0a0a0a] pt-4 pb-6 -mb-6 -mx-6 px-6 border-t border-white/10 mt-6 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
             <button 
               type="submit"
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all min-h-[44px]"
             >
               Save Draft
             </button>
@@ -286,10 +288,10 @@ export default function EstimatesDashboard() {
               <input type="number" value={editingEst.amount} onChange={e => setEditingEst({...editingEst, amount: Number(e.target.value)})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white" />
             </div>
             
-            <div className="pt-4 mt-6 border-t border-white/10">
+            <div className="sticky bottom-0 bg-[#0a0a0a] pt-4 pb-6 -mb-6 -mx-6 px-6 border-t border-white/10 mt-6 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)]">
               <button 
                 type="submit"
-                className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
+                className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all min-h-[44px]"
               >
                 Save Changes
               </button>

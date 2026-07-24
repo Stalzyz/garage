@@ -26,7 +26,7 @@ export default async function DashboardLayout({
             <WebSocketProvider>
             <CurrentUserProvider>
               <Sidebar />
-              <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-dash-bg-surface backdrop-blur-3xl md:rounded-tl-[2.5rem] md:border-t md:border-l border-dash-border-subtle md:mt-2 shadow-2xl relative z-10 pt-16 pb-16 md:pt-0 md:pb-0 transition-colors duration-300">
+              <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-dash-bg-surface backdrop-blur-3xl md:rounded-tl-[2.5rem] md:border-t md:border-l border-dash-border-subtle md:mt-2 shadow-2xl relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-300">
                 {children}
               </main>
               <CommandPalette />
