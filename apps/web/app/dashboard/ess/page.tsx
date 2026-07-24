@@ -5,6 +5,7 @@ import { useApi } from "@/lib/useApi"
 import { ClockWidget } from "@/components/hr/ClockWidget"
 import { Calendar, CheckCircle, Clock, ListTodo, Target, FileText, Lock } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
+import { useSession } from "next-auth/react"
 
 export default function ESSDashboard() {
   const { data: session } = useSession()
