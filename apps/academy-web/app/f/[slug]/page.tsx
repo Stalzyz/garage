@@ -27,7 +27,7 @@ export default function PublicFormRenderer() {
       const formData = new FormData()
       formData.append('file', file)
       
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://garage.grekam.in/api/v1"
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://www.grekam.in/api/v1"
       const res = await fetch(`${API_URL}/storage/upload-local`, {
         method: "POST",
         body: formData
@@ -54,7 +54,7 @@ export default function PublicFormRenderer() {
         }
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://garage.grekam.in/api/v1"
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://www.grekam.in/api/v1"
       const res = await fetch(`${API_URL}/academy/forms/${params.slug}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

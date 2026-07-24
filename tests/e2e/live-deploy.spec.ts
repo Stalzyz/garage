@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Live Production E2E Tests', () => {
 
-  test('garage.grekam.in should load the Split Reality portal', async ({ page }) => {
-    console.log('Navigating to https://garage.grekam.in ...');
-    await page.goto('https://garage.grekam.in');
+  test('www.grekam.in should load the Split Reality portal', async ({ page }) => {
+    console.log('Navigating to https://www.grekam.in ...');
+    await page.goto('https://www.grekam.in');
 
     // Wait for the page to fully load and animations to complete
     await page.waitForLoadState('networkidle');
