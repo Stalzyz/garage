@@ -17,7 +17,7 @@ export default async function revenueRouter(fastify: FastifyInstance) {
 
       invoices.forEach(inv => {
         if (inv.businessUnit === "AGENCY") agencyTotal += inv.paidAmount;
-        if (inv.businessUnit === "SAAS") saasTotal += inv.paidAmount;
+        if (inv.businessUnit === "BOTH") saasTotal += inv.paidAmount;
         if (inv.businessUnit === "ACADEMY") academyTotal += inv.paidAmount;
       });
 
@@ -38,7 +38,7 @@ export default async function revenueRouter(fastify: FastifyInstance) {
         if (inv.paidAt) {
           const month = months[inv.paidAt.getMonth()];
           if (inv.businessUnit === "AGENCY") monthlyDataMap[month].agency += inv.paidAmount;
-          if (inv.businessUnit === "SAAS") monthlyDataMap[month].saas += inv.paidAmount;
+          if (inv.businessUnit === "BOTH") monthlyDataMap[month].saas += inv.paidAmount;
           if (inv.businessUnit === "ACADEMY") monthlyDataMap[month].academy += inv.paidAmount;
         }
       });
