@@ -39,7 +39,7 @@ export const navigation: NavItem[] = [
       { title: "Remote Students",   href: "/dashboard/academy/students/online" },
       { title: "Global Leaderboard", href: "/dashboard/academy/leaderboard" },
       { title: "Campus Faculty",   href: "/dashboard/academy/educators/onsite" },
-      { title: "Office Hours", href: "/dashboard/studio/onsite/office-hours" },
+      { title: "Office Hours", href: "/dashboard/studio/office-hours" },
       { title: "Remote Instructors",   href: "/dashboard/academy/educators/online" },
       { title: "Fee Collection",   href: "/dashboard/academy/fees" },
       { title: "Batches",    href: "/dashboard/academy/batches" },
