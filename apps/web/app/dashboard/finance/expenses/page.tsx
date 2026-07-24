@@ -6,6 +6,7 @@ import Link from "next/link"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useCurrency } from "@/hooks/useCurrency"
+import { SlideOver } from "@/components/SlideOver"
 
 export default function ExpensesPage() {
   const { symbol } = useCurrency()
@@ -14,6 +15,16 @@ export default function ExpensesPage() {
   
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
+  
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "OFFICE",
+    amount: "",
+    vendorName: "",
+    description: ""
+  })
 
   const filteredExpenses = expenses.filter((exp: any) => {
     const matchesSearch = exp.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -24,7 +35,7 @@ export default function ExpensesPage() {
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
-      await fetchApi(`/finance/expenses/${id}/status`, {
+      await fetchApi(`/finance/expenses/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status: newStatus })
       })
@@ -32,6 +43,29 @@ export default function ExpensesPage() {
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to update status")
+    }
+  }
+
+  const handleCreateExpense = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      await fetchApi("/finance/expenses", {
+        method: "POST",
+        body: JSON.stringify({
+          category: formData.category,
+          amount: parseFloat(formData.amount),
+          description: formData.description || formData.title,
+        })
+      })
+      toast.success("Expense created successfully")
+      setIsAddOpen(false)
+      setFormData({ title: "", category: "OFFICE", amount: "", vendorName: "", description: "" })
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create expense")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -60,7 +94,7 @@ export default function ExpensesPage() {
             <p className="text-sm text-white/50 mt-2">Manage vendor bills and internal expenses</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => toast("Expense creation coming soon!")} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+            <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
               <Plus className="w-4 h-4" /> New Expense
             </button>
           </div>
@@ -171,6 +205,87 @@ export default function ExpensesPage() {
           </table>
         </div>
       </div>
+
+      {/* Add Expense Modal */}
+      <SlideOver
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        title="New Expense"
+      >
+        <form onSubmit={handleCreateExpense} className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Title</label>
+              <input 
+                required
+                type="text" 
+                value={formData.title}
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                placeholder="e.g. Adobe Creative Cloud"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1.5">Category</label>
+                <select 
+                  value={formData.category}
+                  onChange={e => setFormData({...formData, category: e.target.value})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                >
+                  <option value="OFFICE">Office</option>
+                  <option value="SOFTWARE">Software</option>
+                  <option value="TRAVEL">Travel</option>
+                  <option value="PROJECT">Project</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1.5">Amount ({symbol})</label>
+                <input 
+                  required
+                  type="number" 
+                  min="0"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={e => setFormData({...formData, amount: e.target.value})}
+                  placeholder="0.00"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Description (Optional)</label>
+              <textarea 
+                value={formData.description}
+                onChange={e => setFormData({...formData, description: e.target.value})}
+                placeholder="Provide additional details..."
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white h-24 resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+            <button 
+              type="button"
+              onClick={() => setIsAddOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Creating..." : "Create Expense"}
+            </button>
+          </div>
+        </form>
+      </SlideOver>
     </div>
   )
 }

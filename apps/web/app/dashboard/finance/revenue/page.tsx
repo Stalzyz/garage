@@ -4,26 +4,18 @@ import { useState } from "react"
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, PieChart, Activity, Download, ChevronDown, Filter } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
 
-// Mock Data
-const REVENUE_STREAMS = [
-  { id: "agency", name: "Agency Services", amount: 450000, percentage: 45, trend: "+12%", trendUp: true, color: "bg-blue-500" },
-  { id: "saas", name: "SaaS Subscriptions", amount: 350000, percentage: 35, trend: "+24%", trendUp: true, color: "bg-emerald-500" },
-  { id: "academy", name: "Academy Tuition", amount: 200000, percentage: 20, trend: "-5%", trendUp: false, color: "bg-amber-500" },
-]
-
-const MONTHLY_DATA = [
-  { month: "Jan", agency: 380, saas: 280, academy: 150 },
-  { month: "Feb", agency: 390, saas: 290, academy: 160 },
-  { month: "Mar", agency: 410, saas: 310, academy: 180 },
-  { month: "Apr", agency: 430, saas: 330, academy: 170 },
-  { month: "May", agency: 420, saas: 340, academy: 190 },
-  { month: "Jun", agency: 450, saas: 350, academy: 200 },
-]
+import { useApi } from "@/lib/useApi"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function RevenueDashboard() {
   const { symbol } = useCurrency()
   const [timeframe, setTimeframe] = useState("This Year")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  
+  const { data, isLoading } = useApi<any>("/finance/revenue/stats")
+  const stats = data || { total: 0, streams: [], monthlyData: [] }
+  const REVENUE_STREAMS = stats.streams || []
+  const MONTHLY_DATA = stats.monthlyData || []
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -77,7 +69,7 @@ export default function RevenueDashboard() {
           <div>
             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">Total Net Revenue (YTD)</p>
             <div className="flex items-end gap-4">
-              <h2 className="text-5xl font-black text-foreground">{symbol}10,00,000</h2>
+              <h2 className="text-5xl font-black text-foreground">{symbol}{(stats.total || 0).toLocaleString()}</h2>
               <div className="flex items-center gap-1.5 text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full mb-1 border border-emerald-500/20">
                 <TrendingUp className="w-4 h-4" />
                 <span className="font-bold text-sm">+18.5% YoY</span>
@@ -113,7 +105,7 @@ export default function RevenueDashboard() {
               </div>
               
               <div className="flex items-end justify-between mt-6">
-                <h4 className="text-3xl font-bold text-foreground">{symbol}{(stream.amount / 1000).toFixed(0)}k</h4>
+                <h4 className="text-3xl font-bold text-foreground">{symbol}{(stream.amount || 0).toLocaleString()}</h4>
                 <div className={`flex items-center gap-1 text-sm font-bold ${stream.trendUp ? 'text-emerald-500' : 'text-amber-500'}`}>
                   {stream.trendUp ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   {stream.trend}
@@ -143,18 +135,20 @@ export default function RevenueDashboard() {
             </div>
 
             {/* Bars */}
-            {MONTHLY_DATA.map((data, idx) => (
+            {MONTHLY_DATA.map((data: any, idx: number) => {
+              const maxVal = Math.max(...MONTHLY_DATA.map((d: any) => d.agency + d.saas + d.academy), 1000); // Dynamic max value
+              return (
               <div key={idx} className="flex-1 flex justify-center items-end gap-1 z-10 group relative">
                 {/* Tooltip */}
                 <div className="absolute -top-12 opacity-0 group-hover:opacity-100 bg-foreground text-background text-xs font-bold py-1 px-2 rounded transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg">
-                  Total: {symbol}{data.agency + data.saas + data.academy}k
+                  Total: {symbol}{(data.agency + data.saas + data.academy).toLocaleString()}
                 </div>
-                <div className="w-1/3 max-w-[24px] bg-blue-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.agency / 500) * 100}%` }}></div>
-                <div className="w-1/3 max-w-[24px] bg-emerald-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.saas / 500) * 100}%` }}></div>
-                <div className="w-1/3 max-w-[24px] bg-amber-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.academy / 500) * 100}%` }}></div>
+                <div className="w-1/3 max-w-[24px] bg-blue-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.agency / maxVal) * 100}%` }}></div>
+                <div className="w-1/3 max-w-[24px] bg-emerald-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.saas / maxVal) * 100}%` }}></div>
+                <div className="w-1/3 max-w-[24px] bg-amber-500 rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${(data.academy / maxVal) * 100}%` }}></div>
                 <div className="absolute -bottom-8 text-xs font-bold text-muted-foreground">{data.month}</div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
