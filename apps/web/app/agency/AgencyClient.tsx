@@ -512,7 +512,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
   )
   
   return (
-    <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center windy-mesh-bg">
+    <div ref={containerRef} className="h-[100dvh] w-full overflow-hidden flex items-center justify-center bg-black">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04),transparent)] pointer-events-none" />
       
       {/* Centered headline — always in the middle */}
@@ -1180,7 +1180,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
   return (
     <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black cursor-none">
-      <CustomCursor />
+      {/* Removed CustomCursor to improve performance */}
       
       <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
         
