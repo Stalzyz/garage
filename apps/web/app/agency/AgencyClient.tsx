@@ -1179,7 +1179,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
 
   return (
-    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black cursor-none">
+    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
       {/* Removed CustomCursor to improve performance */}
       
       <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
