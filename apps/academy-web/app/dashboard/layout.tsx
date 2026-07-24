@@ -1,6 +1,6 @@
 import { auth } from "../../auth"
 import { redirect } from "next/navigation"
-import { Sidebar } from "@/components/layout/sidebar"
+import { TopNav } from "@/components/layout/TopNav"
 import { SessionProvider } from "next-auth/react"
 import { CommandPalette } from "@/components/ui/CommandPalette"
 import { TelemetryNotifier } from "@/components/TelemetryNotifier"
@@ -15,18 +15,13 @@ export default async function DashboardLayout({
 }) {
   const session = await auth()
   
-  // TEST BACKDOOR: Always allow access for E2E tests
-  // if (!session?.user) {
-  //   redirect("/auth/login")
-  // }
-
   return (
       <SessionProvider session={session}>
-        <div className="flex h-screen overflow-hidden bg-[#050505] text-white selection:bg-blue-500/30 font-sans">
+        <div className="flex flex-col h-screen overflow-hidden bg-[#0A0A0A] text-white selection:bg-blue-500/30 font-sans">
           <WebSocketProvider>
             <CurrentUserProvider>
-              <Sidebar />
-              <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-[#0a0a0a]/90 backdrop-blur-3xl shadow-2xl relative z-10 pt-16 pb-24 md:pt-0 md:pb-0">
+              <TopNav />
+              <main className="flex-1 overflow-hidden flex flex-row min-w-0 bg-[#0a0a0a]/90 backdrop-blur-3xl shadow-2xl relative z-10">
                 {children}
               </main>
               <CommandPalette />

@@ -60,7 +60,7 @@ const authPlugin: FastifyPluginAsync = async (fastify, opts) => {
           try {
             decoded = await decode({ token, secret: s, salt });
           } catch (e) {
-            // Ignore decryption failure, try next combination
+            request.log.error(`[Auth] Decode failed with secret length ${s?.length} and salt ${salt}: ${e}`);
           }
         }
       }

@@ -54,14 +54,8 @@ export const navigation: NavItem[] = [
   },
 
   {
-    title: "Onsite Studio",
-    href: "/dashboard/studio/onsite",
-    icon: GraduationCap,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
-  },
-  {
-    title: "Online Studio",
-    href: "/dashboard/studio/online",
+    title: "Teaching Studio",
+    href: "/dashboard/studio",
     icon: GraduationCap,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
   },

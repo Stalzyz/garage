@@ -24,8 +24,6 @@ import {
 import { useSession, signOut } from "next-auth/react"
 
 const getEducatorNavigation = (basePath: string) => {
-  const isOnsite = basePath.includes('/onsite');
-  
   const nav = [
     { title: "Studio Dashboard", href: basePath, icon: LayoutDashboard },
     { title: "My Students", href: `${basePath}/students`, icon: Users },
@@ -34,20 +32,9 @@ const getEducatorNavigation = (basePath: string) => {
     { title: "Quiz Builder", href: `${basePath}/quizzes`, icon: HelpCircle },
     { title: "Assignments", href: `${basePath}/assignments`, icon: CheckSquare },
     { title: "Analytics", href: `${basePath}/analytics`, icon: BarChart2 },
+    { title: "Live Studio", href: `${basePath}/live`, icon: Video },
+    { title: "Office Hours", href: `${basePath}/office-hours`, icon: Users },
   ];
-
-  if (isOnsite) {
-    nav.push({ title: "Live Studio", href: `${basePath}/live`, icon: Video });
-    nav.push({ title: "Office Hours", href: `${basePath}/office-hours`, icon: Users });
-  }
-
-  // Hide the following unimplemented routes until they are built:
-  // - Revenue
-  // - Reviews
-  // - Community
-  // - Announcements
-  // - AI Assistant
-  // - Settings
 
   return nav;
 }
@@ -56,14 +43,12 @@ export function EducatorSidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   
-  const basePath = pathname.includes('/dashboard/studio/online') 
-    ? '/dashboard/studio/online' 
-    : '/dashboard/studio/onsite';
+  const basePath = '/dashboard/studio';
     
   const educatorNavigation = getEducatorNavigation(basePath);
 
   return (
-    <div className="w-64 h-full bg-[#050505]/90 backdrop-blur-3xl border-r border-white/10 flex flex-col text-white">
+    <div className="w-64 h-full bg-[#0A0A0A] border-r border-white/5 flex flex-col text-white flex-shrink-0 relative z-40 hidden md:flex">
       {/* Header */}
       <div className="h-16 flex items-center px-6 gap-3 border-b border-white/10">
         <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
