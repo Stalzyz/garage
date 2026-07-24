@@ -11,7 +11,7 @@ const CreateLeadSchema = z.object({
   phone: z.union([z.string(), z.literal("")]).optional(),
   company: z.string().optional(),
   source: z.enum(LeadSourceValues).optional().default('WEBSITE'),
-  status: z.enum(LeadStatusValues).optional().default('ENQUIRY'),
+  status: z.enum(LeadStatusValues).optional(),
   estimatedBudget: z.number().optional(),
   projectType: z.string().optional(),
   notes: z.string().optional(),
@@ -117,7 +117,7 @@ export default async function leadsRouter(app: FastifyInstance) {
         email: cleanEmail,
         phone: cleanPhone,
         source: body.source || 'WEBSITE',
-        status: body.status || 'ENQUIRY',
+        status: body.status || (body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW'),
         score 
       },
     });

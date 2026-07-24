@@ -51,7 +51,11 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
 
     // 1. Create the lead
     const lead = await app.prisma.lead.create({
-      data: { ...body, score },
+      data: { 
+        ...body, 
+        score,
+        status: body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW'
+      },
     });
 
     // 2. Upsert into CRM contacts so this person shows up in the contacts list
