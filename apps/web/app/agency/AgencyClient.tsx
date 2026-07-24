@@ -265,25 +265,23 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
   )
 }
 
-// --- 02. SCATTERED CARDS ---
-// Golden angle in radians: 360 * (1 - 1/φ) ≈ 137.508°
-const GOLDEN_ANGLE = 137.508 * (Math.PI / 180)
-
+// Completely random positions on each load
 function getGoldenPositions(count: number, isMobile: boolean) {
   const positions: { x: number; y: number; rotate: number }[] = []
-  // Tighter scale — cards cluster close to center like a real scatter on a table
-  const scale = isMobile ? 45 : 70
+  
+  // Tighter scale for mobile so they stay on screen
+  const maxRadiusX = isMobile ? 120 : 280
+  const maxRadiusY = isMobile ? 160 : 180
+
   for (let i = 0; i < count; i++) {
-    const angle = i * GOLDEN_ANGLE
-    const radius = scale * Math.sqrt(i + 1)
-    
-    // Pseudo-random stable tilt between -30 and +30 degrees based on index
-    const randomTilt = ((Math.sin(i * 12.9898) * 43758.5453) % 1) * 60 - 30
+    const angle = Math.random() * Math.PI * 2
+    // Math.sqrt for uniform distribution across the circle area
+    const r = Math.sqrt(Math.random() * 0.8 + 0.2) // Avoid being exactly in the center
 
     positions.push({
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius * 0.52,
-      rotate: randomTilt,
+      x: Math.cos(angle) * r * maxRadiusX,
+      y: Math.sin(angle) * r * maxRadiusY,
+      rotate: Math.random() * 60 - 30,
     })
   }
   return positions
