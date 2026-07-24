@@ -557,7 +557,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
         <DraggableCard
           key={card.id}
           card={card}
-          pos={goldenPositions[i]}
+          pos={goldenPositions[i] || { x: 0, y: 0, rotate: 0 }}
           isMobile={isMobile}
           isDragging={isDragging}
           onTap={(id: string) => { setHasOpenedCard(true); playSound(); setActiveId(id) }}
