@@ -15,13 +15,15 @@ export default async function crmModule(app: FastifyInstance) {
   await app.register(publicProposalsRouter, { prefix: '/public' });
   await app.register(adsWebhookRouter, { prefix: '/public/webhooks' });
 
-  // Protect all other CRM routes
-  app.addHook('preHandler', app.requireAuth);
+  // Protect all other CRM routes in a scoped plugin
+  app.register(async (protectedApp) => {
+    protectedApp.addHook('preHandler', protectedApp.requireAuth);
 
-  await app.register(leadsRouter);
-  await app.register(contactsRouter);
-  await app.register(proposalsRouter);
-  await app.register(telemetryRouter);
-  await app.register(telephonyRouter);
-  await app.register(aiRouter, { prefix: '/ai' });
+    await protectedApp.register(leadsRouter);
+    await protectedApp.register(contactsRouter);
+    await protectedApp.register(proposalsRouter);
+    await protectedApp.register(telemetryRouter);
+    await protectedApp.register(telephonyRouter);
+    await protectedApp.register(aiRouter, { prefix: '/ai' });
+  });
 }
