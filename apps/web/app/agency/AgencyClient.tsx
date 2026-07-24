@@ -371,7 +371,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
-      {(!isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
+      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
       
       <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-start items-center mb-6 md:mb-8'))}`}>
          <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}</div>
@@ -394,7 +394,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
         >{card.title}</h2>
       )}
       
-      {(!isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-8 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
+      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-8 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
       
       {isActive && card.projects && (
          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -1259,7 +1259,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       </div>
 
       {/* Floating Strategy Call Widget */}
-      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[1000] pointer-events-auto">
+      <div className="hidden md:block fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[1000] pointer-events-auto">
         <button 
           onClick={() => setIsStrategyModalOpen(true)}
           className="group relative flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-full shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] hover:scale-105 transition-all duration-300"
