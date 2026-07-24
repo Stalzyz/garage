@@ -175,7 +175,8 @@ export default async function walkInsRouter(app: FastifyInstance) {
           phone: body.phone,
           email: body.email,
           source: 'OTHER',
-          status: 'NEW',
+          status: 'ENQUIRY',
+          businessUnit: 'ACADEMY',
           notes: `Walk-in: ${body.type}. Interest: ${body.interestArea}.`
         }
       });

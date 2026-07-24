@@ -90,7 +90,8 @@ export default async function dynamicFormsRouter(app: FastifyInstance) {
             phone,
             email,
             source: 'OTHER',
-            status: 'NEW',
+            status: 'ENQUIRY',
+            businessUnit: 'ACADEMY',
             notes: `Auto-generated from form: ${form.title}`
           }
         });

@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set timeout 300
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && git pull origin main && pnpm install --frozen-lockfile && pnpm --filter=api build && pnpm --filter=web build && pm2 restart all"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && git reset --hard HEAD && git pull origin main && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@grekam/api --filter=@grekam/web --filter=@grekam/academy-web && pm2 restart all"
 expect "assword:"
 send "Photoshop09@\r"
 expect eof
