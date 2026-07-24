@@ -5,7 +5,6 @@ import { BarChart3, TrendingUp, TrendingDown, DollarSign, PieChart, Activity, Do
 import { useCurrency } from "@/hooks/useCurrency"
 
 import { useApi } from "@/lib/useApi"
-import { useCurrency } from "@/hooks/useCurrency"
 
 export default function RevenueDashboard() {
   const { symbol } = useCurrency()
