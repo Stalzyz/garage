@@ -365,7 +365,10 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const goldenPositions = useMemo(() => getGoldenPositions(cards.length, isMobile), [cards.length, isMobile])
+  const [goldenPositions, setGoldenPositions] = useState<{x: number, y: number, rotate: number}[]>(() => Array(cards.length).fill({x: 0, y: 0, rotate: 0}))
+  useEffect(() => {
+    setGoldenPositions(getGoldenPositions(cards.length, isMobile))
+  }, [cards.length, isMobile])
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
     <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
