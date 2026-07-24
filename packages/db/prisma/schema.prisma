@@ -2787,3 +2787,18 @@ model Goal {
 
   @@map("goals")
 }
+
+model Product {
+  id          String   @id @default(cuid())
+  categoryId  String   // grafty-pro, send-grafty, etc
+  name        String
+  price       Float
+  billing     String   // monthly, yearly, once, retainer
+  description String?
+  features    String[] // Prisma supports scalar lists in PostgreSQL
+  isPopular   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}

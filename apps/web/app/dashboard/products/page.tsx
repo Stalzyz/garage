@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Package, Layers, Globe, Zap, ArrowRight, Server, Shield, Headphones } from "lucide-react"
+import { Search, Plus, Package, Layers, Globe, Zap, ArrowRight, Server, Shield, Headphones, Check as CheckIcon } from "lucide-react"
 
 // Types
 type ProductTier = {
@@ -22,77 +22,52 @@ type ProductCategory = {
   tiers: ProductTier[]
 }
 
-// Mock Data
-const CATALOGUE: ProductCategory[] = [
-  {
-    id: "grafty-pro",
-    name: "Grafty Pro",
-    icon: Layers,
-    description: "SaaS platform for creative agencies",
-    tiers: [
-      { id: "gp-starter", name: "Starter", price: "₹1,999", billing: "monthly", description: "Perfect for solo creatives", features: ["1 Workspace", "3 Users", "Core Features", "Email Support"] },
-      { id: "gp-pro", name: "Pro", price: "₹4,999", billing: "monthly", description: "For growing teams", features: ["5 Workspaces", "15 Users", "Analytics Dashboard", "Priority Support"], isPopular: true },
-      { id: "gp-agency", name: "Agency", price: "₹12,999", billing: "monthly", description: "Full white-label solution", features: ["Unlimited Workspaces", "White-label Portal", "API Access", "Dedicated Success Manager"] },
-    ]
-  },
-  {
-    id: "send-grafty",
-    name: "Send Grafty",
-    icon: Zap,
-    description: "Email marketing automation platform",
-    tiers: [
-      { id: "sg-lite", name: "Lite", price: "₹799", billing: "monthly", description: "Start sending newsletters", features: ["10,000 Emails/mo", "Basic Templates", "Standard Delivery"] },
-      { id: "sg-growth", name: "Growth", price: "₹1,999", billing: "monthly", description: "Scale your campaigns", features: ["50,000 Emails/mo", "Advanced Automation", "A/B Testing"], isPopular: true },
-      { id: "sg-scale", name: "Scale", price: "₹4,999", billing: "monthly", description: "High volume sending", features: ["200,000 Emails/mo", "Dedicated IP", "Deliverability Consulting"] },
-    ]
-  },
-  {
-    id: "web-waas",
-    name: "Website-as-a-Service",
-    icon: Globe,
-    description: "Managed website subscriptions (WaaS)",
-    tiers: [
-      { id: "ws-care", name: "Basic Care", price: "₹4,999", billing: "monthly", description: "Maintenance for existing sites", features: ["Hosting & SSL", "Plugin Updates", "Weekly Backups", "1hr Support"] },
-      { id: "ws-starter", name: "Starter Site", price: "₹7,999", billing: "monthly", description: "New site + maintenance", features: ["5-Page Custom Site", "Hosting & Domain", "Basic SEO", "Content Updates"], isPopular: true },
-      { id: "ws-ecommerce", name: "Ecommerce WaaS", price: "₹24,999", billing: "monthly", description: "Managed online store", features: ["Online Store Setup", "Payment Gateway Setup", "Inventory Sync", "Priority Support"] },
-    ]
-  }
+import { useApi, fetchApi } from "@/lib/useApi"
+import { toast } from "sonner"
+
+const CATEGORIES = [
+  { id: "grafty-pro", name: "Grafty Pro", icon: Layers, description: "SaaS platform for creative agencies" },
+  { id: "send-grafty", name: "Send Grafty", icon: Zap, description: "Email marketing automation platform" },
+  { id: "web-waas", name: "Website-as-a-Service", icon: Globe, description: "Managed website subscriptions (WaaS)" }
 ]
 
 export default function ProductCataloguePage() {
-  const [catalog, setCatalog] = useState<ProductCategory[]>(CATALOGUE)
+  const { data: apiResponse, mutate } = useApi<any>("/finance/products")
+  const products = apiResponse || []
+  
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<string>("grafty-pro")
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [newTier, setNewTier] = useState({ name: "", price: "", billing: "monthly", description: "", isPopular: false })
 
-  const activeCategory = catalog.find(c => c.id === activeTab)
+  const activeCategory = CATEGORIES.find(c => c.id === activeTab)
+  const filteredProducts = products.filter((p: any) => p.categoryId === activeTab && p.name.toLowerCase().includes(search.toLowerCase()))
 
-  const handleAddTier = (e: React.FormEvent) => {
+  const handleAddTier = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTier.name || !newTier.price) return
     
-    setCatalog(prev => prev.map(cat => {
-      if (cat.id === activeTab) {
-        return {
-          ...cat,
-          tiers: [...cat.tiers, {
-            id: `tier-${Date.now()}`,
-            name: newTier.name,
-            price: newTier.price,
-            billing: newTier.billing as any,
-            description: newTier.description,
-            features: ["Custom Feature 1", "Custom Feature 2"], // Mock default features
-            isPopular: newTier.isPopular
-          }]
-        }
-      }
-      return cat
-    }))
-    
-    setNewTier({ name: "", price: "", billing: "monthly", description: "", isPopular: false })
-    setIsAddModalOpen(false)
+    try {
+      await fetchApi("/finance/products", {
+        method: "POST",
+        body: JSON.stringify({
+          categoryId: activeTab,
+          name: newTier.name,
+          price: parseFloat(newTier.price),
+          billing: newTier.billing,
+          description: newTier.description,
+          features: ["Custom Feature 1", "Custom Feature 2"], // Default features
+          isPopular: newTier.isPopular
+        })
+      })
+      toast.success("Product added successfully")
+      mutate()
+      setNewTier({ name: "", price: "", billing: "monthly", description: "", isPopular: false })
+      setIsAddModalOpen(false)
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add product")
+    }
   }
 
   return (
@@ -113,7 +88,7 @@ export default function ProductCataloguePage() {
         {/* Top Controls */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex bg-muted/30 p-1 rounded-lg border border-border/50 overflow-x-auto">
-            {catalog.map(cat => (
+            {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveTab(cat.id)}
@@ -156,7 +131,7 @@ export default function ProductCataloguePage() {
 
             {/* Pricing Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-              {activeCategory.tiers.map((tier) => (
+              {filteredProducts.map((tier: any) => (
                 <div 
                   key={tier.id}
                   className={`relative flex flex-col rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md ${
@@ -182,7 +157,7 @@ export default function ProductCataloguePage() {
                   </div>
 
                   <ul className="flex-1 space-y-3 mb-8">
-                    {tier.features.map((feature, i) => (
+                    {tier.features.map((feature: string, i: number) => (
                       <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
                         <CheckIcon className="w-5 h-5 text-emerald-500 shrink-0" />
                         <span>{feature}</span>

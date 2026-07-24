@@ -7,20 +7,22 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
 
-// Mock Data
-const QUEUE = [
-  { id: "L-101", name: "Sarah Jenkins", company: "Nexus Health", role: "CMO", status: "Next", phone: "+1 (555) 019-2831" },
-  { id: "L-102", name: "David Chen", company: "Peak Performance", role: "Founder", status: "Queued", phone: "+1 (555) 832-1044" },
-  { id: "L-103", name: "Amanda Rossi", company: "Elevate AI", role: "VP Marketing", status: "Queued", phone: "+1 (555) 441-9920" },
-  { id: "L-104", name: "Marcus Johnson", company: "BlueOcean SaaS", role: "Director", status: "Queued", phone: "+1 (555) 772-0012" },
-]
 
 export default function PowerDialerDashboard() {
   const [callState, setCallState] = useState<"idle" | "dialing" | "connected" | "voicemail" | "wrapup">("idle")
-  const [activeLead, setActiveLead] = useState(QUEUE[0])
   const [queuePos, setQueuePos] = useState(0)
   const [routeThroughMobile, setRouteThroughMobile] = useState(false)
   const { data: session } = useSession()
+
+  // Fetch real leads from API
+  const { data: apiResponse, mutate } = useApi<any>("/crm/leads")
+  const leads = apiResponse?.data || []
+  
+  // Filter for leads with phone numbers and sort by NEW/CONTACTED first
+  const queue = leads.filter((l: any) => !!l.phone).slice(0, 50)
+  const activeLead = queue[queuePos]
+
+  const [callNotes, setCallNotes] = useState("")
 
   const handleStartDialer = async () => {
     setCallState("dialing")
@@ -51,19 +53,63 @@ export default function PowerDialerDashboard() {
     setCallState("wrapup")
   }
 
-  const handleVoicemailDrop = () => {
+  const handleVoicemailDrop = async () => {
     setCallState("voicemail")
+    if (activeLead) {
+      try {
+        await fetchApi(`/crm/leads/${activeLead.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "CALL",
+            content: "[Voicemail] Dropped pre-recorded voicemail"
+          })
+        })
+        toast.success("Voicemail logged to CRM")
+      } catch (err) {
+        console.error(err)
+      }
+    }
     setTimeout(() => {
       handleNextLead()
     }, 2000)
   }
 
-  const handleNextLead = () => {
-    if (queuePos + 1 < QUEUE.length) {
-      setActiveLead(QUEUE[queuePos + 1])
+  const saveCallNotes = async () => {
+    if (activeLead && callNotes.trim()) {
+      try {
+        await fetchApi(`/crm/leads/${activeLead.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "CALL",
+            content: `[Call] ${callNotes}`
+          })
+        })
+        toast.success("Call notes saved!")
+      } catch (err: any) {
+        toast.error("Failed to save notes: " + err.message)
+      }
+    }
+  }
+
+  const handleNextLead = async () => {
+    if (callState === "wrapup") {
+      await saveCallNotes()
+    }
+    setCallNotes("")
+    if (queuePos + 1 < queue.length) {
       setQueuePos(queuePos + 1)
       setCallState("idle")
     }
+  }
+
+  if (!queue || queue.length === 0) {
+    return (
+      <div className="flex flex-col h-full bg-background items-center justify-center">
+        <PhoneOff className="w-12 h-12 text-muted-foreground/50 mb-4" />
+        <h2 className="text-xl font-bold text-foreground">No leads available</h2>
+        <p className="text-muted-foreground">Add more leads with phone numbers to use the power dialer.</p>
+      </div>
+    )
   }
 
   return (
@@ -96,7 +142,7 @@ export default function PowerDialerDashboard() {
               </div>
             </label>
             <div className="flex items-center justify-between md:justify-start gap-4">
-              <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{QUEUE.length}</span>
+              <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{queue.length}</span>
               {callState === "idle" || callState === "wrapup" ? (
                 <button 
                   onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
@@ -280,7 +326,7 @@ export default function PowerDialerDashboard() {
                       buttonLabel="AI Notes"
                     />
                   </div>
-                  <textarea id="dialer-notes" className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" placeholder="Optional notes..."></textarea>
+                  <textarea value={callNotes} onChange={e => setCallNotes(e.target.value)} id="dialer-notes" className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-20" placeholder="Optional notes..."></textarea>
                 </div>
               )}
 
