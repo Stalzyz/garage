@@ -317,7 +317,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     // Generate token if it doesn't have one
     const existing = await app.prisma.proposal.findUnique({ 
       where: { id }, 
-      include: { lead: true } 
+      include: { lead: true, items: true } 
     });
     
     if (!existing) return reply.notFound('Proposal not found');
@@ -334,13 +334,52 @@ export default async function proposalsRouter(app: FastifyInstance) {
 
     if (existing.lead && existing.lead.email) {
       const { sendEmail } = await import('../integrations/email.service');
-      const portalUrl = process.env.PORTAL_URL || 'http://localhost:3000';
+      const { generateProposalPDF } = await import('../finance/pdf.service');
+      
+      const portalUrl = process.env.PORTAL_URL || process.env.AUTH_URL || 'https://garage.grekam.in';
       const link = `${portalUrl}/portal/proposals/${token}`;
+      
+      const org = await app.prisma.organization.findFirst();
+
+      const pdfBuffer = await generateProposalPDF({
+        proposal: {
+          id: existing.id,
+          title: existing.title,
+          clientName: existing.lead?.name || 'Client',
+          clientCompany: existing.lead?.company,
+          status: 'SENT',
+          currency: existing.currency,
+          validUntil: existing.validUntil ? existing.validUntil.toISOString() : null,
+          createdAt: existing.createdAt.toISOString(),
+          subtotal: existing.subtotal,
+          discountRate: existing.discountRate,
+          taxRate: existing.taxRate,
+          tax: existing.tax,
+          totalAmount: existing.totalAmount,
+          notes: existing.notes,
+          items: existing.items,
+        },
+        orgName: org?.name || 'Grekam Visuals',
+        orgAddress: org?.billingAddress,
+        orgLogoUrl: org?.logoUrl,
+        orgEmail: org?.supportEmail,
+        orgPhone: org?.phone,
+        themeColors: {
+          primary: org?.primaryColor,
+          secondary: org?.secondaryColor,
+          accent: org?.accentColor
+        },
+        orgBankName: org?.bankName,
+        orgAccountName: org?.accountName,
+        orgAccountNumber: org?.accountNumber,
+        orgIfscCode: org?.ifscCode,
+        orgSwiftCode: org?.swiftCode
+      });
       
       const htmlBody = `
         <h2>Hello ${existing.lead.name},</h2>
         <p>A new proposal (<strong>${proposal.title}</strong>) has been prepared for you.</p>
-        <p>You can view and approve the proposal using the secure link below:</p>
+        <p>You can view and approve the proposal using the secure link below. We have also attached a PDF copy for your convenience.</p>
         <br/>
         <a href="${link}" style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">View Proposal</a>
         <br/><br/>
@@ -349,7 +388,12 @@ export default async function proposalsRouter(app: FastifyInstance) {
 
       await sendEmail(existing.lead.email, {
         subject: `New Proposal: ${proposal.title}`,
-        html: htmlBody
+        html: htmlBody,
+        attachments: [{
+          filename: `Proposal-${proposal.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf'
+        }]
       });
     }
 
