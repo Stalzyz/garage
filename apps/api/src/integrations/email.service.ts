@@ -17,8 +17,7 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
   let port = Number(process.env.SMTP_PORT) || 587;
   let user = process.env.SMTP_USER;
   let pass = process.env.SMTP_PASS;
-  let secure = process.env.SMTP_SECURE === 'true';
-  let fromAddress = process.env.SMTP_FROM || '"Grekam Visuals" <no-reply@grekam.in>';
+  let fromAddress = process.env.SMTP_FROM;
 
   for (const k of keys) {
     if (k.keyName === 'SMTP_HOST') host = decrypt(k.encryptedValue);
@@ -26,6 +25,11 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
     if (k.keyName === 'SMTP_USER') user = decrypt(k.encryptedValue);
     if (k.keyName === 'SMTP_PASS') pass = decrypt(k.encryptedValue);
     if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
+  }
+
+  // Fallback to SMTP_USER to prevent silent drops on strict hosts like Hostinger
+  if (!fromAddress) {
+    fromAddress = user ? `"Grekam Visuals" <${user}>` : '"Grekam Visuals" <no-reply@grekam.in>';
   }
   console.log('[EmailService] Decrypted host:', host, 'user:', user);
 
