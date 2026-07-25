@@ -35,7 +35,6 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
     transporter = nodemailer.createTransport({
       host,
       port,
-      secure,
       auth: { user, pass },
     });
   } else {
