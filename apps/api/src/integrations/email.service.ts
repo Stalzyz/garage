@@ -30,6 +30,9 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
   // Fallback to SMTP_USER to prevent silent drops on strict hosts like Hostinger
   if (!fromAddress) {
     fromAddress = user ? `"Grekam Visuals" <${user}>` : '"Grekam Visuals" <no-reply@grekam.in>';
+  } else if (fromAddress && !fromAddress.includes('@')) {
+    // If user provided a name (e.g. "Team Grekam") but no email, format it properly
+    fromAddress = user ? `"${fromAddress}" <${user}>` : `"${fromAddress}" <no-reply@grekam.in>`;
   }
   console.log('[EmailService] Decrypted host:', host, 'user:', user);
 
