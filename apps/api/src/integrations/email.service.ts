@@ -11,6 +11,7 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
   const keys = await prisma.integrationKey.findMany({
     where: { service: 'SMTP', isActive: true }
   });
+  console.log('[EmailService] Found SMTP keys:', keys.length);
 
   let host = process.env.SMTP_HOST;
   let port = Number(process.env.SMTP_PORT) || 587;
@@ -26,6 +27,7 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
     if (k.keyName === 'SMTP_PASS') pass = decrypt(k.encryptedValue);
     if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
   }
+  console.log('[EmailService] Decrypted host:', host, 'user:', user);
 
   let transporter: nodemailer.Transporter;
 

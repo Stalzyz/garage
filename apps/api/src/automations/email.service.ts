@@ -24,6 +24,7 @@ export const EmailService = {
       const keys = await prisma.integrationKey.findMany({
         where: { service: 'SMTP', isActive: true }
       });
+      console.log('[EmailService Automations] Found SMTP keys:', keys.length);
 
       let host = process.env.SMTP_HOST || 'smtp.ethereal.email';
       let port = parseInt(process.env.SMTP_PORT || '587');
