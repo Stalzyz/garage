@@ -76,6 +76,8 @@ interface ProposalPDFProps {
     title: string;
     clientName: string;
     clientCompany?: string | null;
+    clientEmail?: string | null;
+    clientPhone?: string | null;
     status: string;
     currency: string;
     validUntil?: string | null;
@@ -119,10 +121,10 @@ export const ProposalPDF = ({
       <View style={styles.header}>
         <View style={styles.brandBlock}>
           {orgLogoUrl && <Image src={orgLogoUrl} style={styles.logo} />}
-          {!orgLogoUrl && <Text style={styles.brandName}>{orgName}</Text>}
+          <Text style={styles.brandName}>{orgName}</Text>
           {orgAddress && <Text style={styles.brandSub}>{orgAddress}</Text>}
-          {orgEmail && <Text style={styles.brandSub}>{orgEmail}</Text>}
-          {orgPhone && <Text style={styles.brandSub}>{orgPhone}</Text>}
+          {orgEmail && <Text style={styles.brandSub}>Email: {orgEmail}</Text>}
+          {orgPhone && <Text style={styles.brandSub}>Phone: {orgPhone}</Text>}
         </View>
         <View style={styles.proposalBlock}>
           <Text style={{ ...styles.proposalLabel, color: primaryColor }}>PROPOSAL</Text>
@@ -140,6 +142,8 @@ export const ProposalPDF = ({
           <Text style={styles.colLabel}>Prepared For</Text>
           <Text style={styles.colValue}>{proposal.clientName}</Text>
           {proposal.clientCompany && <Text style={styles.colSub}>{proposal.clientCompany}</Text>}
+          {proposal.clientEmail && <Text style={styles.colSub}>{proposal.clientEmail}</Text>}
+          {proposal.clientPhone && <Text style={styles.colSub}>{proposal.clientPhone}</Text>}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={styles.colLabel}>Date</Text>
@@ -200,9 +204,11 @@ export const ProposalPDF = ({
       </View>
 
       {proposal.notes && (
-        <View style={styles.notes}>
+        <View style={styles.notes} break>
           <Text style={styles.notesLabel}>Notes & Scope of Work</Text>
-          <Text style={styles.notesText}>{proposal.notes}</Text>
+          <Text style={styles.notesText}>
+            {proposal.notes.replace(/<\/?p>/gi, '\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim()}
+          </Text>
         </View>
       )}
 
