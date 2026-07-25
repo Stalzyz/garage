@@ -235,9 +235,9 @@ export default function PortalInvoicePreviewPage() {
                 <tr key={i} className="group hover:bg-white/5 transition-colors">
                   <td className="px-4 py-5 text-white font-medium">{item.description}</td>
                   <td className="px-4 py-5 text-right text-slate-400">{item.quantity}</td>
-                  <td className="px-4 py-5 text-right text-slate-400">{symbol}{item.unitPrice.toLocaleString()}</td>
+                  <td className="px-4 py-5 text-right text-slate-400">{symbol}{item.unitPrice?.toLocaleString()}</td>
                   <td className="px-4 py-5 text-right text-slate-400">{item.taxRate}%</td>
-                  <td className="px-4 py-5 text-right font-bold text-white">{symbol}{(item.quantity * item.unitPrice).toLocaleString()}</td>
+                  <td className="px-4 py-5 text-right font-bold text-white">{symbol}{(item.quantity * item.unitPrice)?.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

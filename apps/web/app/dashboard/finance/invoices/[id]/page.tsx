@@ -201,10 +201,10 @@ export default function InvoiceBuilderPage() {
                 <tr key={i}>
                   <td className="px-4 py-4 text-white font-medium">{item.description}</td>
                   <td className="px-4 py-4 text-right text-slate-400">{item.quantity}</td>
-                  <td className="px-4 py-4 text-right text-slate-400">{symbol}{item.unitPrice.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-right text-slate-400">{symbol}{item.unitPrice?.toLocaleString()}</td>
                   <td className="px-4 py-4 text-right text-slate-400">{item.discountRate}%</td>
                   <td className="px-4 py-4 text-right text-slate-400">{item.taxRate}%</td>
-                  <td className="px-4 py-4 text-right font-bold text-white">{symbol}{item.total.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-right font-bold text-white">{symbol}{item.total?.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -244,7 +244,7 @@ export default function InvoiceBuilderPage() {
               </div>
               <div className="flex justify-between items-center border-t border-white/10 pt-3">
                 <span className="font-bold uppercase tracking-widest text-sm text-red-400">Amount Due</span>
-                <span className="text-2xl font-black text-white">{symbol}{(invoice.totalAmount - (invoice.paidAmount || 0)).toLocaleString()}</span>
+                <span className="text-2xl font-black text-white">{symbol}{(invoice.totalAmount - (invoice.paidAmount || 0))?.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function InvoiceBuilderPage() {
                       <td className="py-3 text-slate-300">{new Date(p.paidAt).toLocaleDateString()}</td>
                       <td className="py-3 text-slate-400">{p.method}</td>
                       <td className="py-3 text-slate-400">{p.transactionId || '-'}</td>
-                      <td className="py-3 text-right font-bold text-emerald-400">{symbol}{p.amount.toLocaleString()}</td>
+                      <td className="py-3 text-right font-bold text-emerald-400">{symbol}{p.amount?.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -303,6 +303,30 @@ export default function InvoiceBuilderPage() {
             
             <div className="space-y-4">
               <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Payment Type</label>
+                <div className="flex gap-2 mb-4">
+                  <button 
+                    onClick={() => setPaymentData({ ...paymentData, amount: String(invoice.totalAmount - (invoice.paidAmount || 0)) })}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-all ${
+                      Number(paymentData.amount) === (invoice.totalAmount - (invoice.paidAmount || 0))
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Full Balance
+                  </button>
+                  <button 
+                    onClick={() => setPaymentData({ ...paymentData, amount: '' })}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-all ${
+                      Number(paymentData.amount) !== (invoice.totalAmount - (invoice.paidAmount || 0)) && paymentData.amount !== ''
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Partial Amount
+                  </button>
+                </div>
+
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Amount</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{symbol}</span>
@@ -314,7 +338,6 @@ export default function InvoiceBuilderPage() {
                     placeholder="0.00"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1.5">You can edit this amount to record a partial payment.</p>
               </div>
 
               <div>
@@ -362,7 +385,7 @@ export default function InvoiceBuilderPage() {
                 </button>
                 <button 
                   onClick={handleRecordPayment}
-                  disabled={isRecordingPayment || !paymentData.amount}
+                  disabled={isRecordingPayment || !paymentData.amount || Number(paymentData.amount) <= 0}
                   className="px-6 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {isRecordingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

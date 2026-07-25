@@ -322,7 +322,8 @@ export default async function invoicesRouter(app: FastifyInstance) {
     }
 
     if (isLive) {
-      const res = await paymentsService.createRazorpayOrder(invoice.totalAmount, invoice.currency, invoice.invoiceNumber);
+      const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
+      const res = await paymentsService.createRazorpayOrder(remainingAmount, invoice.currency, invoice.invoiceNumber);
       if (res.success && res.order) {
         return {
           isLive: true,
@@ -383,6 +384,7 @@ export default async function invoicesRouter(app: FastifyInstance) {
     if (!invoice) return reply.notFound('Invoice not found');
     if (invoice.status === 'PAID') return reply.badRequest('Invoice is already paid');
 
+    const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
     const paymentId = 'pay_mock_' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const [updatedInvoice] = await app.prisma.$transaction([
@@ -390,18 +392,17 @@ export default async function invoicesRouter(app: FastifyInstance) {
         where: { id },
         data: {
           status: 'PAID',
-          paidAt: new Date(),
           paidAmount: invoice.totalAmount
         }
       }),
       app.prisma.payment.create({
         data: {
           invoiceId: id,
-          amount: invoice.totalAmount,
-          method: 'RAZORPAY',
+          amount: remainingAmount,
+          method: 'CREDIT_CARD',
           transactionId: paymentId,
+          notes: 'Mock payment',
           paidAt: new Date(),
-          notes: 'Simulated payment via local Sandbox'
         }
       })
     ]);
