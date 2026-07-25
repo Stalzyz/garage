@@ -311,7 +311,8 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
   const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)`
   const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.1)`
 
-  const baseClass = `absolute bg-zinc-900/80 backdrop-blur-md rounded-2xl flex cursor-grab active:cursor-grabbing overflow-hidden`
+  // Removed backdrop-blur-md to massively improve drag performance
+  const baseClass = `absolute bg-zinc-900 rounded-2xl flex cursor-grab active:cursor-grabbing overflow-hidden`
   const stateClass = 'p-0 items-center justify-center'
 
   const size = isMobile ? '64px' : '110px'
