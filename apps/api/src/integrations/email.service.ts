@@ -1,20 +1,40 @@
 import nodemailer from 'nodemailer';
+import { prisma } from '../db';
+import { decrypt } from '../settings/integrations.router';
 
 // ─── Transporter ────────────────────────────────────────────────────────────
 // Uses Gmail SMTP if configured, otherwise falls back to Ethereal (auto-created
 // test account so emails are always "sent" without real credentials).
 
-let transporter: nodemailer.Transporter | null = null;
+async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; fromAddress: string }> {
 
-async function getTransporter(): Promise<nodemailer.Transporter> {
-  if (transporter) return transporter;
+  const keys = await prisma.integrationKey.findMany({
+    where: { service: 'SMTP', isActive: true }
+  });
 
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  let host = process.env.SMTP_HOST;
+  let port = Number(process.env.SMTP_PORT) || 587;
+  let user = process.env.SMTP_USER;
+  let pass = process.env.SMTP_PASS;
+  let secure = process.env.SMTP_SECURE === 'true';
+  let fromAddress = process.env.SMTP_FROM || '"Grekam Visuals" <no-reply@grekam.in>';
+
+  for (const k of keys) {
+    if (k.keyName === 'SMTP_HOST') host = decrypt(k.encryptedValue);
+    if (k.keyName === 'SMTP_PORT') port = parseInt(decrypt(k.encryptedValue));
+    if (k.keyName === 'SMTP_USER') user = decrypt(k.encryptedValue);
+    if (k.keyName === 'SMTP_PASS') pass = decrypt(k.encryptedValue);
+    if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
+  }
+
+  let transporter: nodemailer.Transporter;
+
+  if (host && user && pass) {
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      host,
+      port,
+      secure,
+      auth: { user, pass },
     });
   } else {
     // Ethereal test account — no config needed, check console for preview URL
@@ -27,7 +47,7 @@ async function getTransporter(): Promise<nodemailer.Transporter> {
     console.log('[EmailService] Using Ethereal test account:', testAccount.user);
   }
 
-  return transporter;
+  return { transporter, fromAddress };
 }
 
 // ─── Base HTML Template ─────────────────────────────────────────────────────
@@ -239,8 +259,7 @@ export async function sendEmail(
   template: { subject: string; html: string; attachments?: any[] },
   options?: { cc?: string | string[] }
 ) {
-  const t = await getTransporter();
-  const from = process.env.SMTP_FROM || '"Grekam Visuals" <no-reply@grekam.in>';
+  const { transporter: t, fromAddress: from } = await getTransporter();
 
   const info = await t.sendMail({ 
     from, 

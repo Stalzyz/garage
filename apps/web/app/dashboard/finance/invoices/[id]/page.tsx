@@ -314,6 +314,7 @@ export default function InvoiceBuilderPage() {
                     placeholder="0.00"
                   />
                 </div>
+                <p className="text-[10px] text-slate-500 mt-1.5">You can edit this amount to record a partial payment.</p>
               </div>
 
               <div>

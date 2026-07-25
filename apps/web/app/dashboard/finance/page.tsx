@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, DollarSign, Download, ArrowUpRight, ArrowDownRight, FileText, CheckCircle, Clock, Activity, FileSpreadsheet } from "lucide-react"
+import { Plus, Search, DollarSign, Download, ArrowUpRight, ArrowDownRight, FileText, CheckCircle, Clock, Activity, FileSpreadsheet, Eye, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -182,7 +182,12 @@ export default function FinanceDashboard() {
                         <td className="px-6 py-5">
                           <span className="font-mono text-xs text-white/50">{new Date(invoice.dueDate).toLocaleDateString()}</span>
                         </td>
-                        <td className="px-6 py-5 text-right">
+                        <td className="px-6 py-5 text-right flex items-center justify-end gap-2">
+                          <Link 
+                            href={`/dashboard/finance/invoices/${invoice.id}`}
+                            className="text-white/30 hover:text-blue-400 hover:bg-white/10 transition-all p-2 rounded-lg border border-transparent hover:border-white/10">
+                            <Eye className="w-4 h-4" />
+                          </Link>
                           <button 
                             onClick={async () => {
                               if(confirm("Delete invoice?")) {
@@ -191,7 +196,7 @@ export default function FinanceDashboard() {
                               }
                             }}
                             className="text-white/30 hover:text-red-400 hover:bg-white/10 transition-all p-2 rounded-lg border border-transparent hover:border-white/10">
-                            <ArrowUpRight className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </td>
                       </motion.tr>
