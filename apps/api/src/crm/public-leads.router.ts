@@ -61,27 +61,27 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     // 2. Upsert into CRM contacts so this person shows up in the contacts list
     try {
       if (body.email) {
-        await (app.prisma as any).contact.upsert({
-          where: { email: body.email },
-          update: {
-            name: body.name,
-            phone: body.phone,
-            company: body.company,
-            source: body.source,
-            notes: body.notes ? `[Website enquiry] ${body.notes}` : undefined,
-          },
-          create: {
-            name: body.name,
-            email: body.email,
-            phone: body.phone,
-            company: body.company,
-            source: body.source,
-            notes: body.notes ? `[Website enquiry] ${body.notes}` : undefined,
-          },
-        }).catch(() => {
-          // Contact model may differ — log and continue
-          app.log.warn('[PublicLeads] Could not upsert contact (schema mismatch?)');
-        });
+          const nameParts = body.name.split(' ');
+          const firstName = nameParts[0] || 'Unknown';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          await (app.prisma as any).contact.upsert({
+            where: { email: body.email },
+            update: {
+              firstName,
+              lastName,
+              phone: body.phone,
+            },
+            create: {
+              firstName,
+              lastName,
+              email: body.email,
+              phone: body.phone,
+            },
+          }).catch((err: any) => {
+            // Contact model may differ — log and continue
+            app.log.warn(err, '[PublicLeads] Could not upsert contact');
+          });
       }
     } catch (err) {
       app.log.error(err as any, '[PublicLeads] Contact upsert failed');
