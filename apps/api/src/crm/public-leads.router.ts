@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
-import { sendEmail, contactConfirmationTemplate } from '../integrations/email.service';
+import { sendEmail, contactConfirmationTemplate, newLeadNotificationTemplate } from '../integrations/email.service';
 
 const CC_EMAIL = 'greeksacademy@gmail.com';
 
@@ -87,15 +87,27 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
       app.log.error(err as any, '[PublicLeads] Contact upsert failed');
     }
 
-    // 3. Send confirmation email to submitter (CC greeksacademy@gmail.com)
+    // 3. Send emails
     try {
+      // Get admin email from organization settings
+      const org = await app.prisma.organization.findFirst();
+      const adminEmail = org?.supportEmail || CC_EMAIL;
+
+      // Send admin notification
+      await sendEmail(
+        adminEmail,
+        newLeadNotificationTemplate(body)
+      ).catch(err => app.log.error(err, '[PublicLeads] Failed to send admin notification'));
+
+      // Send confirmation email to submitter
       if (body.email) {
         await sendEmail(
           body.email,
           contactConfirmationTemplate(body.name, body.notes),
-          { cc: CC_EMAIL }
-        );
-        app.log.info(`[PublicLeads] Confirmation email sent to ${body.email}, CC: ${CC_EMAIL}`);
+          { cc: adminEmail }
+        ).catch(err => app.log.error(err, '[PublicLeads] Failed to send client confirmation'));
+        
+        app.log.info(`[PublicLeads] Confirmation email sent to ${body.email}, CC: ${adminEmail}`);
       }
     } catch (err) {
       // Never fail the request because of email — log and move on

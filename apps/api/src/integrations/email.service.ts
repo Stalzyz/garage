@@ -310,3 +310,40 @@ export function contactConfirmationTemplate(name: string, notes?: string) {
     `, `We got your message — response within 24h`),
   };
 }
+
+// ─── Admin Lead Notification Template ────────────────────────────────────────
+
+export function newLeadNotificationTemplate(lead: any) {
+  return {
+    subject: `[New Lead] ${lead.name} from ${lead.source || 'Website'}`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:20px;font-weight:700;margin:0 0 16px;">New Lead Submitted</h2>
+      
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.8;">
+          <tr><td width="120" style="color:rgba(255,255,255,0.4);">Name</td><td><strong>${lead.name}</strong></td></tr>
+          ${lead.email ? `<tr><td style="color:rgba(255,255,255,0.4);">Email</td><td><a href="mailto:${lead.email}" style="color:#7c3aed;">${lead.email}</a></td></tr>` : ''}
+          ${lead.phone ? `<tr><td style="color:rgba(255,255,255,0.4);">Phone</td><td>${lead.phone}</td></tr>` : ''}
+          ${lead.company ? `<tr><td style="color:rgba(255,255,255,0.4);">Company</td><td>${lead.company}</td></tr>` : ''}
+          ${lead.source ? `<tr><td style="color:rgba(255,255,255,0.4);">Source</td><td>${lead.source}</td></tr>` : ''}
+          ${lead.projectType ? `<tr><td style="color:rgba(255,255,255,0.4);">Project Type</td><td>${lead.projectType}</td></tr>` : ''}
+          ${lead.estimatedBudget ? `<tr><td style="color:rgba(255,255,255,0.4);">Budget</td><td>${lead.estimatedBudget}</td></tr>` : ''}
+          ${lead.courseInterest ? `<tr><td style="color:rgba(255,255,255,0.4);">Course</td><td>${lead.courseInterest}</td></tr>` : ''}
+        </table>
+      </div>
+
+      ${lead.notes ? `
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:20px;margin-bottom:24px;">
+        <p style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;">Notes</p>
+        <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;margin:0;">${lead.notes}</p>
+      </div>` : ''}
+      
+      <div style="text-align:center;">
+        <a href="${process.env.PORTAL_URL || process.env.AUTH_URL || 'https://garage.grekam.in'}/dashboard/crm/leads" 
+           style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 24px;border-radius:8px;">
+          View in CRM
+        </a>
+      </div>
+    `, `New lead from ${lead.source || 'website'}...`),
+  };
+}
