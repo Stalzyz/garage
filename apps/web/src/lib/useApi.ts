@@ -30,12 +30,17 @@ export function useApi<T>(endpoint: string | null, options?: RequestInit) {
           ...(options?.headers as Record<string, string> || {})
         };
         
+        let body = options?.body;
         if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
           headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+          if (!body && headers['Content-Type'] === 'application/json') {
+            body = "{}";
+          }
         }
 
         const response = await fetch(url, {
           ...options,
+          body,
           credentials: 'include', // Send cookies cross-origin
           cache: 'no-store', // Prevent aggressive caching
           headers
@@ -83,12 +88,18 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     ...(options?.headers as Record<string, string> || {})
   };
   
+  let body = options?.body;
+  
   if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    if (!body && headers['Content-Type'] === 'application/json') {
+      body = "{}";
+    }
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
+    body,
     credentials: 'include',
     cache: 'no-store',
     headers
