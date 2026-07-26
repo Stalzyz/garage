@@ -46,25 +46,29 @@ const colorPalette = [
 export async function FeaturedCourses() {
   let dbCourses: any[] = [];
   try {
-    dbCourses = await prisma.course.findMany({
+    dbCourses = await prisma.lMSCourse.findMany({
       where: { isPublished: true },
-      select: { id: true, name: true }
+      select: { 
+        id: true, 
+        thumbnail: true, 
+        course: { select: { id: true, name: true } } 
+      }
     });
   } catch (error) {
     console.warn("Could not fetch courses from database during build, using fallbacks.");
   }
 
   const coursesToDisplay = dbCourses.length > 0 
-    ? dbCourses.map((c) => ({ title: c.name }))
+    ? dbCourses.map((c) => ({ title: c.course.name, coverImage: c.thumbnail || null }))
     : [
-        { title: "Graphic Design" },
-        { title: "UI/UX Design" },
-        { title: "Web Design" },
-        { title: "Full Stack Development" },
-        { title: "Digital Marketing" },
-        { title: "Motion Graphics" },
-        { title: "Video Editing" },
-        { title: "3D & Animation" }
+        { title: "Graphic Design", coverImage: null },
+        { title: "UI/UX Design", coverImage: null },
+        { title: "Web Design", coverImage: null },
+        { title: "Full Stack Development", coverImage: null },
+        { title: "Digital Marketing", coverImage: null },
+        { title: "Motion Graphics", coverImage: null },
+        { title: "Video Editing", coverImage: null },
+        { title: "3D & Animation", coverImage: null }
       ];
 
   return (
@@ -94,6 +98,7 @@ export async function FeaturedCourses() {
               key={i}
               index={i}
               title={course.title}
+              coverImage={course.coverImage}
             />
           ))}
         </div>

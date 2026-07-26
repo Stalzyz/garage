@@ -22,6 +22,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AIAssistantButton } from "@/components/AIAssistantButton"
+import { ApiClient } from "@/lib/api"
+import { Loader2 } from "lucide-react"
 
 type LessonType = "VIDEO" | "TEXT" | "QUIZ" | "LINK"
 
@@ -52,6 +54,36 @@ export default function CourseBuilder() {
   
   const [expandedModules, setExpandedModules] = useState<string[]>(["mod-1"])
   const [activeItem, setActiveItem] = useState<{ type: "COURSE" | "MODULE" | "LESSON" | "THUMBNAIL" | "PRICING", id?: string } | null>({ type: "LESSON", id: "les-1" })
+
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false)
+
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingThumbnail(true)
+    try {
+      const { uploadUrl, downloadUrl } = await ApiClient.post('/storage/upload-url', {
+        filename: file.name,
+        contentType: file.type,
+        prefix: 'courses'
+      })
+
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      })
+
+      setThumbnailUrl(downloadUrl)
+    } catch (err) {
+      console.error('Upload failed', err)
+      alert('Upload failed. Please check console.')
+    } finally {
+      setUploadingThumbnail(false)
+    }
+  }
 
   const toggleModule = (id: string) => {
     setExpandedModules(prev => 
@@ -302,16 +334,34 @@ export default function CourseBuilder() {
                 </div>
                 
                 <div className="space-y-6">
-                  <div className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors">
-                      <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
+                  <label className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group relative overflow-hidden">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleThumbnailUpload} 
+                      disabled={uploadingThumbnail}
+                    />
+                    
+                    {thumbnailUrl ? (
+                      <div className="absolute inset-0 bg-cover bg-center opacity-50 mix-blend-screen" style={{ backgroundImage: `url(${thumbnailUrl})` }} />
+                    ) : null}
+
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors relative z-10">
+                      {uploadingThumbnail ? (
+                        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
+                      )}
                     </div>
-                    <h3 className="text-lg font-bold mb-1">Upload Thumbnail</h3>
-                    <p className="text-sm text-white/40 mb-6">1920x1080px (16:9) recommended</p>
-                    <button className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors">
+                    <h3 className="text-lg font-bold mb-1 relative z-10">
+                      {uploadingThumbnail ? 'Uploading...' : 'Upload Thumbnail'}
+                    </h3>
+                    <p className="text-sm text-white/40 mb-6 relative z-10">1920x1080px (16:9) recommended</p>
+                    <div className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors relative z-10">
                       Select File
-                    </button>
-                  </div>
+                    </div>
+                  </label>
                   
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-white/70 ml-1">Trailer Video URL</label>

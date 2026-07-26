@@ -7,6 +7,7 @@ import Link from "next/link";
 type CourseCardProps = {
   title: string;
   index: number;
+  coverImage?: string | null;
 };
 
 // Each card gets a unique ink-bleed gradient palette
@@ -29,7 +30,7 @@ const inkShapes = [
   "polygon(0 0, 100% 0, 100% 78%, 82% 68%, 60% 80%, 40% 68%, 20% 78%, 5% 70%, 0 78%)",
 ];
 
-export function FeaturedCourseCard({ title, index }: CourseCardProps) {
+export function FeaturedCourseCard({ title, index, coverImage }: CourseCardProps) {
   const palette = inkPalettes[index % inkPalettes.length];
   const inkShape = inkShapes[index % inkShapes.length];
 
@@ -45,25 +46,46 @@ export function FeaturedCourseCard({ title, index }: CourseCardProps) {
       >
         {/* Ink Bleed Gradient Top Section */}
         <div className="relative h-[160px] flex-shrink-0 overflow-hidden">
-          {/* Main gradient */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${palette} opacity-90`} />
-          
-          {/* Ink bleed irregular bottom edge */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${palette}`}
-            style={{ clipPath: inkShape }}
-          />
+          {coverImage ? (
+            <>
+              {/* Actual Cover Image with ink bleed mask */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${coverImage})`, clipPath: inkShape }}
+              />
+              <div 
+                className={`absolute inset-0 bg-gradient-to-br ${palette} opacity-40 mix-blend-color`}
+                style={{ clipPath: inkShape }}
+              />
+              {/* Dark gradient overlay for text readability */}
+              <div 
+                className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"
+                style={{ clipPath: inkShape }}
+              />
+            </>
+          ) : (
+            <>
+              {/* Main gradient fallback */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${palette} opacity-90`} />
+              
+              {/* Ink bleed irregular bottom edge */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${palette}`}
+                style={{ clipPath: inkShape }}
+              />
 
-          {/* Secondary bleed layer for depth */}
-          <div
-            className="absolute inset-0 bg-black/30 mix-blend-multiply"
-            style={{ clipPath: inkShape }}
-          />
+              {/* Secondary bleed layer for depth */}
+              <div
+                className="absolute inset-0 bg-black/30 mix-blend-multiply"
+                style={{ clipPath: inkShape }}
+              />
 
-          {/* Noise texture overlay */}
-          <div className="absolute inset-0 opacity-20 mix-blend-overlay"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }}
-          />
+              {/* Noise texture overlay */}
+              <div className="absolute inset-0 opacity-20 mix-blend-overlay"
+                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }}
+              />
+            </>
+          )}
 
           {/* Handwritten course title overlay on gradient */}
           <div className="absolute inset-0 flex items-end p-5 pb-8">
