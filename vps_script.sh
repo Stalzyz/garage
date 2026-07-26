@@ -24,8 +24,8 @@ cp -r apps/academy-web/public apps/academy-web/.next/standalone/grekam-os/apps/a
 
 echo ""
 echo "==> [5/6] Restarting PM2 processes..."
-pm2 restart web || echo "web not found, skip"
-pm2 restart api || echo "api not found, skip"
+pm2 restart grekam-os-web || echo "grekam-os-web not found, skip"
+pm2 restart grekam-os-api || echo "grekam-os-api not found, skip"
 
 if pm2 describe academy-web > /dev/null 2>&1; then
   echo "academy-web exists, restarting..."
