@@ -1,50 +1,99 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, MonitorPlay } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 type CourseCardProps = {
   title: string;
   index: number;
 };
 
+// Each card gets a unique ink-bleed gradient palette
+const inkPalettes = [
+  "from-emerald-400 via-teal-500 to-purple-600",
+  "from-sky-400 via-blue-500 to-violet-600",
+  "from-rose-400 via-pink-500 to-orange-500",
+  "from-amber-400 via-orange-500 to-red-600",
+  "from-lime-400 via-emerald-500 to-cyan-600",
+  "from-fuchsia-400 via-purple-500 to-blue-600",
+  "from-orange-400 via-rose-500 to-pink-600",
+  "from-cyan-400 via-sky-500 to-indigo-600",
+];
+
+const inkShapes = [
+  // Irregular blob shapes via clip-path
+  "polygon(0 0, 100% 0, 100% 75%, 85% 85%, 70% 78%, 55% 88%, 35% 80%, 15% 90%, 0 82%)",
+  "polygon(0 0, 100% 0, 100% 80%, 90% 72%, 72% 82%, 50% 70%, 28% 85%, 10% 75%, 0 85%)",
+  "polygon(0 0, 100% 0, 100% 70%, 88% 80%, 68% 70%, 48% 82%, 25% 72%, 8% 80%, 0 70%)",
+  "polygon(0 0, 100% 0, 100% 78%, 82% 68%, 60% 80%, 40% 68%, 20% 78%, 5% 70%, 0 78%)",
+];
+
 export function FeaturedCourseCard({ title, index }: CourseCardProps) {
-  // Generate a random-ish rotation based on index for the artsy "scattered polaroid" look
-  const rotation = index % 2 === 0 ? (index % 3 === 0 ? 3 : -2) : (index % 5 === 0 ? -4 : 2);
-  const zIndex = index % 2 === 0 ? 10 : 5;
+  const palette = inkPalettes[index % inkPalettes.length];
+  const inkShape = inkShapes[index % inkShapes.length];
 
   return (
-    <Link href="/courses" className="block relative group" style={{ zIndex }}>
+    <Link href="/courses" className="block group">
       <motion.div
-        initial={{ opacity: 0, y: 50, rotate: rotation - 5 }}
-        whileInView={{ opacity: 1, y: 0, rotate: rotation }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6, delay: index * 0.1, type: "spring" }}
-        whileHover={{ scale: 1.05, rotate: 0, zIndex: 50 }}
-        className="relative h-[320px] bg-[#FAFAF8] text-[#050505] p-6 pb-8 flex flex-col justify-between shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300"
-        style={{ clipPath: "polygon(0 0, 100% 1%, 99% 100%, 1% 99%)" }} // Slightly imperfect paper cut
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.5, delay: index * 0.08, type: "spring", stiffness: 80 }}
+        whileHover={{ y: -8, scale: 1.02 }}
+        className="relative h-[340px] bg-[#0d0d0d] border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_60px_rgba(0,0,0,0.6)] transition-shadow duration-500 flex flex-col"
       >
-        {/* Tape piece effect at top */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-8 bg-white/40 backdrop-blur-sm shadow-sm rotate-[3deg] z-20" style={{ clipPath: "polygon(0 10%, 100% 0, 95% 90%, 5% 100%)" }} />
+        {/* Ink Bleed Gradient Top Section */}
+        <div className="relative h-[160px] flex-shrink-0 overflow-hidden">
+          {/* Main gradient */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${palette} opacity-90`} />
+          
+          {/* Ink bleed irregular bottom edge */}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${palette}`}
+            style={{ clipPath: inkShape }}
+          />
 
-        {/* Minimal Icon / "Photo" area */}
-        <div className="w-full h-32 bg-[#0A0A0A] border-2 border-[#1F1F1F] mb-4 flex items-center justify-center text-[#FAFAF8] group-hover:bg-[#141414] transition-colors overflow-hidden relative">
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 pointer-events-none mix-blend-overlay" />
-          <MonitorPlay size={32} strokeWidth={1} className="text-emerald-400 opacity-80" />
+          {/* Secondary bleed layer for depth */}
+          <div
+            className="absolute inset-0 bg-black/30 mix-blend-multiply"
+            style={{ clipPath: inkShape }}
+          />
+
+          {/* Noise texture overlay */}
+          <div className="absolute inset-0 opacity-20 mix-blend-overlay"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }}
+          />
+
+          {/* Handwritten course title overlay on gradient */}
+          <div className="absolute inset-0 flex items-end p-5 pb-8">
+            <h3 className="font-handwriting text-2xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] leading-tight">
+              {title}
+            </h3>
+          </div>
+
+          {/* Small splatter dots */}
+          <div className="absolute top-4 right-6 w-2 h-2 bg-white/40 rounded-full" />
+          <div className="absolute top-7 right-10 w-1 h-1 bg-white/30 rounded-full" />
+          <div className="absolute top-5 right-16 w-1.5 h-1.5 bg-white/20 rounded-full" />
         </div>
 
-        {/* Content */}
-        <div className="mt-auto font-handwriting">
-          <h3 className="text-2xl font-bold mb-2 leading-tight group-hover:text-emerald-600 transition-colors">
-            {title}
-          </h3>
-          
-          <div className="flex items-center text-sm font-sans font-bold text-gray-500 group-hover:text-black transition-colors gap-2 border-t border-dashed border-gray-300 pt-3">
-            Syllabus & Details
-            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-          </div>
+        {/* Card body */}
+        <div className="flex flex-col flex-1 p-5 justify-between">
+          <p className="text-white/50 text-sm font-sans leading-relaxed line-clamp-2">
+            Master real-world skills with hands-on projects and expert mentorship.
+          </p>
+
+          {/* CTA */}
+          <motion.div
+            className="mt-4"
+            whileHover={{ scale: 1.03 }}
+          >
+            <span className="inline-flex items-center gap-2 bg-white text-[#050505] font-bold font-sans text-sm px-5 py-2.5 rounded-full shadow-md group-hover:shadow-lg transition-shadow">
+              View Course
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </motion.div>
         </div>
       </motion.div>
     </Link>
