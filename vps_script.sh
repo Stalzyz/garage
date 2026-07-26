@@ -13,14 +13,18 @@ pnpm install --frozen-lockfile 2>&1 | tail -3
 echo ""
 echo "==> [3/6] Building apps/web..."
 pnpm --filter=web build 2>&1 | tail -5
-cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 2>/dev/null || true
-cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
+# Copy static assets into the standalone output (required for Next.js standalone mode)
+cp -rf apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
+cp -rf apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
+echo "Static assets copied to standalone."
 
 echo ""
 echo "==> [4/6] Building apps/academy-web..."
 pnpm --filter=academy-web build 2>&1 | tail -5
-cp -r apps/academy-web/.next/static apps/academy-web/.next/standalone/grekam-os/apps/academy-web/.next/ 2>/dev/null || true
-cp -r apps/academy-web/public apps/academy-web/.next/standalone/grekam-os/apps/academy-web/ 2>/dev/null || true
+# Copy static assets into the standalone output
+cp -rf apps/academy-web/.next/static apps/academy-web/.next/standalone/apps/academy-web/.next/ 2>/dev/null || true
+cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-web/ 2>/dev/null || true
+echo "Academy static assets copied to standalone."
 
 echo ""
 echo "==> [5/6] Restarting PM2 processes..."
