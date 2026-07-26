@@ -412,9 +412,31 @@ export default function SplitReality() {
   const sketchMode = easterEgg === "sketch"
   const printMode = easterEgg === "print"
 
-  // We remove the return null to allow the server to render the page
-  // This prevents the dreaded "blank white screen" while JS loads.
-  // if (!isClient) return null
+  // Show a premium loading skeleton until client JS has hydrated
+  // This prevents the broken partial render caused by isMobile being wrong on SSR
+  if (!isClient) return (
+    <div className="h-screen w-full bg-[#0a0a0a] flex items-center justify-center select-none">
+      <div className="flex flex-col items-center gap-8">
+        {/* Animated orb */}
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(200,210,255,0.15), rgba(0,0,0,0.6))',
+          boxShadow: '0 0 40px 8px rgba(200,210,255,0.08)',
+          animation: 'pulse 2s ease-in-out infinite'
+        }} />
+        <div style={{
+          fontFamily: 'var(--font-barlow, system-ui), sans-serif',
+          fontSize: '11px',
+          letterSpacing: '0.4em',
+          color: 'rgba(255,255,255,0.2)',
+          textTransform: 'uppercase',
+          animation: 'pulse 2s ease-in-out infinite'
+        }}>
+          Entering Grekam OS
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div
