@@ -412,7 +412,9 @@ export default function SplitReality() {
   const sketchMode = easterEgg === "sketch"
   const printMode = easterEgg === "print"
 
-  if (!isClient) return null
+  // We remove the return null to allow the server to render the page
+  // This prevents the dreaded "blank white screen" while JS loads.
+  // if (!isClient) return null
 
   return (
     <div
