@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Briefcase, Plus, Trash2, ExternalLink, Github } from "lucide-react"
+import { Briefcase, Plus, Trash2, ExternalLink, Link2 } from "lucide-react"
 
 export default function PortfolioAdminPage() {
   const [projects, setProjects] = useState<any[]>([])
@@ -145,7 +145,7 @@ export default function PortfolioAdminPage() {
                   )}
                   {project.repositoryUrl && (
                     <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-xs text-slate-600 hover:underline flex items-center gap-1 font-medium">
-                      <Github className="w-3.5 h-3.5" /> Source
+                      <Link2 className="w-3.5 h-3.5" /> Source
                     </a>
                   )}
                 </div>
