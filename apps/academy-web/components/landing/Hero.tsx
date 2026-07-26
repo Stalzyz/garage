@@ -3,10 +3,12 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { LeadCaptureModal } from "./LeadCaptureModal";
 
 export function Hero() {
   const [showSub, setShowSub] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const subTimer = setTimeout(() => setShowSub(true), 2500);
@@ -21,6 +23,32 @@ export function Hero() {
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden transition-colors duration-700" id="hero">
       
+      {/* Artsy Ambient Elements */}
+      <motion.div 
+        animate={{ rotate: 360 }} 
+        transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-500/10 blur-[120px] rounded-[40%_60%_70%_30%] pointer-events-none mix-blend-screen" 
+      />
+      <motion.div 
+        animate={{ rotate: -360 }} 
+        transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-500/10 blur-[120px] rounded-[60%_40%_30%_70%] pointer-events-none mix-blend-screen" 
+      />
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
+
+      {/* Hand-drawn decorative splatters */}
+      <svg className="absolute top-[20%] left-[15%] w-32 h-32 opacity-20 pointer-events-none" viewBox="0 0 100 100" fill="none">
+        <path d="M10,50 Q40,10 70,30 T90,80" stroke="#FAFAF8" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="80" cy="20" r="2" fill="#FAFAF8" />
+        <circle cx="20" cy="70" r="3" fill="#FAFAF8" />
+        <circle cx="40" cy="90" r="1.5" fill="#FAFAF8" />
+      </svg>
+      
+      <svg className="absolute bottom-[20%] right-[15%] w-48 h-48 opacity-20 pointer-events-none" viewBox="0 0 100 100" fill="none">
+        <path d="M20,80 C20,20 80,80 80,20" stroke="#FAFAF8" strokeWidth="1" strokeDasharray="4 4" strokeLinecap="round" />
+        <rect x="70" y="70" w="5" h="5" stroke="#FAFAF8" strokeWidth="1" />
+      </svg>
+
       {/* Container matching the paper texture aesthetic */}
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center max-w-4xl pt-20">
         
@@ -103,9 +131,13 @@ export function Hero() {
             </svg>
           </motion.div>
 
-          <Link href="http://localhost:3000/login" className="px-10 py-4 bg-[#FAFAF8] text-[#050505] font-sans font-medium rounded-full shadow-xl hover:scale-105 hover:bg-white transition-all duration-300 text-lg">
-            Start Your Journey
-          </Link>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-10 py-4 bg-[#FAFAF8] text-[#050505] font-sans font-bold rounded-full shadow-[0_0_40px_rgba(250,250,248,0.3)] hover:shadow-[0_0_60px_rgba(250,250,248,0.5)] hover:scale-105 transition-all duration-500 text-lg relative overflow-hidden group"
+          >
+            <span className="relative z-10">Start Your Journey</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
+          </button>
         </motion.div>
       </div>
 
@@ -114,8 +146,10 @@ export function Hero() {
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: showCTA ? "20vh" : 0, opacity: showCTA ? 1 : 0 }}
         transition={{ duration: 1, delay: 0.8 }}
-        className="absolute bottom-0 left-1/2 w-[2px] bg-[#71717A] -translate-x-1/2"
+        className="absolute bottom-0 left-1/2 w-[2px] bg-gradient-to-t from-emerald-500 to-transparent -translate-x-1/2"
       />
+
+      <LeadCaptureModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }

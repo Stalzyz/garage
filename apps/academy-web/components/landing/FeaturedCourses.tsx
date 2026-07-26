@@ -70,16 +70,25 @@ export async function FeaturedCourses() {
   return (
     <section className="py-32" id="courses">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center max-w-4xl mx-auto mb-20">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-[#FAFAF8] tracking-tight font-sans">
-            Learn Skills That <span className="text-[#71717A]">Build Careers.</span>
+        <div className="text-center max-w-4xl mx-auto mb-20 relative">
+          <svg className="absolute -top-10 left-[10%] w-24 h-24 opacity-40 pointer-events-none" viewBox="0 0 100 100">
+            <path d="M10,90 Q50,10 90,90 M30,50 L70,50" stroke="#FAFAF8" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <text x="35" y="80" fill="#FAFAF8" fontSize="12" fontFamily="monospace" transform="rotate(-15 35 80)">Learn</text>
+          </svg>
+
+          <h2 className="text-4xl md:text-6xl font-black mb-6 text-[#FAFAF8] tracking-tight font-sans relative inline-block">
+            Master Your Craft.
+            <svg className="absolute -bottom-4 left-0 w-full h-4" viewBox="0 0 100 20" preserveAspectRatio="none">
+              <path d="M0 10 Q50 20 100 5 M10 15 Q50 25 90 10" stroke="#10b981" strokeWidth="3" fill="transparent" strokeLinecap="round" />
+            </svg>
           </h2>
-          <p className="text-xl text-[#A1A1AA] font-sans">
-            Master the tools, techniques, and workflows used by top creative professionals and tech companies.
+          <p className="text-xl text-[#A1A1AA] font-handwriting mt-8">
+            Don't just watch tutorials. Build real projects, get mentored, and launch your career.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-4 max-w-7xl mx-auto relative px-4 md:px-0">
+          <div className="absolute inset-0 bg-emerald-500/5 blur-[150px] rounded-full pointer-events-none" />
           {coursesToDisplay.map((course, i) => (
             <FeaturedCourseCard 
               key={i}
