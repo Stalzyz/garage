@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 600
+
+puts "\n======================================"
+puts "  GREKAM OS - Secure VPS Deployment  "
+puts "======================================"
+
+puts "\n=> Uploading deployment script..."
+spawn scp -o StrictHostKeyChecking=no -o PubkeyAuthentication=no vps_script.sh root@72.61.231.187:/root/vps_script.sh
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+  }
+}
+expect eof
+
+puts "\n=> Executing deployment script on VPS..."
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash /root/vps_script.sh"
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+  }
+}
+expect eof
+
+puts "\n=> Done!"

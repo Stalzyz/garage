@@ -1,21 +1,4 @@
-#!/usr/bin/expect -f
-
-set timeout 600
-
-puts "\n======================================"
-puts "  GREKAM OS - VPS Deployment Script  "
-puts "======================================"
-
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s"
-
-expect {
-  "assword:" {
-    send "Photoshop09@\r"
-  }
-}
-
-# Send all commands as one bash script via stdin
-send {
+#!/bin/bash
 set -e
 
 echo ""
@@ -91,7 +74,3 @@ echo "  DEPLOYMENT COMPLETE!"
 echo "  academy.grekam.in -> port 3006"
 echo "  garage.grekam.in  -> updated"
 echo "======================================"
-}
-
-send "\x04"
-expect eof

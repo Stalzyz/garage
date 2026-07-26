@@ -132,6 +132,11 @@ export const navigation: NavItem[] = [
     roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Pages Builder",  href: "/dashboard/cms" },
+      { title: "Hiring Partners",href: "/dashboard/cms/placements" },
+      { title: "Student Portfolios", href: "/dashboard/cms/portfolio" },
+      { title: "Events & Demos", href: "/dashboard/cms/events" },
+      { title: "Announcements",  href: "/dashboard/cms/announcements" },
+      { title: "Instructors",    href: "/dashboard/cms/educators" },
       { title: "Blog Posts",     href: "/dashboard/cms/blog" },
       { title: "Media Library",  href: "/dashboard/cms/media" },
       { title: "SEO Settings",   href: "/dashboard/cms/seo" },

@@ -1,8 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import aiRouter from './ai.router';
+import academyRouter from './academy.router';
 
 export default async function cmsRouter(app: FastifyInstance) {
   await app.register(aiRouter);
+  await app.register(academyRouter, { prefix: '/academy' });
 
   // GET /api/v1/cms/pages — List all landing pages
   app.get('/pages', async (req, reply) => {
