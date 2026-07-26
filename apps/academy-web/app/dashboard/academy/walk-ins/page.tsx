@@ -12,6 +12,7 @@ export default function WalkInsAdmin() {
   
   const [selectedWalkIn, setSelectedWalkIn] = useState<any>(null)
   const [notes, setNotes] = useState("")
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false)
 
   const [pitchWalkIn, setPitchWalkIn] = useState<any>(null)
   const [pitches, setPitches] = useState<string[]>([])
@@ -78,9 +79,14 @@ export default function WalkInsAdmin() {
           </h1>
           <p className="text-white/50 mt-2">Manage campus visitors, demo requests, and walk-in leads.</p>
         </div>
-        <a href="/kiosk" target="_blank" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl transition-colors font-bold text-sm">
-          <ArrowRight className="w-4 h-4" /> Open Kiosk Mode
-        </a>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsQRModalOpen(true)} className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-6 py-3 rounded-xl transition-colors font-bold text-sm border border-emerald-500/20">
+            Show QR Code
+          </button>
+          <a href="/kiosk" target="_blank" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl transition-colors font-bold text-sm">
+            <ArrowRight className="w-4 h-4" /> Open Kiosk Mode
+          </a>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -231,6 +237,35 @@ export default function WalkInsAdmin() {
             <div className="border-t border-white/10 pt-4 mt-auto">
               <button type="button" onClick={() => setPitchWalkIn(null)} className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold transition-colors">Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isQRModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0f0f13] border border-white/10 rounded-2xl w-full max-w-sm p-8 flex flex-col items-center relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/20 blur-[80px] rounded-full pointer-events-none" />
+            
+            <h2 className="text-xl font-bold text-white mb-2 relative z-10 text-center">Kiosk QR Code</h2>
+            <p className="text-xs text-white/50 text-center mb-8 relative z-10">
+              Walk-ins can scan this code to register themselves directly via their phone.
+            </p>
+            
+            <div className="p-4 bg-white rounded-xl mb-8 relative z-10">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(process.env.NEXT_PUBLIC_APP_URL || 'https://garage.grekam.in')}/kiosk`}
+                alt="Kiosk QR Code" 
+                className="w-48 h-48"
+              />
+            </div>
+            
+            <button 
+              onClick={() => setIsQRModalOpen(false)}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold tracking-widest uppercase text-xs py-3 rounded-xl transition-all relative z-10"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
