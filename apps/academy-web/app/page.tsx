@@ -20,6 +20,8 @@ import { HiringPartners } from "../components/landing/HiringPartners";
 import { StudentShowcase } from "../components/landing/StudentShowcase";
 import { InstructorsSection } from "../components/landing/InstructorsSection";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export default function Home() {
   return (
     <main className="text-gray-900 custom-scrollbar overflow-x-hidden selection:bg-gray-200">

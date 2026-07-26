@@ -1,6 +1,10 @@
 #!/usr/bin/expect -f
-set timeout 30
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cat /etc/nginx/sites-available/grekam.in"
-expect "assword:"
-send "Photoshop09@\r"
+
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "nginx -T | grep -E 'server_name|listen'"
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+  }
+}
 expect eof
