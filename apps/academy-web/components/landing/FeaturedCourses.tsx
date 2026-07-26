@@ -46,12 +46,12 @@ const colorPalette = [
 export async function FeaturedCourses() {
   let dbCourses: any[] = [];
   try {
-    dbCourses = await prisma.lMSCourse.findMany({
+    dbCourses = await prisma.course.findMany({
       where: { isPublished: true },
       select: { 
         id: true, 
-        thumbnail: true, 
-        course: { select: { id: true, name: true } } 
+        name: true,
+        lmsCourse: { select: { thumbnail: true } } 
       }
     });
   } catch (error) {
@@ -59,7 +59,7 @@ export async function FeaturedCourses() {
   }
 
   const coursesToDisplay = dbCourses.length > 0 
-    ? dbCourses.map((c) => ({ title: c.course.name, coverImage: c.thumbnail || null }))
+    ? dbCourses.map((c) => ({ title: c.name, coverImage: c.lmsCourse?.thumbnail || null }))
     : [
         { title: "Graphic Design", coverImage: null },
         { title: "UI/UX Design", coverImage: null },

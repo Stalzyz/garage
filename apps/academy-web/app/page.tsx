@@ -13,15 +13,28 @@ import { FinalCTA } from "../components/landing/FinalCTA";
 import { Footer } from "../components/landing/Footer";
 import { BackgroundWrapper } from "../components/landing/BackgroundWrapper";
 
+import { AnnouncementsBanner } from "../components/landing/AnnouncementsBanner";
+import { DynamicSections } from "../components/landing/DynamicSections";
+import { UpcomingEvents } from "../components/landing/UpcomingEvents";
+import { HiringPartners } from "../components/landing/HiringPartners";
+import { StudentShowcase } from "../components/landing/StudentShowcase";
+import { InstructorsSection } from "../components/landing/InstructorsSection";
+
 export default function Home() {
   return (
     <main className="text-gray-900 custom-scrollbar overflow-x-hidden selection:bg-gray-200">
+      <AnnouncementsBanner />
       <BackgroundWrapper>
         <Hero />
+        <DynamicSections />
         <CreativeJourney />
         <FeaturedCourses />
+        <UpcomingEvents />
+        <HiringPartners />
         <About />
         <Methodology />
+        <StudentShowcase />
+        <InstructorsSection />
         <Outcomes />
         <StudentExperience />
         <PlatformFeatures />
