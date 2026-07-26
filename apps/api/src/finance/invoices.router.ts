@@ -126,7 +126,13 @@ export default async function invoicesRouter(app: FastifyInstance) {
     if (!invoice) return reply.notFound('Invoice not found');
 
     const pdfBuffer = await generateInvoicePDF({
-      invoice: { ...invoice, createdAt: invoice.createdAt.toISOString(), dueDate: invoice.dueDate.toISOString(), paidAmount: invoice.paidAmount },
+      invoice: { 
+        ...invoice, 
+        createdAt: invoice.createdAt.toISOString(), 
+        dueDate: invoice.dueDate.toISOString(), 
+        paidAmount: invoice.paidAmount,
+        currency: financeSettings?.currencySymbol || invoice.currency 
+      },
       orgName: org?.name || 'Grekam OS',
       orgAddress: org?.billingAddress,
       orgLogoUrl: org?.logoUrl,

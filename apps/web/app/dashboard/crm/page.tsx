@@ -41,6 +41,8 @@ export default function CRMDashboard() {
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
   const [convertLead, setConvertLead] = useState<any>(null)
 
+  const [isKioskModalOpen, setIsKioskModalOpen] = useState(false)
+
   // Form Fields for Lead Creation / Edit
   const [leadForm, setLeadForm] = useState({
     name: "",
@@ -484,6 +486,12 @@ export default function CRMDashboard() {
               />
             </label>
             <button 
+              onClick={() => setIsKioskModalOpen(true)}
+              className="group flex items-center justify-center gap-2 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 text-[var(--dash-text-primary)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all"
+            >
+              <Target className="w-4 h-4 text-emerald-400" /> Kiosk QR
+            </button>
+            <button 
               onClick={handleOpenCreateLead}
               className="group flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
             >
@@ -888,7 +896,35 @@ export default function CRMDashboard() {
           </div>
         )}
       </AnimatePresence>
-
-    </div>
-  )
+    {/* Kiosk QR Modal */}
+    {isKioskModalOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="bg-[#0f0f13] border border-white/10 rounded-2xl w-full max-w-sm p-8 flex flex-col items-center relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/20 blur-[80px] rounded-full pointer-events-none" />
+          
+          <h2 className="text-xl font-bold text-white mb-2 relative z-10 text-center">Kiosk Walk-in QR</h2>
+          <p className="text-xs text-white/50 text-center mb-8 relative z-10">
+            Customers can scan this code to quickly submit their details via the contact form.
+          </p>
+          
+          <div className="p-4 bg-white rounded-xl mb-8 relative z-10">
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(process.env.NEXT_PUBLIC_APP_URL || 'https://garage.grekam.in')}/contact`}
+              alt="Kiosk QR Code" 
+              className="w-48 h-48"
+            />
+          </div>
+          
+          <button 
+            onClick={() => setIsKioskModalOpen(false)}
+            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold tracking-widest uppercase text-xs py-3 rounded-xl transition-all relative z-10"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+)
 }

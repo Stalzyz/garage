@@ -1,3 +1,3 @@
 const { PrismaClient } = require("./node_modules/@prisma/client");
 const p = new PrismaClient();
-p.organization.findFirst().then(o => console.log(o.logoUrl)).finally(() => p.$disconnect());
+p.financeSettings.findFirst().then(fs => console.log(fs)).finally(() => p.$disconnect());

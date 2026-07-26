@@ -126,6 +126,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     if (!proposal) return reply.notFound('Proposal not found');
 
     const org = await app.prisma.organization.findFirst();
+    const financeSettings = await app.prisma.financeSettings.findFirst();
 
     const pdfBuffer = await generateProposalPDF({
       proposal: {
@@ -136,7 +137,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
         clientEmail: proposal.lead?.email,
         clientPhone: proposal.lead?.phone,
         status: proposal.status,
-        currency: proposal.currency,
+        currency: financeSettings?.currencySymbol || proposal.currency,
         validUntil: proposal.validUntil ? proposal.validUntil.toISOString() : null,
         createdAt: proposal.createdAt.toISOString(),
         subtotal: proposal.subtotal,
