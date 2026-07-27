@@ -46,7 +46,7 @@ export default function CertificatesPage() {
 
   const handleSaveTemplate = async () => {
     // Generate HTML from builder data
-    const htmlContent = \`
+    const htmlContent = `
       <html>
         <head>
           <style>
@@ -115,7 +115,7 @@ export default function CertificatesPage() {
               
               <div class="desc-area">
                 <div class="desc-text">The certificate is presented for completing <span class="desc-course">{{COURSE_NAME}}</span> Course during the period</div>
-                <div class="desc-date">\${builderData.courseDuration}</div>
+                <div class="desc-date">${builderData.courseDuration}</div>
               </div>
               
               <div class="signatures">
