@@ -4,9 +4,8 @@ import { useState, useTransition } from "react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Button } from "@grekam/ui/components/button"
-import { Input } from "@grekam/ui/components/input"
-import { Badge } from "@grekam/ui/components/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { GripVertical, Plus, Trash2, Video, FileText, FileDown, Layers } from "lucide-react"
 import { createModule, updateModule, deleteModule, reorderModules, createLesson, updateLesson, deleteLesson, reorderLessons } from "../actions"
 
@@ -39,7 +38,7 @@ function SortableLesson({ lesson, onUpdate, onDelete }: { lesson: Lesson, onUpda
           className="h-8 border-transparent hover:border-input focus:border-input bg-transparent"
         />
       </div>
-      <Badge variant="outline" className="text-[10px]">{lesson.type}</Badge>
+      <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent">{lesson.type}</span>
       <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDelete(lesson.id)}>
         <Trash2 className="w-4 h-4 text-destructive" />
       </Button>

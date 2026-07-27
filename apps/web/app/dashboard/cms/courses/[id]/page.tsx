@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { CourseBuilderClient } from "./CourseBuilderClient"
-import { Button } from "@grekam/ui/components/button"
+import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 

@@ -1,15 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { Button } from "@grekam/ui/components/button"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@grekam/ui/components/table"
-import { Badge } from "@grekam/ui/components/badge"
+import { Button } from "@/components/ui/button"
 import { Plus, Edit } from "lucide-react"
 
 export default async function CoursesPage() {
@@ -34,46 +25,46 @@ export default async function CoursesPage() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Course Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Modules</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="rounded-md border p-0 overflow-hidden bg-background">
+        <table className="w-full text-sm text-left border-collapse">
+          <thead className="bg-muted text-muted-foreground uppercase text-xs">
+            <tr>
+              <th className="px-6 py-4 font-medium border-b">Course Name</th>
+              <th className="px-6 py-4 font-medium border-b">Code</th>
+              <th className="px-6 py-4 font-medium border-b">Status</th>
+              <th className="px-6 py-4 font-medium border-b">Modules</th>
+              <th className="px-6 py-4 font-medium border-b text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
             {lmsCourses.map((lms) => (
-              <TableRow key={lms.id}>
-                <TableCell className="font-medium">{lms.course.name}</TableCell>
-                <TableCell>{lms.course.code}</TableCell>
-                <TableCell>
-                  <Badge variant={lms.isPublished ? "default" : "secondary"}>
+              <tr key={lms.id} className="hover:bg-muted/50 transition-colors">
+                <td className="px-6 py-4 font-medium">{lms.course.name}</td>
+                <td className="px-6 py-4">{lms.course.code}</td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${lms.isPublished ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
                     {lms.isPublished ? "Published" : "Draft"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{lms._count.modules}</TableCell>
-                <TableCell className="text-right">
+                  </span>
+                </td>
+                <td className="px-6 py-4">{lms._count.modules}</td>
+                <td className="px-6 py-4 text-right">
                   <Link href={`/dashboard/cms/courses/${lms.id}`}>
                     <Button variant="ghost" size="sm">
                       <Edit className="mr-2 h-4 w-4" /> Builder
                     </Button>
                   </Link>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
             {lmsCourses.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+              <tr>
+                <td colSpan={5} className="h-24 text-center text-muted-foreground px-6 py-4">
                   No courses found. Seed the database to get started.
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   )
