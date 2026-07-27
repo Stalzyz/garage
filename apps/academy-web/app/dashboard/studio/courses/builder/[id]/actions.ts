@@ -13,7 +13,7 @@ export async function createModule(lmsCourseId: string, title: string) {
   
   const sortOrder = existingModules.length > 0 ? existingModules[0].sortOrder + 1 : 0
 
-  await prisma.lMSModule.create({
+  const newModule = await prisma.lMSModule.create({
     data: {
       lmsCourseId,
       title,
@@ -22,6 +22,7 @@ export async function createModule(lmsCourseId: string, title: string) {
   })
 
   revalidatePath(`/dashboard/studio/courses/builder/${lmsCourseId}`)
+  return newModule
 }
 
 export async function updateModule(id: string, title: string) {
@@ -65,7 +66,7 @@ export async function createLesson(moduleId: string, title: string, type: string
   
   const sortOrder = existingLessons.length > 0 ? existingLessons[0].sortOrder + 1 : 0
 
-  await prisma.lMSLesson.create({
+  const newLesson = await prisma.lMSLesson.create({
     data: {
       moduleId,
       title,
@@ -75,6 +76,7 @@ export async function createLesson(moduleId: string, title: string, type: string
   })
 
   revalidatePath(`/dashboard/studio/courses/builder/${mod.lmsCourseId}`)
+  return newLesson
 }
 
 export async function updateLesson(id: string, data: { title?: string, type?: LessonType, contentUrl?: string, description?: string, richText?: string, resources?: any }) {

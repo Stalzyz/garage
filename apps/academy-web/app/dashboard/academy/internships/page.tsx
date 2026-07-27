@@ -16,6 +16,16 @@ export default function AcademyInternships() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(internships?.length === 0) && (
+          <div className="col-span-full py-16 flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-3xl border-dashed">
+            <Briefcase className="w-12 h-12 text-white/20 mb-4" />
+            <h3 className="text-xl font-bold mb-2">No Internships Yet</h3>
+            <p className="text-white/40 text-center max-w-sm mb-6">You haven't added any student internships to the portal yet. Track their external placements and work logs here.</p>
+            <button className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold transition-colors">
+              + Record Internship
+            </button>
+          </div>
+        )}
         {(internships || []).map((intern: any) => (
           <div key={intern.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-orange-500/50 transition-colors">
             <h3 className="font-bold text-lg mb-1">{intern.role}</h3>

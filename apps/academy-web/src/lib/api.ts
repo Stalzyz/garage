@@ -8,10 +8,11 @@ export class ApiClient {
   }
 
   static async post(endpoint: string, body: any, options: RequestInit = {}) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request(endpoint, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(body),
+      body: isFormData ? body : JSON.stringify(body),
     });
   }
 
@@ -33,11 +34,18 @@ export class ApiClient {
     // Add auth token if available (placeholder for future NextAuth integration)
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     
-    const headers = {
-      'Content-Type': 'application/json',
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    const headers: any = {
+      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
     };
+    // Let user override headers, but if they pass Content-Type: multipart/form-data manually, remove it so browser adds boundary
+    if (options.headers) {
+      Object.entries(options.headers).forEach(([k, v]) => {
+        if (k.toLowerCase() === 'content-type' && v === 'multipart/form-data') return;
+        headers[k] = v;
+      });
+    }
 
     const response = await fetch(url, {
       ...options,

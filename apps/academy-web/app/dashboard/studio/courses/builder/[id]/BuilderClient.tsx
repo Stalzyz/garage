@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   MoreVertical,
   Link as LinkIcon,
-  Loader2
+  Loader2,
+  Search
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AIAssistantButton } from "@/components/AIAssistantButton"
@@ -37,6 +38,7 @@ interface Lesson {
   title: string
   type: LessonType
   orderIndex: number
+  contentUrl?: string
   richText?: string
   resources?: any
 }
@@ -138,6 +140,16 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
     }))
     startTransition(async () => {
       await updateLesson(lessonId, { richText })
+    })
+  }
+
+  const handleUpdateLessonVideo = (moduleId: string, lessonId: string, contentUrl: string) => {
+    setModules(prev => prev.map(m => {
+      if (m.id === moduleId) return { ...m, lessons: m.lessons.map(l => l.id === lessonId ? { ...l, contentUrl } : l) }
+      return m
+    }))
+    startTransition(async () => {
+      await updateLesson(lessonId, { contentUrl })
     })
   }
 
@@ -357,15 +369,49 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
                       {/* Lesson Content Builder (Notion-style mock) */}
                       <div className="space-y-4">
                         {lesson.type === "VIDEO" && (
-                          <div className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group">
-                            <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors">
-                              <MonitorPlay className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
-                            </div>
-                            <h3 className="text-lg font-bold mb-1">Upload Video Content</h3>
-                            <p className="text-sm text-white/40 mb-6">Drag & drop your MP4, MOV, or paste a Youtube link</p>
-                            <button className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors">
-                              Select File
-                            </button>
+                          <div className="space-y-4">
+                            {!lesson.contentUrl ? (
+                              <div className="border-2 border-dashed border-white/10 hover:border-purple-500/50 bg-white/5 rounded-3xl p-12 flex flex-col items-center justify-center text-center transition-colors group">
+                                <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-purple-500/20 flex items-center justify-center mb-4 transition-colors">
+                                  <MonitorPlay className="w-8 h-8 text-white/40 group-hover:text-purple-400 transition-colors" />
+                                </div>
+                                <h3 className="text-lg font-bold mb-1">Add Video Content</h3>
+                                <p className="text-sm text-white/40 mb-6">Paste a YouTube or Vimeo link</p>
+                                <input 
+                                  type="text"
+                                  placeholder="https://youtube.com/watch?v=..."
+                                  className="w-full max-w-md bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleUpdateLessonVideo(mod.id, lesson.id, e.currentTarget.value)
+                                    }
+                                  }}
+                                />
+                                <p className="text-xs text-white/30 mt-2">Press Enter to save</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-bold text-sm text-white/70">Video Content</h3>
+                                  <button onClick={() => handleUpdateLessonVideo(mod.id, lesson.id, "")} className="text-xs text-red-400 hover:text-red-300">Remove Video</button>
+                                </div>
+                                <div className="aspect-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
+                                  <iframe 
+                                    src={lesson.contentUrl.includes('youtube') ? lesson.contentUrl.replace('watch?v=', 'embed/') : lesson.contentUrl} 
+                                    className="w-full h-full"
+                                    allowFullScreen
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <input 
+                                    type="text"
+                                    value={lesson.contentUrl}
+                                    onChange={(e) => handleUpdateLessonVideo(mod.id, lesson.id, e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white"
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -394,6 +440,77 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
                   )
                 })()}
 
+              </motion.div>
+            )}
+
+            {activeItem?.type === "PRICING" && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Pricing & SEO</h2>
+                  <p className="text-white/50 text-sm">Configure how much your course costs and how it appears on search engines.</p>
+                </div>
+                
+                <div className="space-y-6 bg-white/5 border border-white/10 rounded-3xl p-8">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-purple-400" /> Pricing Options</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-white/70 ml-1">Base Price (USD)</label>
+                      <div className="relative">
+                        <DollarSign className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
+                        <input 
+                          type="number" 
+                          placeholder="e.g. 99.00"
+                          defaultValue={initialCourse.course?.price || ""}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-white/70 ml-1">Discount Price (Optional)</label>
+                      <div className="relative">
+                        <DollarSign className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
+                        <input 
+                          type="number" 
+                          placeholder="e.g. 79.00"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6 bg-white/5 border border-white/10 rounded-3xl p-8">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Search className="w-5 h-5 text-purple-400" /> SEO Configuration</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">SEO Title</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. The Complete Guide to Advanced React"
+                      defaultValue={initialCourse.course?.name || ""}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                    />
+                    <p className="text-[10px] text-white/40 ml-1">50-60 characters recommended for best search engine visibility.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/70 ml-1">Meta Description</label>
+                    <textarea 
+                      rows={3}
+                      placeholder="Master React by building real-world projects..."
+                      defaultValue={initialCourse.course?.description || ""}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-none" 
+                    />
+                    <p className="text-[10px] text-white/40 ml-1">150-160 characters describing what students will learn.</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg">
+                    Save Changes
+                  </button>
+                </div>
               </motion.div>
             )}
 

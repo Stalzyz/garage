@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function EducatorDashboard() {
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-10">
+    <div className="p-8 md:p-12 w-full h-full overflow-y-auto space-y-10">
       
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

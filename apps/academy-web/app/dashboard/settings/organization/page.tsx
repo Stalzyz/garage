@@ -60,22 +60,23 @@ export default function OrganizationSettingsPage() {
     else setUploadingFavicon(true);
 
     try {
-      const { uploadUrl, downloadUrl } = await ApiClient.post('/storage/upload-url', {
-        filename: file.name,
-        contentType: file.type,
-        prefix: 'branding'
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Using the local upload endpoint to avoid R2 CORS issues from frontend
+      const res = await ApiClient.post('/storage/upload-local', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type }
-      });
-
-      setOrg({ ...org, [field]: downloadUrl });
-    } catch (err) {
+      if (res.downloadUrl) {
+        setOrg({ ...org, [field]: res.downloadUrl });
+        toast.success("Image uploaded successfully!");
+      } else {
+        throw new Error("No download URL returned");
+      }
+    } catch (err: any) {
       console.error('Upload failed', err);
-      alert('Upload failed. Please check console.');
+      toast.error('Upload failed. Please check console.');
     } finally {
       if (field === 'logoUrl') setUploadingLogo(false);
       else setUploadingFavicon(false);

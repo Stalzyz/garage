@@ -6,8 +6,10 @@ import { toast } from "sonner"
 import {
   ChevronRight, Clock, CheckCircle2, AlertCircle, XCircle,
   MessageSquare, RotateCcw, Star, Send, Check, Loader2,
-  GitBranch, Layers, Award, Archive, Plus, ExternalLink
+  GitBranch, Layers, Award, Archive, Plus, ExternalLink,
+  BookOpen, FileText
 } from "lucide-react"
+import { createAssignment, getAssignments } from "./actions"
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
   DRAFT:              { label: "Draft",            color: "text-white/40 border-white/10 bg-white/5",          icon: Archive },
@@ -39,6 +41,33 @@ export default function SubmissionReviewPage() {
   const [gradeForm, setGradeForm] = useState({ grade: "", feedback: "", status: "GRADED" })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<"REVIEW"|"VERSIONS"|"ANNOTATIONS">("REVIEW")
+
+  const [activeMainTab, setActiveMainTab] = useState<"SUBMISSIONS" | "ASSIGNMENTS">("SUBMISSIONS")
+  const [assignments, setAssignments] = useState<any[]>([])
+  const [newAssignmentForm, setNewAssignmentForm] = useState({ title: "", brief: "", maxScore: 100 })
+  const [isCreating, setIsCreating] = useState(false)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+
+  // Load assignments
+  useState(() => {
+    getAssignments().then(setAssignments)
+  })
+
+  const handleCreateAssignment = async () => {
+    if (!newAssignmentForm.title) return toast.error("Title is required")
+    setIsCreating(true)
+    try {
+      const created = await createAssignment(newAssignmentForm)
+      setAssignments(prev => [created, ...prev])
+      setNewAssignmentForm({ title: "", brief: "", maxScore: 100 })
+      setShowCreateForm(false)
+      toast.success("Assignment created!")
+    } catch (err: any) {
+      toast.error("Failed to create assignment")
+    } finally {
+      setIsCreating(false)
+    }
+  }
 
   const loadFull = async (sub: any) => {
     const full = await fetchApi<any>(`/academy/submissions/${sub.id}`)
@@ -102,41 +131,132 @@ export default function SubmissionReviewPage() {
 
   return (
     <div className="flex h-full bg-[#050505] text-white overflow-hidden">
-      {/* ── Left: Submission Queue ───────────────────────── */}
+      {/* ── Left: Sidebar ───────────────────────── */}
       <div className="w-80 flex-none border-r border-white/10 flex flex-col">
-        <div className="p-5 border-b border-white/10">
-          <h2 className="font-black text-lg">Submission Queue</h2>
-          <p className="text-xs text-white/40 mt-1">Click any submission to review</p>
+        <div className="p-4 border-b border-white/10 flex items-center gap-2">
+          <button 
+            onClick={() => { setActiveMainTab("SUBMISSIONS"); setSelected(null); setShowCreateForm(false); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${activeMainTab === "SUBMISSIONS" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"}`}>
+            <Archive className="w-4 h-4" /> Queue
+          </button>
+          <button 
+            onClick={() => { setActiveMainTab("ASSIGNMENTS"); setSelected(null); setShowCreateForm(false); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${activeMainTab === "ASSIGNMENTS" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"}`}>
+            <FileText className="w-4 h-4" /> Manage
+          </button>
         </div>
-        <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-          {isLoading && <div className="flex justify-center p-8"><Loader2 className="w-5 h-5 animate-spin text-white/30" /></div>}
-          {(submissions || []).length === 0 && !isLoading && (
-            <div className="p-8 text-center text-white/30 text-sm">No submissions waiting for review.</div>
-          )}
-          {(submissions || []).map((sub: any) => (
-            <button key={sub.id} onClick={() => loadFull(sub)}
-              className={`w-full text-left p-5 hover:bg-white/5 transition-colors ${selected?.id === sub.id ? "bg-white/5 border-l-2 border-violet-500" : ""}`}>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <span className="font-semibold text-sm truncate">{sub.assignment?.title}</span>
-                <StatusPill status={sub.status} />
-              </div>
-              <div className="flex items-center gap-3 text-xs text-white/40">
-                <GitBranch className="w-3 h-3" />
-                <span>v{sub.versionCount || 1}</span>
-                {(sub._count?.annotations || 0) > 0 && (
-                  <span className="flex items-center gap-1 text-amber-400">
-                    <MessageSquare className="w-3 h-3" /> {sub._count.annotations} open
-                  </span>
-                )}
-                <span className="ml-auto">{new Date(sub.updatedAt).toLocaleDateString('en-IN')}</span>
-              </div>
-            </button>
-          ))}
-        </div>
+
+        {activeMainTab === "SUBMISSIONS" ? (
+          <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+            {isLoading && <div className="flex justify-center p-8"><Loader2 className="w-5 h-5 animate-spin text-white/30" /></div>}
+            {(submissions || []).length === 0 && !isLoading && (
+              <div className="p-8 text-center text-white/30 text-sm">No submissions waiting for review.</div>
+            )}
+            {(submissions || []).map((sub: any) => (
+              <button key={sub.id} onClick={() => loadFull(sub)}
+                className={`w-full text-left p-5 hover:bg-white/5 transition-colors ${selected?.id === sub.id ? "bg-white/5 border-l-2 border-violet-500" : ""}`}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <span className="font-semibold text-sm truncate">{sub.assignment?.title}</span>
+                  <StatusPill status={sub.status} />
+                </div>
+                <div className="flex items-center gap-3 text-xs text-white/40">
+                  <GitBranch className="w-3 h-3" />
+                  <span>v{sub.versionCount || 1}</span>
+                  {(sub._count?.annotations || 0) > 0 && (
+                    <span className="flex items-center gap-1 text-amber-400">
+                      <MessageSquare className="w-3 h-3" /> {sub._count.annotations} open
+                    </span>
+                  )}
+                  <span className="ml-auto">{new Date(sub.updatedAt).toLocaleDateString('en-IN')}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-4">
+              <button 
+                onClick={() => { setShowCreateForm(true); setSelected(null); }}
+                className="w-full py-3 rounded-xl border border-dashed border-white/20 text-white/50 hover:text-white hover:border-white/40 hover:bg-white/5 text-sm font-bold transition-all flex items-center justify-center gap-2">
+                <Plus className="w-4 h-4" /> New Assignment
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-white/5 border-t border-white/5">
+              {assignments.length === 0 && (
+                <div className="p-8 text-center text-white/30 text-sm">No assignments created yet.</div>
+              )}
+              {assignments.map((assignment: any) => (
+                <div key={assignment.id} className="p-5 hover:bg-white/5 transition-colors">
+                  <div className="font-semibold text-sm mb-1">{assignment.title}</div>
+                  <div className="text-xs text-white/40 flex items-center gap-3">
+                    <span>{assignment.maxScore} pts</span>
+                    <span>•</span>
+                    <span>{new Date(assignment.createdAt).toLocaleDateString('en-IN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── Right: Review Panel ───────────────────────────── */}
-      {!selected ? (
+      {/* ── Right: Main Panel ───────────────────────────── */}
+      {showCreateForm ? (
+        <div className="flex-1 overflow-y-auto p-8 lg:p-12">
+          <div className="max-w-2xl mx-auto space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Create Assignment</h2>
+              <p className="text-white/50 text-sm">Define a new assignment for your students.</p>
+            </div>
+            
+            <div className="space-y-6 bg-white/5 border border-white/10 rounded-3xl p-8">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70 ml-1">Assignment Title</label>
+                <input 
+                  type="text" 
+                  value={newAssignmentForm.title}
+                  onChange={e => setNewAssignmentForm(p => ({...p, title: e.target.value}))}
+                  placeholder="e.g. Build a React component"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70 ml-1">Assignment Brief</label>
+                <textarea 
+                  rows={6}
+                  value={newAssignmentForm.brief}
+                  onChange={e => setNewAssignmentForm(p => ({...p, brief: e.target.value}))}
+                  placeholder="Describe what the student needs to do..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-none" 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70 ml-1">Max Score</label>
+                <input 
+                  type="number" 
+                  value={newAssignmentForm.maxScore}
+                  onChange={e => setNewAssignmentForm(p => ({...p, maxScore: parseInt(e.target.value)}))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 gap-4">
+              <button onClick={() => setShowCreateForm(false)} className="px-6 py-3 rounded-xl hover:bg-white/5 text-white/50 font-bold transition-colors">
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateAssignment}
+                disabled={isCreating}
+                className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg flex items-center gap-2">
+                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Create Assignment
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : !selected ? (
         <div className="flex-1 flex items-center justify-center flex-col gap-4 text-white/20">
           <Layers className="w-12 h-12" />
           <p className="text-sm">Select a submission to review</p>
