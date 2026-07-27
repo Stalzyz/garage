@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s"
+expect {
+  "assword:" {
+    send "Photoshop09@\r"
+  }
+}
+send {
+set -e
+cd /root/grekam-os
+pnpm --filter=@grekam/db db:generate
+pm2 stop academy-web || true
+fuser -k 3006/tcp || true
+sleep 2
+cd /root/grekam-os
+PORT=3006 pm2 start "pnpm --filter=academy-web start" --name academy-web
+pm2 save
+sleep 3
+pm2 logs academy-web --lines 30 --nostream
+}
+send "\x04"
+expect eof

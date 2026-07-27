@@ -119,7 +119,7 @@ export default function OnsiteCoursesPage() {
                 <div className="text-sm text-white/60">
                   {batch._count?.enrollments || 0} Enrolled
                 </div>
-                <Link href={`/dashboard/studio/onsite/courses/builder/${batch.courseId}`} className="text-indigo-400 hover:text-indigo-300 font-bold text-sm flex items-center gap-1 transition-colors">
+                <Link href={`/dashboard/studio/courses/builder/${batch.courseId}`} className="text-indigo-400 hover:text-indigo-300 font-bold text-sm flex items-center gap-1 transition-colors">
                   Open Builder <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

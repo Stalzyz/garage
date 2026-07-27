@@ -1,10 +1,6 @@
 #!/usr/bin/expect -f
-set timeout 30
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s" < vps_script.sh
 expect "assword:"
 send "Photoshop09@\r"
-expect "# "
-send "nohup /root/do_deploy.sh > /root/deploy.log 2>&1 &\r"
-expect "# "
-send "exit\r"
 expect eof
