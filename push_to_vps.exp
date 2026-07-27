@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 600
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os && git pull origin main\r"
+expect "# "
+send "pnpm install\r"
+expect "# "
+send "pnpm --filter=academy-web build && pnpm --filter=api build\r"
+expect "# "
+send "cd apps/academy-web && cp -rf .next/static .next/standalone/apps/academy-web/.next/ && cp -rf public .next/standalone/apps/academy-web/\r"
+expect "# "
+send "cd /root/grekam-os && pm2 restart academy-web || pm2 restart grecakam-os-academy || pm2 restart 19\r"
+expect "# "
+send "pm2 restart grekam-os-api\r"
+expect "# "
+send "exit\r"
+expect eof

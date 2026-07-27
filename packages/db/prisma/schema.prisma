@@ -254,6 +254,7 @@ enum LeadSource {
   INSTAGRAM
   LINKEDIN
   ACADEMY_ALUMNI
+  META_ADS
   OTHER
 }
 

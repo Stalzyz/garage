@@ -161,6 +161,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const razorpayWebhook = (await import('./webhooks/razorpay.router')).default;
   await app.register(razorpayWebhook, { prefix: '/api/v1/webhooks' });
 
+  const metaWebhook = (await import('./webhooks/meta.router')).default;
+  await app.register(metaWebhook, { prefix: '/api/v1/webhooks' });
+
   const analyticsModule = (await import('./analytics')).default;
   await app.register(analyticsModule, { prefix: '/api/v1/analytics' });
 
