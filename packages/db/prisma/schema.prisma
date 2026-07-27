@@ -2242,6 +2242,22 @@ model PageSection {
 // MODULE 21 — Certificates
 // ─────────────────────────────────────────
 
+model CertificateTemplate {
+  id                      String   @id @default(cuid())
+  name                    String
+  htmlContent             String   @db.Text
+  backgroundUrl           String?
+  watermarkUrl            String?
+  educatorSignatureUrl    String?
+  academyHeadSignatureUrl String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  certificates Certificate[]
+
+  @@map("certificate_templates")
+}
+
 model Certificate {
   id               String   @id @default(cuid())
   certificateId    String   @unique // e.g., "GRK-2026-XYZ"
@@ -2254,9 +2270,11 @@ model Certificate {
   whatsappSent     Boolean  @default(false)
   emailSent        Boolean  @default(false)
   metadata         Json?    // Optional extra info (e.g. skills acquired)
+  templateId       String?
 
-  student Student @relation(fields: [studentId], references: [id])
-  course  Course  @relation(fields: [courseId], references: [id])
+  student  Student              @relation(fields: [studentId], references: [id])
+  course   Course               @relation(fields: [courseId], references: [id])
+  template CertificateTemplate? @relation(fields: [templateId], references: [id])
 
   @@unique([studentId, courseId])
   @@map("certificates")

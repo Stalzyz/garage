@@ -30,6 +30,9 @@ import lmsStudentRoutes from './lms-student.router';
 export default async function academyModule(app: FastifyInstance) {
   await app.register(admissionsRouter);
   await app.register(educatorsRouter);
+
+  const certificatesRouter = (await import('./certificates.router')).default;
+  await app.register(certificatesRouter, { prefix: '/certificates' });
   await app.register(studentsRouter);
   await app.register(batchesRouter);
   await app.register(enrollRouter);

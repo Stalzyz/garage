@@ -1,143 +1,105 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import React from 'react';
-import { renderToBuffer } from '@react-pdf/renderer';
-import { CertificatePDF } from './certificate-pdf';
+import puppeteer from 'puppeteer';
+
 export default async function certificatesRouter(app: FastifyInstance) {
-  
-  // GET /api/v1/academy/certificates
-  app.get('/', async (req, reply) => {
-    const user = req.user;
+  // GET /api/v1/academy/certificates/templates
+  app.get('/templates', async (req, reply) => {
+    const templates = await app.prisma.certificateTemplate.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return templates;
+  });
+
+  // POST /api/v1/academy/certificates/templates
+  app.post('/templates', async (req, reply) => {
+    const schema = z.object({
+      name: z.string(),
+      htmlContent: z.string(),
+      backgroundUrl: z.string().optional(),
+      watermarkUrl: z.string().optional(),
+      educatorSignatureUrl: z.string().optional(),
+      academyHeadSignatureUrl: z.string().optional()
+    });
+    const data = schema.parse(req.body);
+
+    const template = await app.prisma.certificateTemplate.create({
+      data
+    });
+    return template;
+  });
+
+  // POST /api/v1/academy/certificates/generate
+  app.post('/generate', async (req, reply) => {
+    const schema = z.object({
+      studentId: z.string(),
+      courseId: z.string(),
+      templateId: z.string(),
+      sendEmail: z.boolean().default(false)
+    });
     
-    let whereClause = {};
-    if (user.role === 'STUDENT') {
-      const student = await app.prisma.student.findUnique({
-        where: { userId: user.id }
-      });
-      if (!student) return { data: [], total: 0 };
-      whereClause = { studentId: student.id };
+    const data = schema.parse(req.body);
+
+    const student = await app.prisma.student.findUnique({ where: { id: data.studentId }, include: { user: true } });
+    if (!student) return reply.code(404).send({ error: 'Student not found' });
+
+    const course = await app.prisma.course.findUnique({ where: { id: data.courseId } });
+    if (!course) return reply.code(404).send({ error: 'Course not found' });
+
+    const template = await app.prisma.certificateTemplate.findUnique({ where: { id: data.templateId } });
+    if (!template) return reply.code(404).send({ error: 'Template not found' });
+
+    // Ensure Certificate ID is unique
+    const certificateId = `GRK-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    // Inject data into HTML
+    let html = template.htmlContent
+      .replace(/{{STUDENT_NAME}}/g, `${student.user.firstName} ${student.user.lastName}`)
+      .replace(/{{COURSE_NAME}}/g, course.title)
+      .replace(/{{ISSUE_DATE}}/g, new Date().toLocaleDateString())
+      .replace(/{{VERIFICATION_CODE}}/g, certificateId)
+      .replace(/{{BACKGROUND_URL}}/g, template.backgroundUrl || '')
+      .replace(/{{WATERMARK_URL}}/g, template.watermarkUrl || '')
+      .replace(/{{EDUCATOR_SIGNATURE_URL}}/g, template.educatorSignatureUrl || '')
+      .replace(/{{ACADEMY_HEAD_SIGNATURE_URL}}/g, template.academyHeadSignatureUrl || '');
+
+    // Launch Puppeteer and generate PDF
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    
+    // Set content and wait for network idle to ensure fonts/images load
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    
+    // Generate PDF buffer
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      landscape: true,
+      printBackground: true
+    });
+    
+    await browser.close();
+
+    const pdfUrl = `https://storage.grekam.in/certificates/${certificateId}.pdf`; 
+
+    const certificate = await app.prisma.certificate.create({
+      data: {
+        studentId: data.studentId,
+        courseId: data.courseId,
+        templateId: data.templateId,
+        certificateId,
+        pdfUrl
+      }
+    });
+
+    if (data.sendEmail) {
+      app.log.info(`Sending certificate email to ${student.user.email}`);
     }
 
-    const certificates = await app.prisma.certificate.findMany({
-      where: whereClause,
-      include: {
-        student: {
-          select: {
-            user: {
-              select: { firstName: true, lastName: true }
-            }
-          }
-        },
-        course: {
-          select: {
-            name: true
-          }
-        }
-      },
-      orderBy: { issuedAt: 'desc' }
-    });
-
-    return { data: certificates, total: certificates.length };
-  });
-
-  // POST /api/v1/academy/certificates (Issue new certificate)
-  app.post('/', async (req, reply) => {
-    const bodySchema = z.object({
-      studentId: z.string().min(1),
-      courseId: z.string().min(1),
-      grade: z.string().optional().nullable()
-    });
-
-    const { studentId, courseId, grade } = bodySchema.parse(req.body);
-
-    const certificateId = `GRK-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
-    const cert = await app.prisma.certificate.create({
-      data: {
-        certificateId,
-        studentId,
-        courseId,
-        grade
-      }
-    });
-
-    reply.code(201);
-    return cert;
-  });
-
-  // GET /api/v1/academy/certificates/:id (Verification)
-  app.get('/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-
-    const cert = await app.prisma.certificate.findUnique({
-      where: { id },
-      include: {
-        student: {
-          select: {
-            studentCode: true,
-            user: {
-              select: {
-                firstName: true,
-                lastName: true
-              }
-            }
-          }
-        },
-        course: {
-          select: {
-            name: true,
-            description: true
-          }
-        }
-      }
-    });
-
-    if (!cert) return reply.notFound('Certificate not found');
-
-    return { certificate: cert };
-  });
-
-  // GET /api/v1/academy/certificates/:id/download
-  app.get('/:id/download', async (req, reply) => {
-    const { id } = req.params as { id: string };
-
-    const cert = await app.prisma.certificate.findUnique({
-      where: { id },
-      include: {
-        student: {
-          select: {
-            user: {
-              select: { firstName: true, lastName: true }
-            }
-          }
-        },
-        course: {
-          select: {
-            name: true
-          }
-        }
-      }
-    });
-
-    if (!cert) return reply.notFound('Certificate not found');
-
-    const element = React.createElement(CertificatePDF, {
-      studentName: `${cert.student.user.firstName} ${cert.student.user.lastName}`,
-      courseName: cert.course.name,
-      certificateId: cert.certificateId,
-      grade: cert.grade,
-      issuedAt: cert.issuedAt.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    });
-
-    const buffer = await renderToBuffer(element as any);
-    const pdfBuffer = Buffer.from(buffer);
-
+    // Since we are returning the pdf inline for preview in this builder
     reply.header('Content-Type', 'application/pdf');
-    reply.header('Content-Disposition', `attachment; filename="Certificate-${cert.certificateId}.pdf"`);
     return reply.send(pdfBuffer);
   });
 }

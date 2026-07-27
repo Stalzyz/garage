@@ -19,7 +19,8 @@ import {
   Bot, 
   Settings,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  Award
 } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 
@@ -31,6 +32,7 @@ const getEducatorNavigation = (basePath: string) => {
     { title: "Course Builder", href: `${basePath}/courses/builder`, icon: Folder },
     { title: "Quiz Builder", href: `${basePath}/quizzes`, icon: HelpCircle },
     { title: "Assignments", href: `${basePath}/assignments`, icon: CheckSquare },
+    { title: "Certificates", href: `${basePath}/certificates`, icon: Award },
     { title: "Analytics", href: `${basePath}/analytics`, icon: BarChart2 },
     { title: "Live Studio", href: `${basePath}/live`, icon: Video },
     { title: "Office Hours", href: `${basePath}/office-hours`, icon: Users },
