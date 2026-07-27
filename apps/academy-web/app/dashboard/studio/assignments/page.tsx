@@ -7,7 +7,7 @@ import {
   ChevronRight, Clock, CheckCircle2, AlertCircle, XCircle,
   MessageSquare, RotateCcw, Star, Send, Check, Loader2,
   GitBranch, Layers, Award, Archive, Plus, ExternalLink,
-  BookOpen, FileText
+  BookOpen, FileText, Trash2, MoreVertical, Save
 } from "lucide-react"
 import { createAssignment, getAssignments } from "./actions"
 

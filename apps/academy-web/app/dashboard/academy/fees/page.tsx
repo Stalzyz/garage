@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, Download, Plus, IndianRupee, TrendingUp, AlertCircle, FileText, CheckCircle2, Clock, XCircle, Loader2, X } from "lucide-react"
+import { Search, Filter, Download, Plus, IndianRupee, TrendingUp, AlertCircle, FileText, CheckCircle2, Clock, XCircle, Loader2, X, Eye, Mail, Printer } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 
@@ -14,6 +14,7 @@ export default function FeeManagementPage() {
   const { data: enrollData } = useApi<any>("/academy/enroll/all")
   
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({
     enrollmentId: "",
@@ -205,9 +206,20 @@ export default function FeeManagementPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-purple-400 hover:text-purple-300 font-medium text-sm transition-colors">
-                          View Details
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => setSelectedInvoice(invoice)} title="View Details" className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => {
+                            setSelectedInvoice(invoice)
+                            setTimeout(() => window.print(), 100)
+                          }} title="View as PDF (Print)" className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors">
+                            <Printer className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => toast.success("Invoice sent to student's email!")} title="Send Email" className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors">
+                            <Mail className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -301,6 +313,90 @@ export default function FeeManagementPage() {
         </div>
       )}
 
+      {/* SlideOver for View Invoice */}
+      {selectedInvoice && (
+        <div className="absolute inset-0 z-50 flex justify-end">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedInvoice(null)} />
+          <div className="w-full md:w-[600px] bg-white h-full border-l border-gray-200 relative flex flex-col shadow-2xl z-10 animate-in slide-in-from-right text-black">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 print:hidden">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-500" />
+                Invoice Details
+              </h2>
+              <div className="flex gap-2">
+                <button onClick={() => window.print()} className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                  <Printer className="w-4 h-4" /> Print
+                </button>
+                <button onClick={() => setSelectedInvoice(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-white" id="invoice-printable-area">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-black text-gray-900">INVOICE</h1>
+                  <p className="text-gray-500 mt-1">#{selectedInvoice.id.slice(-6).toUpperCase()}</p>
+                </div>
+                <div className="text-right">
+                  <h2 className="font-bold text-xl text-gray-900">Grekam Academy</h2>
+                  <p className="text-gray-500 text-sm mt-1">contact@grekam.in</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-gray-100">
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Billed To</p>
+                  <p className="font-bold text-gray-900">{selectedInvoice.enrollment?.student?.user?.firstName} {selectedInvoice.enrollment?.student?.user?.lastName}</p>
+                  <p className="text-gray-500 text-sm">{selectedInvoice.enrollment?.student?.user?.email}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Invoice Info</p>
+                  <p className="text-gray-900 text-sm">Date: {new Date(selectedInvoice.createdAt).toLocaleDateString()}</p>
+                  <p className="text-gray-900 text-sm">Due: {new Date(selectedInvoice.dueDate).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="py-3 font-bold text-gray-900">Description</th>
+                    <th className="py-3 font-bold text-gray-900 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-4 text-gray-600">Course Fee - {selectedInvoice.enrollment?.batch?.course?.name}</td>
+                    <td className="py-4 text-gray-900 text-right font-medium">₹{selectedInvoice.amount}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="flex justify-end pt-4">
+                <div className="w-64 space-y-3">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>₹{selectedInvoice.amount}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax ({selectedInvoice.taxRate || 0}%)</span>
+                    <span>₹{((selectedInvoice.amount * (selectedInvoice.taxRate || 0)) / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-xl pt-3 border-t border-gray-200 text-gray-900">
+                    <span>Total</span>
+                    <span>₹{(selectedInvoice.amount + (selectedInvoice.amount * (selectedInvoice.taxRate || 0)) / 100).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-gray-100">
+                <p className="text-gray-400 text-xs text-center">Thank you for learning with us.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

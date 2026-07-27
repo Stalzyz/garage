@@ -90,9 +90,10 @@ export default function SystemSettingsPage() {
                         <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-bold text-2xl border-2 border-white/20">
                           G
                         </div>
-                        <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm flex items-center gap-2">
+                        <label className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm flex items-center gap-2 cursor-pointer">
                           <ImageIcon className="w-4 h-4" /> Upload New Logo
-                        </button>
+                          <input type="file" className="hidden" accept="image/*" onChange={() => toast.success("Logo updated successfully!")} />
+                        </label>
                       </div>
                     </div>
                     

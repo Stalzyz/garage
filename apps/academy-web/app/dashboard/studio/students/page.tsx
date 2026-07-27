@@ -30,6 +30,25 @@ export default function MyStudentsPage() {
     setMessageText("")
   }
 
+  const handleExportCSV = () => {
+    if (!students || students.length === 0) return;
+    const headers = ["Name", "Email", "Course", "Progress", "Last Active", "Status"];
+    const rows = students.map((s: any) => [s.name, s.email, s.course, s.progress, s.lastActive, s.status]);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r: any) => r.map((c: any) => `"${c}"`).join(","))
+    ].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "students.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV Exported successfully!");
+  }
+
   return (
     <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
       <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -41,7 +60,7 @@ export default function MyStudentsPage() {
             <p className="text-white/50 mt-1">Manage and track your students across all courses.</p>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <button className="flex-1 md:flex-none px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <button onClick={handleExportCSV} className="flex-1 md:flex-none px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
               <Download className="w-4 h-4" />
               Export CSV
             </button>

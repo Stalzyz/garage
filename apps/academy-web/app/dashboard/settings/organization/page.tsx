@@ -88,11 +88,12 @@ export default function OrganizationSettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Organization & Whitelabel</h1>
-        <p className="text-[#a1a1aa] mt-2">Customize the branding, colors, and global settings for your OS instance.</p>
-      </div>
+    <div className="flex-1 overflow-y-auto h-full bg-[#050505] text-white">
+      <div className="p-8 max-w-4xl mx-auto space-y-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Organization & Whitelabel</h1>
+          <p className="text-[#a1a1aa] mt-2">Customize the branding, colors, and global settings for your OS instance.</p>
+        </div>
 
       <div className="space-y-8">
         {/* Core Settings */}
@@ -289,6 +290,7 @@ export default function OrganizationSettingsPage() {
              saved ? <><CheckCircle className="w-4 h-4 mr-2" /> Saved!</> : 
              "Save Changes"}
           </Button>
+        </div>
         </div>
       </div>
     </div>

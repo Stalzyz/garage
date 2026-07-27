@@ -25,6 +25,34 @@ export default async function quizzesRouter(app: FastifyInstance) {
     });
     return { data: quizzes };
   });
+
+  // POST /api/v1/lms/quizzes
+  app.post('/', async (req, reply) => {
+    const schema = z.object({
+      title: z.string(),
+      passingScore: z.number().default(70),
+      courseId: z.string().optional()
+    });
+    const data = schema.parse(req.body);
+
+    let finalCourseId = data.courseId;
+    if (!finalCourseId) {
+      // Pick first course if none provided to satisfy relations
+      const firstCourse = await app.prisma.course.findFirst();
+      if (!firstCourse) return reply.code(400).send({ error: 'No courses exist. Create a course first.' });
+      finalCourseId = firstCourse.id;
+    }
+
+    const quiz = await app.prisma.quiz.create({
+      data: {
+        title: data.title,
+        passingScore: data.passingScore,
+        courseId: finalCourseId,
+      }
+    });
+    return { data: quiz };
+  });
+
   // GET /api/v1/lms/quizzes/:id
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
