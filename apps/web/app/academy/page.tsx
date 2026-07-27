@@ -18,6 +18,8 @@ import { InstructorsSection } from "../../components/landing/InstructorsSection"
 import { StudentShowcase } from "../../components/landing/StudentShowcase";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 3600; // Revalidate every hour
+
 // Next.js App Router Server Component
 export default async function Home() {
   // Fetch dynamic data from the database
