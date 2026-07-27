@@ -9,17 +9,8 @@ export default async function quizzesRouter(app: FastifyInstance) {
         _count: {
           select: { questions: true, attempts: true }
         },
-        lesson: {
-          include: {
-            module: {
-              include: {
-                lmsCourse: {
-                  include: { course: true }
-                }
-              }
-            }
-          }
-        }
+        course: true,
+        module: true
       },
       orderBy: { createdAt: 'desc' }
     });

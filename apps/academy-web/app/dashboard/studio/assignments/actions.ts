@@ -16,6 +16,20 @@ export async function createAssignment(data: { title: string, brief: string, max
   return assignment
 }
 
+export async function updateAssignment(id: string, data: { title: string, brief: string, maxScore: number }) {
+  const assignment = await prisma.assignment.update({
+    where: { id },
+    data: {
+      title: data.title,
+      brief: data.brief,
+      maxScore: data.maxScore
+    }
+  })
+
+  revalidatePath(`/dashboard/studio/assignments`)
+  return assignment
+}
+
 export async function getAssignments() {
   return await prisma.assignment.findMany({
     orderBy: { createdAt: 'desc' }

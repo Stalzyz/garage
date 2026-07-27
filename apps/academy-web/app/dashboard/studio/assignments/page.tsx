@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import {
@@ -9,7 +9,7 @@ import {
   GitBranch, Layers, Award, Archive, Plus, ExternalLink,
   BookOpen, FileText, Trash2, MoreVertical, Save
 } from "lucide-react"
-import { createAssignment, getAssignments } from "./actions"
+import { createAssignment, getAssignments, updateAssignment } from "./actions"
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
   DRAFT:              { label: "Draft",            color: "text-white/40 border-white/10 bg-white/5",          icon: Archive },
@@ -44,26 +44,32 @@ export default function SubmissionReviewPage() {
 
   const [activeMainTab, setActiveMainTab] = useState<"SUBMISSIONS" | "ASSIGNMENTS">("SUBMISSIONS")
   const [assignments, setAssignments] = useState<any[]>([])
-  const [newAssignmentForm, setNewAssignmentForm] = useState({ title: "", brief: "", maxScore: 100 })
+  const [newAssignmentForm, setNewAssignmentForm] = useState<{id?: string, title: string, brief: string, maxScore: number}>({ title: "", brief: "", maxScore: 100 })
   const [isCreating, setIsCreating] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   // Load assignments
-  useState(() => {
+  useEffect(() => {
     getAssignments().then(setAssignments)
-  })
+  }, [])
 
   const handleCreateAssignment = async () => {
     if (!newAssignmentForm.title) return toast.error("Title is required")
     setIsCreating(true)
     try {
-      const created = await createAssignment(newAssignmentForm)
-      setAssignments(prev => [created, ...prev])
+      if (newAssignmentForm.id) {
+        const updated = await updateAssignment(newAssignmentForm.id, newAssignmentForm)
+        setAssignments(prev => prev.map(a => a.id === updated.id ? updated : a))
+        toast.success("Assignment updated!")
+      } else {
+        const created = await createAssignment(newAssignmentForm)
+        setAssignments(prev => [created, ...prev])
+        toast.success("Assignment created!")
+      }
       setNewAssignmentForm({ title: "", brief: "", maxScore: 100 })
       setShowCreateForm(false)
-      toast.success("Assignment created!")
     } catch (err: any) {
-      toast.error("Failed to create assignment")
+      toast.error("Failed to save assignment")
     } finally {
       setIsCreating(false)
     }
@@ -176,7 +182,11 @@ export default function SubmissionReviewPage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-4">
               <button 
-                onClick={() => { setShowCreateForm(true); setSelected(null); }}
+                onClick={() => { 
+                  setNewAssignmentForm({ title: "", brief: "", maxScore: 100 });
+                  setShowCreateForm(true); 
+                  setSelected(null); 
+                }}
                 className="w-full py-3 rounded-xl border border-dashed border-white/20 text-white/50 hover:text-white hover:border-white/40 hover:bg-white/5 text-sm font-bold transition-all flex items-center justify-center gap-2">
                 <Plus className="w-4 h-4" /> New Assignment
               </button>
@@ -186,13 +196,26 @@ export default function SubmissionReviewPage() {
                 <div className="p-8 text-center text-white/30 text-sm">No assignments created yet.</div>
               )}
               {assignments.map((assignment: any) => (
-                <div key={assignment.id} className="p-5 hover:bg-white/5 transition-colors">
-                  <div className="font-semibold text-sm mb-1">{assignment.title}</div>
-                  <div className="text-xs text-white/40 flex items-center gap-3">
-                    <span>{assignment.maxScore} pts</span>
-                    <span>•</span>
-                    <span>{new Date(assignment.createdAt).toLocaleDateString('en-IN')}</span>
+                <div key={assignment.id} className="p-5 hover:bg-white/5 transition-colors group flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-sm mb-1">{assignment.title}</div>
+                    <div className="text-xs text-white/40 flex items-center gap-3">
+                      <span>{assignment.maxScore} pts</span>
+                      <span>•</span>
+                      <span>{new Date(assignment.createdAt).toLocaleDateString('en-IN')}</span>
+                    </div>
                   </div>
+                  <button onClick={() => {
+                    setNewAssignmentForm({
+                      id: assignment.id,
+                      title: assignment.title,
+                      brief: assignment.brief || "",
+                      maxScore: assignment.maxScore
+                    });
+                    setShowCreateForm(true);
+                  }} className="opacity-0 group-hover:opacity-100 px-3 py-1.5 text-xs text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/10">
+                    Edit
+                  </button>
                 </div>
               ))}
             </div>
@@ -251,7 +274,7 @@ export default function SubmissionReviewPage() {
                 onClick={handleCreateAssignment}
                 disabled={isCreating}
                 className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg flex items-center gap-2">
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Create Assignment
+                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {newAssignmentForm.id ? "Update Assignment" : "Create Assignment"}
               </button>
             </div>
           </div>
