@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug } from "lucide-react"
+import { toast } from "sonner"
 
 export default function SystemSettingsPage() {
   const [activeTab, setActiveTab] = useState('branding')
