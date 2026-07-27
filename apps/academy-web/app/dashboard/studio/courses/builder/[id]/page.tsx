@@ -10,10 +10,10 @@ export default async function CourseBuilderPage({ params }: { params: { id: stri
     include: {
       course: true,
       modules: {
-        orderBy: { orderIndex: 'asc' },
+        orderBy: { sortOrder: 'asc' },
         include: {
           lessons: {
-            orderBy: { orderIndex: 'asc' }
+            orderBy: { sortOrder: 'asc' }
           }
         }
       }
@@ -34,10 +34,10 @@ export default async function CourseBuilderPage({ params }: { params: { id: stri
       include: {
         course: true,
         modules: {
-          orderBy: { orderIndex: 'asc' },
+          orderBy: { sortOrder: 'asc' },
           include: {
             lessons: {
-              orderBy: { orderIndex: 'asc' }
+              orderBy: { sortOrder: 'asc' }
             }
           }
         }
