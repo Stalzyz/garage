@@ -3,8 +3,10 @@ import { notFound } from "next/navigation"
 import BuilderClient from "./BuilderClient"
 
 export default async function CourseBuilderPage({ params }: { params: { id: string } }) {
+  const id = (await params).id;
+  
   let lmsCourse = await prisma.lMSCourse.findUnique({
-    where: { courseId: params.id },
+    where: { courseId: id },
     include: {
       course: true,
       modules: {
@@ -19,7 +21,7 @@ export default async function CourseBuilderPage({ params }: { params: { id: stri
   })
 
   if (!lmsCourse) {
-    const baseCourse = await prisma.course.findUnique({ where: { id: params.id } })
+    const baseCourse = await prisma.course.findUnique({ where: { id } })
     if (!baseCourse) {
       notFound()
     }
