@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { AIAssistantButton } from "@/components/AIAssistantButton"
 import { ApiClient } from "@/lib/api"
 import { createModule, updateModule, deleteModule, reorderModules, createLesson, updateLesson, deleteLesson, reorderLessons } from "./actions"
+import { RichTextEditor } from "./RichTextEditor"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -36,6 +37,8 @@ interface Lesson {
   title: string
   type: LessonType
   orderIndex: number
+  richText?: string
+  resources?: any
 }
 
 interface Module {
@@ -125,6 +128,16 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
     }))
     startTransition(async () => {
       await updateLesson(lessonId, { title })
+    })
+  }
+
+  const handleUpdateLessonContent = (moduleId: string, lessonId: string, richText: string) => {
+    setModules(prev => prev.map(m => {
+      if (m.id === moduleId) return { ...m, lessons: m.lessons.map(l => l.id === lessonId ? { ...l, richText } : l) }
+      return m
+    }))
+    startTransition(async () => {
+      await updateLesson(lessonId, { richText })
     })
   }
 
@@ -356,13 +369,25 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
                           </div>
                         )}
 
-                        <div className="group relative border border-white/5 rounded-xl bg-white/5 p-4 mt-4">
-                          <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+                        <div className="group relative mt-4">
+                          <div className="flex items-center justify-between mb-4 pb-2">
                             <h3 className="font-bold text-sm text-white/70">Lesson Content</h3>
                           </div>
-                          <div id="lesson-editor" className="min-h-[150px] w-full text-lg text-white/80 outline-none" contentEditable suppressContentEditableWarning>
-                            Start writing your lesson content here...
+                          
+                          <RichTextEditor 
+                            initialContent={lesson.richText || ""}
+                            onChange={(content) => handleUpdateLessonContent(mod.id, lesson.id, content)}
+                            isSaving={isPending}
+                          />
+                        </div>
+                        
+                        {/* Resource Uploader Placeholder */}
+                        <div className="group relative border border-white/5 border-dashed rounded-xl bg-white/5 p-6 mt-4 flex flex-col items-center justify-center text-center hover:bg-white/10 hover:border-white/20 transition-colors cursor-pointer">
+                          <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-3">
+                            <FileText className="w-5 h-5 text-white/40" />
                           </div>
+                          <h3 className="font-bold text-sm text-white/70">Downloadable Resources</h3>
+                          <p className="text-xs text-white/40 mt-1">Drag and drop PDFs or ZIP files here to attach them to this lesson.</p>
                         </div>
                       </div>
                     </>

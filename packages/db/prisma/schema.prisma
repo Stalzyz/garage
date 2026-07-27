@@ -2432,9 +2432,17 @@ model Educator {
   bio                String?
   portfolioUrl       String?
   linkedInUrl        String?
-  verificationStatus String    @default("PENDING") // PENDING | VERIFIED | REJECTED
+  slug               String?      @unique
+  tagline            String?
+  coverImageUrl      String?
+  youtubeUrl         String?
+  twitterUrl         String?
+  instagramUrl       String?
+  isPublic           Boolean      @default(false)
+  profileLayout      Json?
+  verificationStatus String       @default("PENDING") // PENDING | VERIFIED | REJECTED
   deliveryMode       DeliveryMode @default(ONSITE)
-  createdAt          DateTime  @default(now())
+  createdAt          DateTime     @default(now())
   updatedAt          DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

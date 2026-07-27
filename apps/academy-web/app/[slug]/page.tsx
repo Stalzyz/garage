@@ -1,12 +1,118 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import { MonitorPlay, Link as LinkIcon } from "lucide-react"
+import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
 
 export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
-  console.log("CMSPublicPage HIT WITH SLUG:", (await params).slug);
+  const rawSlug = (await params).slug
+
+  // Handle Instructor Profiles
+  if (rawSlug.startsWith('%40')) {
+    const educatorSlug = rawSlug.substring(3) // Remove '%40'
+    
+    const educator = await prisma.educator.findUnique({
+      where: { slug: educatorSlug },
+      include: {
+        user: true,
+        batches: {
+          include: {
+            course: true
+          }
+        }
+      }
+    })
+
+    if (!educator || !educator.isPublic) {
+      notFound()
+    }
+
+    return (
+      <main className="min-h-screen bg-[#050505] text-white flex flex-col w-full items-center pb-20">
+        <div className="w-full max-w-lg bg-[#0a0a0a] min-h-screen border-x border-white/10 shadow-2xl relative">
+          
+          {/* Cover Image */}
+          <div className="h-48 w-full relative">
+            <img src={educator.coverImageUrl || "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000"} alt="Cover" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
+          </div>
+
+          {/* Profile Header */}
+          <div className="px-6 -mt-16 relative z-10 flex flex-col items-center text-center">
+            <div className="w-32 h-32 rounded-full border-4 border-[#0a0a0a] bg-[#1a1a1a] overflow-hidden mb-4 shadow-xl">
+              <img src={educator.user?.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + educator.userId} alt="Avatar" className="w-full h-full object-cover" />
+            </div>
+            
+            <h1 className="text-2xl font-bold tracking-tight">
+              {educator.user?.firstName} {educator.user?.lastName}
+            </h1>
+            
+            {educator.tagline && (
+              <p className="text-indigo-400 font-bold text-sm mt-1">{educator.tagline}</p>
+            )}
+            
+            {educator.bio && (
+              <p className="text-white/60 text-sm mt-4 leading-relaxed max-w-sm">
+                {educator.bio}
+              </p>
+            )}
+
+            {/* Social Icons row */}
+            <div className="flex items-center gap-4 mt-6">
+              {educator.youtubeUrl && (
+                <a href={educator.youtubeUrl} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-white hover:bg-[#ff0000] hover:border-transparent transition-colors">
+                  <LinkIcon className="w-5 h-5" />
+                </a>
+              )}
+              {educator.instagramUrl && (
+                <a href={educator.instagramUrl} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-white hover:bg-[#E1306C] hover:border-transparent transition-colors">
+                  <LinkIcon className="w-5 h-5" />
+                </a>
+              )}
+              {educator.twitterUrl && (
+                <a href={educator.twitterUrl} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-white hover:bg-[#1DA1F2] hover:border-transparent transition-colors">
+                  <LinkIcon className="w-5 h-5" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Courses List */}
+          {educator.batches && educator.batches.length > 0 && (
+            <div className="px-6 mt-12 space-y-4">
+              <h2 className="font-bold text-xs tracking-widest uppercase text-white/50 mb-4 text-center">Featured Courses</h2>
+              
+              {educator.batches.map((batch: any, i: number) => (
+                <Link key={i} href={`/academy/courses/${batch.course?.id}`} className="block">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 hover:border-indigo-500/50 hover:bg-white/10 transition-all cursor-pointer group relative overflow-hidden">
+                    <div className="w-20 h-20 rounded-xl bg-black overflow-hidden shrink-0">
+                      {batch.course?.thumbnail ? (
+                        <img src={batch.course.thumbnail} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                          <MonitorPlay className="w-8 h-8 text-white/20" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 relative z-10 flex flex-col justify-center">
+                      <h3 className="font-bold text-base leading-tight mb-1 group-hover:text-indigo-400 transition-colors">{batch.course?.name || "Untitled Course"}</h3>
+                      <p className="text-sm text-white/50 line-clamp-2">{batch.course?.description || "Enroll today to start learning."}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+        </div>
+      </main>
+    )
+  }
+
+  // Original Landing Page Logic
   const page = await prisma.landingPage.findUnique({
-    where: { slug: (await params).slug },
+    where: { slug: rawSlug },
     include: {
       sections: {
         orderBy: { sortOrder: 'asc' }
@@ -23,7 +129,6 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
       {page.sections.map((section) => {
         const content = section.content as any
         
-        // If it's a raw HTML section
         if (content && typeof content === 'object' && content.type === 'html' && content.html) {
           return (
             <div 
@@ -34,9 +139,6 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
           )
         }
         
-        // If it's a JSON/Visual builder array, we don't have a default public renderer 
-        // for it in this generic catch-all yet. For now, just render a placeholder or ignore it.
-        // In a real scenario, you'd map the JSON cards to a React component here.
         return null
       })}
     </main>

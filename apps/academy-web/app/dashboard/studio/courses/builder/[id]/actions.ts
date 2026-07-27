@@ -77,7 +77,7 @@ export async function createLesson(moduleId: string, title: string, type: string
   revalidatePath(`/dashboard/studio/courses/builder/${mod.lmsCourseId}`)
 }
 
-export async function updateLesson(id: string, data: { title?: string, type?: LessonType, contentUrl?: string, description?: string }) {
+export async function updateLesson(id: string, data: { title?: string, type?: LessonType, contentUrl?: string, description?: string, richText?: string, resources?: any }) {
   const lesson = await prisma.lMSLesson.update({
     where: { id },
     data,
