@@ -45,54 +45,105 @@ export default function CertificatesPage() {
       <html>
         <head>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap');
-            body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; width: 297mm; height: 210mm; font-family: 'Inter', sans-serif; background: #fff; }
-            .certificate { position: relative; width: 100%; height: 100%; box-sizing: border-box; padding: 40px; text-align: center; overflow: hidden; }
-            .bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.15; }
-            .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; opacity: 0.05; z-index: 1; pointer-events: none; }
-            .border { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 4px solid ${builderData.primaryColor}; z-index: 2; }
-            .content { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-            .title { font-family: 'Cinzel', serif; font-size: 48px; color: ${builderData.primaryColor}; margin-bottom: 20px; letter-spacing: 4px; }
-            .subtitle { font-size: 20px; color: #555; margin-bottom: 30px; }
-            .student-name { font-size: 56px; font-weight: 600; color: #111; margin-bottom: 20px; font-style: italic; }
-            .desc { font-size: 18px; color: #666; max-width: 700px; margin-bottom: 20px; line-height: 1.6; }
-            .course-name { font-size: 28px; font-weight: 600; color: ${builderData.primaryColor}; margin-bottom: 50px; }
-            .footer { display: flex; justify-content: space-between; width: 80%; margin-top: 40px; }
-            .signature-box { text-align: center; }
-            .signature-img { height: 60px; object-fit: contain; margin-bottom: 10px; }
-            .signature-line { width: 200px; height: 2px; background: #333; margin-bottom: 10px; }
-            .signature-title { font-size: 14px; font-weight: 600; color: #333; text-transform: uppercase; }
-            .verify-code { position: absolute; bottom: 40px; right: 40px; font-size: 10px; color: #999; z-index: 3; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; width: 297mm; height: 210mm; font-family: 'Inter', sans-serif; background: #fff; color: #333; }
+            .certificate { position: relative; width: 100%; height: 100%; box-sizing: border-box; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+            
+            /* Top Banner & Logo */
+            .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 40px 60px; height: 180px; }
+            .logo-area { display: flex; flex-direction: column; }
+            .logo-text { font-size: 28px; font-weight: 700; color: #2c93b6; }
+            .logo-text span { color: #555; }
+            .logo-sub { font-size: 10px; color: #555; margin-top: 4px; letter-spacing: 1px; margin-left: 20px; }
+            .top-right-banner { position: absolute; top: 0; right: 40px; width: 140px; height: 180px; background: linear-gradient(180deg, #4da4bc, #2c6e86); border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; display: flex; justify-content: center; align-items: center; color: white; }
+            
+            /* Center Content */
+            .center-area { display: flex; justify-content: center; align-items: center; margin-top: 40px; }
+            .center-left { text-align: right; padding-right: 30px; border-right: 2px solid #5a8ea3; }
+            .cert-title { font-size: 46px; font-weight: 600; color: #222; letter-spacing: 2px; line-height: 1; }
+            .cert-subtitle { font-size: 22px; color: #444; margin-top: 8px; letter-spacing: 1px; }
+            .center-right { text-align: left; padding-left: 30px; }
+            .presented-to { font-size: 18px; color: #333; letter-spacing: 1px; margin-bottom: 15px; }
+            .student-name { font-size: 42px; font-weight: 400; color: #4b8ba3; }
+            
+            /* Description */
+            .desc-area { text-align: center; margin-top: 60px; padding: 0 100px; }
+            .desc-text { font-size: 18px; color: #333; line-height: 1.6; letter-spacing: 1px; }
+            .desc-course { font-weight: 700; color: #2c6e86; font-size: 22px; }
+            .desc-date { font-size: 16px; font-weight: 700; color: #333; margin-top: 20px; letter-spacing: 1px; }
+            
+            /* Signatures */
+            .signatures { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 80px; padding: 0 120px; }
+            .sig-block { display: flex; flex-direction: column; align-items: center; width: 220px; }
+            .sig-img { height: 60px; object-fit: contain; margin-bottom: 10px; }
+            .sig-line { width: 100%; height: 1px; background: #333; margin-bottom: 10px; }
+            .sig-title { font-size: 14px; color: #222; font-weight: 600; }
+            .seal-block { display: flex; align-items: center; justify-content: center; width: 100px; }
+            
+            /* Footer */
+            .footer { position: absolute; bottom: 40px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #666; font-style: italic; }
+            .bottom-right-decor { position: absolute; bottom: 0; right: 0; width: 100px; height: 100px; }
           </style>
         </head>
         <body>
           <div class="certificate">
-            {{BACKGROUND_URL_HTML}}
-            {{WATERMARK_URL_HTML}}
-            <div class="border"></div>
-            <div class="content">
-              <div class="title">${builderData.title}</div>
-              <div class="subtitle">${builderData.subtitle}</div>
-              <div class="student-name">{{STUDENT_NAME}}</div>
-              <div class="desc">${builderData.description}</div>
-              <div class="course-name">{{COURSE_NAME}}</div>
-              <div class="footer">
-                <div class="signature-box">
-                  {{EDUCATOR_SIGNATURE_HTML}}
-                  <div class="signature-line"></div>
-                  <div class="signature-title">Course Educator</div>
-                </div>
-                <div class="signature-box">
-                  <div style="font-size: 16px; margin-bottom: 20px; font-weight: 600;">${builderData.dateText}</div>
-                </div>
-                <div class="signature-box">
-                  {{ACADEMY_HEAD_SIGNATURE_HTML}}
-                  <div class="signature-line"></div>
-                  <div class="signature-title">Academy Head</div>
-                </div>
+            
+            <div class="header">
+              <div class="logo-area">
+                <div class="logo-text">Greeks<span>Academy.com</span></div>
+                <div class="logo-sub">Art | Design | Animation | Programming</div>
               </div>
             </div>
-            <div class="verify-code">Verify at grekam.in/verify<br/>ID: {{VERIFICATION_CODE}}</div>
+            
+            <div class="top-right-banner">
+              <!-- Simple SVG representation for the logo inside banner -->
+              <svg width="80" height="80" viewBox="0 0 100 100" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 20 L80 35 L50 50 L20 35 Z" fill="white"/>
+                <path d="M25 45 V70 L50 85 L75 70 V45 L50 60 Z" fill="white"/>
+                <circle cx="50" cy="50" r="25" fill="#2c6e86"/>
+                <text x="50" y="65" font-family="Arial" font-weight="bold" font-size="40" fill="white" text-anchor="middle">G</text>
+              </svg>
+            </div>
+            
+            <div class="center-area">
+              <div class="center-left">
+                <div class="cert-title">CERTIFICATE</div>
+                <div class="cert-subtitle">OF COMPLETION</div>
+              </div>
+              <div class="center-right">
+                <div class="presented-to">THIS IS PROUDLY PRESENTED TO</div>
+                <div class="student-name">{{STUDENT_NAME}}</div>
+              </div>
+            </div>
+            
+            <div class="desc-area">
+              <div class="desc-text">The certificate is presented for completing <span class="desc-course">{{COURSE_NAME}}</span> Course during the period</div>
+              <div class="desc-date">September 2023 to December 2023</div>
+            </div>
+            
+            <div class="signatures">
+              <div class="sig-block">
+                {{EDUCATOR_SIGNATURE_HTML}}
+                <div class="sig-line"></div>
+                <div class="sig-title">Mentor</div>
+              </div>
+              <div class="seal-block">
+                <!-- Seal graphic Placeholder -->
+                <div style="width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #444; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #444; text-align: center;">GREEKS ACADEMY<br/>Coimbatore</div>
+              </div>
+              <div class="sig-block">
+                {{ACADEMY_HEAD_SIGNATURE_HTML}}
+                <div class="sig-line"></div>
+                <div class="sig-title">Authorized Signature</div>
+              </div>
+            </div>
+            
+            <div class="footer">
+              96/53A, 2nd Cross Street Bharathi Colony, Peelamedu, Coimbatore, Tamil Nadu 641004 : Ph: 9843199556
+            </div>
+            
+            <!-- Bottom Right Decor Placeholder -->
+            <div class="bottom-right-decor" style="background: radial-gradient(circle at bottom right, #4da4bc 40%, transparent 41%);"></div>
           </div>
         </body>
       </html>
@@ -186,54 +237,86 @@ export default function CertificatesPage() {
         {/* Preview Area */}
         <div className="flex-1 bg-[#111] flex items-center justify-center p-8">
           {/* A4 Landscape Box for Preview */}
-          <div className="bg-white text-black relative shadow-2xl flex flex-col items-center justify-center" style={{ width: '1056px', height: '816px', transform: 'scale(0.8)', transformOrigin: 'center' }}>
-            {builderData.backgroundUrl && <img src={builderData.backgroundUrl} alt="bg" className="absolute top-0 left-0 w-full h-full object-cover opacity-15 pointer-events-none" />}
-            {builderData.watermarkUrl && <img src={builderData.watermarkUrl} alt="watermark" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 opacity-5 pointer-events-none" />}
+          <div className="bg-white relative shadow-2xl flex flex-col" style={{ width: '1056px', height: '816px', transform: 'scale(0.8)', transformOrigin: 'center', fontFamily: 'sans-serif' }}>
             
-            <div className="absolute inset-5 border-4" style={{ borderColor: builderData.primaryColor }}></div>
-            
-            <div className="z-10 text-center flex flex-col items-center">
-              <h1 className="text-6xl font-serif mb-6 tracking-widest" style={{ color: builderData.primaryColor }}>{builderData.title}</h1>
-              <p className="text-2xl text-gray-600 mb-8">{builderData.subtitle}</p>
-              
-              <h2 className="text-6xl font-bold italic mb-6 text-gray-900 border-b-2 border-gray-300 pb-2 px-12">{"{Student Name}"}</h2>
-              
-              <p className="text-xl text-gray-600 max-w-3xl mb-8">{builderData.description}</p>
-              
-              <h3 className="text-4xl font-semibold mb-16" style={{ color: builderData.primaryColor }}>{"{Course Name}"}</h3>
-              
-              <div className="flex justify-between w-full max-w-4xl mt-8">
-                <div className="flex flex-col items-center justify-end w-64">
-                  {builderData.educatorSignatureUrl ? (
-                    <img src={builderData.educatorSignatureUrl} alt="Educator Signature" className="h-16 object-contain mb-2" />
-                  ) : (
-                    <div className="h-16 w-full flex items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-gray-400 text-xs mb-2 rounded">Educator Signature</div>
-                  )}
-                  <div className="w-full h-0.5 bg-black mb-2"></div>
-                  <span className="font-semibold uppercase text-sm">Course Educator</span>
-                </div>
-                
-                <div className="flex flex-col items-center justify-end">
-                  <span className="font-semibold text-lg mb-8">Date: {"{Issue Date}"}</span>
-                  <div className="w-16 h-16 rounded-full border-4 flex items-center justify-center opacity-20" style={{ borderColor: builderData.primaryColor }}>SEAL</div>
-                </div>
-                
-                <div className="flex flex-col items-center justify-end w-64">
-                  {builderData.academyHeadSignatureUrl ? (
-                    <img src={builderData.academyHeadSignatureUrl} alt="Academy Head Signature" className="h-16 object-contain mb-2" />
-                  ) : (
-                    <div className="h-16 w-full flex items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-gray-400 text-xs mb-2 rounded">Academy Head Signature</div>
-                  )}
-                  <div className="w-full h-0.5 bg-black mb-2"></div>
-                  <span className="font-semibold uppercase text-sm">Academy Head</span>
-                </div>
+            {/* Header */}
+            <div className="flex justify-between items-start pt-10 px-16 h-[180px]">
+              <div className="flex flex-col">
+                <div className="text-3xl font-bold text-[#2c93b6]">Greeks<span className="text-[#555]">Academy.com</span></div>
+                <div className="text-[11px] text-[#555] mt-1 tracking-widest ml-4">Art | Design | Animation | Programming</div>
               </div>
             </div>
-            
-            <div className="absolute bottom-10 right-10 text-xs text-gray-400 text-right">
-              Verify at grekam.in/verify<br/>
-              ID: {"{Verify Code}"}
+
+            {/* Top Right Banner */}
+            <div className="absolute top-0 right-10 w-[140px] h-[180px] bg-gradient-to-b from-[#4da4bc] to-[#2c6e86] rounded-b-[40px] flex items-center justify-center">
+              <svg width="80" height="80" viewBox="0 0 100 100" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 20 L80 35 L50 50 L20 35 Z" fill="white"/>
+                <path d="M25 45 V70 L50 85 L75 70 V45 L50 60 Z" fill="white"/>
+                <circle cx="50" cy="50" r="25" fill="#2c6e86"/>
+                <text x="50" y="65" fontFamily="Arial" fontWeight="bold" fontSize="40" fill="white" textAnchor="middle">G</text>
+              </svg>
             </div>
+
+            {/* Center Content */}
+            <div className="flex justify-center items-center mt-12">
+              <div className="text-right pr-8 border-r-2 border-[#5a8ea3]">
+                <div className="text-[46px] font-semibold text-[#222] tracking-[2px] leading-none mb-2">{builderData.title}</div>
+                <div className="text-[22px] text-[#444] tracking-widest">{builderData.subtitle}</div>
+              </div>
+              <div className="text-left pl-8">
+                <div className="text-lg text-[#333] tracking-widest mb-4">THIS IS PROUDLY PRESENTED TO</div>
+                <div className="text-[42px] font-normal text-[#4b8ba3]">{"{Student Name}"}</div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="text-center mt-16 px-[100px]">
+              <div className="text-lg text-[#333] leading-relaxed tracking-wide">
+                {builderData.description} <span className="font-bold text-[#2c6e86] text-[22px]">{"{Course Name}"}</span> Course during the period
+              </div>
+              <div className="text-base font-bold text-[#333] mt-6 tracking-wide">
+                September 2023 to December 2023
+              </div>
+            </div>
+
+            {/* Signatures */}
+            <div className="flex justify-between items-end mt-20 px-[120px]">
+              <div className="flex flex-col items-center w-[220px]">
+                {builderData.educatorSignatureUrl ? (
+                  <img src={builderData.educatorSignatureUrl} alt="Mentor Signature" className="h-[60px] object-contain mb-3" />
+                ) : (
+                  <div className="h-[60px] w-full flex items-center justify-center text-gray-400 text-xs mb-3">Mentor Signature Placeholder</div>
+                )}
+                <div className="w-full h-[1px] bg-[#333] mb-3"></div>
+                <div className="text-[14px] text-[#222] font-semibold">Mentor</div>
+              </div>
+              
+              <div className="flex items-center justify-center w-[100px]">
+                {/* Seal Placeholder */}
+                <div className="w-[80px] h-[80px] rounded-full border-2 border-dashed border-[#444] flex items-center justify-center text-[8px] text-[#444] text-center">
+                  GREEKS ACADEMY<br/>Coimbatore
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center w-[220px]">
+                {builderData.academyHeadSignatureUrl ? (
+                  <img src={builderData.academyHeadSignatureUrl} alt="Authorized Signature" className="h-[60px] object-contain mb-3" />
+                ) : (
+                  <div className="h-[60px] w-full flex items-center justify-center text-gray-400 text-xs mb-3">Auth Signature Placeholder</div>
+                )}
+                <div className="w-full h-[1px] bg-[#333] mb-3"></div>
+                <div className="text-[14px] text-[#222] font-semibold">Authorized Signature</div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="absolute bottom-10 left-0 w-full text-center text-[12px] text-[#666] italic">
+              96/53A, 2nd Cross Street Bharathi Colony, Peelamedu, Coimbatore, Tamil Nadu 641004 : Ph: 9843199556
+            </div>
+
+            {/* Bottom Right Decor */}
+            <div className="absolute bottom-0 right-0 w-[100px] h-[100px]" style={{ background: 'radial-gradient(circle at bottom right, #4da4bc 40%, transparent 41%)' }}></div>
+
           </div>
         </div>
       </div>
