@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && npx tsx apps/web/scripts/seed_academy_landing.ts"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

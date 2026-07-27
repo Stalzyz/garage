@@ -48,7 +48,7 @@ export default async function CoursesPage() {
                 </td>
                 <td className="px-6 py-4">{lms._count.modules}</td>
                 <td className="px-6 py-4 text-right">
-                  <Link href={`/dashboard/cms/courses/${lms.id}`}>
+                  <Link href={`https://academy.grekam.in/dashboard/studio/courses/builder/${lms.id}`}>
                     <Button variant="ghost" size="sm">
                       <Edit className="mr-2 h-4 w-4" /> Builder
                     </Button>

@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && echo 'Copying static assets...' && cp -rf apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ && cp -rf apps/web/public apps/web/.next/standalone/apps/web/ && echo 'Done! Restarting...' && pm2 restart grekam-os-web && echo 'Restarted!'"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
