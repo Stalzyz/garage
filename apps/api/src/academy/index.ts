@@ -50,13 +50,11 @@ export default async function academyModule(app: FastifyInstance) {
   await app.register(dynamicFormsRouter);
   await app.register(attendanceRouter, { prefix: '/attendance' });
   await app.register(officeHoursRouter, { prefix: '/office-hours' });
-  await app.register(certificatesRouter, { prefix: '/certificates' });
   await app.register(forumsRouter, { prefix: '/forums' });
   await app.register(leaderboardRouter, { prefix: '/leaderboard' });
   await app.register(jobsRouter, { prefix: '/jobs' });
   await app.register(analyticsRouter, { prefix: '/analytics' });
   await app.register(alumniRouter, { prefix: '/alumni' });
-  await app.register(referralsRouter, { prefix: '/referrals' });
   await app.register(portfolioRouter, { prefix: '/portfolio' });
   await app.register(lmsStudentRoutes);
 }
