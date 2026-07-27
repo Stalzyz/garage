@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import { Button } from "@workspace/ui/components/button"
+import { Button } from "@grekam/ui/components/button"
 import { 
   Table, 
   TableBody, 
@@ -8,8 +8,8 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from "@workspace/ui/components/table"
-import { Badge } from "@workspace/ui/components/badge"
+} from "@grekam/ui/components/table"
+import { Badge } from "@grekam/ui/components/badge"
 import { Plus, Edit } from "lucide-react"
 
 export default async function CoursesPage() {
