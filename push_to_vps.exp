@@ -11,7 +11,7 @@ send "apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-
 expect "# "
 send "pnpm install\r"
 expect "# "
-send "pnpm --filter=academy-web build && pnpm --filter=api build\r"
+send "pnpm --filter=@grekam/academy-web build && pnpm --filter=@grekam/api build\r"
 expect "# "
 send "cd apps/academy-web && cp -rf .next/static .next/standalone/apps/academy-web/.next/ && cp -rf public .next/standalone/apps/academy-web/\r"
 expect "# "
