@@ -162,7 +162,7 @@ export default function CertificatesPage() {
     processedHtml = processedHtml.replace('{{BOTTOM_RIGHT_DECOR_HTML}}', builderData.bottomRightDecorUrl ? `<img src="${builderData.bottomRightDecorUrl}" style="position: absolute; bottom: 0; right: 0; width: 150px; object-fit: contain;" />` : '<div style="position: absolute; bottom: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle at bottom right, #4da4bc 40%, transparent 41%);"></div>');
     
     // Inject Collab Logos
-    const collabHtml = builderData.collaborationLogosStr.split(',').filter(s=>s.trim()).map(url => `<img src="${url.trim()}" style="height: 40px; object-fit: contain;" />`).join('');
+    const collabHtml = (builderData.collaborationLogosStr || "").split(',').filter(s=>s.trim()).map(url => `<img src="${url.trim()}" style="height: 40px; object-fit: contain;" />`).join('');
     processedHtml = processedHtml.replace('{{COLLAB_LOGOS_HTML}}', collabHtml);
 
     try {
@@ -362,7 +362,7 @@ export default function CertificatesPage() {
 
             {/* Collaboration Logos */}
             <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-4 items-center justify-center">
-              {builderData.collaborationLogosStr.split(',').filter(s=>s.trim()).map((url, i) => (
+              {(builderData.collaborationLogosStr || "").split(',').filter(s=>s.trim()).map((url, i) => (
                 <img key={i} src={url.trim()} alt="Collab" className="h-10 object-contain" />
               ))}
             </div>
