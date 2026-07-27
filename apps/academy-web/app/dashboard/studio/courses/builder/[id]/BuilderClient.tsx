@@ -90,7 +90,7 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
   const handleUpdateModule = (moduleId: string, title: string) => {
     setModules(prev => prev.map(m => m.id === moduleId ? { ...m, title } : m))
     startTransition(async () => {
-      await updateModule(moduleId, { title })
+      await updateModule(moduleId, title)
     })
   }
 
