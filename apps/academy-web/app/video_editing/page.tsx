@@ -15,65 +15,168 @@ export const metadata = {
 
 const curriculum = [
   {
-    module: "Module 1",
-    title: "Foundations of Video Editing",
-    lessons: [
-      "Introduction to Non-Linear Editing",
-      "File formats, codecs & frame rates",
-      "Setting up your editing workspace",
-      "Importing & organising footage",
+    month: 1,
+    title: "CREATOR FOUNDATION",
+    color: "from-[#FF6B35] to-[#FF9F6B]",
+    weeks: [
+      {
+        week: 1,
+        title: "Introduction to Digital Media & Photoshop",
+        classes: [
+          { num: 1, topic: "Course Introduction & Career Opportunities", objective: "Understand the course, career paths and workflow", liveActivity: "Explain editing workflow", practice: "Create project folders", homework: "Organize workspace", portfolio: "—" },
+          { num: 2, topic: "Photoshop Basics", objective: "Learn interface and essential tools", liveActivity: "Thumbnail demo", practice: "Design a YouTube thumbnail", homework: "Create 3 thumbnails", portfolio: "Thumbnail Design" },
+          { num: 3, topic: "Design Principles", objective: "Learn color, fonts and layout", liveActivity: "Poster design", practice: "Movie poster", homework: "Instagram banner", portfolio: "Poster Design" },
+        ],
+        weeklyAssignment: "Design branding for a YouTube channel.",
+        deliverables: ["3 Thumbnails", "1 Banner", "1 Poster"],
+      },
+      {
+        week: 2,
+        title: "Premiere Pro Basics",
+        classes: [
+          { num: 4, topic: "Premiere Pro Interface", objective: "Understand workspace", liveActivity: "Create project", practice: "Import clips", homework: "Organize folders", portfolio: "—" },
+          { num: 5, topic: "Cut & Trim", objective: "Learn basic editing", liveActivity: "Edit sample video", practice: "30-second edit", homework: "Travel video", portfolio: "First Edit" },
+          { num: 6, topic: "Timeline & Export", objective: "Learn timeline and export", liveActivity: "Export settings", practice: "Instagram Reel", homework: "30-second reel", portfolio: "Instagram Reel" },
+        ],
+        weeklyAssignment: "Create an Instagram Reel.",
+        deliverables: [],
+      },
+      {
+        week: 3,
+        title: "Storytelling Through Editing",
+        classes: [
+          { num: 7, topic: "Storytelling", objective: "Arrange scenes", liveActivity: "Story editing", practice: "1-minute story", homework: "Story video", portfolio: "Storytelling" },
+          { num: 8, topic: "Smooth Cuts & Transitions", objective: "Improve flow", liveActivity: "Transition demo", practice: "Cinematic edit", homework: "Transition practice", portfolio: "Cinematic Edit" },
+          { num: 9, topic: "Speed Control", objective: "Create energy", liveActivity: "Slow & fast motion", practice: "Sports highlight", homework: "Action edit", portfolio: "Speed Effects" },
+        ],
+        weeklyAssignment: "Create a one-minute travel story.",
+        deliverables: [],
+      },
+      {
+        week: 4,
+        title: "Audio Editing",
+        classes: [
+          { num: 10, topic: "Background Music", objective: "Add music correctly", liveActivity: "Music sync", practice: "Interview edit", homework: "Interview video", portfolio: "Interview Edit" },
+          { num: 11, topic: "Voice Recording", objective: "Record clean voice", liveActivity: "Voice-over", practice: "Podcast intro", homework: "Record narration", portfolio: "Voice-over" },
+          { num: 12, topic: "Audio Mixing", objective: "Balance sound", liveActivity: "Mix voice & music", practice: "Social interview", homework: "Final audio edit", portfolio: "Audio Edit" },
+        ],
+        weeklyAssignment: "Interview Video",
+        deliverables: [],
+      },
     ],
+    monthlyProject: "Interview Video",
   },
   {
-    module: "Module 2",
-    title: "Adobe Premiere Pro Mastery",
-    lessons: [
-      "Timeline workflow & multi-cam editing",
-      "Audio mixing, noise reduction & voiceover sync",
-      "Colour grading with Lumetri",
-      "Titles, captions & motion graphics",
+    month: 2,
+    title: "PROFESSIONAL EDITING",
+    color: "from-[#9999FF] to-[#CC88FF]",
+    weeks: [
+      {
+        week: 5,
+        title: "Titles & Motion Graphics",
+        classes: [
+          { num: 13, topic: "Titles", objective: "Create professional titles", liveActivity: "Title animation", practice: "YouTube intro", homework: "Intro animation", portfolio: "Animated Title" },
+          { num: 14, topic: "Captions", objective: "Add readable captions", liveActivity: "Caption styles", practice: "Educational video", homework: "Caption edit", portfolio: "Caption Video" },
+          { num: 15, topic: "Motion Graphics Basics", objective: "Animate simple graphics", liveActivity: "Lower thirds", practice: "Motion title", homework: "Motion graphics", portfolio: "Motion Title" },
+        ],
+        weeklyAssignment: "Create a YouTube intro.",
+        deliverables: [],
+      },
+      {
+        week: 6,
+        title: "Adobe After Effects",
+        classes: [
+          { num: 16, topic: "Interface", objective: "Learn workspace", liveActivity: "New composition", practice: "Composition practice", homework: "Animated logo", portfolio: "Logo Animation" },
+          { num: 17, topic: "Keyframes", objective: "Animate objects", liveActivity: "Text animation", practice: "Logo reveal", homework: "Logo animation", portfolio: "Logo Reveal" },
+          { num: 18, topic: "Motion Graphics", objective: "Create promo animation", liveActivity: "Promo demo", practice: "Promo video", homework: "Promotional video", portfolio: "Motion Graphics" },
+        ],
+        weeklyAssignment: "Animated Logo.",
+        deliverables: [],
+      },
+      {
+        week: 7,
+        title: "Corporate & Product Videos",
+        classes: [
+          { num: 19, topic: "Corporate Video", objective: "Edit company profile", liveActivity: "Corporate workflow", practice: "Company video", homework: "Corporate promo", portfolio: "Corporate Video" },
+          { num: 20, topic: "Product Video", objective: "Showcase products", liveActivity: "Product lighting", practice: "Product advertisement", homework: "Product ad", portfolio: "Product Ad" },
+          { num: 21, topic: "Commercial Editing", objective: "Edit advertisements", liveActivity: "Commercial workflow", practice: "Brand advertisement", homework: "30-second ad", portfolio: "Commercial Video" },
+        ],
+        weeklyAssignment: "30-second Product Advertisement.",
+        deliverables: [],
+      },
+      {
+        week: 8,
+        title: "Social Media Editing",
+        classes: [
+          { num: 22, topic: "Instagram Reels", objective: "Vertical editing", liveActivity: "Reel workflow", practice: "Trending reel", homework: "Reel challenge", portfolio: "Instagram Reel" },
+          { num: 23, topic: "YouTube Shorts", objective: "Fast editing", liveActivity: "Shorts workflow", practice: "Short video", homework: "Shorts edit", portfolio: "Shorts" },
+          { num: 24, topic: "Social Media Workflow", objective: "Export for platforms", liveActivity: "Export settings", practice: "Social campaign", homework: "Campaign", portfolio: "Social Campaign" },
+        ],
+        weeklyAssignment: "Complete Social Media Campaign.",
+        deliverables: [],
+      },
     ],
+    monthlyProject: "Complete Social Media Campaign",
   },
   {
-    module: "Module 3",
-    title: "DaVinci Resolve — Colour Science",
-    lessons: [
-      "Node-based colour pipeline",
-      "LOG footage & LUT application",
-      "HDR grading & delivery",
-      "Fusion for visual effects",
+    month: 3,
+    title: "ADVANCED PROJECTS",
+    color: "from-[#10b981] to-[#49abc9]",
+    weeks: [
+      {
+        week: 9,
+        title: "Music Video Editing",
+        classes: [
+          { num: 25, topic: "Beat Editing", objective: "Sync music", liveActivity: "Music edit", practice: "Music video", homework: "Beat edit", portfolio: "Music Video" },
+          { num: 26, topic: "Rhythm Editing", objective: "Match cuts", liveActivity: "Dance edit", practice: "Dance video", homework: "Music sequence", portfolio: "Beat Edit" },
+          { num: 27, topic: "Cinematic Style", objective: "Improve storytelling", liveActivity: "Film edit", practice: "Cinematic scene", homework: "Film scene", portfolio: "Cinematic Edit" },
+        ],
+        weeklyAssignment: "Music Video.",
+        deliverables: [],
+      },
+      {
+        week: 10,
+        title: "Color & Basic VFX",
+        classes: [
+          { num: 28, topic: "Color Correction", objective: "Improve colors", liveActivity: "Color demo", practice: "Before & after", homework: "Color correction", portfolio: "Color Project" },
+          { num: 29, topic: "Green Screen", objective: "Replace background", liveActivity: "Green screen", practice: "Replace background", homework: "Green screen scene", portfolio: "Green Screen" },
+          { num: 30, topic: "Basic VFX", objective: "Add simple effects", liveActivity: "Action effects", practice: "Action clip", homework: "VFX scene", portfolio: "Basic VFX" },
+        ],
+        weeklyAssignment: "Action Scene with Green Screen.",
+        deliverables: [],
+      },
+      {
+        week: 11,
+        title: "AI for Video Editors",
+        classes: [
+          { num: 31, topic: "ElevenLabs", objective: "Generate AI voice", liveActivity: "Voice generation", practice: "Narration", homework: "AI voice", portfolio: "AI Voice" },
+          { num: 32, topic: "AI Video Workflow", objective: "Add AI narration", liveActivity: "Product advertisement", practice: "AI commercial", homework: "Product advertisement", portfolio: "AI Commercial" },
+          { num: 33, topic: "Portfolio Review", objective: "Improve projects", liveActivity: "Mentor review", practice: "Improve videos", homework: "Final portfolio", portfolio: "Portfolio" },
+        ],
+        weeklyAssignment: "AI Product Advertisement.",
+        deliverables: [],
+      },
+      {
+        week: 12,
+        title: "Career Development & Capstone",
+        classes: [
+          { num: 34, topic: "Freelancing & Clients", objective: "Learn client workflow", liveActivity: "Proposal writing", practice: "Client project", homework: "Freelance profile", portfolio: "Career" },
+          { num: 35, topic: "Resume, LinkedIn & Portfolio", objective: "Build professional profile", liveActivity: "Portfolio review", practice: "Resume", homework: "LinkedIn", portfolio: "Professional Portfolio" },
+          { num: 36, topic: "Final Capstone Presentation", objective: "Present completed work", liveActivity: "Final presentation", practice: "Jury review", homework: "Course completion", portfolio: "Final Portfolio" },
+        ],
+        weeklyAssignment: "Final Capstone Presentation",
+        deliverables: [],
+      },
     ],
+    monthlyProject: "Final Portfolio",
   },
-  {
-    module: "Module 4",
-    title: "After Effects & Motion Graphics",
-    lessons: [
-      "Keyframe animation & easing",
-      "Mask, track matte & layer compositing",
-      "Kinetic typography",
-      "Plugin ecosystem: Element 3D, Optical Flares",
-    ],
-  },
-  {
-    module: "Module 5",
-    title: "Short-Form & Social Media Content",
-    lessons: [
-      "Instagram Reels, YouTube Shorts workflow",
-      "Trending transitions & speed-ramp techniques",
-      "Thumbnail design & A/B testing",
-      "Batch-export & delivery specs",
-    ],
-  },
-  {
-    module: "Module 6",
-    title: "Capstone & Portfolio",
-    lessons: [
-      "Client brief simulation & contract",
-      "Full branded video production",
-      "Portfolio reel assembly",
-      "Freelance pricing & pitch decks",
-    ],
-  },
+]
+
+const capstoneProjects = [
+  "YouTube Thumbnail", "Instagram Reel", "YouTube Short", "Travel Video",
+  "Interview Video", "Corporate Video", "Product Advertisement", "Commercial Advertisement",
+  "Music Video", "Green Screen Project", "Basic VFX Scene", "AI Voice Advertisement",
+  "2–3 Minute Short Film",
 ]
 
 const outcomes = [
@@ -258,49 +361,123 @@ export default async function VideoEditingPage() {
 
       {/* ── CURRICULUM ────────────────────────────────────────────── */}
       <section id="curriculum" className="py-28 px-4">
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
               Course Curriculum
             </h2>
             <p className="text-[#A1A1AA] text-lg">
-              6 structured modules · 60+ hours of hands-on content
+              3 Months · 12 Weeks · 36 Classes · 100+ hours of hands-on content
             </p>
           </div>
 
-          <div className="space-y-4">
-            {curriculum.map((mod, i) => (
+          {/* Month accordions */}
+          <div className="space-y-6">
+            {curriculum.map((month, mi) => (
               <details
-                key={i}
-                className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors"
-                open={i === 0}
+                key={mi}
+                className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/15 transition-colors"
+                open={mi === 0}
               >
                 <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
                   <div className="flex items-center gap-4">
-                    <span
-                      className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full"
-                      style={{
-                        background: `hsl(${i * 45}, 70%, 50%, 0.15)`,
-                        color: `hsl(${i * 45}, 80%, 70%)`,
-                        border: `1px solid hsl(${i * 45}, 60%, 40%, 0.3)`,
-                      }}
-                    >
-                      {mod.module}
+                    <span className={`text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-gradient-to-r ${month.color} text-white shadow-lg`}>
+                      Month {month.month}
                     </span>
-                    <h3 className="font-bold text-lg">{mod.title}</h3>
+                    <h3 className="font-black text-xl tracking-tight">{month.title}</h3>
+                    <span className="text-xs text-[#A1A1AA] hidden sm:block">4 weeks · 12 classes</span>
                   </div>
                   <ChevronDown className="w-5 h-5 text-[#A1A1AA] group-open:rotate-180 transition-transform flex-shrink-0" />
                 </summary>
-                <ul className="px-6 pb-6 space-y-3 border-t border-white/5 pt-4">
-                  {mod.lessons.map((lesson, j) => (
-                    <li key={j} className="flex items-start gap-3 text-sm text-[#A1A1AA]">
-                      <Play className="w-3 h-3 mt-0.5 text-[#FF6B35] flex-shrink-0" />
-                      {lesson}
-                    </li>
+
+                <div className="border-t border-white/5 px-4 pb-6 pt-4 space-y-6">
+                  {month.weeks.map((wk, wi) => (
+                    <details key={wi} className="group/week bg-white/5 border border-white/10 rounded-xl overflow-hidden" open={wi === 0}>
+                      <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold tracking-widest text-[#A1A1AA] uppercase">Week {wk.week}</span>
+                          <h4 className="font-bold text-base">{wk.title}</h4>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-[#A1A1AA] group-open/week:rotate-180 transition-transform flex-shrink-0" />
+                      </summary>
+
+                      <div className="border-t border-white/5">
+                        {/* Class table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs min-w-[700px]">
+                            <thead>
+                              <tr className="bg-white/5 text-[#A1A1AA] uppercase tracking-wider">
+                                {["#", "Topic", "Objective", "Live Activity", "Practice", "Homework", "Portfolio"].map((h) => (
+                                  <th key={h} className="px-4 py-3 text-left font-semibold border-b border-white/5">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {wk.classes.map((cls, ci) => (
+                                <tr key={ci} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                  <td className="px-4 py-3 font-bold text-[#FF6B35]">{cls.num}</td>
+                                  <td className="px-4 py-3 font-semibold text-[#FAFAF8]">{cls.topic}</td>
+                                  <td className="px-4 py-3 text-[#A1A1AA]">{cls.objective}</td>
+                                  <td className="px-4 py-3 text-[#A1A1AA]">{cls.liveActivity}</td>
+                                  <td className="px-4 py-3 text-[#A1A1AA]">{cls.practice}</td>
+                                  <td className="px-4 py-3 text-[#A1A1AA]">{cls.homework}</td>
+                                  <td className="px-4 py-3">
+                                    {cls.portfolio !== "—" ? (
+                                      <span className="inline-block px-2 py-0.5 bg-[#FF6B35]/10 text-[#FF6B35] rounded-full text-[10px] font-bold border border-[#FF6B35]/20 whitespace-nowrap">
+                                        {cls.portfolio}
+                                      </span>
+                                    ) : (
+                                      <span className="text-white/20">—</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Weekly assignment */}
+                        <div className="mx-4 my-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#A1A1AA] mb-1">Weekly Assignment</p>
+                          <p className="text-sm font-semibold text-[#FAFAF8]">{wk.weeklyAssignment}</p>
+                          {wk.deliverables.length > 0 && (
+                            <ul className="mt-2 flex flex-wrap gap-2">
+                              {wk.deliverables.map((d, di) => (
+                                <li key={di} className="text-xs px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[#A1A1AA]">{d}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </details>
                   ))}
-                </ul>
+
+                  {/* Monthly project badge */}
+                  <div className="flex items-center gap-3 px-2 pt-2">
+                    <span className="text-xs font-black uppercase tracking-widest text-[#A1A1AA]">Monthly Project</span>
+                    <span className={`text-xs font-bold px-4 py-1.5 rounded-full bg-gradient-to-r ${month.color} text-white`}>
+                      {month.monthlyProject}
+                    </span>
+                  </div>
+                </div>
               </details>
             ))}
+          </div>
+
+          {/* Final Capstone */}
+          <div className="mt-12 bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-xl font-black tracking-tight">Final Capstone Project</h3>
+              <p className="text-[#A1A1AA] text-sm mt-1">Every student must submit all of the following to graduate:</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-px bg-white/5">
+              {capstoneProjects.map((project, i) => (
+                <div key={i} className="flex items-center gap-3 px-5 py-4 bg-[#050505]">
+                  <CheckCircle className="w-4 h-4 text-[#10b981] flex-shrink-0" />
+                  <span className="text-sm font-medium text-[#FAFAF8]">{project}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
