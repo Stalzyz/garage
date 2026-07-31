@@ -30,12 +30,23 @@ const inkShapes = [
   "polygon(0 0, 100% 0, 100% 78%, 82% 68%, 60% 80%, 40% 68%, 20% 78%, 5% 70%, 0 78%)",
 ];
 
+// Map course titles to dedicated landing pages (slug-based)
+const coursePageMap: Record<string, string> = {
+  "video editing": "/video_editing",
+}
+
+function getCourseHref(title: string): string {
+  const key = title.toLowerCase().trim()
+  return coursePageMap[key] ?? "/courses"
+}
+
 export function FeaturedCourseCard({ title, index, coverImage }: CourseCardProps) {
   const palette = inkPalettes[index % inkPalettes.length];
   const inkShape = inkShapes[index % inkShapes.length];
+  const href = getCourseHref(title)
 
   return (
-    <Link href="/courses" className="block group">
+    <Link href={href} className="block group">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
