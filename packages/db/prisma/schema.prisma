@@ -755,6 +755,11 @@ model Employee {
   givenReviews    Review[]            @relation("ReviewerReviews")
   goals           Goal[]
 
+  // New relations for missing modules
+  employeeShifts  EmployeeShift[]
+  weekOffs        WeekOff[]
+  regularizations AttendanceRegularization[]
+
   @@map("employees")
 }
 
@@ -770,6 +775,18 @@ model Attendance {
   breakEnd         DateTime?
   status           String // PRESENT | ABSENT | LATE | HALF_DAY | HOLIDAY | LEAVE
   notes            String?
+
+  // Geolocation fields
+  latitude         Float?
+  longitude        Float?
+  isGeofenced      Boolean?
+
+  // Shift assignment fields
+  shiftId          String?
+  shift            Shift?    @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+
+  // Regularization flag
+  isRegularized    Boolean   @default(false)
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -2828,4 +2845,135 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   @@map("products")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MISSING MODULES — ATTENDANCE & HR
+// ─────────────────────────────────────────────────────────────
+
+model Shift {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   @default("STANDARD") // STANDARD | SPLIT | OPEN
+  startTime   String   @default("09:00")
+  endTime     String   @default("17:00")
+  startTime2  String?  // for split shift
+  endTime2    String?  // for split shift
+  minHours    Float    @default(8.0)
+  isFlexible  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employeeShifts EmployeeShift[]
+  attendances    Attendance[]
+
+  @@map("shifts")
+}
+
+model EmployeeShift {
+  id         String    @id @default(cuid())
+  employeeId String
+  shiftId    String
+  startDate  DateTime  @db.Date
+  endDate    DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, startDate])
+  @@map("employee_shifts")
+}
+
+model Geofence {
+  id        String   @id @default(cuid())
+  name      String
+  latitude  Float
+  longitude Float
+  radius    Float    @default(100.0) // in meters
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("geofences")
+}
+
+model Holiday {
+  id         String   @id @default(cuid())
+  name       String
+  date       DateTime @db.Date
+  isOptional Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("holidays")
+}
+
+model WeekOff {
+  id            String   @id @default(cuid())
+  employeeId    String
+  daysOfWeek    Int[]    // Array of ints (0 for Sunday, 6 for Saturday)
+  effectiveFrom DateTime @db.Date
+  createdAt     DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("week_offs")
+}
+
+model AttendanceRegularization {
+  id            String    @id @default(cuid())
+  employeeId    String
+  attendanceId  String?
+  date          DateTime  @db.Date
+  requestType   String    // CLOCK_IN | CLOCK_OUT | FULL_DAY
+  requestedTime DateTime?
+  reason        String
+  status        String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  approvedBy    String?
+  approvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("attendance_regularizations")
+}
+
+model OvertimeRule {
+  id                    String   @id @default(cuid())
+  minHoursForOT         Float    @default(8.0)
+  otMultiplier          Float    @default(1.5)
+  gracePeriodMins       Int      @default(15)
+  isEodAutoCloseEnabled Boolean  @default(false)
+  eodAutoCloseTime      String   @default("23:59")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("overtime_rules")
+}
+
+model ReportScheduler {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // ATTENDANCE | TELEMETRY | PAYROLL
+  frequency       String   // DAILY | WEEKLY | MONTHLY
+  emailRecipients String   // comma-separated emails
+  time            String   @default("08:00")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("report_schedulers")
+}
+
+model RequestEscalation {
+  id                String   @id @default(cuid())
+  requestId         String   // ID of leave or regularization request
+  requestType       String   // LEAVE | REGULARIZATION
+  currentApproverId String
+  escalatedToId     String
+  escalatedAt       DateTime @default(now())
+  resolved          Boolean  @default(false)
+
+  @@map("request_escalations")
 }
