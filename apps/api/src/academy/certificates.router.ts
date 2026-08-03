@@ -55,7 +55,7 @@ export default async function certificatesRouter(app: FastifyInstance) {
     // Inject data into HTML
     let html = template.htmlContent
       .replace(/{{STUDENT_NAME}}/g, `${student.user.firstName} ${student.user.lastName}`)
-      .replace(/{{COURSE_NAME}}/g, course.title)
+      .replace(/{{COURSE_NAME}}/g, course.name)
       .replace(/{{ISSUE_DATE}}/g, new Date().toLocaleDateString())
       .replace(/{{VERIFICATION_CODE}}/g, certificateId)
       .replace(/{{BACKGROUND_URL}}/g, template.backgroundUrl || '')
@@ -71,7 +71,7 @@ export default async function certificatesRouter(app: FastifyInstance) {
     const page = await browser.newPage();
     
     // Set content and wait for network idle to ensure fonts/images load
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'networkidle0' as any });
     
     // Generate PDF buffer
     const pdfBuffer = await page.pdf({
