@@ -99,6 +99,7 @@ export const navigation: NavItem[] = [
       { title: "Onboarding", href: "/dashboard/hr/onboarding" },
       { title: "ATS",        href: "/dashboard/hr/ats" },
       { title: "Expenses",   href: "/dashboard/hr/expenses" },
+      { title: "Requests Queue", href: "/dashboard/hr/requests" },
       { title: "Monitoring", href: "/dashboard/hr/monitoring" },
       { title: "Performance",href: "/dashboard/hr/performance" },
       { title: "Analytics",  href: "/dashboard/hr/analytics" },

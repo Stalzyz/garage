@@ -759,6 +759,7 @@ model Employee {
   employeeShifts  EmployeeShift[]
   weekOffs        WeekOff[]
   regularizations AttendanceRegularization[]
+  unifiedRequests UnifiedRequest[]
 
   @@map("employees")
 }
@@ -2977,3 +2978,37 @@ model RequestEscalation {
 
   @@map("request_escalations")
 }
+
+enum RequestType {
+  SHIFT_SWAP
+  OVERTIME_CLAIM
+  ASSET_ALLOCATION
+  CUSTOM_CLAIM
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model UnifiedRequest {
+  id          String        @id @default(cuid())
+  employeeId  String
+  type        RequestType
+  title       String
+  description String
+  status      RequestStatus @default(PENDING)
+  payload     Json?         // dynamic details like shift details, hours, serials, amount, etc.
+  notes       String?       // manager/approver comments
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("unified_requests")
+}
+

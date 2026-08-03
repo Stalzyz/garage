@@ -19,6 +19,7 @@ import holidaysRoutes from './holidays.router';
 import weekoffsRoutes from './weekoffs.router';
 import regularizationRoutes from './regularization.router';
 import rulesRoutes from './rules.router';
+import requestsRoutes from './requests.router';
 
 export default async function hrModule(app: FastifyInstance) {
   // app.addHook('preHandler', app.requireAuth);
@@ -43,5 +44,6 @@ export default async function hrModule(app: FastifyInstance) {
   await app.register(weekoffsRoutes, { prefix: '/weekoffs' });
   await app.register(regularizationRoutes, { prefix: '/regularization' });
   await app.register(rulesRoutes, { prefix: '/rules' });
+  await app.register(requestsRoutes, { prefix: '/requests' });
 }
 
