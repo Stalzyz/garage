@@ -7,11 +7,13 @@ import Link from "next/link";
 type CourseCardProps = {
   title: string;
   index: number;
+  slug?: string;
 };
 
-export function FeaturedCourseCard({ title, index }: CourseCardProps) {
+export function FeaturedCourseCard({ title, index, slug }: CourseCardProps) {
+  const href = slug ? `/${slug}` : "/auth/login";
   return (
-    <Link href="/auth/login">
+    <Link href={href}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

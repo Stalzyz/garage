@@ -43,28 +43,44 @@ const colorPalette = [
   { bgColor: "bg-[#eefafc]", imgGradient: "from-[#1abc9c]/20 to-[#16a085]/20" },
 ];
 
+function getSlugFromCode(code: string | undefined): string | undefined {
+  if (!code) return undefined;
+  switch (code) {
+    case 'PUXMP-2026': return 'ui_ux_design';
+    case 'PDMM-2026': return 'digital_marketing';
+    case 'PVFX-2026': return 'vfx_compositing';
+    case 'PGDM-2026': return 'graphic_design';
+    case 'PVEM-2026': return 'video_editing_ai';
+    case 'P3DA-2026': return '3d_animation';
+    case 'PMGM-2026': return 'motion_graphics';
+    case 'PFSD-2026': return 'fullstack_web_dev';
+    case 'PWDM-2026': return 'wordpress_web_design';
+    default: return undefined;
+  }
+}
+
 export async function FeaturedCourses() {
   let dbCourses: any[] = [];
   try {
     dbCourses = await prisma.course.findMany({
       where: { isPublished: true },
-      select: { id: true, name: true }
+      select: { id: true, name: true, code: true }
     });
   } catch (error) {
     console.warn("Could not fetch courses from database during build, using fallbacks.");
   }
 
   const coursesToDisplay = dbCourses.length > 0 
-    ? dbCourses.map((c) => ({ title: c.name }))
+    ? dbCourses.map((c) => ({ title: c.name, slug: getSlugFromCode(c.code) }))
     : [
-        { title: "Graphic Design" },
-        { title: "UI/UX Design" },
-        { title: "Web Design" },
-        { title: "Full Stack Development" },
-        { title: "Digital Marketing" },
-        { title: "Motion Graphics" },
-        { title: "Video Editing" },
-        { title: "3D & Animation" }
+        { title: "Graphic Design", slug: "graphic_design" },
+        { title: "UI/UX Design", slug: "ui_ux_design" },
+        { title: "Web Design", slug: "fullstack_web_dev" },
+        { title: "Full Stack Development", slug: "fullstack_web_dev" },
+        { title: "Digital Marketing", slug: "digital_marketing" },
+        { title: "Motion Graphics", slug: "motion_graphics" },
+        { title: "Video Editing", slug: "video_editing_ai" },
+        { title: "3D & Animation", slug: "3d_animation" }
       ];
 
   return (
@@ -85,6 +101,7 @@ export async function FeaturedCourses() {
               key={i}
               index={i}
               title={course.title}
+              slug={course.slug}
             />
           ))}
         </div>
