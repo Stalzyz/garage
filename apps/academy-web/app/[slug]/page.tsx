@@ -2,8 +2,24 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { MonitorPlay, Link as LinkIcon } from "lucide-react"
 import Link from "next/link"
+import { CurriculumSection } from "./CurriculumSection"
 
 export const dynamic = 'force-dynamic'
+
+function getCodeFromSlug(slug: string): string | undefined {
+  switch (slug) {
+    case 'ui_ux_design': return 'PUXMP-2026';
+    case 'digital_marketing': return 'PDMM-2026';
+    case 'vfx_compositing': return 'PVFX-2026';
+    case 'graphic_design': return 'PGDM-2026';
+    case 'video_editing_ai': return 'PVEM-2026';
+    case '3d_animation': return 'P3DA-2026';
+    case 'motion_graphics': return 'PMGM-2026';
+    case 'fullstack_web_dev': return 'PFSD-2026';
+    case 'wordpress_web_design': return 'PWDM-2026';
+    default: return undefined;
+  }
+}
 
 export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
   const rawSlug = (await params).slug
@@ -124,8 +140,39 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
     notFound()
   }
 
+  // Check if we have a dynamic LMS Course for this slug
+  const courseCode = getCodeFromSlug(rawSlug);
+  let lmsModules: any[] = [];
+  
+  if (courseCode) {
+    try {
+      const course = await prisma.course.findUnique({
+        where: { code: courseCode },
+        include: {
+          lmsCourse: {
+            include: {
+              modules: {
+                orderBy: { sortOrder: 'asc' },
+                include: {
+                  lessons: {
+                    orderBy: { sortOrder: 'asc' }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+      if (course?.lmsCourse?.modules) {
+        lmsModules = course.lmsCourse.modules;
+      }
+    } catch (e) {
+      console.error("Failed to fetch dynamic curriculum for slug", rawSlug, e);
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col w-full overflow-x-hidden">
+    <main className="min-h-screen bg-[#050505] flex flex-col w-full overflow-x-hidden">
       {page.sections.map((section) => {
         const content = section.content as any
         
@@ -141,6 +188,11 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
         
         return null
       })}
+      
+      {/* Dynamically append Curriculum Section if we found course modules */}
+      {lmsModules.length > 0 && (
+        <CurriculumSection modules={lmsModules} />
+      )}
     </main>
   )
 }
