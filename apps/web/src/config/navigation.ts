@@ -46,7 +46,7 @@ export const navigation: NavItem[] = [
     title: "CRM & Sales",
     href: "/dashboard/crm",
     icon: Layers,
-    resource: "CRM",
+    resource: "CRM & Sales",
     roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Lead Pipeline",  href: "/dashboard/crm" },
@@ -62,7 +62,7 @@ export const navigation: NavItem[] = [
     title: "Projects",
     href: "/dashboard/projects",
     icon: Briefcase,
-    resource: "PROJECTS",
+    resource: "Projects",
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
     children: [
       { title: "Kanban Board", href: "/dashboard/projects" },
@@ -73,7 +73,7 @@ export const navigation: NavItem[] = [
     title: "Finance",
     href: "/dashboard/finance",
     icon: DollarSign,
-    resource: "FINANCE",
+    resource: "Finance",
     roles: ["SUPER_ADMIN", "MANAGER", "CLIENT"],
     children: [
       { title: "Overview",  href: "/dashboard/finance" },
@@ -87,7 +87,7 @@ export const navigation: NavItem[] = [
     title: "HR & Identity",
     href: "/dashboard/hr",
     icon: Users,
-    resource: "HR",
+    resource: "HR & Payroll",
     roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Employees",  href: "/dashboard/hr" },
@@ -116,7 +116,7 @@ export const navigation: NavItem[] = [
     title: "Marketing",
     href: "/dashboard/marketing/calendar",
     icon: Radio,
-    resource: "MARKETING",
+    resource: "Marketing Hub",
     roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "AI Prospects",     href: "/dashboard/marketing/prospects" },
@@ -153,6 +153,7 @@ export const navigation: NavItem[] = [
     title: "Support",
     href: "/dashboard/support",
     icon: LifeBuoy,
+    resource: "Support Helpdesk",
     roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
@@ -189,6 +190,7 @@ export const navigation: NavItem[] = [
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
+    resource: "System Settings",
     roles: ["SUPER_ADMIN"],
     children: [
       { title: "General", href: "/dashboard/settings" },
