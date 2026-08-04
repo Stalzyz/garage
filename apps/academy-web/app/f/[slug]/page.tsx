@@ -3,7 +3,7 @@
 import { useApi } from "@/lib/useApi"
 import { useParams } from "next/navigation"
 import { useState } from "react"
-import { CheckCircle2, Loader2, Sparkles } from "lucide-react"
+import { CheckCircle2, Loader2 } from "lucide-react"
 
 export default function PublicFormRenderer() {
   const params = useParams()
@@ -90,7 +90,7 @@ export default function PublicFormRenderer() {
         
         <div className="text-center mb-8 text-white">
           <div className="inline-flex items-center gap-3 mb-6 bg-white/10 border border-white/20 px-4 py-2 rounded-full">
-            <Sparkles className="w-4 h-4 text-violet-300" />
+
             <span className="text-sm font-bold tracking-widest uppercase text-violet-100">Grekam Academy</span>
           </div>
           <h1 className="text-4xl font-black mb-3">{form.title}</h1>

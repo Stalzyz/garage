@@ -23,7 +23,7 @@ import {
   Search
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { AIAssistantButton } from "@/components/AIAssistantButton"
+
 import { ApiClient } from "@/lib/api"
 import { createModule, updateModule, deleteModule, reorderModules, createLesson, updateLesson, deleteLesson, reorderLessons } from "./actions"
 import { RichTextEditor } from "./RichTextEditor"

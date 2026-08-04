@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, GraduationCap, Building2, Quote, Sparkles } from "lucide-react";
+import { Users, GraduationCap, Building2, Quote } from "lucide-react";
 
 export function StudentExperience() {
   const framework = [
@@ -29,7 +29,7 @@ export function StudentExperience() {
             <div className="space-y-6">
               {framework.map((item, idx) => (
                 <div key={idx} className="flex gap-4">
-                  <div className="mt-1 text-[#49abc9]"><Sparkles size={20} /></div>
+                  <div className="mt-1 text-[#49abc9] text-xs font-mono">{idx + 1}.</div>
                   <div>
                     <h4 className="text-lg font-bold text-[#FAFAF8] mb-1">{item.title}</h4>
                     <p className="text-[#A1A1AA] text-sm leading-relaxed">{item.desc}</p>

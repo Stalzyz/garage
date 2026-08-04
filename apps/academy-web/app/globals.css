@@ -194,3 +194,24 @@
   50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
   100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
 }
+
+/* Editorial Typography */
+.font-editorial-display {
+  font-family: var(--font-inter, var(--font-sans));
+  letter-spacing: -0.04em;
+}
+.font-editorial-body {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+.editorial-footnote {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mix-blend-overlay {
+  mix-blend-mode: overlay;
+}
+.mix-blend-difference {
+  mix-blend-mode: difference;
+}

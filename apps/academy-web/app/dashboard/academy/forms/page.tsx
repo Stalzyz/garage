@@ -4,7 +4,7 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { FileText, Plus, Save, Trash2, ListChecks, Link, Loader2, Edit3 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { AIAssistantButton } from "@/components/AIAssistantButton"
+
 
 export default function FormBuilderAdmin() {
   const { data: forms, mutate } = useApi<any[]>("/academy/forms")
@@ -157,12 +157,7 @@ export default function FormBuilderAdmin() {
                 <textarea placeholder="Form Description (Optional)" rows={4}
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pb-12 text-sm placeholder:text-white/30 focus:border-rose-500 transition-colors outline-none resize-none"
                   value={formMeta.description} onChange={e => setFormMeta(p => ({...p, description: e.target.value}))} />
-                <div className="absolute bottom-2 right-2">
-                  <AIAssistantButton 
-                    onGenerate={(text) => setFormMeta(p => ({...p, description: text}))}
-                    contextPrompt={`You are an expert form copywriter. Write a compelling, concise description for a form titled: '${formMeta.title}'. Make it inviting and professional.`}
-                  />
-                </div>
+
               </div>
 
               <label className="flex items-center gap-3 p-4 bg-black/30 border border-white/5 rounded-xl cursor-pointer">

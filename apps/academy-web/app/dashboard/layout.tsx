@@ -5,7 +5,7 @@ import { SessionProvider } from "next-auth/react"
 import { CommandPalette } from "@/components/ui/CommandPalette"
 import { TelemetryNotifier } from "@/components/TelemetryNotifier"
 import { WebSocketProvider } from "@/components/providers/WebSocketProvider"
-import { AIAssistant } from "@/components/layout/AIAssistant"
+
 import { CurrentUserProvider } from "@/context/CurrentUserContext"
 
 export default async function DashboardLayout({
@@ -26,7 +26,7 @@ export default async function DashboardLayout({
               </main>
               <CommandPalette />
               <TelemetryNotifier />
-              <AIAssistant />
+
             </CurrentUserProvider>
           </WebSocketProvider>
         </div>
