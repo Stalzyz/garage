@@ -51,6 +51,7 @@ export async function FeaturedCourses() {
       select: { 
         id: true, 
         name: true,
+        code: true,
         lmsCourse: { select: { thumbnail: true } } 
       }
     });
@@ -59,16 +60,16 @@ export async function FeaturedCourses() {
   }
 
   const coursesToDisplay = dbCourses.length > 0 
-    ? dbCourses.map((c) => ({ title: c.name, coverImage: c.lmsCourse?.thumbnail || null }))
+    ? dbCourses.map((c) => ({ title: c.name, code: c.code, coverImage: c.lmsCourse?.thumbnail || null }))
     : [
-        { title: "Graphic Design", coverImage: null },
-        { title: "UI/UX Design", coverImage: null },
-        { title: "Web Design", coverImage: null },
-        { title: "Full Stack Development", coverImage: null },
-        { title: "Digital Marketing", coverImage: null },
-        { title: "Motion Graphics", coverImage: null },
-        { title: "Video Editing", coverImage: null },
-        { title: "3D & Animation", coverImage: null }
+        { title: "Graphic Design", code: "PGDM-2026", coverImage: null },
+        { title: "UI/UX Design", code: "PUXMP-2026", coverImage: null },
+        { title: "Web Design", code: "PWDM-2026", coverImage: null },
+        { title: "Full Stack Development", code: "PFSD-2026", coverImage: null },
+        { title: "Digital Marketing", code: "PDMM-2026", coverImage: null },
+        { title: "Motion Graphics", code: "PMGM-2026", coverImage: null },
+        { title: "Video Editing", code: "PVEM-2026", coverImage: null },
+        { title: "3D & Animation", code: "P3DA-2026", coverImage: null }
       ];
 
   return (
@@ -98,6 +99,7 @@ export async function FeaturedCourses() {
               key={i}
               index={i}
               title={course.title}
+              code={course.code}
               coverImage={course.coverImage}
             />
           ))}

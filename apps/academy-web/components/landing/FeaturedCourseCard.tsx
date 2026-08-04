@@ -7,6 +7,7 @@ import Link from "next/link";
 type CourseCardProps = {
   title: string;
   index: number;
+  code?: string;
   coverImage?: string | null;
 };
 
@@ -35,15 +36,28 @@ const coursePageMap: Record<string, string> = {
   "video editing": "/video_editing",
 }
 
-function getCourseHref(title: string): string {
+function getCourseHref(code: string | undefined, title: string): string {
+  if (code) {
+    switch (code) {
+      case 'PUXMP-2026': return '/ui_ux_design';
+      case 'PDMM-2026': return '/digital_marketing';
+      case 'PVFX-2026': return '/vfx_compositing';
+      case 'PGDM-2026': return '/graphic_design';
+      case 'PVEM-2026': return '/video_editing_ai';
+      case 'P3DA-2026': return '/3d_animation';
+      case 'PMGM-2026': return '/motion_graphics';
+      case 'PFSD-2026': return '/fullstack_web_dev';
+      case 'PWDM-2026': return '/wordpress_web_design';
+    }
+  }
   const key = title.toLowerCase().trim()
   return coursePageMap[key] ?? "/courses"
 }
 
-export function FeaturedCourseCard({ title, index, coverImage }: CourseCardProps) {
+export function FeaturedCourseCard({ title, index, code, coverImage }: CourseCardProps) {
   const palette = inkPalettes[index % inkPalettes.length];
   const inkShape = inkShapes[index % inkShapes.length];
-  const href = getCourseHref(title)
+  const href = getCourseHref(code, title);
 
   return (
     <Link href={href} className="block group">
