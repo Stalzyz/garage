@@ -26,6 +26,10 @@ function getCodeFromSlug(slug: string): string | undefined {
   }
 }
 
+function slugify(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '');
+}
+
 // Each course code maps to a unique gradient index
 const inkPalettes = [
   "from-emerald-400 via-teal-500 to-purple-600",
@@ -168,14 +172,37 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
     notFound()
   }
 
-  // Check if we have a dynamic LMS Course for this slug
-  const courseCode = getCodeFromSlug(rawSlug);
+  // Dynamically map slug to Course
+  let courseCode = getCodeFromSlug(rawSlug);
+  
+  if (!courseCode) {
+    // If not in hardcoded list, try to match by slugified course name
+    const allCourses = await prisma.course.findMany({ select: { code: true, name: true } });
+    const matched = allCourses.find(c => 
+      slugify(c.name) === rawSlug || 
+      slugify(c.name).replace(/_/g, '-') === rawSlug
+    );
+    if (matched) courseCode = matched.code;
+  }
+
   const palette = getPaletteForCourse(courseCode);
   const domain = getDomainFromCode(courseCode);
   const fontClass = getFontClassForDomain(domain);
   
   let lmsModules: any[] = [];
   let relatedCourses: any[] = [];
+  let cmsCoverImage: string | undefined = undefined;
+
+  // Extract cover image from the first CMS section if it exists
+  if (page.sections.length > 0) {
+    const firstHtml = (page.sections[0].content as any)?.html;
+    if (firstHtml) {
+      const match = firstHtml.match(/<img[^>]+src="([^">]+)"/i);
+      if (match) {
+        cmsCoverImage = match[1];
+      }
+    }
+  }
   
   if (courseCode) {
     try {
@@ -222,7 +249,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
           domain={domain}
           title={page.title || "Course"}
           description={page.description || "Master your craft with industry experts."}
-          coverImage={undefined} // We could pull this from course.lmsCourse.thumbnail if needed
+          coverImage={cmsCoverImage}
         />
       )}
 
