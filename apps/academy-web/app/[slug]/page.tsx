@@ -250,6 +250,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
           title={page.title || "Course"}
           description={page.description || "Master your craft with industry experts."}
           coverImage={cmsCoverImage}
+          courseCode={courseCode}
         />
       )}
 

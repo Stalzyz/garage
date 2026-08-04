@@ -2,15 +2,20 @@
 
 import { CourseDomain } from "./CategoryThemeMapper";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { CTAModal } from "./CTAModal";
+import { ArrowRight } from "lucide-react";
 
 type DynamicDomainHeroProps = {
   domain: CourseDomain;
   title: string;
   description: string;
   coverImage?: string;
+  courseCode: string;
 };
 
-export function DynamicDomainHero({ domain, title, description, coverImage }: DynamicDomainHeroProps) {
+export function DynamicDomainHero({ domain, title, description, coverImage, courseCode }: DynamicDomainHeroProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   if (domain === 'TECH') {
     return (
@@ -29,11 +34,24 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 uppercase tracking-tighter">
               {title}
             </h1>
-            <p className="text-[#A1A1AA] text-lg md:text-xl max-w-2xl font-mono">
+            <p className="text-[#A1A1AA] text-lg md:text-xl max-w-2xl font-mono mb-8">
               {description}
             </p>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-2 active:shadow-none"
+            >
+              Enroll Now <ArrowRight size={20} />
+            </button>
           </motion.div>
         </div>
+        <CTAModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          courseCode={courseCode} 
+          courseName={title} 
+          domain={domain} 
+        />
       </section>
     )
   }
@@ -54,9 +72,15 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
             <h1 className="text-6xl md:text-8xl font-black leading-none mb-8">
               {title}
             </h1>
-            <p className="text-xl md:text-2xl text-black/60 max-w-lg font-sans">
+            <p className="text-xl md:text-2xl text-black/60 max-w-lg font-sans mb-10">
               {description}
             </p>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-8 py-4 bg-[#050505] text-white font-serif italic text-lg tracking-wide hover:bg-pink-600 transition-colors inline-flex items-center gap-3 rounded-full shadow-xl"
+            >
+              Begin Your Journey <ArrowRight size={20} />
+            </button>
           </motion.div>
 
           <motion.div 
@@ -79,6 +103,13 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
             <div className="absolute -z-10 top-10 -left-10 bg-white/50 p-4 pb-16 shadow-xl -rotate-6 transform-gpu aspect-[4/5] w-full" />
           </motion.div>
         </div>
+        <CTAModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          courseCode={courseCode} 
+          courseName={title} 
+          domain={domain} 
+        />
       </section>
     )
   }
@@ -109,10 +140,23 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
           <h1 className="text-5xl md:text-8xl font-black text-white mb-8 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             {title}
           </h1>
-          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto font-light leading-relaxed mb-10">
             {description}
           </p>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-10 py-5 bg-white text-black font-bold uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all duration-500 inline-flex items-center gap-3"
+          >
+            Join The Cast <ArrowRight size={20} />
+          </button>
         </motion.div>
+        <CTAModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          courseCode={courseCode} 
+          courseName={title} 
+          domain={domain} 
+        />
       </section>
     )
   }
@@ -142,6 +186,20 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
         </motion.p>
         
         <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mb-12"
+        >
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-8 py-4 bg-black text-white font-bold rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-black/20 transition-all inline-flex items-center gap-2"
+          >
+            Start Learning <ArrowRight size={18} />
+          </button>
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }} 
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -156,6 +214,13 @@ export function DynamicDomainHero({ domain, title, description, coverImage }: Dy
           )}
         </motion.div>
       </div>
+      <CTAModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        courseCode={courseCode} 
+        courseName={title} 
+        domain={domain} 
+      />
     </section>
   )
 }
