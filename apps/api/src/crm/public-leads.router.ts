@@ -91,12 +91,18 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     try {
       // Get admin email from organization settings
       const org = await app.prisma.organization.findFirst();
-      const adminEmail = org?.supportEmail || CC_EMAIL;
+      const adminEmail = 'greeksacademy@gmail.com';
+      const orgEmail = org?.supportEmail;
+
+      // Send admin notification to greeksacademy@gmail.com always
+      const recipients = [adminEmail];
+      if (orgEmail && orgEmail !== adminEmail) recipients.push(orgEmail);
 
       // Send admin notification
       await sendEmail(
-        adminEmail,
-        newLeadNotificationTemplate(body)
+        recipients[0],
+        newLeadNotificationTemplate(body),
+        recipients.length > 1 ? { cc: recipients[1] } : undefined
       ).catch(err => app.log.error(err, '[PublicLeads] Failed to send admin notification'));
 
       // Send confirmation email to submitter

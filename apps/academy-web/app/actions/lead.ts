@@ -33,8 +33,9 @@ export async function submitLead(formData: FormData, courseCode: string, courseN
     if (process.env.RESEND_API_KEY) {
       await resend.emails.send({
         from: "Academy Admissions <onboarding@resend.dev>",
-        to: ["admissions@grekam.in"], // Will go to this email
-        subject: `New Lead for ${courseName}`,
+        to: ["greeksacademy@gmail.com"],
+        cc: ["admissions@grekam.in"],
+        subject: `🎓 New Lead for ${courseName}`,
         html: `
           <h2>New Lead Captured from Academy</h2>
           <p><strong>Name:</strong> ${name}</p>
