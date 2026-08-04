@@ -1,19 +1,20 @@
 "use client"
 
-import { useActionState, useState, useEffect } from "react"
-import { useFormStatus } from "react-dom"
-import { authenticate } from "./actions"
+import { useState, useEffect } from "react"
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { AlertCircle, Fingerprint, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image"
 import Link from "next/link"
 import { useOrganization } from "@/context/OrganizationContext"
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useActionState(authenticate, undefined)
+  const router = useRouter()
   const org = useOrganization()
   const [isClient, setIsClient] = useState(false)
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
 
   // Local state for 2FA tracking
   const [email, setEmail] = useState("")
@@ -25,21 +26,53 @@ export default function LoginPage() {
     setIsClient(true)
   }, [])
 
-  useEffect(() => {
-    if (errorMessage === "2FA_REQUIRED" || errorMessage === "2FA_INVALID") {
-      setIs2faStage(true)
-    } else if (errorMessage) {
-      setIs2faStage(false)
+  if (!isClient) return null
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setErrorMessage(undefined)
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        code: code || "",
+        redirect: false,
+      })
+
+      if (!result) {
+        setErrorMessage("An unexpected error occurred. Please try again.")
+        setIsPending(false)
+        return
+      }
+
+      if (result.error) {
+        const err = result.error
+        if (err.includes("2FA_REQUIRED")) {
+          setIs2faStage(true)
+          setIsPending(false)
+          return
+        }
+        if (err.includes("2FA_INVALID")) {
+          setErrorMessage("Invalid verification code. Please try again.")
+          setIsPending(false)
+          return
+        }
+        setErrorMessage("Invalid email or password.")
+        setIsPending(false)
+        return
+      }
+
+      // Success — redirect to dashboard
+      router.push("/dashboard")
+    } catch (err) {
+      setErrorMessage("A network error occurred. Please try again.")
+      setIsPending(false)
     }
-  }, [errorMessage])
+  }
 
-  if (!isClient) return null // Prevent hydration mismatches on complex animations
-
-  const displayError = errorMessage === "2FA_REQUIRED"
-    ? ""
-    : errorMessage === "2FA_INVALID"
-      ? "Invalid verification code. Please try again."
-      : errorMessage;
+  const displayError = errorMessage
 
   return (
     <div className="min-h-screen bg-[#050505] font-sans selection:bg-blue-500/30 text-white relative flex items-center justify-center overflow-hidden">
@@ -88,12 +121,9 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form action={dispatch} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {is2faStage ? (
               <div className="space-y-4">
-                <input type="hidden" name="email" value={email} />
-                <input type="hidden" name="password" value={password} />
-                
                 <div className="space-y-2 text-center mb-4">
                   <label htmlFor="code" className="text-xs font-mono tracking-widest text-white/50 uppercase block">2FA Code</label>
                   <p className="text-xs text-white/40">Enter the 6-digit token from your Google Authenticator or TOTP app.</p>
@@ -112,6 +142,7 @@ export default function LoginPage() {
                     placeholder="000000"
                     required
                     autoFocus
+                    autoComplete="one-time-code"
                     className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all backdrop-blur-md font-mono text-center text-xl tracking-widest"
                     maxLength={6}
                   />
@@ -134,6 +165,7 @@ export default function LoginPage() {
                       onChange={e => setEmail(e.target.value)}
                       placeholder="staff@grekam.com"
                       required
+                      autoComplete="email"
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput(null)}
                       className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-md"
@@ -161,6 +193,7 @@ export default function LoginPage() {
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
                       required
+                      autoComplete="current-password"
                       onFocus={() => setFocusedInput('password')}
                       onBlur={() => setFocusedInput(null)}
                       className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-md font-mono"
@@ -172,7 +205,29 @@ export default function LoginPage() {
 
             {/* Submit Button */}
             <div className="pt-4">
-              <LoginButton is2fa={is2faStage} />
+              <button 
+                type="submit" 
+                disabled={isPending}
+                className={`relative w-full h-14 flex items-center justify-center gap-3 rounded-2xl font-bold tracking-widest uppercase transition-all overflow-hidden group ${isPending ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5' : 'bg-white text-black hover:scale-[1.02]'}`}
+              >
+                {isPending ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+                    Authenticating...
+                  </>
+                ) : (
+                  <>
+                    <Fingerprint className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    {is2faStage ? "Verify & Sign In" : "Initialize Session"}
+                    <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </>
+                )}
+                
+                {/* Button Shine Effect */}
+                {!isPending && (
+                  <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+                )}
+              </button>
             </div>
 
             {/* Error Message */}
@@ -207,35 +262,5 @@ export default function LoginPage() {
         ← Return
       </Link>
     </div>
-  )
-}
-
-function LoginButton({ is2fa }: { is2fa: boolean }) {
-  const { pending } = useFormStatus()
-
-  return (
-    <button 
-      type="submit" 
-      disabled={pending}
-      className={`relative w-full h-14 flex items-center justify-center gap-3 rounded-2xl font-bold tracking-widest uppercase transition-all overflow-hidden group \${pending ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5' : 'bg-white text-black hover:scale-[1.02]'}`}
-    >
-      {pending ? (
-        <>
-          <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
-          Authenticating...
-        </>
-      ) : (
-        <>
-          <Fingerprint className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
-          {is2fa ? "Verify & Sign In" : "Initialize Session"}
-          <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-        </>
-      )}
-      
-      {/* Button Shine Effect */}
-      {!pending && (
-        <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-      )}
-    </button>
   )
 }
