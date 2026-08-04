@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 import { MonitorPlay, Link as LinkIcon } from "lucide-react"
 import Link from "next/link"
 import { CurriculumSection } from "./CurriculumSection"
+import { CourseConclusionCTA } from "./CourseConclusionCTA"
+import { RelatedCourses } from "./RelatedCourses"
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +21,29 @@ function getCodeFromSlug(slug: string): string | undefined {
     case 'wordpress_web_design': return 'PWDM-2026';
     default: return undefined;
   }
+}
+
+// Each course code maps to a unique gradient index
+const inkPalettes = [
+  "from-emerald-400 via-teal-500 to-purple-600",
+  "from-sky-400 via-blue-500 to-violet-600",
+  "from-rose-400 via-pink-500 to-orange-500",
+  "from-amber-400 via-orange-500 to-red-600",
+  "from-lime-400 via-emerald-500 to-cyan-600",
+  "from-fuchsia-400 via-purple-500 to-blue-600",
+  "from-orange-400 via-rose-500 to-pink-600",
+  "from-cyan-400 via-sky-500 to-indigo-600",
+];
+
+function getPaletteForCourse(code: string | undefined): string {
+  if (!code) return inkPalettes[0];
+  // Simple hash to map course code to a stable palette index
+  let hash = 0;
+  for (let i = 0; i < code.length; i++) {
+    hash = code.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % inkPalettes.length;
+  return inkPalettes[index];
 }
 
 export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
@@ -142,7 +167,9 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
 
   // Check if we have a dynamic LMS Course for this slug
   const courseCode = getCodeFromSlug(rawSlug);
+  const palette = getPaletteForCourse(courseCode);
   let lmsModules: any[] = [];
+  let relatedCourses: any[] = [];
   
   if (courseCode) {
     try {
@@ -166,6 +193,15 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
       if (course?.lmsCourse?.modules) {
         lmsModules = course.lmsCourse.modules;
       }
+
+      // Fetch 3 other courses
+      relatedCourses = await prisma.course.findMany({
+        where: { code: { not: courseCode } },
+        take: 3,
+        include: {
+          lmsCourse: true
+        }
+      });
     } catch (e) {
       console.error("Failed to fetch dynamic curriculum for slug", rawSlug, e);
     }
@@ -192,6 +228,14 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
       {/* Dynamically append Curriculum Section if we found course modules */}
       {lmsModules.length > 0 && (
         <CurriculumSection modules={lmsModules} />
+      )}
+
+      {/* Append Conclusion CTA & Related Courses */}
+      {courseCode && (
+        <>
+          <CourseConclusionCTA palette={palette} />
+          <RelatedCourses courses={relatedCourses} />
+        </>
       )}
     </main>
   )
