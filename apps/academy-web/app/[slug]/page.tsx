@@ -5,6 +5,9 @@ import Link from "next/link"
 import { CurriculumSection } from "./CurriculumSection"
 import { CourseConclusionCTA } from "./CourseConclusionCTA"
 import { RelatedCourses } from "./RelatedCourses"
+import { getDomainFromCode, getFontClassForDomain } from "./CategoryThemeMapper"
+import { CustomCursor } from "./CustomCursor"
+import { DynamicDomainHero } from "./DynamicDomainHero"
 
 export const dynamic = 'force-dynamic'
 
@@ -168,6 +171,9 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
   // Check if we have a dynamic LMS Course for this slug
   const courseCode = getCodeFromSlug(rawSlug);
   const palette = getPaletteForCourse(courseCode);
+  const domain = getDomainFromCode(courseCode);
+  const fontClass = getFontClassForDomain(domain);
+  
   let lmsModules: any[] = [];
   let relatedCourses: any[] = [];
   
@@ -208,8 +214,22 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
   }
 
   return (
-    <main className="min-h-screen bg-[#050505] flex flex-col w-full overflow-x-hidden">
-      {page.sections.map((section) => {
+    <main className={`min-h-screen bg-[#050505] flex flex-col w-full overflow-x-hidden ${courseCode ? fontClass : ''}`}>
+      {courseCode && <CustomCursor domain={domain} />}
+
+      {courseCode && (
+        <DynamicDomainHero 
+          domain={domain}
+          title={page.title || "Course"}
+          description={page.description || "Master your craft with industry experts."}
+          coverImage={undefined} // We could pull this from course.lmsCourse.thumbnail if needed
+        />
+      )}
+
+      {page.sections.map((section, index) => {
+        // Skip the legacy CMS hero if we are rendering a dynamic course page
+        if (index === 0 && courseCode) return null;
+
         const content = section.content as any
         
         if (content && typeof content === 'object' && content.type === 'html' && content.html) {
