@@ -4,8 +4,10 @@ import { BarChart2, TrendingUp, DollarSign, Users, Briefcase, GraduationCap, Tar
 import { motion } from "framer-motion"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useApi } from "@/lib/useApi"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function GlobalAnalyticsDashboard() {
+  const { symbol } = useCurrency()
   const { data: overview, isLoading: overviewLoading } = useApi<any>("/analytics/overview")
   const { data: revenueData } = useApi<any>("/analytics/revenue?months=12")
 
@@ -59,7 +61,7 @@ export default function GlobalAnalyticsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KpiCard 
               title="Total Revenue Collected" 
-              value={`$${(revStats.revenueCollected / 1000).toFixed(1)}k`} 
+              value={`${symbol}${(revStats.revenueCollected / 1000).toFixed(1)}k`} 
               trend="+14.2%" 
               trendUp={true} 
               icon={<DollarSign className="w-5 h-5 text-emerald-400" />} 
@@ -119,7 +121,7 @@ export default function GlobalAnalyticsDashboard() {
                       <Tooltip 
                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                         contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', fontSize: '11px' }}
-                        formatter={(val: any, name: any) => [`$${Number(val).toLocaleString()}`, name === 'total' ? 'Revenue' : 'Expenses']}
+                        formatter={(val: any, name: any) => [`${symbol}${Number(val).toLocaleString()}`, name === 'total' ? 'Revenue' : 'Expenses']}
                       />
                       <Bar dataKey="total" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="expenses" name="Expenses" fill="rgba(239,68,68,0.5)" radius={[4, 4, 0, 0]} />
@@ -159,12 +161,12 @@ export default function GlobalAnalyticsDashboard() {
                   <div className="text-center bg-white/5 p-4 rounded-xl border border-white/5">
                     <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto mb-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                     <div className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest">Total Payroll</div>
-                    <div className="text-xl font-bold text-white mt-1">${(revStats.totalPayroll / 1000).toFixed(1)}k</div>
+                    <div className="text-xl font-bold text-white mt-1">{symbol}{(revStats.totalPayroll / 1000).toFixed(1)}k</div>
                   </div>
                   <div className="text-center bg-white/5 p-4 rounded-xl border border-white/5">
                     <div className="w-3 h-3 rounded-full bg-emerald-500 mx-auto mb-2 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
                     <div className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest">Gross Rev.</div>
-                    <div className="text-xl font-bold text-white mt-1">${(revStats.revenueCollected / 1000).toFixed(1)}k</div>
+                    <div className="text-xl font-bold text-white mt-1">{symbol}{(revStats.revenueCollected / 1000).toFixed(1)}k</div>
                   </div>
                 </div>
               </div>
@@ -211,7 +213,7 @@ export default function GlobalAnalyticsDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="text-base font-bold text-white">3.2x</div>
-                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $4,200</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: {symbol}4,200</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10 group cursor-default">
@@ -221,7 +223,7 @@ export default function GlobalAnalyticsDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="text-base font-bold text-white">4.5x</div>
-                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $7,800</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: {symbol}7,800</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10 group cursor-default">
@@ -231,7 +233,7 @@ export default function GlobalAnalyticsDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="text-base font-bold text-white">1.1x</div>
-                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: $450</div>
+                    <div className="text-[10px] font-mono tracking-widest text-white/40 uppercase">Spend: {symbol}450</div>
                   </div>
                 </div>
               </div>

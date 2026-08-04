@@ -156,6 +156,7 @@ export default function PublicProposalPage() {
   // Calculate total from items
   const items = proposal.items || []
   const totalAmount = items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitPrice), 0)
+  const symbol = proposal.currency === 'INR' || !proposal.currency ? '₹' : '$'
 
   return (
     <div className="min-h-screen bg-[#050508] text-white font-sans selection:bg-violet-500/30 overflow-x-hidden">
@@ -225,15 +226,15 @@ export default function PublicProposalPage() {
                         {item.description.includes(' - ') && <p className="text-sm text-slate-500 mt-1">{item.description.split(' - ')[1]}</p>}
                       </td>
                       <td className="px-6 py-5 text-right text-slate-300 font-medium">{item.quantity}</td>
-                      <td className="px-6 py-5 text-right text-slate-300 font-medium">₹{Number(item.unitPrice).toLocaleString()}</td>
-                      <td className="px-6 py-5 text-right font-bold text-white">₹{(item.quantity * item.unitPrice).toLocaleString()}</td>
+                      <td className="px-6 py-5 text-right text-slate-300 font-medium">{symbol}{Number(item.unitPrice).toLocaleString()}</td>
+                      <td className="px-6 py-5 text-right font-bold text-white">{symbol}{(item.quantity * item.unitPrice).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr className="bg-violet-600/10 border-t border-white/10">
                     <td colSpan={3} className="px-6 py-6 text-right font-bold text-violet-400 tracking-widest uppercase">Total Investment</td>
-                    <td className="px-6 py-6 text-right font-black text-white text-2xl">₹{totalAmount.toLocaleString()}</td>
+                    <td className="px-6 py-6 text-right font-black text-white text-2xl">{symbol}{totalAmount.toLocaleString()}</td>
                   </tr>
                 </tfoot>
               </table>

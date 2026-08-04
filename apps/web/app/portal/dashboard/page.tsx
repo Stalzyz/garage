@@ -13,6 +13,7 @@ import { useOrganization } from "@/context/OrganizationContext"
 import { AssetReviewer } from "@/components/portal/AssetReviewer"
 import { SupportTickets } from "@/components/portal/SupportTickets"
 import { ProjectTimeline } from "@/components/portal/ProjectTimeline"
+import { useCurrency } from "@/hooks/useCurrency"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   PRODUCTION: { label: "In Production", color: "text-violet-400 bg-violet-400/10 border-violet-400/20" },
@@ -33,6 +34,7 @@ type TabId = "overview" | "projects" | "invoices" | "proposals" | "courses" | "s
 export default function ClientDashboard() {
   const { data: session, status } = useSession()
   const org = useOrganization()
+  const { symbol } = useCurrency()
   const [tab, setTab] = useState<TabId>("overview")
   const [showNotifications, setShowNotifications] = useState(false)
   const [reviewFile, setReviewFile] = useState<{ projectId: string, fileId: string, url: string, type: 'image' | 'video' } | null>(null)
@@ -71,7 +73,7 @@ export default function ClientDashboard() {
     if (method === 'bank') {
       alert(`Bank Transfer Instructions for Milestone ${milestoneId}:\n\nAccount Name: ${org.name}\nAccount No: 123456789\nIFSC: HDFC000123\n\nPlease email the receipt to ${org.supportEmail || 'billing@agency.com'}`);
     } else {
-      alert(`Redirecting to ${method} checkout for ₹${amount}...`);
+      alert(`Redirecting to ${method} checkout for ${symbol}${amount}...`);
       // In production, this would call your payment gateway integration
     }
   }
@@ -184,8 +186,8 @@ export default function ClientDashboard() {
               {[
                 { label: "Active Projects", value: dashboard.activeProjects, icon: Briefcase, color: "from-violet-600/20 to-violet-600/5", border: "border-violet-500/20" },
                 { label: "Overall Progress",        value: `${dashboard.progress}%`,          icon: Clock,     color: "from-blue-600/20 to-blue-600/5",   border: "border-blue-500/20" },
-                { label: "Amount Paid",     value: `₹${(dashboard.paidTotal/1000).toFixed(1)}k`, icon: CheckCircle, color: "from-emerald-600/20 to-emerald-600/5", border: "border-emerald-500/20" },
-                { label: "Amount Due",      value: `₹${(dashboard.pendingTotal/1000).toFixed(1)}k`, icon: AlertCircle, color: "from-amber-600/20 to-amber-600/5", border: "border-amber-500/20" },
+                { label: "Amount Paid",     value: `${symbol}${(dashboard.paidTotal/1000).toFixed(1)}k`, icon: CheckCircle, color: "from-emerald-600/20 to-emerald-600/5", border: "border-emerald-500/20" },
+                { label: "Amount Due",      value: `${symbol}${(dashboard.pendingTotal/1000).toFixed(1)}k`, icon: AlertCircle, color: "from-amber-600/20 to-amber-600/5", border: "border-amber-500/20" },
               ].map(stat => {
                 const Icon = stat.icon
                 return (
@@ -343,7 +345,7 @@ export default function ClientDashboard() {
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        <span className="text-sm font-bold text-white">₹{milestone.amount.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-white">{symbol}{milestone.amount.toLocaleString()}</span>
                         
                         {milestone.status === "PAID" ? (
                           <span className="text-xs font-bold px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PAID</span>
@@ -393,8 +395,8 @@ export default function ClientDashboard() {
                 <p className="text-sm font-semibold text-white">Invoices</p>
               </div>
               <div className="flex gap-4 text-xs">
-                <span className="text-emerald-400">Paid: ₹{(dashboard.paidTotal/1000).toFixed(1)}k</span>
-                <span className="text-amber-400">Due: ₹{(dashboard.pendingTotal/1000).toFixed(1)}k</span>
+                <span className="text-emerald-400">Paid: {symbol}{(dashboard.paidTotal/1000).toFixed(1)}k</span>
+                <span className="text-amber-400">Due: {symbol}{(dashboard.pendingTotal/1000).toFixed(1)}k</span>
               </div>
             </div>
             {invoices?.length === 0 ? (
@@ -416,7 +418,7 @@ export default function ClientDashboard() {
                       <td className="px-6 py-4 text-sm font-mono text-violet-400">{inv.number}</td>
                       <td className="px-4 py-4 text-sm text-white/60">Professional Services</td>
                       <td className="px-4 py-4 text-sm text-white/40">{new Date(inv.issueDate).toLocaleDateString()}</td>
-                      <td className="px-4 py-4 text-sm font-semibold text-white text-right">₹{inv.total.toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-white text-right">{symbol}{inv.total.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">
                         <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[inv.status]?.color || STATUS_CONFIG.PENDING.color}`}>
                           {STATUS_CONFIG[inv.status]?.label || inv.status}
@@ -451,7 +453,7 @@ export default function ClientDashboard() {
                 <div className="flex items-center justify-between pt-4 border-t border-white/8">
                   <div>
                     <p className="text-xs text-white/30">Total Value</p>
-                    <p className="text-xl font-bold text-white mt-0.5">₹{prop.totalAmount.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-white mt-0.5">{symbol}{prop.totalAmount.toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2">
                     <a href={`/portal/proposals/${prop.publicToken}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">

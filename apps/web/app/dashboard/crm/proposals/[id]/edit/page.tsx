@@ -7,11 +7,13 @@ import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useParams, useRouter } from "next/navigation"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function EditProposalPage() {
   const router = useRouter()
   const params = useParams()
   const proposalId = params.id as string
+  const { symbol } = useCurrency()
 
   const { data: leadsData } = useApi<any>("/crm/leads")
   const leads = leadsData?.data || []
@@ -284,7 +286,7 @@ export default function EditProposalPage() {
                     </div>
                   </div>
                   <div className="mt-3 text-right font-mono font-bold text-sm text-blue-400">
-                    ${item.total.toLocaleString()}
+                    {symbol}{item.total.toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -293,7 +295,7 @@ export default function EditProposalPage() {
             <div className="mt-6 pt-6 border-t border-white/10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-white/50">Subtotal</span>
-                <span className="font-mono text-white">${calculateSubtotal().toLocaleString()}</span>
+                <span className="font-mono text-white">{symbol}{calculateSubtotal().toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-white/50">Tax (Flat Amount)</span>
@@ -306,7 +308,7 @@ export default function EditProposalPage() {
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4">
                 <span className="font-bold text-white">Total Value</span>
-                <span className="font-mono font-bold text-xl text-emerald-400">${calculateTotal().toLocaleString()}</span>
+                <span className="font-mono font-bold text-xl text-emerald-400">{symbol}{calculateTotal().toLocaleString()}</span>
               </div>
               
               {/* HTML Content Preview */}

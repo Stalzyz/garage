@@ -6,6 +6,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { MoreVertical, Phone, Mail, Calendar, ClipboardList, IndianRupee, GraduationCap, CheckCircle2, XCircle } from 'lucide-react';
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
   leads: any[];
@@ -35,6 +36,7 @@ const ACADEMY_COLUMNS = [
 
 // Individual Draggable Card
 function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: any, onLogActivity: any }) {
+  const { symbol } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lead.id,
     data: {
@@ -68,7 +70,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
       
       {lead.businessUnit === 'AGENCY' && lead.estimatedBudget && (
         <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono mb-2">
-          <IndianRupee className="w-3 h-3" /> {lead.estimatedBudget.toLocaleString()}
+          <span>{symbol}</span> {lead.estimatedBudget.toLocaleString()}
         </div>
       )}
       

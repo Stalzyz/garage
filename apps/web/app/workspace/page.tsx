@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { Activity, AlertTriangle, CheckCircle2, ChevronRight, Clock, CreditCard, Download, FileText, MessageSquare, PlayCircle, Plus, Sparkles, Video } from "lucide-react"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function MissionControl() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const { symbol } = useCurrency()
 
   useEffect(() => {
     fetch('/api/v1/workspace/dashboard')
@@ -129,7 +131,7 @@ export default function MissionControl() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <p className="text-xs text-white/50 uppercase tracking-widest font-bold mb-2">Pending Invoice</p>
-              <h2 className="text-3xl font-black text-white">₹{financials?.pendingAmount?.toLocaleString() || '0'}</h2>
+              <h2 className="text-3xl font-black text-white">{symbol}{financials?.pendingAmount?.toLocaleString() || '0'}</h2>
             </div>
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-slate-400" />
@@ -143,7 +145,7 @@ export default function MissionControl() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Total Paid to date</span>
-              <span className="text-white font-medium">₹{financials?.totalPaid?.toLocaleString() || '0'}</span>
+              <span className="text-white font-medium">{symbol}{financials?.totalPaid?.toLocaleString() || '0'}</span>
             </div>
           </div>
 

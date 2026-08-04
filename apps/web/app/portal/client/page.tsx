@@ -5,9 +5,11 @@ import { useApi } from "@/lib/useApi"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function ClientPortalPage() {
   const { data: session } = useSession()
+  const { symbol } = useCurrency()
   const { data: projectsData, isLoading: loadingProjects } = useApi<any>("/projects")
   const { data: invoicesData, isLoading: loadingInvoices } = useApi<any>("/finance/invoices")
 
@@ -100,7 +102,7 @@ export default function ClientPortalPage() {
                       <div className="text-[10px] text-white/40 mt-0.5 font-mono">{new Date(invoice.dueDate).toLocaleDateString()}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold font-mono">₹{invoice.totalAmount.toLocaleString()}</div>
+                      <div className="text-sm font-bold font-mono">{symbol}{invoice.totalAmount.toLocaleString()}</div>
                       {invoice.status === 'PAID' ? (
                         <div className="text-[10px] text-emerald-400 font-bold uppercase mt-1 flex items-center gap-1 justify-end">
                           <CheckCircle2 className="w-3 h-3" /> Paid

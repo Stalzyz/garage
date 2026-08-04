@@ -5,12 +5,14 @@ import { Search, Plus, FileText, CheckCircle2, Clock, Send, MoreHorizontal } fro
 import Link from "next/link"
 import { useApi } from "@/lib/useApi"
 import { format } from "date-fns"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function ProposalsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [viewMode, setViewMode] = useState<'all' | 'templates'>('all')
   const limit = 20
+  const { symbol } = useCurrency()
 
   const { data, isLoading, mutate } = useApi<any>(`/crm/proposals?page=${page}&limit=${limit}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}${viewMode === 'templates' ? '&isTemplate=true' : ''}`)
   const proposals = data?.data || []
@@ -124,7 +126,7 @@ export default function ProposalsPage() {
                         <div className="text-[10px] text-white/40 mt-1">{clientCompany}</div>
                       </td>
                     <td className="px-6 py-4 font-mono font-medium text-white">
-                      ${p.totalAmount?.toLocaleString() || '0'}
+                      {symbol}{p.totalAmount?.toLocaleString() || '0'}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(p.status)}

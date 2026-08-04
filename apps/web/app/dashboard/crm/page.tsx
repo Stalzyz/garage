@@ -6,16 +6,18 @@ import {
   Users, TrendingUp, Target, Plus, 
   ArrowUpRight, Filter, IndianRupee, Globe,
   Search, BookOpen, GraduationCap, Calendar,
-  MoreVertical, CheckCircle2, UserPlus, ClipboardList
+  MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { KanbanBoard } from "./KanbanBoard"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function CRMDashboard() {
   const { data: session } = useSession()
+  const { symbol, formatCurrency } = useCurrency()
   
   // API Fetch for Leads and Batches
   const { data: leadsData, mutate: mutateLeads, isLoading: leadsLoading } = useApi<any>('/crm/leads')
@@ -388,7 +390,11 @@ export default function CRMDashboard() {
           <div className="flex items-center gap-3 mb-6 relative z-10">
             <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center border border-violet-500/30 shadow-[inset_0_0_10px_rgba(139,92,246,0.2)]">
               {activeTab === 'AGENCY' ? (
-                <IndianRupee className="w-5 h-5 text-violet-400" />
+                symbol === "₹" ? (
+                  <IndianRupee className="w-5 h-5 text-violet-400" />
+                ) : (
+                  <Coins className="w-5 h-5 text-violet-400" />
+                )
               ) : (
                 <GraduationCap className="w-5 h-5 text-violet-400" />
               )}
@@ -399,7 +405,7 @@ export default function CRMDashboard() {
           </div>
           <div className="relative z-10">
             <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
-              {leadsLoading ? "..." : activeTab === 'AGENCY' ? `₹${(pipelineValue / 100000).toFixed(1)}L` : academyLeads.filter((l: any) => l.status === 'COUNSELLING').length}
+              {leadsLoading ? "..." : activeTab === 'AGENCY' ? (symbol === "₹" ? `₹${(pipelineValue / 100000).toFixed(1)}L` : formatCurrency(pipelineValue, true)) : academyLeads.filter((l: any) => l.status === 'COUNSELLING').length}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
               <ArrowUpRight className="w-3.5 h-3.5" /> Live Updates

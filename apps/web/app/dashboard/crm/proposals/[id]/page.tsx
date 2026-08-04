@@ -6,12 +6,14 @@ import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { format } from "date-fns"
 import { useOrganization } from "@/context/OrganizationContext"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function ProposalDetailPage() {
   const params = useParams()
   const proposalId = params.id as string
   const router = import("next/navigation").then(m => m.useRouter)
   const org = useOrganization()
+  const { symbol } = useCurrency()
 
   const { data: proposal, isLoading, mutate } = useApi<any>(`/crm/proposals/${proposalId}`)
 
@@ -227,10 +229,10 @@ export default function ProposalDetailPage() {
                     <div>{item.description}</div>
                   </td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.quantity}</td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{item.unitPrice.toLocaleString()}</td>
+                  <td className="py-4 text-sm text-muted-foreground text-right">{symbol}{item.unitPrice.toLocaleString()}</td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.discountRate || 0}%</td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.taxRate || 0}%</td>
-                  <td className="py-4 text-sm font-semibold text-foreground text-right">{item.total.toLocaleString()}</td>
+                  <td className="py-4 text-sm font-semibold text-foreground text-right">{symbol}{item.total.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -241,23 +243,23 @@ export default function ProposalDetailPage() {
             <div className="w-72 space-y-3">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Subtotal</span>
-                <span>{proposal.subtotal?.toLocaleString() ?? proposal.totalAmount.toLocaleString()}</span>
+                <span>{symbol}{proposal.subtotal?.toLocaleString() ?? proposal.totalAmount.toLocaleString()}</span>
               </div>
               {(proposal.discountRate > 0) && (
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Overall Discount ({proposal.discountRate}%)</span>
-                  <span className="text-red-400">-{ (proposal.subtotal * (proposal.discountRate / 100)).toLocaleString() }</span>
+                  <span className="text-red-400">-{symbol}{ (proposal.subtotal * (proposal.discountRate / 100)).toLocaleString() }</span>
                 </div>
               )}
               {(proposal.tax > 0) && (
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Tax</span>
-                  <span>{proposal.tax.toLocaleString()}</span>
+                  <span>{symbol}{proposal.tax.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold border-t border-border/60 pt-3 mt-3">
                 <span className="text-foreground">Total Value ({proposal.currency})</span>
-                <span className="text-primary">{proposal.totalAmount.toLocaleString()}</span>
+                <span className="text-primary">{symbol}{proposal.totalAmount.toLocaleString()}</span>
               </div>
             </div>
           </div>

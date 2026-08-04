@@ -8,10 +8,12 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export default function InteractiveProposalBuilder() {
   const router = useRouter()
   const org = useOrganization()
+  const { symbol } = useCurrency()
   const { data: leadsData } = useApi<any>("/crm/leads")
   const leads = leadsData?.data || []
 
@@ -322,7 +324,7 @@ export default function InteractiveProposalBuilder() {
                       <div className="col-span-2 mt-2">
                         <label className="text-[10px] text-white/30 uppercase font-bold block mb-1">Total</label>
                         <div className="w-full bg-black/20 border border-transparent rounded-lg px-2 py-1.5 text-sm text-emerald-400 font-bold flex items-center h-[34px]">
-                          ₹{item.total.toLocaleString()}
+                          {symbol}{item.total.toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -333,7 +335,7 @@ export default function InteractiveProposalBuilder() {
               <div className="flex flex-col gap-2 p-4 bg-white/5 border border-white/10 rounded-xl mt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-white/50">Subtotal</span>
-                  <span className="text-sm font-bold text-white/70">₹{calculateSubtotal().toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white/70">{symbol}{calculateSubtotal().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-white/50">Overall Discount %</span>
@@ -355,7 +357,7 @@ export default function InteractiveProposalBuilder() {
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-white/10 mt-1">
                   <span className="font-bold text-violet-400">Total Investment</span>
-                  <span className="text-2xl font-black text-white">₹{calculateTotal().toLocaleString()}</span>
+                  <span className="text-2xl font-black text-white">{symbol}{calculateTotal().toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -416,17 +418,17 @@ export default function InteractiveProposalBuilder() {
                           {item.description && <p className="text-xs text-slate-500 mt-1">{item.description}</p>}
                         </td>
                         <td className="px-6 py-4 text-right text-slate-300">{item.quantity}</td>
-                        <td className="px-6 py-4 text-right text-slate-300">₹{Number(item.unitPrice).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right text-slate-300">{symbol}{Number(item.unitPrice).toLocaleString()}</td>
                         <td className="px-6 py-4 text-right text-slate-300">{item.discountRate}%</td>
                         <td className="px-6 py-4 text-right text-slate-300">{item.taxRate}%</td>
-                        <td className="px-6 py-4 text-right font-medium text-white">₹{item.total.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right font-medium text-white">{symbol}{item.total.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="bg-violet-600/10 border-t border-white/10">
                       <td colSpan={5} className="px-6 py-4 text-right font-bold text-violet-400">Total Investment</td>
-                      <td className="px-6 py-4 text-right font-black text-white text-lg">₹{calculateTotal().toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right font-black text-white text-lg">{symbol}{calculateTotal().toLocaleString()}</td>
                     </tr>
                   </tfoot>
                 </table>
