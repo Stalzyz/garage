@@ -1,10 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+
+// Magnetic effect helper wrapper component
+function Magnetic({ children, pull = 0.35 }: { children: React.ReactNode; pull?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = ref.current.getBoundingClientRect();
+    const x = clientX - (left + width / 2);
+    const y = clientY - (top + height / 2);
+    setPosition({ x: x * pull, y: y * pull });
+  };
+
+  const handleMouseLeave = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: position.x, y: position.y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      className="inline-block"
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
   const [scrolled, setScrolled] = useState(false);
@@ -25,118 +57,159 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
   ];
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "glassmorphism py-3" : "bg-transparent py-5"
-      }`}
-    >
-      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 z-50">
-          <Image
-            src="/academy-logo.png"
-            alt="Grekam Design Academy"
-            width={160}
-            height={48}
-            className={`h-10 w-auto md:h-12 transition-all ${
-              scrolled ? "invert brightness-0" : theme === "dark" ? "" : "invert brightness-0"
-            }`}
-          />
-        </Link>
+    <header className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+      {/* Floating Magnetic Glass Dock */}
+      <div 
+        className={`w-full max-w-5xl rounded-full border transition-all duration-500 flex items-center justify-between px-6 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.15)] ${
+          scrolled 
+            ? "bg-black/90 border-white/10 backdrop-blur-xl py-2" 
+            : theme === "dark"
+            ? "bg-black/80 border-white/10 backdrop-blur-lg"
+            : "bg-white/80 border-black/5 backdrop-blur-lg"
+        }`}
+      >
+        {/* Left Side: Logo */}
+        <Magnetic pull={0.2}>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/academy-logo.png"
+              alt="Grekam Design Academy"
+              width={140}
+              height={42}
+              className={`h-8 w-auto transition-all duration-300 ${
+                scrolled 
+                  ? "invert brightness-0" 
+                  : theme === "dark" 
+                  ? "" 
+                  : "invert brightness-0"
+              }`}
+            />
+          </Link>
+        </Magnetic>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        {/* Center: Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
+            <Magnetic key={link.name} pull={0.4}>
+              <Link
+                href={link.href}
+                className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 transition-colors duration-300 ${
+                  scrolled
+                    ? "text-white/60 hover:text-white"
+                    : theme === "dark"
+                    ? "text-white/60 hover:text-white"
+                    : "text-black/60 hover:text-black"
+                }`}
+              >
+                {link.name}
+              </Link>
+            </Magnetic>
+          ))}
+        </nav>
+
+        {/* Right Side: Desktop Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          <Magnetic pull={0.3}>
             <Link
-              key={link.name}
-              href={link.href}
-              className={`text-xs font-mono uppercase tracking-wider transition-colors ${
+              href="/auth/login"
+              className={`text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 transition-colors duration-300 ${
                 scrolled
-                  ? "text-black/60 hover:text-black"
+                  ? "text-white/60 hover:text-white"
                   : theme === "dark"
                   ? "text-white/60 hover:text-white"
                   : "text-black/60 hover:text-black"
               }`}
             >
-              {link.name}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/auth/login"
-            className={`text-xs font-mono uppercase tracking-wider transition-colors px-4 py-2 ${
-              scrolled
-                ? "text-black/60 hover:text-black"
-                : theme === "dark"
-                ? "text-white/60 hover:text-white"
-                : "text-black/60 hover:text-black"
-            }`}
-          >
-            Log In
-          </Link>
-          <Link
-            href="/auth/login"
-            className={`text-xs font-mono uppercase tracking-wider px-6 py-2 border transition-all ${
-              scrolled
-                ? "bg-black text-white border-black hover:bg-white hover:text-black"
-                : theme === "dark"
-                ? "bg-white text-black border-white hover:bg-black hover:text-white"
-                : "bg-black text-white border-black hover:bg-white hover:text-black"
-            }`}
-          >
-            Apply Now
-          </Link>
-        </div>
-
-        {/* Mobile Toggle */}
-        <button
-          className={`md:hidden z-50 transition-colors ${
-            scrolled ? "text-black" : theme === "dark" ? "text-white" : "text-black"
-          }`}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Nav */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="absolute top-0 left-0 w-full h-screen bg-background flex flex-col items-center justify-center gap-8 md:hidden glassmorphism"
-        >
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-xl font-mono uppercase tracking-wider text-black/80 hover:text-black transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
-          <div className="flex flex-col items-center gap-4 mt-8 w-full px-8">
-            <Link
-              href="/auth/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center text-sm font-mono uppercase tracking-wider border border-black text-black py-3"
-            >
               Log In
             </Link>
+          </Magnetic>
+
+          <Magnetic pull={0.25}>
             <Link
               href="/auth/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center text-sm font-mono uppercase tracking-wider bg-black text-white py-3 border border-black"
+              className={`text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-full transition-all duration-300 ${
+                scrolled
+                  ? "bg-white text-black hover:bg-white/90"
+                  : theme === "dark"
+                  ? "bg-white text-black hover:bg-white/90"
+                  : "bg-black text-white hover:bg-black/90"
+              }`}
             >
               Apply Now
             </Link>
-          </div>
-        </motion.div>
-      )}
+          </Magnetic>
+        </div>
+
+        {/* Mobile Toggle Pill */}
+        <button
+          className={`md:hidden p-2 rounded-full border transition-all duration-300 ${
+            scrolled
+              ? "text-white border-white/10 hover:bg-white/10"
+              : theme === "dark"
+              ? "text-white border-white/10 hover:bg-white/10"
+              : "text-black border-black/10 hover:bg-black/5"
+          }`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      </div>
+
+      {/* Mobile Nav Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            className="fixed inset-0 w-full h-screen bg-black/95 flex flex-col items-center justify-center gap-8 md:hidden z-40"
+          >
+            {/* Close trigger handles */}
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute top-6 right-6 p-3 rounded-full border border-white/10 text-white hover:bg-white/10"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center gap-6">
+              {navLinks.map((link, idx) => (
+                <motion.div
+                  key={link.name}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-lg font-mono uppercase tracking-widest text-white/70 hover:text-white transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-center gap-4 mt-12 w-full max-w-xs px-6">
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center text-xs font-mono uppercase tracking-widest border border-white/20 text-white/80 py-4 rounded-full hover:bg-white/5 transition-all"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center text-xs font-mono uppercase tracking-widest bg-white text-black py-4 rounded-full font-bold hover:bg-white/90 transition-all"
+              >
+                Apply Now
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
