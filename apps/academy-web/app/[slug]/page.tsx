@@ -8,6 +8,8 @@ import { RelatedCourses } from "./RelatedCourses"
 import { getDomainFromCode, getFontClassForDomain } from "./CategoryThemeMapper"
 import { CustomCursor } from "./CustomCursor"
 import { DynamicDomainHero } from "./DynamicDomainHero"
+import { Header } from "../../components/landing/Header"
+import { Footer } from "../../components/landing/Footer"
 
 export const dynamic = 'force-dynamic'
 
@@ -242,6 +244,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
 
   return (
     <main className={`min-h-screen bg-[#050505] flex flex-col w-full overflow-x-hidden ${courseCode ? fontClass : ''}`}>
+      <Header theme="dark" />
       {courseCode && <CustomCursor domain={domain} />}
 
       {courseCode && (
@@ -285,6 +288,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
           <RelatedCourses courses={relatedCourses} />
         </>
       )}
+      <Footer />
     </main>
   )
 }

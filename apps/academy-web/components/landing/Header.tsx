@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
-export function Header() {
+export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -17,10 +17,11 @@ export function Header() {
   }, []);
 
   const navLinks = [
-    { name: "Courses", href: "#courses" },
-    { name: "Methodology", href: "#methodology" },
-    { name: "Placements", href: "#placements" },
-    { name: "Community", href: "#community" },
+    { name: "The Problem", href: "/#act-1" },
+    { name: "The Twist", href: "/#act-2" },
+    { name: "The Evidence", href: "/#act-3" },
+    { name: "The Offer", href: "/#act-4" },
+    { name: "The Decision", href: "/#act-5" },
   ];
 
   return (
@@ -36,7 +37,9 @@ export function Header() {
             alt="Grekam Design Academy"
             width={160}
             height={48}
-            className="h-10 w-auto md:h-12"
+            className={`h-10 w-auto md:h-12 transition-all ${
+              scrolled ? "invert brightness-0" : theme === "dark" ? "" : "invert brightness-0"
+            }`}
           />
         </Link>
 
@@ -46,7 +49,13 @@ export function Header() {
             <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-medium hover:text-[#49abc9] transition-colors"
+              className={`text-xs font-mono uppercase tracking-wider transition-colors ${
+                scrolled
+                  ? "text-black/60 hover:text-black"
+                  : theme === "dark"
+                  ? "text-white/60 hover:text-white"
+                  : "text-black/60 hover:text-black"
+              }`}
             >
               {link.name}
             </Link>
@@ -56,22 +65,36 @@ export function Header() {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
           <Link
-            href="/login"
-            className="text-sm font-medium hover:text-[#49abc9] transition-colors px-4 py-2"
+            href="/auth/login"
+            className={`text-xs font-mono uppercase tracking-wider transition-colors px-4 py-2 ${
+              scrolled
+                ? "text-black/60 hover:text-black"
+                : theme === "dark"
+                ? "text-white/60 hover:text-white"
+                : "text-black/60 hover:text-black"
+            }`}
           >
             Log In
           </Link>
           <Link
-            href="/register"
-            className="text-sm font-medium bg-gradient-academy text-white px-6 py-2 rounded-full shadow-lg shadow-[#49abc9]/20 hover:shadow-[#49abc9]/40 transition-all hover:-translate-y-0.5"
+            href="/auth/login"
+            className={`text-xs font-mono uppercase tracking-wider px-6 py-2 border transition-all ${
+              scrolled
+                ? "bg-black text-white border-black hover:bg-white hover:text-black"
+                : theme === "dark"
+                ? "bg-white text-black border-white hover:bg-black hover:text-white"
+                : "bg-black text-white border-black hover:bg-white hover:text-black"
+            }`}
           >
-            Join Now
+            Apply Now
           </Link>
         </div>
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden z-50 text-foreground"
+          className={`md:hidden z-50 transition-colors ${
+            scrolled ? "text-black" : theme === "dark" ? "text-white" : "text-black"
+          }`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -91,25 +114,25 @@ export function Header() {
               key={link.name}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="text-2xl font-bold hover:text-[#49abc9] transition-colors"
+              className="text-xl font-mono uppercase tracking-wider text-black/80 hover:text-black transition-colors"
             >
               {link.name}
             </Link>
           ))}
           <div className="flex flex-col items-center gap-4 mt-8 w-full px-8">
             <Link
-              href="/login"
+              href="/auth/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center text-lg font-medium border border-[#49abc9] text-[#49abc9] rounded-full py-3"
+              className="w-full text-center text-sm font-mono uppercase tracking-wider border border-black text-black py-3"
             >
               Log In
             </Link>
             <Link
-              href="/register"
+              href="/auth/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center text-lg font-medium bg-gradient-academy text-white rounded-full py-3 shadow-lg shadow-[#49abc9]/30"
+              className="w-full text-center text-sm font-mono uppercase tracking-wider bg-black text-white py-3 border border-black"
             >
-              Join Now
+              Apply Now
             </Link>
           </div>
         </motion.div>

@@ -7,6 +7,7 @@ import { PullQuote } from "../components/editorial/PullQuote";
 import { TypewriterReveal } from "../components/editorial/TypewriterReveal";
 import Link from "next/link";
 import { Header } from "../components/landing/Header";
+import { FeaturedCourses } from "../components/landing/FeaturedCourses";
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -162,6 +163,8 @@ export default function Home() {
           </div>
         </div>
       </NarrativeAct>
+
+      <FeaturedCourses />
 
       {/* Act 5 */}
       <NarrativeAct id="act-5" number="05" title="The Decision" theme="dark" className="min-h-[70vh] flex flex-col justify-center border-b border-white/10">
