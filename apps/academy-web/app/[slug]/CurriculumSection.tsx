@@ -43,7 +43,7 @@ export function CurriculumSection({ modules }: { modules: any[] }) {
                   className={`relative flex flex-col md:flex-row items-start md:items-center gap-8 ${isEven ? 'md:flex-row-reverse' : ''}`}
                 >
                   {/* Central Node Checkpoint */}
-                  <div className="absolute left-[8px] md:left-1/2 w-10 h-10 rounded-full bg-black border-4 border-[#050505] shadow-[0_0_15px_rgba(168,85,247,0.5)] md:-translate-x-1/2 flex items-center justify-center z-10">
+                  <div className="absolute left-[9px] md:left-1/2 w-10 h-10 rounded-full bg-black border-4 border-[#050505] shadow-[0_0_15px_rgba(168,85,247,0.5)] md:-translate-x-1/2 flex items-center justify-center z-10">
                     <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse" />
                   </div>
 
@@ -51,7 +51,7 @@ export function CurriculumSection({ modules }: { modules: any[] }) {
                   <div className="hidden md:block md:w-1/2" />
 
                   {/* Module Content Card */}
-                  <div className="ml-16 md:ml-0 md:w-1/2 w-full p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-white/20 transition-all hover:-translate-y-1 shadow-xl">
+                  <div className="ml-16 md:ml-0 md:w-1/2 w-[calc(100%-4rem)] p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-white/20 transition-all hover:-translate-y-1 shadow-xl">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                         <Zap className="w-4 h-4 text-white" />

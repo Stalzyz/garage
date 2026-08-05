@@ -69,7 +69,7 @@ export function DynamicDomainHero({ domain, title, description, coverImage, cour
             transition={{ duration: 0.8 }}
             className="flex-1"
           >
-            <h1 className="text-6xl md:text-8xl font-black leading-none mb-8">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black leading-none mb-8">
               {title}
             </h1>
             <p className="text-xl md:text-2xl text-black/60 max-w-lg font-sans mb-10">
@@ -100,7 +100,7 @@ export function DynamicDomainHero({ domain, title, description, coverImage, cour
               </div>
             </div>
             {/* Background floating card */}
-            <div className="absolute -z-10 top-10 -left-10 bg-white/50 p-4 pb-16 shadow-xl -rotate-6 transform-gpu aspect-[4/5] w-full" />
+            <div className="absolute -z-10 top-10 -left-10 bg-white/50 p-4 pb-16 shadow-xl -rotate-6 transform-gpu aspect-[4/5] w-full hidden sm:block" />
           </motion.div>
         </div>
         <CTAModal 
@@ -137,7 +137,7 @@ export function DynamicDomainHero({ domain, title, description, coverImage, cour
           <div className="inline-block px-4 py-1 border border-white/20 rounded-full text-white/50 text-xs tracking-[0.2em] mb-8 uppercase backdrop-blur-md">
             Grekam Studios Presents
           </div>
-          <h1 className="text-5xl md:text-8xl font-black text-white mb-8 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+          <h1 className="text-3xl sm:text-5xl md:text-8xl font-black text-white mb-8 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             {title}
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto font-light leading-relaxed mb-10">
@@ -172,7 +172,7 @@ export function DynamicDomainHero({ domain, title, description, coverImage, cour
           initial={{ opacity: 0, y: 30 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-6xl md:text-8xl font-black tracking-tighter text-zinc-900 mb-8"
+          className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-zinc-900 mb-8"
         >
           {title}
         </motion.h1>
