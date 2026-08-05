@@ -77,11 +77,7 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
               width={140}
               height={42}
               className={`h-8 w-auto transition-all duration-300 ${
-                scrolled 
-                  ? "invert brightness-0" 
-                  : theme === "dark" 
-                  ? "" 
-                  : "invert brightness-0"
+                (!scrolled && theme === "light") ? "invert brightness-0" : ""
               }`}
             />
           </Link>

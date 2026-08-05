@@ -16,7 +16,7 @@ export function PullQuote({
   const isDark = theme === "dark";
 
   return (
-    <div className="py-24 px-6 md:px-12 my-24 relative max-w-4xl mx-auto">
+    <div className="py-12 lg:py-24 px-6 md:px-12 lg:my-24 my-0 relative max-w-4xl mx-auto flex flex-col justify-center h-full">
       {/* Decorative large quote mark */}
       <div 
         className={`absolute -top-10 -left-6 md:-left-12 text-[120px] font-serif leading-none opacity-10 select-none ${isDark ? "text-white" : "text-black"}`}

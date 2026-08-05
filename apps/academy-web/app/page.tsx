@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useRef } from "react";
 import { Footer } from "../components/landing/Footer";
 import { NarrativeAct } from "../components/editorial/NarrativeAct";
 import { ScrollProgress } from "../components/editorial/ScrollProgress";
@@ -9,9 +12,10 @@ import Link from "next/link";
 import { Header } from "../components/landing/Header";
 import { FeaturedCourses } from "../components/landing/FeaturedCourses";
 
-export const revalidate = 60; // Revalidate every 60 seconds
-
 export default function Home() {
+  const [activeMobileSlide, setActiveMobileSlide] = useState(0);
+  const mainRef = useRef<HTMLDivElement>(null);
+
   const acts = [
     { id: "act-1", title: "My Stagnation" },
     { id: "act-2", title: "The Studio" },
@@ -20,13 +24,46 @@ export default function Home() {
     { id: "act-5", title: "The Leap" }
   ];
 
+  const handleMainScroll = () => {
+    if (window.innerWidth >= 1024) return;
+    const container = mainRef.current;
+    if (!container) return;
+    const index = Math.round(container.scrollLeft / window.innerWidth);
+    setActiveMobileSlide(index);
+  };
+
   return (
-    <main className="lg:block flex flex-row overflow-x-auto lg:overflow-visible snap-x snap-mandatory w-screen h-screen lg:h-auto lg:w-auto text-gray-900 custom-scrollbar overflow-y-hidden lg:overflow-y-visible selection:bg-gray-200 bg-[#FAFAF8]">
+    <main 
+      ref={mainRef}
+      onScroll={handleMainScroll}
+      className="lg:block flex flex-row overflow-x-auto lg:overflow-visible snap-x snap-mandatory w-screen h-screen lg:h-auto lg:w-auto text-gray-900 custom-scrollbar overflow-y-hidden lg:overflow-y-visible selection:bg-gray-200 bg-[#FAFAF8]"
+    >
       <Header />
       
       {/* Hide vertical scrollbar index on mobile */}
       <div className="hidden lg:block">
         <ScrollProgress acts={acts} />
+      </div>
+
+      {/* Mobile Swipe Dots Indicator */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 lg:hidden z-40 bg-black/50 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-2xl">
+        {Array.from({ length: 8 }).map((_, idx) => {
+          const isActive = activeMobileSlide === idx;
+          return (
+            <button
+              key={idx}
+              onClick={() => {
+                mainRef.current?.scrollTo({
+                  left: idx * window.innerWidth,
+                  behavior: "smooth"
+                });
+              }}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                isActive ? "w-6 bg-white" : "w-1.5 bg-white/30"
+              }`}
+            />
+          );
+        })}
       </div>
       
       {/* Slide 1: Act 1 (Problem Hero - Student Perspective) */}
@@ -67,13 +104,13 @@ export default function Home() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="border-t border-white/20 pt-6">
-                  <div className="editorial-footnote text-white/50 mb-4">01 — The Studio</div>
-                  <h4 className="text-xl font-bold mb-2">No Classrooms</h4>
+                  <div className="editorial-footnote text-white/50 mb-4 font-mono">01 — The Studio</div>
+                  <h4 className="text-xl font-bold mb-2 font-editorial-display">No Classrooms</h4>
                   <p className="text-white/60 font-editorial-body">We work like a real design studio. You are not just a student; you are a junior designer. The projects are real.</p>
                 </div>
                 <div className="border-t border-white/20 pt-6">
-                  <div className="editorial-footnote text-white/50 mb-4">02 — The Critique</div>
-                  <h4 className="text-xl font-bold mb-2">Direct Feedback</h4>
+                  <div className="editorial-footnote text-white/50 mb-4 font-mono">02 — The Critique</div>
+                  <h4 className="text-xl font-bold mb-2 font-editorial-display">Direct Feedback</h4>
                   <p className="text-white/60 font-editorial-body">If my design needed work, they told me. But they also showed me exactly how to fix it. Being too nice won't help you learn.</p>
                 </div>
               </div>
@@ -151,7 +188,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-16">
                <div className="bg-black/5 p-8 border border-black/10">
                   <div className="font-mono text-xs uppercase tracking-widest text-black/50 mb-4">Phase 1</div>
-                  <h4 className="font-bold text-xl mb-4">Fundamentals</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Fundamentals</h4>
                   <ul className="space-y-3 font-editorial-body text-black/70">
                     <li>• Fonts & typography</li>
                     <li>• Grids & layouts</li>
@@ -160,7 +197,7 @@ export default function Home() {
                </div>
                <div className="bg-black text-white p-8 border border-black transform md:-translate-y-4 shadow-2xl">
                   <div className="font-mono text-xs uppercase tracking-widest text-white/50 mb-4">Phase 2</div>
-                  <h4 className="font-bold text-xl mb-4">Building</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Building</h4>
                   <ul className="space-y-3 font-editorial-body text-white/70">
                     <li>• Logo & brand design</li>
                     <li>• App & website design</li>
@@ -169,7 +206,7 @@ export default function Home() {
                </div>
                <div className="bg-black/5 p-8 border border-black/10">
                   <div className="font-mono text-xs uppercase tracking-widest text-black/50 mb-4">Phase 3</div>
-                  <h4 className="font-bold text-xl mb-4">Launch</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Launch</h4>
                   <ul className="space-y-3 font-editorial-body text-black/70">
                     <li>• Portfolio building</li>
                     <li>• Job interview prep</li>

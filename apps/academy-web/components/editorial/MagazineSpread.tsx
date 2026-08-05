@@ -23,7 +23,7 @@ export function MagazineSpread({
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 1, 0.3]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[120vh] md:h-[150vh] overflow-hidden bg-black flex items-center justify-center my-24">
+    <div ref={containerRef} className="relative w-full h-full lg:h-[150vh] overflow-hidden bg-black flex items-center justify-center lg:my-24 my-0">
       {/* Background Image with Parallax */}
       <motion.div style={{ y, opacity }} className="absolute inset-0 w-full h-[130%] -top-[15%]">
         <Image
