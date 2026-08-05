@@ -112,6 +112,9 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
   const palette = inkPalettes[activeIndex % inkPalettes.length];
 
   const handleScroll = () => {
+    // Only process scroll detection on desktop where height limits are active
+    if (window.innerWidth < 1024) return;
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -137,40 +140,117 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
     }
   };
 
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto px-4 md:px-6 relative items-start">
-      {/* Left Column: List of courses (scrollable single window) */}
+      {/* Left Column: List of courses (scrollable on desktop, accordion block on mobile) */}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="lg:col-span-6 flex flex-col gap-6 py-6 pr-4 max-h-[480px] overflow-y-auto custom-scrollbar group/list scroll-smooth"
+        className="lg:col-span-6 flex flex-col gap-6 py-6 pr-0 lg:pr-4 lg:max-h-[480px] overflow-visible lg:overflow-y-auto custom-scrollbar group/list scroll-smooth"
       >
         {courses.map((course, idx) => {
           const isSelected = activeIndex === idx;
+          const itemMeta = course.code ? (courseMetadata[course.code] || defaultMeta) : defaultMeta;
+          const itemHref = getCourseHref(course.code, course.title);
+          const itemPalette = inkPalettes[idx % inkPalettes.length];
+
           return (
             <div
               key={idx}
-              onMouseEnter={() => setActiveIndex(idx)}
+              onClick={() => setActiveIndex(idx)}
+              onMouseEnter={() => {
+                if (window.innerWidth >= 1024) {
+                  setActiveIndex(idx);
+                }
+              }}
               className={`border-b border-white/10 pb-6 transition-all duration-300 cursor-pointer ${
                 isSelected 
                   ? "opacity-100 border-white" 
-                  : "opacity-40 group-hover/list:hover:opacity-100 group-hover/list:opacity-20"
+                  : "opacity-40 lg:group-hover/list:hover:opacity-100 lg:group-hover/list:opacity-20"
               }`}
             >
               <div className="flex items-baseline gap-4">
                 <span className="font-mono text-xs text-white/50">{`0${idx + 1}`}</span>
-                <h3 className="text-3xl md:text-5xl font-editorial-display font-bold uppercase tracking-tight leading-none">
+                <h3 className="text-2xl md:text-4xl font-editorial-display font-bold uppercase tracking-tight leading-none">
                   {course.title}
                 </h3>
               </div>
+
+              {/* Mobile Accordion details collapsed/expanded inline */}
+              <AnimatePresence initial={false}>
+                {isSelected && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                    animate={{ height: "auto", opacity: 1, marginTop: 20 }}
+                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="block lg:hidden overflow-hidden"
+                  >
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
+                      {/* Gradient glow bubble */}
+                      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${itemPalette} opacity-20 blur-[50px] rounded-full pointer-events-none`} />
+
+                      <div>
+                        {/* Header Details */}
+                        <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                            {course.code || "CORE-2026"}
+                          </span>
+                          <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/60">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{itemMeta.duration}</span>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-white/70 font-editorial-body text-sm leading-relaxed mb-4">
+                          {itemMeta.desc}
+                        </p>
+
+                        {/* Career Outcome and Tools */}
+                        <div className="space-y-3 mb-6 text-xs">
+                          <div className="flex gap-2.5 items-start">
+                            <Award className="w-3.5 h-3.5 text-white/40 mt-0.5 shrink-0" />
+                            <p className="text-white/80">
+                              <span className="text-white/40 uppercase font-mono tracking-wider mr-1.5">Track:</span>
+                              {itemMeta.outcome}
+                            </p>
+                          </div>
+                          <div className="flex gap-2.5 items-start">
+                            <Code className="w-3.5 h-3.5 text-white/40 mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-white/40 uppercase font-mono tracking-wider mr-1.5">Tools:</span>
+                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                {itemMeta.tools.map((tool, tIdx) => (
+                                  <span key={tIdx} className="bg-white/5 border border-white/10 text-white/60 px-2 py-0.5 rounded text-[10px] font-mono">
+                                    {tool}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Explore CTA */}
+                      <Link
+                        href={itemHref}
+                        className="inline-flex items-center justify-between w-full bg-white text-black font-mono text-[10px] uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-white/90 transition-all"
+                      >
+                        <span>Explore Curriculum</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}
       </div>
 
-      {/* Right Column: Dynamic Editorial Preview Spread */}
-      <div className="lg:col-span-6 sticky top-44 min-h-[480px]">
+      {/* Right Column: Dynamic Editorial Preview Spread (Hidden on mobile/tablet, sticky on desktop) */}
+      <div className="hidden lg:flex lg:col-span-6 sticky top-44 min-h-[480px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIndex}
