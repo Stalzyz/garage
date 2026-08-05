@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, Award, Code } from "lucide-react";
 import Link from "next/link";
@@ -104,16 +104,48 @@ function getCourseHref(code: string | undefined, title: string): string {
 
 export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const activeCourse = courses[activeIndex] || courses[0];
   const meta = activeCourse?.code ? (courseMetadata[activeCourse.code] || defaultMeta) : defaultMeta;
   const href = activeCourse ? getCourseHref(activeCourse.code, activeCourse.title) : "/courses";
   const palette = inkPalettes[activeIndex % inkPalettes.length];
 
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const children = container.children;
+    const containerCenter = container.getBoundingClientRect().top + container.clientHeight / 2;
+
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i] as HTMLElement;
+      const childCenter = child.getBoundingClientRect().top + child.clientHeight / 2;
+      const distance = Math.abs(childCenter - containerCenter);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
+    }
+
+    if (closestIndex !== activeIndex) {
+      setActiveIndex(closestIndex);
+    }
+  };
+
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto px-4 md:px-6 relative items-start">
-      {/* Left Column: List of courses */}
-      <div className="lg:col-span-6 flex flex-col gap-6 py-6 group/list">
+      {/* Left Column: List of courses (scrollable single window) */}
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="lg:col-span-6 flex flex-col gap-6 py-6 pr-4 max-h-[480px] overflow-y-auto custom-scrollbar group/list scroll-smooth"
+      >
         {courses.map((course, idx) => {
           const isSelected = activeIndex === idx;
           return (
