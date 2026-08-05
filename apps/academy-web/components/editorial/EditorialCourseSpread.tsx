@@ -13,52 +13,52 @@ interface CourseItem {
 
 const courseMetadata: Record<string, { desc: string; duration: string; tools: string[]; outcome: string }> = {
   "PGDM-2026": {
-    desc: "Master layout design, grid systems, advanced typography hierarchy, and corporate identity structures.",
+    desc: "Master layout design, grids, fonts, and how to build brand identities.",
     duration: "12 Weeks",
     tools: ["Figma", "Illustrator", "InDesign"],
-    outcome: "Brand & Communication Designer"
+    outcome: "Brand Designer"
   },
   "PUXMP-2026": {
-    desc: "Dive deep into user research, wireframing, interactive prototyping, and system design theory.",
+    desc: "Learn user research, wireframes, app prototypes, and UI design theory.",
     duration: "12 Weeks",
     tools: ["Figma", "Framer", "Protopie"],
     outcome: "UI/UX Product Designer"
   },
   "PWDM-2026": {
-    desc: "Learn to build high-converting landing pages, custom WordPress themes, and perform responsive layout architectures.",
+    desc: "Learn to build landing pages, custom WordPress websites, and responsive layouts.",
     duration: "8 Weeks",
     tools: ["WordPress", "Elementor", "HTML/CSS"],
-    outcome: "Web Specialist"
+    outcome: "Web Designer"
   },
   "PFSD-2026": {
-    desc: "Bridge design and code. Develop modern web apps with React, Next.js, and configure secure API layers.",
+    desc: "Connect design and coding. Build modern web apps with React and Next.js.",
     duration: "16 Weeks",
     tools: ["React", "Next.js", "Node.js", "Tailwind"],
     outcome: "Creative Developer"
   },
   "PDMM-2026": {
-    desc: "Strategize, execute, and monitor brand growth campaigns, search optimization, and creative ad management.",
+    desc: "Plan and run ads, search engine optimization (SEO), and social media campaigns.",
     duration: "8 Weeks",
     tools: ["Google Ads", "Meta Business Suite", "Analytics"],
-    outcome: "Growth Marketer"
+    outcome: "Digital Marketer"
   },
   "PMGM-2026": {
-    desc: "Bring graphics to life. Learn kinetic typography, shape layers animations, and vector motion dynamics.",
+    desc: "Make graphics move. Learn moving text, shapes, and motion animations.",
     duration: "10 Weeks",
     tools: ["After Effects", "Illustrator"],
     outcome: "Motion Designer"
   },
   "PVEM-2026": {
-    desc: "Synthesize storytelling with advanced editing, color grading, sound design, and AI assistance integration.",
+    desc: "Learn storytelling, video editing, color correction, sound design, and AI tools.",
     duration: "10 Weeks",
     tools: ["Premiere Pro", "DaVinci Resolve", "Runway"],
-    outcome: "Video Editor & Director"
+    outcome: "Video Editor"
   },
   "P3DA-2026": {
-    desc: "Construct 3D environments, polygon models, lighting layouts, and render cinematic scene timelines.",
+    desc: "Create 3D worlds, models, lighting, and realistic animations.",
     duration: "12 Weeks",
     tools: ["Blender", "Cinema 4D"],
-    outcome: "3D Visualizer & Artist"
+    outcome: "3D Designer"
   }
 };
 
@@ -237,7 +237,7 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
                         href={itemHref}
                         className="inline-flex items-center justify-between w-full bg-white text-black font-mono text-[10px] uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-white/90 transition-all"
                       >
-                        <span>Explore Curriculum</span>
+                        <span>Explore Course</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
@@ -288,7 +288,7 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
                 <div className="flex gap-4 items-start">
                   <Award className="w-4 h-4 text-white/40 mt-1 shrink-0" />
                   <div>
-                    <h4 className="text-xs uppercase tracking-wider font-mono text-white/40">Career Track</h4>
+                    <h4 className="text-xs uppercase tracking-wider font-mono text-white/40">Career Path</h4>
                     <p className="text-white/80 font-bold">{meta.outcome}</p>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
               href={href}
               className="inline-flex items-center justify-between w-full bg-white text-black font-mono text-xs uppercase tracking-widest px-6 py-4 rounded-xl hover:bg-white/90 transition-all group"
             >
-              <span>Explore Curriculum</span>
+              <span>Explore Course</span>
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" />
             </Link>
           </motion.div>
