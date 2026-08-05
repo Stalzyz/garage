@@ -164,17 +164,17 @@
   font-family: var(--font-handwriting);
 }
 .glassmorphism {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
 }
 .glassmorphism-dark {
-  background: rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .text-gradient-academy {
   background: linear-gradient(135deg, #49abc9 0%, #2ecc71 100%);

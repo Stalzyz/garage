@@ -74,7 +74,7 @@ export async function FeaturedCourses() {
       ];
 
   return (
-    <section className="py-32 bg-[#0d0d0d] border-y border-white/10 text-white" id="courses">
+    <section className="pt-32 pb-48 bg-[#0d0d0d] border-y border-white/10 text-white" id="courses">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-4xl mx-auto mb-20 relative">
           <svg className="absolute -top-10 left-[10%] w-24 h-24 opacity-40 pointer-events-none" viewBox="0 0 100 100">

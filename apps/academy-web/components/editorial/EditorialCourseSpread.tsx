@@ -138,7 +138,7 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
       </div>
 
       {/* Right Column: Dynamic Editorial Preview Spread */}
-      <div className="lg:col-span-6 sticky top-32 min-h-[480px]">
+      <div className="lg:col-span-6 sticky top-44 min-h-[480px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIndex}
