@@ -13,11 +13,11 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export default function Home() {
   const acts = [
-    { id: "act-1", title: "The Problem" },
-    { id: "act-2", title: "The Twist" },
-    { id: "act-3", title: "The Evidence" },
-    { id: "act-4", title: "The Offer" },
-    { id: "act-5", title: "The Decision" }
+    { id: "act-1", title: "My Stagnation" },
+    { id: "act-2", title: "The Studio" },
+    { id: "act-3", title: "The Breakthrough" },
+    { id: "act-4", title: "The Package" },
+    { id: "act-5", title: "The Leap" }
   ];
 
   return (
@@ -29,15 +29,15 @@ export default function Home() {
         <ScrollProgress acts={acts} />
       </div>
       
-      {/* Slide 1: Act 1 (Problem Hero) */}
+      {/* Slide 1: Act 1 (Problem Hero - Student Perspective) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-1" number="01" title="The Problem" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-1" number="01" title="My Stagnation" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-4xl mt-12">
-            <h1 className="text-5xl md:text-8xl font-editorial-display leading-[0.9] font-black uppercase mb-12">
-              Honestly, most design courses are a waste of time.
+            <h1 className="text-4xl md:text-8xl font-editorial-display leading-[0.9] font-black uppercase mb-12">
+              I copied video tutorials for months. My designs looked clean, but they had no soul.
             </h1>
             <p className="text-xl md:text-3xl font-editorial-body italic text-black/60 max-w-2xl leading-relaxed">
-              We built this because we were frustrated by that. Templates won't save you. Only practice, feedback, and real skills will.
+              I realized standard courses were just wasting my time. They teach you software, but not how to think like a designer.
             </p>
           </div>
         </NarrativeAct>
@@ -47,23 +47,23 @@ export default function Home() {
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
         <MagazineSpread 
           imageSrc="/editorial/magazine_spread.png" 
-          headline="Kill\nThe\nTemplate" 
-          subtext="Companies don't need another generic portfolio. They want unique designers." 
+          headline="Stop\nUsing\nTemplates" 
+          subtext="Companies don't need another generic portfolio. They want your unique style." 
         />
       </div>
 
-      {/* Slide 3: Act 2 (The Twist) */}
+      {/* Slide 3: Act 2 (The Twist - Studio Environment) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-2" number="02" title="The Twist" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-2" number="02" title="The Studio" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-4">
               <h2 className="text-3xl font-editorial-display font-bold uppercase sticky top-32">
-                We rebuilt our training twice.
+                When I joined, they threw out the textbook.
               </h2>
             </div>
             <div className="md:col-span-8 space-y-12">
               <p className="text-2xl font-editorial-body leading-relaxed text-white/80">
-                Our third version actually works. Teaching design tools is easy. Teaching you how to think like a designer is the hard part.
+                There were no classrooms or boring lectures. On Day 1, I was treated like a junior designer in a real studio. The stakes were real.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="border-t border-white/20 pt-6">
@@ -74,7 +74,7 @@ export default function Home() {
                 <div className="border-t border-white/20 pt-6">
                   <div className="editorial-footnote text-white/50 mb-4">02 — The Critique</div>
                   <h4 className="text-xl font-bold mb-2">Direct Feedback</h4>
-                  <p className="text-white/60 font-editorial-body">If your design needs work, we will tell you. But we will also show you exactly how to fix it. Being too nice won't help you learn.</p>
+                  <p className="text-white/60 font-editorial-body">If my design needed work, they told me. But they also showed me exactly how to fix it. Being too nice won't help you learn.</p>
                 </div>
               </div>
             </div>
@@ -92,15 +92,15 @@ export default function Home() {
         />
       </div>
 
-      {/* Slide 5: Act 3 (The Evidence) */}
+      {/* Slide 5: Act 3 (The Evidence - The Breakthrough) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-3" number="03" title="The Evidence" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-3" number="03" title="The Breakthrough" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-3xl mb-16">
             <h2 className="text-4xl md:text-6xl font-editorial-display font-bold uppercase mb-6">
-              Real Student Projects.
+              I built real projects. Not fake mockups.
             </h2>
             <p className="text-xl font-editorial-body text-white/60">
-              No fake designs. No templates. Just real work and real learning.
+              No templates. Just my raw process of solving design problems. That is when recruiters started calling me.
             </p>
           </div>
           
@@ -115,7 +115,7 @@ export default function Home() {
             <div>
               <h3 className="text-2xl font-bold mb-4 font-editorial-display">Our Results</h3>
               <p className="font-editorial-body text-white/70 text-lg">
-                80% of our students get hired before they even finish. One is still figuring it out — and that's okay too. We don't promise fake guarantees—we teach you real skills.
+                80% of my class got hired before the 12 weeks even ended. We don't promise fake guarantees—we teach you real skills.
               </p>
             </div>
             <div className="flex flex-col gap-4">
@@ -136,16 +136,16 @@ export default function Home() {
         </NarrativeAct>
       </div>
 
-      {/* Slide 6: Act 4 (The Offer) */}
+      {/* Slide 6: Act 4 (The Offer - Steve Jobs Single-Tier Pitch) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-4" number="04" title="The Offer" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-4" number="04" title="The Package" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <TypewriterReveal 
-              text="Our Master Course" 
+              text="One Course. Everything Included." 
               className="text-3xl md:text-5xl font-editorial-display font-bold uppercase"
             />
             <p className="text-xl md:text-2xl font-editorial-body text-black/70 max-w-2xl mx-auto">
-              12 weeks of hands-on design training. You will build a portfolio that gets you hired. 
+              We don't have basic, premium, or ultimate versions. We have one training: Our Best Version. You get all the mentoring, all the client projects, and all the career help. Because you don't need a half-baked course. You need to get hired.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-16">
@@ -186,21 +186,21 @@ export default function Home() {
         <FeaturedCourses />
       </div>
 
-      {/* Slide 8: Act 5 (The Decision) + Footer */}
+      {/* Slide 8: Act 5 (The Decision - The Leap) + Footer */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-between">
-        <NarrativeAct id="act-5" number="05" title="The Decision" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center border-b border-white/10">
+        <NarrativeAct id="act-5" number="05" title="The Leap" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center border-b border-white/10">
           <div className="text-center max-w-3xl mx-auto my-auto">
             <h2 className="text-5xl md:text-7xl font-editorial-display font-black uppercase mb-8">
-              Enough reading.
+              I was hesitant too.
             </h2>
             <p className="text-2xl font-editorial-body text-white/60 mb-12 italic">
-              Ready to start your design career?
+              But either you keep copying templates, or you start building your real career.
             </p>
             <Link 
               href="/auth/login" 
               className="inline-block bg-white text-black px-12 py-5 font-bold uppercase tracking-widest hover:bg-white/90 hover:scale-105 transition-all duration-300"
             >
-              Apply for the next batch
+              Start My Journey
             </Link>
           </div>
         </NarrativeAct>
