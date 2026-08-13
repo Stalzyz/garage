@@ -39,6 +39,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         if (!passwordsMatch) return null;
 
+        // Option B: Enforce Separated Portals (Agency OS Only)
+        if (user.role === 'STUDENT' || user.role === 'EDUCATOR') {
+          throw new Error("Access Denied: Please log in via the Academy portal.");
+        }
+
         // Verify Two-Factor Authentication if enabled
         if (user.twoFaEnabled) {
           const code = credentials.code as string;
