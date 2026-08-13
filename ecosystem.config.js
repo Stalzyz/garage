@@ -17,6 +17,10 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000,
         HOSTNAME: '0.0.0.0',
+        AUTH_URL: 'https://garage.grekam.in',
+        NEXTAUTH_URL: 'https://garage.grekam.in',
+        AUTH_TRUST_HOST: 'true',
+        AUTH_SECRET: 'HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=',
       },
     },
     {
