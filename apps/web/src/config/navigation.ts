@@ -74,7 +74,7 @@ export const navigation: NavItem[] = [
     href: "/dashboard/finance",
     icon: DollarSign,
     resource: "Finance",
-    roles: ["SUPER_ADMIN", "MANAGER", "CLIENT"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
       { title: "Overview",  href: "/dashboard/finance" },
       { title: "Revenue",   href: "/dashboard/finance/revenue" },
