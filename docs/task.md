@@ -1,0 +1,5 @@
+- [x] Build BDM Hiring Playbook & Interview scorecard (`bdm_hiring_process.md`)
+- [x] Build Grekam Financial Targets & Model (`financial_model.md`)
+- [x] Build Landing Page Copy for Grafty (`grafty_landing_page_copy.md`)
+- [x] Build Landing Page Copy for Atlas (`atlas_landing_page_copy.md`)
+- [x] Build Walkthrough summary (`walkthrough.md`)
