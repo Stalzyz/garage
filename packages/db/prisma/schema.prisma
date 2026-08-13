@@ -442,8 +442,22 @@ model Proposal {
   contact       Contact?            @relation(fields: [contactId], references: [id])
   items         ProposalItem[]
   generatedDocs GeneratedDocument[]
+  comments      ProposalComment[]
 
   @@map("proposals")
+}
+
+model ProposalComment {
+  id         String   @id @default(cuid())
+  proposalId String
+  userId     String
+  userName   String
+  comment    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@map("proposal_comments")
 }
 
 model ProposalItem {

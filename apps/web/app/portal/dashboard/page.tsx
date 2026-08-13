@@ -261,6 +261,29 @@ export default function ClientDashboard() {
     }
   }
 
+  const [activeCommentTexts, setActiveCommentTexts] = useState<Record<string, string>>({})
+  const [commentingId, setCommentingId] = useState<string | null>(null)
+
+  const handlePostComment = async (proposalId: string) => {
+    const commentText = activeCommentTexts[proposalId]
+    if (!commentText || !commentText.trim()) return
+
+    setCommentingId(proposalId)
+    try {
+      await fetchApi(`/portal/proposals/${proposalId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({ comment: commentText })
+      })
+      toast.success("Comment posted successfully!")
+      setActiveCommentTexts(prev => ({ ...prev, [proposalId]: "" }))
+      mutate()
+    } catch (err: any) {
+      toast.error("Failed to post comment")
+    } finally {
+      setCommentingId(null)
+    }
+  }
+
   if (status === "loading" || dashLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
@@ -738,6 +761,44 @@ export default function ClientDashboard() {
                     <a href={`/portal/proposals/${prop.publicToken}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" /> View Proposal
                     </a>
+                  </div>
+                </div>
+
+                {/* Comments Section */}
+                <div className="mt-6 border-t border-white/5 pt-4">
+                  <h4 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Proposal Discussion ({prop.comments?.length || 0})
+                  </h4>
+                  
+                  {prop.comments && prop.comments.length > 0 && (
+                    <div className="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      {prop.comments.map((c: any) => (
+                        <div key={c.id} className="bg-white/2 border border-white/5 rounded-xl p-3">
+                          <div className="flex items-center justify-between text-[10px] text-white/40 mb-1">
+                            <span className="font-bold text-violet-400">{c.userName}</span>
+                            <span>{new Date(c.createdAt).toLocaleString()}</span>
+                          </div>
+                          <p className="text-xs text-white/80">{c.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      placeholder="Ask a question or request revision..."
+                      value={activeCommentTexts[prop.id] || ""}
+                      onChange={e => setActiveCommentTexts(prev => ({ ...prev, [prop.id]: e.target.value }))}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500"
+                    />
+                    <button
+                      onClick={() => handlePostComment(prop.id)}
+                      disabled={commentingId === prop.id || !activeCommentTexts[prop.id]?.trim()}
+                      className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-white/5 disabled:text-white/20 text-white text-xs font-bold rounded-xl transition-colors shrink-0"
+                    >
+                      {commentingId === prop.id ? "..." : "Send"}
+                    </button>
                   </div>
                 </div>
               </div>

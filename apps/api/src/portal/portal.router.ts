@@ -183,6 +183,9 @@ export default async function portalRouter(app: FastifyInstance) {
     
     const proposals = await app.prisma.proposal.findMany({
       where: { leadId: { in: leadIds }, status: { in: ['SENT', 'VIEWED', 'APPROVED'] } },
+      include: {
+        comments: { orderBy: { createdAt: 'asc' } }
+      },
       orderBy: { createdAt: 'desc' }
     });
     
@@ -443,5 +446,41 @@ export default async function portalRouter(app: FastifyInstance) {
     });
 
     return file;
+  });
+
+  // POST /api/v1/portal/proposals/:proposalId/comments
+  app.post('/proposals/:proposalId/comments', async (req, reply) => {
+    const { proposalId } = req.params as { proposalId: string };
+    const { comment } = req.body as { comment: string };
+
+    if (!comment) {
+      return reply.badRequest('Missing comment text');
+    }
+
+    const contactId = (req as any).contactId;
+    const contact = await app.prisma.contact.findUnique({ where: { id: contactId } });
+    if (!contact || !contact.email) {
+      return reply.forbidden('Access denied');
+    }
+
+    const proposal = await app.prisma.proposal.findUnique({
+      where: { id: proposalId },
+      include: { lead: true }
+    });
+
+    if (!proposal || proposal.lead?.email !== contact.email) {
+      return reply.forbidden('Access denied');
+    }
+
+    const newComment = await app.prisma.proposalComment.create({
+      data: {
+        proposalId,
+        comment,
+        userId: req.user?.id || 'client',
+        userName: req.user?.name || 'Client'
+      }
+    });
+
+    return newComment;
   });
 }
