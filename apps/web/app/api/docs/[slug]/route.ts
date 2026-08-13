@@ -4,9 +4,10 @@ import path from "path"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  props: { params: Promise<{ slug: string }> | { slug: string } }
 ) {
-  const slug = params.slug
+  const resolvedParams = await props.params
+  const slug = resolvedParams?.slug
 
   // Allow only safe filenames — alphanumeric, hyphens, underscores
   if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
@@ -31,7 +32,8 @@ export async function GET(
   }
 
   if (!content) {
-    return NextResponse.json({ error: "Document not found" }, { status: 404 })
+    console.error(`[Docs API] Document not found for slug "${slug}". Searched paths:`, possiblePaths)
+    return NextResponse.json({ error: `Document "${slug}" not found` }, { status: 404 })
   }
 
   return NextResponse.json({ content, slug })
