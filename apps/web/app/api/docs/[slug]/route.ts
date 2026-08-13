@@ -15,9 +15,11 @@ export async function GET(
 
   // Resolve path: works both in dev (monorepo root) and in standalone build
   const possiblePaths = [
-    path.join(process.cwd(), "..", "..", "..", "..", "docs", `${slug}.md`), // standalone: cwd = apps/web/.next/standalone/apps/web
-    path.join(process.cwd(), "docs", `${slug}.md`),                         // dev: cwd = monorepo root
-    path.join(process.cwd(), "..", "..", "docs", `${slug}.md`),             // dev: cwd = apps/web
+    path.join("/root/grekam-os/docs", `${slug}.md`),
+    path.join(process.cwd(), "..", "..", "..", "..", "..", "docs", `${slug}.md`), // standalone cwd = /root/grekam-os/apps/web/.next/standalone/apps/web (5 levels to monorepo root)
+    path.join(process.cwd(), "..", "..", "..", "..", "docs", `${slug}.md`),
+    path.join(process.cwd(), "docs", `${slug}.md`),                               // standalone internal or dev monorepo root
+    path.join(process.cwd(), "..", "..", "docs", `${slug}.md`),                   // dev cwd = apps/web
   ]
 
   let content: string | null = null
