@@ -89,27 +89,228 @@ const KB_SECTIONS = [
     ]
   },
   {
-    category: "Academy & LMS",
+    category: "Company Playbooks & SOPs",
     items: [
       {
-        title: "Admissions",
-        icon: GraduationCap,
-        desc: "Review and process new academy student registrations.",
-        howToUse: "Review course interest forms, log interview notes, and approve students to cohort batches.",
-        howItWorks: "Converts Lead nodes into Student models inside database transactions, mapping them to cohorts.",
-        roles: ["Super Admin", "Manager", "Staff"]
+        title: "MASTER INDEX — Full Document Library",
+        icon: LayoutDashboard,
+        desc: "The front door to every Grekam OS document. 23 documents organised by tier.",
+        howToUse: "Start here. Find the document you need by tier (Culture, Roles, Products, Sales, Delivery, Finance, Marketing).",
+        howItWorks: "Maintained in the /docs directory of the monorepo. Updated when any document is added or changed.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/MASTER_INDEX.md"
       },
       {
-        title: "LMS Course Room",
-        icon: BookOpen,
-        desc: "The student virtual learning classroom containing lessons, achievements, and assignments.",
-        howToUse: "Browse course curriculums, download materials, watch video lectures, and submit assignments.",
-        howItWorks: "Renders dynamically using Next.js route validation. Tracks student progress telemetry on lesson changes.",
-        roles: ["Super Admin", "Manager", "Staff", "Student", "Intern"]
+        title: "Culture Deck",
+        icon: Users,
+        desc: "Who we are, how we decide, and what we do not tolerate at Grekam.",
+        howToUse: "Share with every candidate before their interview. Every employee reads it on Day 1.",
+        howItWorks: "Defines the 10 company operating rules and values that govern all decisions at Grekam.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/culture_deck.md"
+      },
+      {
+        title: "BDM Hiring & Interview Playbook",
+        icon: UserCheck,
+        desc: "Job profile, pre-screening questions, live role-play scenarios, and evaluation scorecard for recruiting a BDM.",
+        howToUse: "Send Section 2 pre-screen questions before booking a call. Run Round 1 (Values) and Round 2 (Role-Play) interviews. Score using the Section 5 rubric. Hire if score is 22+/25.",
+        howItWorks: "The scoring rubric covers 5 axes: Process Discipline, Discovery, Conflict Resolution, Scope Protection, and Coachability.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/bdm_hiring_process.md"
+      },
+      {
+        title: "BDM 90-Day Onboarding Playbook",
+        icon: Briefcase,
+        desc: "The complete 90-day blueprint for a new Business Development & Operations Manager.",
+        howToUse: "Hand to new BDM on Day 1. Follow the day-by-day reading and execution plan (Day 1–3: Company, Day 4–7: Grekam OS, Day 8–10: Grafty, etc.)",
+        howItWorks: "Month 1: Frontline execution. Month 2: Consistent selling. Month 3: Build the sales department SOPs.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/bdm_90day_playbook.md"
+      },
+      {
+        title: "Developer 90-Day Playbook",
+        icon: Globe,
+        desc: "Full onboarding blueprint for developers joining Grekam.",
+        howToUse: "Hand to new developer on Day 1. Follow environment setup → codebase orientation → project shadowing → first independent delivery.",
+        howItWorks: "Covers coding standards, review gates, handoff discipline, and the Month 3 transition to system builder.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/developer_90day_playbook.md"
+      },
+      {
+        title: "Designer 90-Day Playbook",
+        icon: Layers,
+        desc: "Full onboarding blueprint for designers joining Grekam.",
+        howToUse: "Hand to new designer on Day 1. Follow brand immersion → project shadowing → first wireframe → design system contribution.",
+        howItWorks: "Covers tool standards, brand guidelines, client communication rules, and the developer handoff discipline.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/designer_90day_playbook.md"
+      },
+      {
+        title: "Support 90-Day Playbook",
+        icon: LifeBuoy,
+        desc: "Full onboarding blueprint for support roles at Grekam.",
+        howToUse: "Hand to new support hire on Day 1. Day 1–14: Product mastery + shadowing. Day 15+: Independent ticket resolution.",
+        howItWorks: "Covers product mastery requirements, ticket management, escalation decision-making, and the Month 3 knowledge base build.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/support_90day_playbook.md"
+      },
+      {
+        title: "Grafty Training Playbook",
+        icon: MessageSquare,
+        desc: "Product overview, 10-minute demo script, pricing packages, and certification guide for Grafty.",
+        howToUse: "Required reading in Days 8–10 of onboarding. Must be able to conduct a 10-minute demo independently before selling.",
+        howItWorks: "Covers WhatsApp API concepts, Grafty feature walkthroughs, common objections, and the 6-level certification path.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/grafty_training_playbook.md"
+      },
+      {
+        title: "Atlas Training Playbook",
+        icon: GraduationCap,
+        desc: "Product overview, customer journey, demo script, and requirements mapping for Atlas Ecommerce.",
+        howToUse: "Required reading in Days 11–12 of onboarding. Must map customer requirements (UPI, COD, GST, Shipping) before selling.",
+        howItWorks: "Covers the Atlas product scope, what requires customization, demo flow, and pricing packages.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/atlas_training_playbook.md"
+      },
+      {
+        title: "Web Dev Sales Guide",
+        icon: Globe,
+        desc: "How to classify, scope, and sell web development projects profitably.",
+        howToUse: "Use to qualify whether a customer needs a brochure site, lead-gen site, ecommerce, or a custom web app. Never promise features without technical confirmation.",
+        howItWorks: "Defines the 8 project types, scoping questions, pricing bands, and handoff requirements for every web project.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/web_dev_sales_guide.md"
+      },
+      {
+        title: "Calling Script",
+        icon: Radio,
+        desc: "Word-for-word call scripts for 6 scenarios: cold call, warm follow-up, demo booking, proposal follow-up, objection handling, and closing.",
+        howToUse: "Use these scripts verbatim until you are confident. Adapt after 4+ weeks of active calling.",
+        howItWorks: "Each script has a 30-second opening, discovery questions, value statement, and a next-action close.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/calling_script.md"
+      },
+      {
+        title: "WhatsApp Scripts",
+        icon: MessageSquare,
+        desc: "Ready-to-use message templates for 10 WhatsApp scenarios (first contact, follow-up, proposal sent, payment reminder, etc.)",
+        howToUse: "Copy-paste the template, replace [Name] and [Product] with actual values. Do not send generic messages.",
+        howItWorks: "Every script is designed for high open-rate and response rate based on direct-response principles.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/whatsapp_scripts.md"
+      },
+      {
+        title: "Lead Qualification Form",
+        icon: UserCheck,
+        desc: "Questions, scoring system, and disqualification guide for every inbound lead.",
+        howToUse: "Complete this form for every lead in Grekam OS before booking a demo. Disqualify early if score is too low.",
+        howItWorks: "Covers business type, problem urgency, budget, decision authority, and timeline. Each question scores 1–3 points.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/lead_qualification_form.md"
+      },
+      {
+        title: "Objection Handbook",
+        icon: HelpCircle,
+        desc: "20 common objections across all 4 Grekam products with structured response frameworks.",
+        howToUse: "Before a demo, review the objections for that product. During a call, find the objection and use the response as a framework.",
+        howItWorks: "Each objection has a diagnosis (what the customer actually means), a counter question, and a value bridge.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/objection_handbook.md"
+      },
+      {
+        title: "Proposal Templates",
+        icon: Briefcase,
+        desc: "Ready-to-personalise proposals for all 4 Grekam products.",
+        howToUse: "Copy the relevant template, fill in the client name, scope, price, and payment milestones. Review with BDM before sending.",
+        howItWorks: "Each template includes a project scope definition, deliverables list, payment schedule, and Ts & Cs.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/proposal_templates.md"
+      },
+      {
+        title: "Customer Onboarding SOP",
+        icon: UserCheck,
+        desc: "Step-by-step onboarding process for all 4 Grekam products immediately after payment is confirmed.",
+        howToUse: "Trigger this document the moment a payment is confirmed. Complete every checklist item in sequence.",
+        howItWorks: "Covers account setup, kickoff call agenda, credentials delivery, training schedule, and first milestone review.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/customer_onboarding_sop.md"
+      },
+      {
+        title: "Sales-to-Dev Handoff SOP",
+        icon: Zap,
+        desc: "Mandatory handoff form and process every time a project is sold and passed to the development team.",
+        howToUse: "Complete this form for every project before any development begins. The developer must never start without a completed handoff.",
+        howItWorks: "Captures client info, scope, features, design references, integrations, payment status, and anything promised in the sale.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/sales_dev_handoff_sop.md"
+      },
+      {
+        title: "Escalation SOP",
+        icon: LifeBuoy,
+        desc: "Protocols for handling client complaints, refund requests, and crisis situations (L1 to L5 severity).",
+        howToUse: "Identify the severity level of the issue. Follow the exact response script and timeline for that level. Log everything in Grekam OS.",
+        howItWorks: "L1: Minor complaint (resolve in 24h). L2: Delivery dispute (48h). L3: Refund demand (management involved). L4/L5: Legal/reputational risk (founder escalation).",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/escalation_sop.md"
+      },
+      {
+        title: "KPI Dashboard Guide",
+        icon: BarChart2,
+        desc: "What to measure, how often, and what management action to take based on results.",
+        howToUse: "Review weekly with BDM. Review monthly with the founder. Flag any metric that is 20%+ below target.",
+        howItWorks: "Covers Sales KPIs (calls, demos, pipeline value, revenue), Delivery KPIs (project health), and Operational KPIs (CRM hygiene, response times).",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/kpi_dashboard.md"
+      },
+      {
+        title: "Financial Model & Growth Targets",
+        icon: DollarSign,
+        desc: "Pricing, ARPU, CAC, Gross Margin, and 12-month active customer targets for all 4 Grekam products.",
+        howToUse: "Review at the start of each month. Compare active customer counts against the monthly target table. If behind, check lead flow and CAC.",
+        howItWorks: "Defines the Cash Engine (Web Dev & Atlas setups) and the Scale Engine (Grafty & SaaS MRR). Includes breakeven points per product.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/financial_model.md"
+      },
+      {
+        title: "Grafty Landing Page Copy Specs",
+        icon: Globe,
+        desc: "Direct-response copywriting blueprint for the grafty.pro website. Hero, pain points, features, pricing, and FAQ.",
+        howToUse: "Use when rebuilding or updating grafty.pro. Each section has exact copy, layout specs, and CTA positioning.",
+        howItWorks: "Structured as a conversion-optimised direct-response page targeting SME business owners in India.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/grafty_landing_page_copy.md"
+      },
+      {
+        title: "Atlas Landing Page Copy Specs",
+        icon: Globe,
+        desc: "Direct-response copywriting blueprint for atlas.grekam.in/build-ecommerce. Shopify comparison, local integrations, and pricing CTA.",
+        howToUse: "Use when rebuilding or updating the Atlas build-ecommerce page. Each section has exact copy, comparison tables, and CTA positioning.",
+        howItWorks: "Structured as a conversion page targeting D2C brands and retail businesses frustrated with Shopify's transaction fees and poor India localisation.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/atlas_landing_page_copy.md"
+      },
+      {
+        title: "Role Checklists",
+        icon: UserCheck,
+        desc: "Daily and weekly operating routines for every role at Grekam.",
+        howToUse: "Print or pin to desk on Day 1. Use as the daily operating rhythm. Do not skip checklist items.",
+        howItWorks: "Covers Sales (CRM updates, calls, follow-ups), Developers (task hygiene, PR standards), Designers (handoff discipline), and Support (ticket management).",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/role_checklists.md"
+      },
+      {
+        title: "Evaluation & Certification Tests",
+        icon: GraduationCap,
+        desc: "4 progressive competency tests to verify Grekam OS mastery for every new hire.",
+        howToUse: "Test 1 (Day 7): Setup & navigation. Test 2 (Week 3): Live audit. Test 3 (Month 1): Continuity. Test 4 (Month 1): Role Reversal (teach back).",
+        howItWorks: "Scored 1–10 per section. A score below 6 requires a re-test before full role access is granted.",
+        roles: ["Super Admin", "Manager"],
+        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/evaluation_tests.md"
       }
     ]
   }
 ]
+
 
 export default function KnowledgeBaseDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -249,6 +450,19 @@ export default function KnowledgeBaseDashboard() {
                                   </span>
                                 ))}
                               </div>
+                              {'docUrl' in item && item.docUrl && (
+                                <div className="pt-3 border-t border-white/5">
+                                  <a
+                                    href={(item as any).docUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/15 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-wide hover:bg-blue-600/25 hover:border-blue-400/50 transition-all duration-200"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    Open Full Document
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
