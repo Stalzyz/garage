@@ -170,6 +170,19 @@ export default async function subscriptionsRouter(app: FastifyInstance) {
       }
     });
 
+    // Notify primary contact
+    const primaryContact = await app.prisma.contact.findFirst({
+      where: { companyId: parsed.companyId, isPrimary: true }
+    });
+
+    if (primaryContact?.email) {
+      const { sendEmail, EmailTemplates } = await import('../../integrations/email.service');
+      await sendEmail(
+        primaryContact.email,
+        EmailTemplates.subscriptionStarted(primaryContact.firstName || 'Client', parsed.planName)
+      );
+    }
+
     reply.code(201);
     return newSub;
   });

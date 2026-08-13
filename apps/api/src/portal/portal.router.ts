@@ -477,9 +477,22 @@ export default async function portalRouter(app: FastifyInstance) {
         proposalId,
         comment,
         userId: req.user?.id || 'client',
-        userName: req.user?.name || 'Client'
+        userName: (req.user as any)?.firstName ? `${(req.user as any).firstName} ${(req.user as any).lastName || ''}`.trim() : 'Client'
       }
     });
+
+    // Notify the agency that a client left a comment
+    const org = await app.prisma.organization.findFirst();
+    if (org?.supportEmail) {
+      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+      const adminUrl = process.env.AUTH_URL || 'https://garage.grekam.in';
+      const link = `${adminUrl}/dashboard/crm/proposals/${proposalId}`;
+      
+      await sendEmail(
+        org.supportEmail,
+        EmailTemplates.newComment('Team Grekam', newComment.userName, proposal.title, comment, link)
+      );
+    }
 
     return newComment;
   });

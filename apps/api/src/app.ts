@@ -19,6 +19,7 @@ import settingsModule from './settings';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
 import { startCronJobs } from './cron/invoice-jobs';
+import { initializeCronJobs as startAutomatedDrips } from './automations/cron';
 import { initSentry } from './sentry';
 
 import path from 'path';
@@ -41,6 +42,7 @@ export async function buildApp(opts: any = {}): Promise<any> {
 
   // Start Scheduled Cron Jobs
   startCronJobs();
+  startAutomatedDrips();
 
   // Security: Helmet HTTP headers
   await app.register(helmet, { contentSecurityPolicy: false });

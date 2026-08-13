@@ -311,6 +311,19 @@ export default async function proposalsRouter(app: FastifyInstance) {
         include: { items: true },
       });
     });
+    
+    // Trigger email if status changed to APPROVED
+    if (rest.status === 'APPROVED') {
+      const fullProposal = await app.prisma.proposal.findUnique({
+        where: { id },
+        include: { lead: true }
+      });
+      if (fullProposal?.lead?.email) {
+        const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+        await sendEmail(fullProposal.lead.email, EmailTemplates.proposalApproved(fullProposal.lead.name || 'Client', fullProposal.title));
+      }
+    }
+
     await auditLog(app.prisma as any, req, 'UPDATE', 'Proposal', proposal.id, { status: proposal.status });
     return proposal;
   });
@@ -504,6 +517,11 @@ export default async function proposalsRouter(app: FastifyInstance) {
       },
       include: { lead: true }
     });
+
+    if (proposal.lead?.email) {
+      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+      await sendEmail(proposal.lead.email, EmailTemplates.proposalApproved(proposal.lead.name || 'Client', proposal.title));
+    }
 
     return { success: true, data: proposal };
   });

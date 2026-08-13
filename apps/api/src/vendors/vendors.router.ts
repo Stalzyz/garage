@@ -128,8 +128,20 @@ export default async function vendorsRouter(app: FastifyInstance) {
         dayRate: body.dayRate || 0,
         projectRate: body.projectRate || 0,
         gstin: body.gstin || body.taxId || null
-      }
+      },
+      include: { user: true }
     });
+    
+    if (vendor.user?.email) {
+      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+      const portalUrl = process.env.PORTAL_URL || 'https://garage.grekam.in';
+      const link = `${portalUrl}/portal/vendor/onboarding?token=${vendor.vendorCode}`;
+      await sendEmail(
+        vendor.user.email,
+        EmailTemplates.vendorOnboarding(vendor.user.firstName || vendor.company || 'Partner', link)
+      );
+    }
+
     reply.code(201);
     return vendor;
   });
@@ -165,7 +177,23 @@ export default async function vendorsRouter(app: FastifyInstance) {
         ...body,
         ...(body.deadline && { deadline: new Date(body.deadline) }),
       },
+      include: {
+        vendor: { include: { user: true } },
+        project: { select: { name: true } }
+      }
     });
+
+    if (assignment.vendor?.user?.email) {
+      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+      await sendEmail(
+        assignment.vendor.user.email,
+        EmailTemplates.vendorBrief(
+          assignment.vendor.user.firstName || assignment.vendor.company || 'Partner',
+          assignment.project?.name || 'New Project'
+        )
+      );
+    }
+
     reply.code(201);
     return assignment;
   });

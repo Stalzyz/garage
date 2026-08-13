@@ -256,7 +256,124 @@ export const EmailTemplates = {
          style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
         View Full Details →
       </a>
-    `, `${projectName} is ${progress}% complete — weekly update`),
+    `, \`\${projectName} is \${progress}% complete — weekly update\`),
+  }),
+
+  // ── Phase 1: New Transactional Templates ─────────────────────────────────────
+
+  portalInvite: (clientName: string, passwordResetLink: string) => ({
+    subject: \`✦ Welcome to Grekam Visuals, \${clientName}\`,
+    html: baseTemplate(\`
+      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, \${clientName}!</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
+        Your client portal account has been created. Here you can track projects, approve proposals, pay invoices, and download deliverables.
+      </p>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:24px;">
+        <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0 0 12px;">Please set up your password to gain access:</p>
+        <a href="\${passwordResetLink}"
+           style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
+          Set Password & Login →
+        </a>
+      </div>
+      <p style="color:rgba(255,255,255,0.4);font-size:12px;">This link will expire in 24 hours.</p>
+    \`, \`Your client portal account is ready\`),
+  }),
+
+  invoicePaid: (clientName: string, invoiceId: string, amount: number) => ({
+    subject: \`✅ Payment Received — Invoice \${invoiceId}\`,
+    html: baseTemplate(\`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Thank You!</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi \${clientName}, we have successfully received your payment of <strong>₹\${amount.toLocaleString('en-IN')}</strong> for Invoice \${invoiceId}.
+      </p>
+      <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;margin-bottom:28px;">
+        <div style="color:#34d399;font-size:15px;font-weight:600;">Payment Successful</div>
+      </div>
+      <a href="\${process.env.PORTAL_URL || 'http://localhost:3000'}/portal/dashboard"
+         style="display:inline-block;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
+        View Invoice in Portal →
+      </a>
+    \`, \`Payment received for \${invoiceId}\`),
+  }),
+
+  proposalApproved: (clientName: string, proposalTitle: string) => ({
+    subject: \`🎉 Proposal Approved — \${proposalTitle}\`,
+    html: baseTemplate(\`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Let's get started!</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi \${clientName}, we've received your approval for <strong>\${proposalTitle}</strong>. 
+        Our team will be in touch shortly with the next steps.
+      </p>
+    \`, \`Your proposal approval has been received\`),
+  }),
+
+  newComment: (clientName: string, authorName: string, entityTitle: string, snippet: string, link: string) => ({
+    subject: `💬 New Comment from ${authorName} on ${entityTitle}`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:20px;margin:0 0 8px;">New Message</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.7;margin:0 0 16px;">
+        Hi ${clientName}, <strong>${authorName}</strong> left a comment on ${entityTitle}:
+      </p>
+      <div style="background:rgba(255,255,255,0.05);border-left:4px solid #7c3aed;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px;">
+        <p style="color:#fff;font-size:15px;margin:0;">"${snippet}"</p>
+      </div>
+      <a href="${link}"
+         style="display:inline-block;background:#27272a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;border:1px solid rgba(255,255,255,0.1);">
+        Reply in Portal
+      </a>
+    `, `${authorName} left a comment`),
+  }),
+
+  vendorBrief: (vendorName: string, projectName: string) => ({
+    subject: `📝 New Project Brief: ${projectName}`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">New Project Assignment</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi ${vendorName}, you have been assigned to a new project: <strong>${projectName}</strong>.
+      </p>
+      <a href="${process.env.PORTAL_URL || 'http://localhost:3000'}/portal"
+         style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
+        View Scope & Brief →
+      </a>
+    `, `You've been assigned to ${projectName}`),
+  }),
+
+  subscriptionStarted: (clientName: string, planName: string) => ({
+    subject: `🚀 Subscription Started — ${planName}`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">You're all set!</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi ${clientName}, your subscription to <strong>${planName}</strong> is now active. We're thrilled to have you on board!
+      </p>
+    `, `Your subscription is active`),
+  }),
+
+  paymentFailed: (clientName: string, reason: string) => ({
+    subject: `⚠️ Payment Failed Action Required`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Payment Failed</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi ${clientName}, we were unable to process your recent payment (${reason}). Please update your billing information in the portal to avoid service interruption.
+      </p>
+      <a href="${process.env.PORTAL_URL || 'http://localhost:3000'}/portal"
+         style="display:inline-block;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
+        Update Billing Info →
+      </a>
+    `, `Your recent payment failed`),
+  }),
+
+  vendorOnboarding: (vendorName: string, link: string) => ({
+    subject: `Welcome to Grekam Visuals Partner Network`,
+    html: baseTemplate(`
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Welcome ${vendorName}!</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
+        We're excited to partner with you. Please complete your onboarding profile using the link below so we can start sending you briefs.
+      </p>
+      <a href="${link}"
+         style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
+        Complete Onboarding →
+      </a>
+    `, `Complete your vendor onboarding`),
   }),
 };
 
