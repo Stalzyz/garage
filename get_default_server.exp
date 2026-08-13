@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@200.97.163.236
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "grep -E 'default_server' /etc/nginx/sites-enabled/*\r"
+expect "# "
+send "exit\r"
+expect eof

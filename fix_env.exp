@@ -1,12 +1,12 @@
 #!/usr/bin/expect -f
 set timeout 30
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
-expect "assword:"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
 send "Photoshop09@\r"
 expect "# "
-send "echo '\nAUTH_SECRET=\"grekam-os-super-secret-key-2026\"' >> /root/grekam-os/.env\r"
+send "sed -i 's/^AUTH_URL=/#AUTH_URL=/g' /root/grekam-os/apps/web/.env.production\r"
 expect "# "
-send "pm2 restart grecakam-os-academy\r"
+send "pm2 restart grekam-os-web\r"
 expect "# "
 send "exit\r"
 expect eof

@@ -1,0 +1,46 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect -re "# "
+send "cd /root/grekam-os\r"
+expect -re "# "
+
+send "git pull origin main\r"
+expect -re "# "
+
+send "echo '=== PULL DONE ==='\r"
+expect "=== PULL DONE ===" { }
+
+expect -re "# "
+
+# Delete and recreate the web process so PM2 picks up fresh env from ecosystem.config.js
+send "pm2 delete grekam-os-web\r"
+expect -re "# "
+
+send "pm2 start ecosystem.config.js --only grekam-os-web\r"
+expect -re "# "
+
+send "pm2 save\r"
+expect -re "# "
+
+send "pm2 env 12 | grep -i auth\r"
+expect -re "# "
+
+send "pm2 list\r"
+expect -re "# "
+
+send "echo '=== AUTH FIX DONE ==='\r"
+expect "=== AUTH FIX DONE ===" { }
+expect -re "# "
+
+send "exit\r"
+expect eof

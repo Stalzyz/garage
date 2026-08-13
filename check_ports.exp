@@ -1,6 +1,16 @@
 #!/usr/bin/expect -f
+
 set timeout 30
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "netstat -tulnp | grep node"
-expect "assword:"
-send "Photoshop09@\r"
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect "# " { send "docker ps\r" }
+expect "# " { send "ss -tlpn\r" }
+expect "# " { send "exit\r" }
 expect eof

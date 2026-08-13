@@ -10,7 +10,8 @@ expect {
     "password:" { send "$password\r" }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
+expect "# " { send "pm2 list\r" }
+expect "# " { send "pm2 logs grekam-os-web --lines 30 --no-daemon\r" }
+expect -timeout 5 "# " { send "\x03" }
 expect "# " { send "exit\r" }
 expect eof

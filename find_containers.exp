@@ -2,15 +2,16 @@
 
 set timeout 30
 set password "Photoshop09@"
-set host "root@72.61.231.187"
+set host "root@200.97.163.236"
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
 
 expect {
     "password:" { send "$password\r" }
+    "yes/no" { send "yes\r"; exp_continue }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
+expect "# " { send "docker ps -a\r" }
+expect "# " { send "find / -name '*docker-compose*' -o -name '*compose*' 2>/dev/null | head -n 30\r" }
 expect "# " { send "exit\r" }
 expect eof

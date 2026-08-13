@@ -38,7 +38,7 @@ export default function ClientDashboard() {
   const { symbol } = useCurrency()
   const [tab, setTab] = useState<TabId>("overview")
   const [showNotifications, setShowNotifications] = useState(false)
-  const [reviewFile, setReviewFile] = useState<{ projectId: string, fileId: string, url: string, type: 'image' | 'video' } | null>(null)
+  const [reviewFile, setReviewFile] = useState<{ projectId: string, fileId: string, url: string, type: 'image' | 'video' | 'pdf' | string } | null>(null)
 
   // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false)
@@ -521,8 +521,17 @@ export default function ClientDashboard() {
                         </div>
                       </div>
 
-                      <div className="mt-6 border-t border-white/5 pt-4 flex justify-between items-center text-xs text-white/40">
-                        <span>Next Billing: {dashboard.subscription.plan.nextBilling ? new Date(dashboard.subscription.plan.nextBilling).toLocaleDateString() : 'Continuous'}</span>
+                      <div className="mt-6 border-t border-white/5 pt-4">
+                        <div className="flex justify-between items-center text-xs text-white/40 mb-2">
+                          <span>Billing Cycle Progress</span>
+                          <span>Next Bill: {dashboard.subscription.plan.nextBilling ? new Date(dashboard.subscription.plan.nextBilling).toLocaleDateString() : 'Continuous'}</span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
+                          <div className="h-full bg-emerald-500 rounded-full w-1/2" />
+                        </div>
+                        <button className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold text-white transition-colors">
+                          Manage Subscription
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -593,14 +602,14 @@ export default function ClientDashboard() {
                         </div>
                         {d.ready && (
                           <div className="flex gap-3">
-                            {((d.mimeType && (d.mimeType.startsWith("image/") || d.mimeType.startsWith("video/"))) ||
-                             d.url.match(/\.(jpeg|jpg|gif|png|mp4|webm)/i)) && (
+                            {((d.mimeType && (d.mimeType.startsWith("image/") || d.mimeType.startsWith("video/") || d.mimeType.includes("pdf"))) ||
+                             d.url.match(/\.(jpeg|jpg|gif|png|mp4|webm|pdf)/i)) && (
                               <button 
                                 onClick={() => setReviewFile({ 
                                   projectId: p.id, 
                                   fileId: d.id, 
                                   url: d.url, 
-                                  type: (d.mimeType?.startsWith("video/") || d.url.match(/\.(mp4|webm)/i)) ? 'video' : 'image' 
+                                  type: (d.mimeType?.startsWith("video/") || d.url.match(/\.(mp4|webm)/i)) ? 'video' : (d.mimeType?.includes("pdf") || d.url.match(/\.(pdf)/i)) ? 'pdf' : 'image' 
                                 })}
                                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
                               >
@@ -670,7 +679,13 @@ export default function ClientDashboard() {
             </div>
 
             <div className="px-6 py-4 bg-white/2 border-t border-white/8 flex justify-end gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors">
+              <button onClick={() => setShowUploadModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors">
+                <UploadCloud className="w-3.5 h-3.5" /> Upload File
+              </button>
+              <button onClick={() => setShowBookingModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors">
+                <Calendar className="w-3.5 h-3.5" /> Book Call
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
                 <MessageSquare className="w-3.5 h-3.5" /> Message Team
               </button>
             </div>

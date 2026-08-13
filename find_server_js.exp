@@ -10,7 +10,11 @@ expect {
     "password:" { send "$password\r" }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
-expect "# " { send "exit\r" }
+expect -re "(#|~#|\\$) "
+sleep 2
+
+send "find /root/grekam-os/apps/web/.next/standalone -name 'server.js'\r"
+expect -re "(#|~#|\\$) "
+
+send "exit\r"
 expect eof

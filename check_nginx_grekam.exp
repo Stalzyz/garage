@@ -2,16 +2,17 @@
 
 set timeout 30
 set password "Photoshop09@"
-set host "root@72.61.231.187"
+set host "root@200.97.163.236"
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
 
 expect {
     "password:" { send "$password\r" }
+    "yes/no" { send "yes\r"; exp_continue }
 }
 
-expect "# " { send "nginx -t\r" }
+expect "# " { send "grep -rn \"grekam.in\" /etc/nginx/sites-enabled/\r" }
 expect "# " { send "ls -la /etc/nginx/sites-enabled/\r" }
-expect "# " { send "cat /etc/nginx/sites-enabled/* | grep -A 20 -B 5 -i 'grekam.in'\r" }
+expect "# " { send "cat /etc/nginx/sites-enabled/*\r" }
 expect "# " { send "exit\r" }
 expect eof

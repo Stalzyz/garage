@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect "# " { send "cd /root/grekam-os\r" }
+
+# Modify packages/db/.env to use escaped @ password
+expect "# " { send "sed -i 's/Photoshop09@@localhost/Photoshop09%40@localhost/g' packages/db/.env\r" }
+expect "# " { send "cat packages/db/.env\r" }
+
+# Run db push on the VPS to synchronize schemas
+expect "# " { send "pnpm --filter=@grekam/db exec prisma db push --accept-data-loss\r" }
+expect "# " { send "exit\r" }
+expect eof

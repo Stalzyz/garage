@@ -1,10 +1,16 @@
 #!/usr/bin/expect -f
-set timeout 30
+set timeout 600
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "password:"
 send "Photoshop09@\r"
 expect "# "
-send "pm2 logs grekam-os-web --lines 50 --nostream\r"
+send "cd /root/grekam-os\r"
+expect "# "
+send "git pull\r"
+expect "# "
+send "cd apps/web && pnpm run build\r"
+expect "# "
+send "pm2 restart grekam-os-web\r"
 expect "# "
 send "exit\r"
 expect eof

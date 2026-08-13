@@ -10,7 +10,9 @@ expect {
     "password:" { send "$password\r" }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
+expect "# " { send "cd /root/grekam-os\r" }
+expect "# " { send "cat .env\r" }
+expect "# " { send "cat apps/web/.env.local\r" }
+expect "# " { send "cat packages/db/.env\r" }
 expect "# " { send "exit\r" }
 expect eof

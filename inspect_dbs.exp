@@ -10,7 +10,7 @@ expect {
     "password:" { send "$password\r" }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -p 5432 -d grekam_os -c '\\dt' | head -n 20\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -p 5434 -d grekam_os -c '\\dt' | head -n 20\r" }
 expect "# " { send "exit\r" }
 expect eof

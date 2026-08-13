@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 900
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+# Pull
+expect "# " { send "cd /root/grekam-os\r" }
+expect "# " { send "git pull origin main\r" }
+expect "# " { send "echo '=== PULL DONE ==='\r" }
+
+# Build web only
+expect "# " { send "pnpm --filter=@grekam/web build\r" }
+expect -timeout 600 "# " { send "echo '=== WEB BUILD DONE ==='\r" }
+
+# Standalone Copy
+expect "# " { send "mkdir -p apps/web/.next/standalone/apps/web/.next/\r" }
+expect "# " { send "cp -rf apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ || true\r" }
+expect "# " { send "cp -rf apps/web/public apps/web/.next/standalone/apps/web/ || true\r" }
+expect "# " { send "echo '=== COPY DONE ==='\r" }
+
+# PM2 Restart
+expect "# " { send "pm2 restart grekam-os-web\r" }
+expect "# " { send "echo '=== RESTART DONE ==='\r" }
+
+# Status
+expect "# " { send "pm2 list\r" }
+expect "# " { send "exit\r" }
+expect eof

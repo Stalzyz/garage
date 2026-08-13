@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+set cmd [lindex $argv 0]
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host $cmd
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

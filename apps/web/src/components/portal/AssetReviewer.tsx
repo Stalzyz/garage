@@ -16,7 +16,7 @@ interface AssetReviewerProps {
   projectId: string;
   fileId: string;
   fileUrl: string;
-  fileType: 'image' | 'video';
+  fileType: 'image' | 'video' | 'pdf' | string;
   onClose: () => void;
 }
 
@@ -96,11 +96,16 @@ export function AssetReviewer({ projectId, fileId, fileUrl, fileType, onClose }:
               className="max-h-[90vh] object-contain select-none"
               draggable="false"
             />
-          ) : (
+          ) : fileType === 'video' ? (
             <video 
               src={fileUrl} 
               controls 
               className="max-h-[90vh] max-w-[70vw] object-contain" 
+            />
+          ) : (
+            <iframe 
+              src={fileUrl}
+              className="w-[70vw] h-[90vh] bg-white"
             />
           )}
           

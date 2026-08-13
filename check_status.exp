@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect "# " { send "pm2 list\r" }
+expect "# " { send "pm2 info grekam-os-web\r" }
+expect "# " { send "pm2 info grekam-os-api\r" }
+expect "# " { send "pm2 logs grekam-os-web --lines 50 --no-daemon\r" }
+expect -timeout 5 "# " { send "\x03" }
+expect "# " { send "pm2 logs grekam-os-api --lines 50 --no-daemon\r" }
+expect -timeout 5 "# " { send "\x03" }
+expect "# " { send "exit\r" }
+expect eof

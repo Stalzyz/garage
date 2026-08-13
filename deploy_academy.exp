@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+
+set timeout 600
+set password "Photoshop09@"
+set host "root@200.97.163.236"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+
+expect "# " { send "echo '=== CONNECTED ==='\r" }
+expect "# " { send "cd /root/garage\r" }
+expect "# " { send "git pull origin main 2>&1\r" }
+expect "# " { send "echo '=== PULLED ==='\r" }
+expect "# " { send "docker compose -f docker-compose.prod.vps.yml build academy-web --no-cache 2>&1\r" }
+expect -timeout 600 "# " { send "echo '=== BUILD DONE ==='\r" }
+expect "# " { send "docker compose -f docker-compose.prod.vps.yml up -d --no-deps academy-web 2>&1\r" }
+expect "# " { send "echo '=== DEPLOY DONE ==='\r" }
+expect "# " { send "docker compose -f docker-compose.prod.vps.yml ps\r" }
+expect "# " { send "exit\r" }
+expect eof

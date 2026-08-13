@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "pm2 delete 9\r"
+expect "# "
+send "cd /root/grekam-os\r"
+expect "# "
+send "AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true AUTH_URL=\"https://academy.grekam.in\" DATABASE_URL=\"postgresql://postgres:Photoshop09%40@localhost:5432/grekam_os?schema=public\" NEXT_PUBLIC_API_URL=\"https://garage.grekam.in/api/v1\" NEXT_PUBLIC_WS_URL=\"wss://garage.grekam.in/api/v1/ws\" NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 pm2 start apps/web/.next/standalone/apps/web/server.js --name grekam-os-web\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "sleep 3 && pm2 logs grekam-os-web --lines 10 --nostream\r"
+expect "# "
+send "exit\r"
+expect eof

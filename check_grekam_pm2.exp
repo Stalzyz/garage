@@ -8,9 +8,9 @@ spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
 
 expect {
     "password:" { send "$password\r" }
+    "yes/no" { send "yes\r"; exp_continue }
 }
 
-expect "# " { send "pm2 env 2 | grep DATABASE_URL\r" }
-expect "# " { send "pm2 env 9 | grep DATABASE_URL\r" }
+expect "# " { send "pm2 list\r" }
 expect "# " { send "exit\r" }
 expect eof

@@ -4,7 +4,7 @@ spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.
 expect "password:"
 send "Photoshop09@\r"
 expect "# "
-send "pm2 logs grekam-os-web --lines 50 --nostream\r"
+send "ls -la /etc/nginx/sites-enabled/\r"
 expect "# "
 send "exit\r"
 expect eof

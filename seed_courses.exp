@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+set timeout 180
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os/packages/db\r"
+expect "# "
+send "npx ts-node seed-uiux-design.ts\r"
+expect "# "
+send "npx ts-node seed-digital-marketing.ts\r"
+expect "# "
+send "npx ts-node seed-vfx-compositing.ts\r"
+expect "# "
+send "npx ts-node seed-graphic-design.ts\r"
+expect "# "
+send "npx ts-node seed-video-editing-master.ts\r"
+expect "# "
+send "npx ts-node seed-3d-animation.ts\r"
+expect "# "
+send "npx ts-node seed-motion-graphics.ts\r"
+expect "# "
+send "npx ts-node seed-fullstack.ts\r"
+expect "# "
+send "npx ts-node seed-wordpress.ts\r"
+expect "# "
+send "exit\r"
+expect eof

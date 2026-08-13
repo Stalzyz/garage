@@ -20,6 +20,11 @@ export default async function DashboardLayout({
   //   redirect("/auth/login")
   // }
 
+  // Restrict CLIENT users to their dedicated portal
+  if (session?.user?.role === 'CLIENT') {
+    redirect("/portal/dashboard")
+  }
+
   return (
       <SessionProvider session={session}>
           <div className="flex h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300">

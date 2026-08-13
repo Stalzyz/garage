@@ -1,10 +1,10 @@
 #!/usr/bin/expect -f
-set timeout 20
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "cat /root/grekam-os/packages/db/.env"
-expect {
-  -re "(assword|assphrase)" {
-    send "Photoshop09@\r"
-    exp_continue
-  }
-  eof
-}
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cat /root/grekam-os/apps/web/.env.production || cat /root/grekam-os/apps/web/.env || cat /root/grekam-os/apps/web/.env.local\r"
+expect "# "
+send "exit\r"
+expect eof

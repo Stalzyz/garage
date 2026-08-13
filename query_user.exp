@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -d grekam_os -c \"select id, email, role, \\\"customPermissions\\\" from users where email='grekamvisuals@gmail.com';\"\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -d grekam_os -c \"select id, \\\"userId\\\", \\\"jobTitle\\\", \\\"departmentId\\\" from employees where \\\"userId\\\" = (select id from users where email='grekamvisuals@gmail.com');\"\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -d grekam_os -c \"select * from user_roles ur join roles r on ur.role_id = r.id where ur.user_id = (select id from users where email='grekamvisuals@gmail.com') || true;\"\r" }
+expect "# " { send "exit\r" }
+expect eof

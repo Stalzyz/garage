@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os/packages/db\r"
+expect "# "
+send "npx tsx -e \"import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); prisma.course.findMany({ select: { id: true, name: true, isPublished: true } }).then(console.log);\"\r"
+expect "# "
+send "exit\r"
+expect eof

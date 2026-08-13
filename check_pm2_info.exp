@@ -1,6 +1,12 @@
 #!/usr/bin/expect -f
 set timeout 30
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "pm2 show 3"
-expect "assword:"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
 send "Photoshop09@\r"
+expect "# "
+send "pm2 show 9\r"
+expect "# "
+send "cat /root/.pm2/dump.pm2 | python3 -c \"import sys,json; d=json.load(sys.stdin); [print(p.get('name'), p.get('script'), p.get('cwd'), p.get('env')) for p in d]\"\r"
+expect "# "
+send "exit\r"
 expect eof
