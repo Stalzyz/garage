@@ -3,9 +3,18 @@
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { LogOut, Bell, Settings } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 export default function PortalLayoutClient({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
+  const pathname = usePathname()
+
+  const isLoginPage = pathname === "/portal" || pathname === "/portal/"
+  const isDashboardPage = pathname === "/portal/dashboard" || pathname === "/portal/dashboard/"
+
+  if (isLoginPage || isDashboardPage) {
+    return <>{children}</>
+  }
 
   return (
     <div className="flex flex-col h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
@@ -22,7 +31,7 @@ export default function PortalLayoutClient({ children }: { children: React.React
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/portal/client" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
+            <Link href="/portal/dashboard" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
             <Link href="/portal/projects" className="text-white/60 hover:text-white transition-colors">Projects</Link>
             <Link href="/portal/client/files" className="text-white/60 hover:text-white transition-colors">Deliverables</Link>
             <Link href="/portal/invoices" className="text-white/60 hover:text-white transition-colors">Invoices</Link>

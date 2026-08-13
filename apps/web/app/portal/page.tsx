@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signIn, getSession, useSession } from "next-auth/react"
 import { useOrganization } from "@/context/OrganizationContext"
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
 
@@ -16,11 +16,26 @@ const DEMO_CLIENTS = [
 export default function ClientPortalLogin() {
   const router = useRouter()
   const org = useOrganization()
+  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const role = session.user.role
+      if (role === 'CLIENT') {
+        router.push("/portal/dashboard")
+      } else if (role === 'STUDENT') {
+        router.push("/portal/student")
+      } else {
+        router.push("/dashboard")
+      }
+      router.refresh()
+    }
+  }, [status, session, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +52,15 @@ export default function ClientPortalLogin() {
       if (res?.error) {
         setError("Invalid email or password.")
       } else {
-        router.push("/portal/dashboard")
+        const session = await getSession()
+        const role = session?.user?.role
+        if (role === 'CLIENT') {
+          router.push("/portal/dashboard")
+        } else if (role === 'STUDENT') {
+          router.push("/portal/student")
+        } else {
+          router.push("/dashboard")
+        }
         router.refresh()
       }
     } catch (err) {

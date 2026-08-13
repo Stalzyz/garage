@@ -55,6 +55,11 @@ export default async function portalRouter(app: FastifyInstance) {
       progress = Math.round((completed / activeProject.tasks.length) * 100);
     }
     
+    // Get active subscription for the company
+    const activeSubscription = companyId ? await app.prisma.subscription.findFirst({
+      where: { companyId, status: 'active' }
+    }) : null;
+
     return {
       activeProjects: projects.length,
       progress,
@@ -69,6 +74,16 @@ export default async function portalRouter(app: FastifyInstance) {
           name: p.name,
           done: !!p.completedAt
         }))
+      } : null,
+      subscription: activeSubscription ? {
+        id: activeSubscription.id,
+        status: activeSubscription.status,
+        plan: {
+          name: activeSubscription.planName,
+          product: activeSubscription.productName,
+          amount: activeSubscription.mrr,
+          nextBilling: activeSubscription.nextBilling
+        }
       } : null
     };
   });
@@ -120,7 +135,8 @@ export default async function portalRouter(app: FastifyInstance) {
           id: f.id,
           name: f.name,
           ready: !!f.approvedAt,
-          url: f.fileUrl
+          url: f.fileUrl,
+          mimeType: f.mimeType
         })),
         billingSchedule: p.billingSchedule
       };
@@ -367,5 +383,65 @@ export default async function portalRouter(app: FastifyInstance) {
     events.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     return events;
+  });
+
+  // POST /api/v1/portal/bookings
+  app.post('/bookings', async (req, reply) => {
+    const contactId = (req as any).contactId;
+    const { dateTime, topic } = req.body as { dateTime: string; topic: string };
+    
+    if (!dateTime || !topic) {
+      return reply.badRequest('Missing dateTime or topic');
+    }
+
+    const coordinator = await app.prisma.user.findFirst({
+      where: { role: { in: ['SUPER_ADMIN', 'MANAGER'] } }
+    });
+
+    if (!coordinator) {
+      return reply.internalServerError('No staff available for booking');
+    }
+
+    const log = await app.prisma.communicationLog.create({
+      data: {
+        contactId,
+        type: 'MEETING',
+        direction: 'INBOUND',
+        summary: `Client booked a call on ${new Date(dateTime).toLocaleString()} about: "${topic}"`,
+        userId: coordinator.id,
+      }
+    });
+
+    return { success: true, log };
+  });
+
+  // POST /api/v1/portal/projects/:projectId/files
+  app.post('/projects/:projectId/files', async (req, reply) => {
+    const { projectId } = req.params as { projectId: string };
+    const { name, fileUrl, fileSize, mimeType } = req.body as { name: string; fileUrl: string; fileSize: number; mimeType: string };
+    const companyId = (req as any).companyId;
+
+    if (!name || !fileUrl || !fileSize || !mimeType) {
+      return reply.badRequest('Missing required fields');
+    }
+
+    const project = await app.prisma.project.findUnique({ where: { id: projectId } });
+    if (!project || project.companyId !== companyId) {
+      return reply.forbidden('Access denied');
+    }
+
+    const file = await app.prisma.projectFile.create({
+      data: {
+        projectId,
+        name,
+        fileUrl,
+        fileSize,
+        mimeType,
+        uploadedBy: req.user?.id || 'client',
+        isDelivery: false
+      }
+    });
+
+    return file;
   });
 }

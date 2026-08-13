@@ -184,7 +184,7 @@ export const navigation: NavItem[] = [
     title: "Knowledge Base",
     href: "/dashboard/kb",
     icon: BookOpen,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "VENDOR", "INTERN"],
   },
   {
     title: "Settings",

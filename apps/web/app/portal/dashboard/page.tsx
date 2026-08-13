@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import {
   Sparkles, LogOut, Briefcase, FileText, CheckCircle,
   Clock, Download, MessageSquare, Bell, ChevronRight,
   Package, Star, AlertCircle, ExternalLink, GraduationCap, PlayCircle,
-  CreditCard, Landmark, Eye, LifeBuoy
+  CreditCard, Landmark, Eye, LifeBuoy, X, Loader2, Calendar, UploadCloud, Layers
 } from "lucide-react"
+import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
 import { AssetReviewer } from "@/components/portal/AssetReviewer"
 import { SupportTickets } from "@/components/portal/SupportTickets"
@@ -39,12 +40,226 @@ export default function ClientDashboard() {
   const [showNotifications, setShowNotifications] = useState(false)
   const [reviewFile, setReviewFile] = useState<{ projectId: string, fileId: string, url: string, type: 'image' | 'video' } | null>(null)
 
+  // Booking modal state
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [bookingDate, setBookingDate] = useState("")
+  const [bookingTime, setBookingTime] = useState("")
+  const [bookingTopic, setBookingTopic] = useState("Project Update")
+  const [bookingNotes, setBookingNotes] = useState("")
+  const [bookingLoading, setBookingLoading] = useState(false)
+
+  // Upload modal state
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadProject, setUploadProject] = useState("")
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadLoading, setUploadLoading] = useState(false)
+
+  // Sandbox state
+  const [showSandbox, setShowSandbox] = useState(false)
+  const [sandboxInvoice, setSandboxInvoice] = useState<any>(null)
+  const [sandboxProcessing, setSandboxProcessing] = useState(false)
+  const [payingId, setPayingId] = useState<string | null>(null)
+
   // API Fetches
-  const { data: dashboard, error: dashError, isLoading: dashLoading } = useApi<any>("/portal/dashboard")
-  const { data: projects, error: projError, isLoading: projLoading } = useApi<any>("/portal/projects")
-  const { data: invoices, error: invError, isLoading: invLoading } = useApi<any>("/portal/invoices")
-  const { data: proposals, error: propError, isLoading: propLoading } = useApi<any>("/portal/proposals")
-  const { data: notifications = [], error: notifError } = useApi<any>("/portal/notifications")
+  const { data: dashboard, error: dashError, isLoading: dashLoading, mutate: dashMutate } = useApi<any>("/portal/dashboard")
+  const { data: projects, error: projError, isLoading: projLoading, mutate: projMutate } = useApi<any>("/portal/projects")
+  const { data: invoices, error: invError, isLoading: invLoading, mutate: invMutate } = useApi<any>("/portal/invoices")
+  const { data: proposals, error: propError, isLoading: propLoading, mutate: propMutate } = useApi<any>("/portal/proposals")
+  const { data: notifications = [], error: notifError, mutate: notifMutate } = useApi<any>("/portal/notifications")
+
+  const mutate = () => {
+    dashMutate()
+    projMutate()
+    invMutate()
+    propMutate()
+    notifMutate()
+  }
+
+  useEffect(() => {
+    if (projects && projects.length > 0 && !uploadProject) {
+      setUploadProject(projects[0].id)
+    }
+  }, [projects, uploadProject])
+
+  // Dynamically load Razorpay checkout script
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true)
+        return
+      }
+      const script = document.createElement("script")
+      script.src = "https://checkout.razorpay.com/v1/checkout.js"
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
+  const handlePayInvoice = async (invoiceId: string) => {
+    setPayingId(invoiceId)
+    try {
+      const res = await fetchApi<any>(`/finance/invoices/${invoiceId}/pay`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      })
+
+      if (res?.isLive) {
+        const scriptLoaded = await loadRazorpayScript()
+        if (!scriptLoaded) {
+          toast.error("Failed to load Razorpay Payment gateway.")
+          setPayingId(null)
+          return
+        }
+
+        const options = {
+          key: res.keyId,
+          amount: res.amount,
+          currency: res.currency,
+          name: org.name || "Grekam OS",
+          description: `Invoice ${res.orderId || invoiceId}`,
+          order_id: res.orderId,
+          prefill: {
+            name: res.clientName || "",
+            email: res.clientEmail || ""
+          },
+          theme: {
+            color: "#6d28d9"
+          },
+          handler: function (response: any) {
+            toast.success("Payment completed successfully!")
+            mutate()
+          },
+          modal: {
+            ondismiss: function () {
+              toast.info("Payment cancelled")
+            }
+          }
+        }
+
+        const rzp = new (window as any).Razorpay(options)
+        rzp.open()
+      } else {
+        const allInvoices = invoices || []
+        const targetInvoice = allInvoices.find((inv: any) => inv.id === invoiceId)
+        setSandboxInvoice(targetInvoice || { id: invoiceId, total: 0, number: "INV-GEN" })
+        setShowSandbox(true)
+      }
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || "Failed to process payment request")
+    } finally {
+      setPayingId(null)
+    }
+  }
+
+  const handlePayInstallment = async (projectId: string, milestone: any) => {
+    try {
+      let invoiceId = milestone.invoiceId
+      
+      if (!invoiceId) {
+        toast.info("Generating invoice for installment...")
+        const genRes = await fetchApi<any>(`/projects/${projectId}/billing-milestones/${milestone.id}/generate-invoice`, {
+          method: 'POST',
+          body: JSON.stringify({})
+        })
+        if (genRes?.success && genRes.invoice) {
+          invoiceId = genRes.invoice.id
+          toast.success("Invoice generated successfully!")
+        } else {
+          throw new Error("Failed to generate invoice for this installment")
+        }
+      }
+      
+      await handlePayInvoice(invoiceId)
+    } catch (err: any) {
+      toast.error(err.message || "Installment payment failed")
+    }
+  }
+
+  const handleSimulatePayment = async () => {
+    if (!sandboxInvoice) return
+    setSandboxProcessing(true)
+    try {
+      await fetchApi(`/finance/invoices/${sandboxInvoice.id}/mock-pay`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      })
+      toast.success("Payment simulated successfully!")
+      setShowSandbox(false)
+      mutate()
+    } catch (err: any) {
+      toast.error("Failed to simulate payment")
+    } finally {
+      setSandboxProcessing(false)
+    }
+  }
+
+  const handleBookCall = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!bookingDate || !bookingTime || !bookingNotes) {
+      toast.error("Please fill in all fields")
+      return
+    }
+    setBookingLoading(true)
+    try {
+      const dateTime = `${bookingDate}T${bookingTime}:00`
+      await fetchApi('/portal/bookings', {
+        method: 'POST',
+        body: JSON.stringify({
+          dateTime,
+          topic: `${bookingTopic} - ${bookingNotes}`
+        })
+      })
+      toast.success("Meeting booked successfully!")
+      setShowBookingModal(false)
+      setBookingNotes("")
+    } catch (err: any) {
+      toast.error("Failed to schedule call")
+    } finally {
+      setBookingLoading(false)
+    }
+  }
+
+  const handleFileUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!uploadProject || !uploadFile) {
+      toast.error("Please select a project and file")
+      return
+    }
+    setUploadLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadFile)
+      
+      const uploadRes = await fetch("/api/v1/storage/upload-local", {
+        method: "POST",
+        body: formData
+      })
+      if (!uploadRes.ok) throw new Error("File upload failed")
+      
+      const fileData = await uploadRes.json()
+      
+      await fetchApi(`/portal/projects/${uploadProject}/files`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: uploadFile.name,
+          fileUrl: fileData.downloadUrl,
+          fileSize: uploadFile.size,
+          mimeType: uploadFile.type || 'application/octet-stream'
+        })
+      })
+      
+      toast.success("File uploaded successfully!")
+      setShowUploadModal(false)
+      setUploadFile(null)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload file")
+    } finally {
+      setUploadLoading(false)
+    }
+  }
 
   if (status === "loading" || dashLoading) {
     return (
@@ -200,52 +415,103 @@ export default function ClientDashboard() {
               })}
             </div>
 
-            {/* Active Project Card */}
-            {dashboard.activeProject && (
-            <>
-              <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-violet-400" />
-                  <p className="text-sm font-semibold text-white">{dashboard.activeProject.name}</p>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CONFIG[dashboard.activeProject.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
-                    {STATUS_CONFIG[dashboard.activeProject.status]?.label || dashboard.activeProject.status}
-                  </span>
-                </div>
-                <button onClick={() => setTab("projects")} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                  View Detail <ChevronRight className="w-3 h-3" />
-                </button>
-              </div>
-              <div className="px-6 py-5">
-                {/* Progress Bar */}
-                <div className="mb-5">
-                  <div className="flex justify-between text-xs text-white/40 mb-2">
-                    <span>Overall Progress</span>
-                    <span className="text-white font-medium">{dashboard.activeProject.progress}%</span>
-                  </div>
-                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-violet-500 to-blue-500 rounded-full transition-all"
-                      style={{ width: `${dashboard.activeProject.progress}%` }} />
-                  </div>
-                </div>
-
-                {/* Phases */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {dashboard.activeProject.phases.map((phase: any) => (
-                    <div key={phase.name} className={`p-3 rounded-xl border text-center ${
-                      phase.done ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/3 border-white/8"
-                    }`}>
-                      {phase.done
-                        ? <CheckCircle className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-                        : <Clock className="w-4 h-4 text-white/30 mx-auto mb-1" />}
-                      <p className="text-[10px] font-medium text-white/60">{phase.name}</p>
+            {/* Active Project & Active Subscription Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Active Project Card */}
+              <div className="lg:col-span-2">
+                {dashboard.activeProject ? (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-violet-400" />
+                        <p className="text-sm font-semibold text-white">{dashboard.activeProject.name}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CONFIG[dashboard.activeProject.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
+                          {STATUS_CONFIG[dashboard.activeProject.status]?.label || dashboard.activeProject.status}
+                        </span>
+                      </div>
+                      <button onClick={() => setTab("projects")} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                        View Detail <ChevronRight className="w-3 h-3" />
+                      </button>
                     </div>
-                  ))}
-                </div>
+                    <div className="px-6 py-5 flex-1 flex flex-col justify-center">
+                      {/* Progress Bar */}
+                      <div className="mb-5">
+                        <div className="flex justify-between text-xs text-white/40 mb-2">
+                          <span>Overall Progress</span>
+                          <span className="text-white font-medium">{dashboard.activeProject.progress}%</span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-violet-500 to-blue-500 rounded-full transition-all"
+                            style={{ width: `${dashboard.activeProject.progress}%` }} />
+                        </div>
+                      </div>
+
+                      {/* Phases */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {dashboard.activeProject.phases.map((phase: any) => (
+                          <div key={phase.name} className={`p-3 rounded-xl border text-center ${
+                            phase.done ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/3 border-white/8"
+                          }`}>
+                            {phase.done
+                              ? <CheckCircle className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+                              : <Clock className="w-4 h-4 text-white/30 mx-auto mb-1" />}
+                            <p className="text-[10px] font-medium text-white/60">{phase.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl p-8 text-center flex flex-col items-center justify-center h-full min-h-[200px] text-white/40 text-sm">
+                    <Briefcase className="w-8 h-8 opacity-40 mb-3" />
+                    No active projects at the moment.
+                  </div>
+                )}
               </div>
+
+              {/* Active Subscription Card */}
+              <div className="lg:col-span-1">
+                {dashboard.subscription ? (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden h-full flex flex-col justify-between">
+                    <div className="px-6 py-4 border-b border-white/8 flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-emerald-400" />
+                      <p className="text-sm font-semibold text-white">Active Retainer</p>
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold text-white">{dashboard.subscription.plan.name}</h3>
+                        <p className="text-2xl font-mono font-extrabold text-emerald-400 mt-2">
+                          {symbol}{dashboard.subscription.plan.amount.toLocaleString()}
+                          <span className="text-xs text-white/40 font-medium font-sans"> / mrr</span>
+                        </p>
+                        
+                        <div className="mt-4 space-y-2">
+                          <div className="flex items-center gap-2 text-xs text-white/60">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            <span>Product: {dashboard.subscription.plan.product}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-white/60">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            <span>Status: <span className="uppercase text-emerald-400 font-bold">{dashboard.subscription.status}</span></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 border-t border-white/5 pt-4 flex justify-between items-center text-xs text-white/40">
+                        <span>Next Billing: {dashboard.subscription.plan.nextBilling ? new Date(dashboard.subscription.plan.nextBilling).toLocaleDateString() : 'Continuous'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl p-8 text-center flex flex-col items-center justify-center h-full min-h-[200px] text-white/40 text-sm">
+                    <Layers className="w-8 h-8 opacity-40 mb-3" />
+                    No active retainer plans.
+                  </div>
+                )}
+              </div>
+
             </div>
-            </>
-            )}
           </>
         )}
 
@@ -304,13 +570,14 @@ export default function ClientDashboard() {
                         </div>
                         {d.ready && (
                           <div className="flex gap-3">
-                            {(d.url.match(/\.(jpeg|jpg|gif|png)$/i) || d.url.match(/\.(mp4|webm)$/i)) && (
+                            {((d.mimeType && (d.mimeType.startsWith("image/") || d.mimeType.startsWith("video/"))) ||
+                             d.url.match(/\.(jpeg|jpg|gif|png|mp4|webm)/i)) && (
                               <button 
                                 onClick={() => setReviewFile({ 
                                   projectId: p.id, 
                                   fileId: d.id, 
                                   url: d.url, 
-                                  type: d.url.match(/\.(mp4|webm)$/i) ? 'video' : 'image' 
+                                  type: (d.mimeType?.startsWith("video/") || d.url.match(/\.(mp4|webm)/i)) ? 'video' : 'image' 
                                 })}
                                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
                               >
@@ -351,11 +618,12 @@ export default function ClientDashboard() {
                           <span className="text-xs font-bold px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PAID</span>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <button onClick={() => handlePayment('stripe', milestone.id, milestone.amount)} className="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
-                              Pay via Stripe
-                            </button>
-                            <button onClick={() => handlePayment('razorpay', milestone.id, milestone.amount)} className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors">
-                              Razorpay
+                            <button 
+                              onClick={() => handlePayInstallment(p.id, milestone)} 
+                              disabled={payingId !== null}
+                              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-violet-600 hover:bg-violet-500 disabled:bg-white/10 text-white transition-colors flex items-center gap-1"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" /> Pay Installment
                             </button>
                             <button onClick={() => handlePayment('bank', milestone.id, milestone.amount)} className="p-1.5 text-white/40 hover:text-white transition-colors border border-white/10 rounded-lg hover:bg-white/5" title="Bank Transfer">
                               <Landmark className="w-4 h-4" />
@@ -420,9 +688,20 @@ export default function ClientDashboard() {
                       <td className="px-4 py-4 text-sm text-white/40">{new Date(inv.issueDate).toLocaleDateString()}</td>
                       <td className="px-4 py-4 text-sm font-semibold text-white text-right">{symbol}{inv.total.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[inv.status]?.color || STATUS_CONFIG.PENDING.color}`}>
-                          {STATUS_CONFIG[inv.status]?.label || inv.status}
-                        </span>
+                        <div className="flex items-center justify-end gap-3">
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[inv.status]?.color || STATUS_CONFIG.PENDING.color}`}>
+                            {STATUS_CONFIG[inv.status]?.label || inv.status}
+                          </span>
+                          {inv.status !== 'PAID' && (
+                            <button 
+                              onClick={() => handlePayInvoice(inv.id)}
+                              disabled={payingId === inv.id}
+                              className="px-2.5 py-1 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-white/10 text-white text-xs font-bold transition-colors"
+                            >
+                              {payingId === inv.id ? "Paying..." : "Pay Now"}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -494,8 +773,165 @@ export default function ClientDashboard() {
           fileId={reviewFile.fileId}
           fileUrl={reviewFile.url}
           fileType={reviewFile.type}
-          onClose={() => setReviewFile(null)}
+          onClose={() => {
+            setReviewFile(null)
+            mutate()
+          }}
         />
+      )}
+
+      {/* Book Call Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="bg-[#14141f] border border-white/10 rounded-3xl w-full max-w-md p-6 relative overflow-hidden">
+            <button onClick={() => setShowBookingModal(false)} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-purple-400" /> Schedule a Call
+            </h3>
+            <form onSubmit={handleBookCall} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Select Date</label>
+                <input 
+                  type="date" 
+                  value={bookingDate} 
+                  onChange={e => setBookingDate(e.target.value)} 
+                  required
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Select Time</label>
+                <input 
+                  type="time" 
+                  value={bookingTime} 
+                  onChange={e => setBookingTime(e.target.value)} 
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Topic</label>
+                <select 
+                  value={bookingTopic} 
+                  onChange={e => setBookingTopic(e.target.value)}
+                  className="w-full bg-[#1c1c27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500"
+                >
+                  <option value="Project Update">Project Update</option>
+                  <option value="Technical Briefing">Technical Briefing</option>
+                  <option value="Billing & Invoicing">Billing & Invoicing</option>
+                  <option value="Other Support">Other Support</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Brief Description / Notes</label>
+                <textarea 
+                  rows={3}
+                  value={bookingNotes}
+                  onChange={e => setBookingNotes(e.target.value)}
+                  placeholder="What would you like to discuss?"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-violet-500 resize-none" 
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={bookingLoading}
+                className="w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-white/10 rounded-xl text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+              >
+                {bookingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {bookingLoading ? "Scheduling..." : "Schedule Call"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Upload File Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="bg-[#14141f] border border-white/10 rounded-3xl w-full max-w-md p-6 relative overflow-hidden">
+            <button onClick={() => setShowUploadModal(false)} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <UploadCloud className="w-5 h-5 text-blue-400" /> Upload Project Files
+            </h3>
+            <form onSubmit={handleFileUploadSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Select Project</label>
+                <select 
+                  value={uploadProject} 
+                  onChange={e => setUploadProject(e.target.value)}
+                  required
+                  className="w-full bg-[#1c1c27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500"
+                >
+                  {projects?.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/50 uppercase mb-1">Select File</label>
+                <input 
+                  type="file" 
+                  onChange={e => setUploadFile(e.target.files?.[0] || null)} 
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-500 file:cursor-pointer" 
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={uploadLoading}
+                className="w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-white/10 rounded-xl text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+              >
+                {uploadLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {uploadLoading ? "Uploading..." : "Upload File"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sandbox Simulator Modal */}
+      {showSandbox && sandboxInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
+          <div className="bg-[#14141f] border border-white/10 rounded-3xl w-full max-w-md p-6 relative overflow-hidden">
+            <button onClick={() => setShowSandbox(false)} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Payment Gateway Simulator</h3>
+              <p className="text-xs text-white/55 mt-1">This checkout is running in sandbox mode.</p>
+            </div>
+
+            <div className="bg-white/3 rounded-2xl p-4 border border-white/5 mb-6 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/40">Invoice/Order</span>
+                <span className="text-white font-mono">{sandboxInvoice.number || sandboxInvoice.invoiceNumber || "INV-GEN"}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/40">Payable Amount</span>
+                <span className="text-white font-bold">{symbol}{(sandboxInvoice.total || sandboxInvoice.totalAmount || 0).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSimulatePayment}
+              disabled={sandboxProcessing}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/10 rounded-xl text-sm font-bold text-white transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
+            >
+              {sandboxProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {sandboxProcessing ? "Processing..." : "Complete Simulated Payment"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

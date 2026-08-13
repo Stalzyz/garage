@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Fingerprint, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -64,8 +64,18 @@ export default function LoginPage() {
         return
       }
 
-      // Success — redirect to dashboard
-      router.push("/dashboard")
+      // Success — fetch session and redirect based on role
+      const session = await getSession()
+      const role = session?.user?.role
+
+      if (role === 'CLIENT') {
+        router.push("/portal/dashboard")
+      } else if (role === 'STUDENT') {
+        router.push("/portal/student")
+      } else {
+        router.push("/dashboard")
+      }
+      router.refresh()
     } catch (err) {
       setErrorMessage("A network error occurred. Please try again.")
       setIsPending(false)

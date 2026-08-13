@@ -9,24 +9,39 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
-      const isOnPortalProtected = nextUrl.pathname.startsWith('/portal/')
-      const isOnStudent = nextUrl.pathname.startsWith('/student')
-      
+      const isOnPortalProtected = nextUrl.pathname.startsWith('/portal/') && nextUrl.pathname !== '/portal/'
+      const isOnStudent = nextUrl.pathname.startsWith('/portal/student')
+      const isOnClientPortal = isOnPortalProtected && !isOnStudent
 
-      if (isOnDashboard || isOnPortalProtected || isOnStudent) {
-        if (isLoggedIn) return true
-        return false // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
-        if (nextUrl.pathname.startsWith('/auth/login') || nextUrl.pathname === '/') {
-          // @ts-ignore
-          const role = auth?.user?.role;
-          if (role === 'CLIENT') {
-            return Response.redirect(new URL('/portal', nextUrl));
-          } else if (role === 'STUDENT') {
-            return Response.redirect(new URL('/student', nextUrl));
+      if (isLoggedIn) {
+        // @ts-ignore
+        const role = auth?.user?.role;
+
+        if (role === 'CLIENT') {
+          // Clients should only access /portal/* (except student portal and login page /portal)
+          if (!isOnClientPortal) {
+            return Response.redirect(new URL('/portal/dashboard', nextUrl));
           }
-          return Response.redirect(new URL('/dashboard', nextUrl));
+        } else if (role === 'STUDENT') {
+          // Students should only access /portal/student/*
+          if (!isOnStudent) {
+            return Response.redirect(new URL('/portal/student', nextUrl));
+          }
+        } else {
+          // Staff/Admin should only access /dashboard/*
+          if (!isOnDashboard) {
+            return Response.redirect(new URL('/dashboard', nextUrl));
+          }
         }
+        return true;
+      }
+
+      // Unauthenticated users
+      if (isOnDashboard || isOnStudent) {
+        return false; // Redirect to /auth/login
+      }
+      if (isOnClientPortal) {
+        return Response.redirect(new URL('/portal', nextUrl)); // Redirect to client login page
       }
       return true
     },

@@ -1,13 +1,16 @@
 "use client"
 
-import { FileText, Download, Clock, CheckCircle2, Image as ImageIcon, Video, File } from "lucide-react"
+import { useState } from "react"
+import { FileText, Download, Clock, CheckCircle2, Image as ImageIcon, Video, File, Eye } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { useSession } from "next-auth/react"
+import { AssetReviewer } from "@/components/portal/AssetReviewer"
 
 export default function ClientFilesPage() {
   const { data: session } = useSession()
   const { data: projectsData, isLoading, mutate } = useApi<any>("/projects?includeFiles=true")
+  const [reviewFile, setReviewFile] = useState<{ projectId: string, fileId: string, url: string, type: 'image' | 'video' } | null>(null)
 
   const projects = projectsData?.data || []
 
@@ -17,9 +20,9 @@ export default function ClientFilesPage() {
     return [...acc, ...projectFiles.map((f: any) => ({ ...f, projectName: project.name, projectId: project.id }))];
   }, []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) return <ImageIcon className="w-8 h-8 text-blue-400" />
-    if (type.startsWith('video/')) return <Video className="w-8 h-8 text-purple-400" />
+  const getFileIcon = (mimeType?: string, name?: string) => {
+    if (mimeType?.startsWith('image/') || name?.match(/\.(jpeg|jpg|gif|png)/i)) return <ImageIcon className="w-8 h-8 text-blue-400" />
+    if (mimeType?.startsWith('video/') || name?.match(/\.(mp4|webm)/i)) return <Video className="w-8 h-8 text-purple-400" />
     return <FileText className="w-8 h-8 text-emerald-400" />
   }
 
@@ -62,7 +65,7 @@ export default function ClientFilesPage() {
               <div key={file.id} className="bg-black/40 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                    {getFileIcon(file.type)}
+                    {getFileIcon(file.mimeType, file.name)}
                   </div>
                   {file.approvedAt ? (
                     <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1">
@@ -80,29 +83,61 @@ export default function ClientFilesPage() {
                   <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">{file.projectName}</p>
                 </div>
 
-                <div className="mt-6 flex gap-2">
-                  <a 
-                    href={file.url} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="flex-1 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors text-white"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Download
-                  </a>
-                  {!file.approvedAt && (
-                    <button 
-                      onClick={() => handleApprove(file.projectId, file.id)}
-                      className="flex-1 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Approve
-                    </button>
-                  )}
-                </div>
+                {(() => {
+                  const isImage = file.mimeType?.startsWith('image/') || file.fileUrl?.match(/\.(jpeg|jpg|gif|png)/i);
+                  const isVideo = file.mimeType?.startsWith('video/') || file.fileUrl?.match(/\.(mp4|webm)/i);
+                  return (
+                    <div className="mt-6 flex gap-2 flex-wrap">
+                      {(isImage || isVideo) && (
+                        <button
+                          onClick={() => setReviewFile({
+                            projectId: file.projectId,
+                            fileId: file.id,
+                            url: file.fileUrl,
+                            type: isVideo ? 'video' : 'image'
+                          })}
+                          className="flex-1 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> Review
+                        </button>
+                      )}
+                      <a 
+                        href={file.fileUrl} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="flex-1 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors text-white"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download
+                      </a>
+                      {!file.approvedAt && (
+                        <button 
+                          onClick={() => handleApprove(file.projectId, file.id)}
+                          className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors mt-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Approve Deliverable
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {reviewFile && (
+        <AssetReviewer 
+          projectId={reviewFile.projectId}
+          fileId={reviewFile.fileId}
+          fileUrl={reviewFile.url}
+          fileType={reviewFile.type}
+          onClose={() => {
+            setReviewFile(null);
+            mutate();
+          }}
+        />
+      )}
 
     </div>
   )
