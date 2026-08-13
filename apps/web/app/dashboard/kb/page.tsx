@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { 
   BookOpen, Search, LayoutDashboard, Layers, Briefcase, DollarSign, 
   Users, GraduationCap, UserCheck, Radio, Globe, BarChart2, 
-  LifeBuoy, Zap, MessageSquare, HardDrive, Bell, Settings, ExternalLink, ChevronRight, HelpCircle
+  LifeBuoy, Zap, MessageSquare, HardDrive, Bell, Settings, FileText, ChevronRight, HelpCircle
 } from "lucide-react"
 
 // Knowledge Base Data
@@ -98,7 +99,7 @@ const KB_SECTIONS = [
         howToUse: "Start here. Find the document you need by tier (Culture, Roles, Products, Sales, Delivery, Finance, Marketing).",
         howItWorks: "Maintained in the /docs directory of the monorepo. Updated when any document is added or changed.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/MASTER_INDEX.md"
+        docUrl: "/dashboard/docs/MASTER_INDEX"
       },
       {
         title: "Culture Deck",
@@ -107,7 +108,7 @@ const KB_SECTIONS = [
         howToUse: "Share with every candidate before their interview. Every employee reads it on Day 1.",
         howItWorks: "Defines the 10 company operating rules and values that govern all decisions at Grekam.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/culture_deck.md"
+        docUrl: "/dashboard/docs/culture_deck"
       },
       {
         title: "BDM Hiring & Interview Playbook",
@@ -116,7 +117,7 @@ const KB_SECTIONS = [
         howToUse: "Send Section 2 pre-screen questions before booking a call. Run Round 1 (Values) and Round 2 (Role-Play) interviews. Score using the Section 5 rubric. Hire if score is 22+/25.",
         howItWorks: "The scoring rubric covers 5 axes: Process Discipline, Discovery, Conflict Resolution, Scope Protection, and Coachability.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/bdm_hiring_process.md"
+        docUrl: "/dashboard/docs/bdm_hiring_process"
       },
       {
         title: "BDM 90-Day Onboarding Playbook",
@@ -125,7 +126,7 @@ const KB_SECTIONS = [
         howToUse: "Hand to new BDM on Day 1. Follow the day-by-day reading and execution plan (Day 1–3: Company, Day 4–7: Grekam OS, Day 8–10: Grafty, etc.)",
         howItWorks: "Month 1: Frontline execution. Month 2: Consistent selling. Month 3: Build the sales department SOPs.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/bdm_90day_playbook.md"
+        docUrl: "/dashboard/docs/bdm_90day_playbook"
       },
       {
         title: "Developer 90-Day Playbook",
@@ -134,7 +135,7 @@ const KB_SECTIONS = [
         howToUse: "Hand to new developer on Day 1. Follow environment setup → codebase orientation → project shadowing → first independent delivery.",
         howItWorks: "Covers coding standards, review gates, handoff discipline, and the Month 3 transition to system builder.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/developer_90day_playbook.md"
+        docUrl: "/dashboard/docs/developer_90day_playbook"
       },
       {
         title: "Designer 90-Day Playbook",
@@ -143,7 +144,7 @@ const KB_SECTIONS = [
         howToUse: "Hand to new designer on Day 1. Follow brand immersion → project shadowing → first wireframe → design system contribution.",
         howItWorks: "Covers tool standards, brand guidelines, client communication rules, and the developer handoff discipline.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/designer_90day_playbook.md"
+        docUrl: "/dashboard/docs/designer_90day_playbook"
       },
       {
         title: "Support 90-Day Playbook",
@@ -152,7 +153,7 @@ const KB_SECTIONS = [
         howToUse: "Hand to new support hire on Day 1. Day 1–14: Product mastery + shadowing. Day 15+: Independent ticket resolution.",
         howItWorks: "Covers product mastery requirements, ticket management, escalation decision-making, and the Month 3 knowledge base build.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/support_90day_playbook.md"
+        docUrl: "/dashboard/docs/support_90day_playbook"
       },
       {
         title: "Grafty Training Playbook",
@@ -161,7 +162,7 @@ const KB_SECTIONS = [
         howToUse: "Required reading in Days 8–10 of onboarding. Must be able to conduct a 10-minute demo independently before selling.",
         howItWorks: "Covers WhatsApp API concepts, Grafty feature walkthroughs, common objections, and the 6-level certification path.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/grafty_training_playbook.md"
+        docUrl: "/dashboard/docs/grafty_training_playbook"
       },
       {
         title: "Atlas Training Playbook",
@@ -170,7 +171,7 @@ const KB_SECTIONS = [
         howToUse: "Required reading in Days 11–12 of onboarding. Must map customer requirements (UPI, COD, GST, Shipping) before selling.",
         howItWorks: "Covers the Atlas product scope, what requires customization, demo flow, and pricing packages.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/atlas_training_playbook.md"
+        docUrl: "/dashboard/docs/atlas_training_playbook"
       },
       {
         title: "Web Dev Sales Guide",
@@ -179,7 +180,7 @@ const KB_SECTIONS = [
         howToUse: "Use to qualify whether a customer needs a brochure site, lead-gen site, ecommerce, or a custom web app. Never promise features without technical confirmation.",
         howItWorks: "Defines the 8 project types, scoping questions, pricing bands, and handoff requirements for every web project.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/web_dev_sales_guide.md"
+        docUrl: "/dashboard/docs/web_dev_sales_guide"
       },
       {
         title: "Calling Script",
@@ -188,7 +189,7 @@ const KB_SECTIONS = [
         howToUse: "Use these scripts verbatim until you are confident. Adapt after 4+ weeks of active calling.",
         howItWorks: "Each script has a 30-second opening, discovery questions, value statement, and a next-action close.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/calling_script.md"
+        docUrl: "/dashboard/docs/calling_script"
       },
       {
         title: "WhatsApp Scripts",
@@ -197,7 +198,7 @@ const KB_SECTIONS = [
         howToUse: "Copy-paste the template, replace [Name] and [Product] with actual values. Do not send generic messages.",
         howItWorks: "Every script is designed for high open-rate and response rate based on direct-response principles.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/whatsapp_scripts.md"
+        docUrl: "/dashboard/docs/whatsapp_scripts"
       },
       {
         title: "Lead Qualification Form",
@@ -206,7 +207,7 @@ const KB_SECTIONS = [
         howToUse: "Complete this form for every lead in Grekam OS before booking a demo. Disqualify early if score is too low.",
         howItWorks: "Covers business type, problem urgency, budget, decision authority, and timeline. Each question scores 1–3 points.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/lead_qualification_form.md"
+        docUrl: "/dashboard/docs/lead_qualification_form"
       },
       {
         title: "Objection Handbook",
@@ -215,7 +216,7 @@ const KB_SECTIONS = [
         howToUse: "Before a demo, review the objections for that product. During a call, find the objection and use the response as a framework.",
         howItWorks: "Each objection has a diagnosis (what the customer actually means), a counter question, and a value bridge.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/objection_handbook.md"
+        docUrl: "/dashboard/docs/objection_handbook"
       },
       {
         title: "Proposal Templates",
@@ -224,7 +225,7 @@ const KB_SECTIONS = [
         howToUse: "Copy the relevant template, fill in the client name, scope, price, and payment milestones. Review with BDM before sending.",
         howItWorks: "Each template includes a project scope definition, deliverables list, payment schedule, and Ts & Cs.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/proposal_templates.md"
+        docUrl: "/dashboard/docs/proposal_templates"
       },
       {
         title: "Customer Onboarding SOP",
@@ -233,7 +234,7 @@ const KB_SECTIONS = [
         howToUse: "Trigger this document the moment a payment is confirmed. Complete every checklist item in sequence.",
         howItWorks: "Covers account setup, kickoff call agenda, credentials delivery, training schedule, and first milestone review.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/customer_onboarding_sop.md"
+        docUrl: "/dashboard/docs/customer_onboarding_sop"
       },
       {
         title: "Sales-to-Dev Handoff SOP",
@@ -242,7 +243,7 @@ const KB_SECTIONS = [
         howToUse: "Complete this form for every project before any development begins. The developer must never start without a completed handoff.",
         howItWorks: "Captures client info, scope, features, design references, integrations, payment status, and anything promised in the sale.",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/sales_dev_handoff_sop.md"
+        docUrl: "/dashboard/docs/sales_dev_handoff_sop"
       },
       {
         title: "Escalation SOP",
@@ -251,7 +252,7 @@ const KB_SECTIONS = [
         howToUse: "Identify the severity level of the issue. Follow the exact response script and timeline for that level. Log everything in Grekam OS.",
         howItWorks: "L1: Minor complaint (resolve in 24h). L2: Delivery dispute (48h). L3: Refund demand (management involved). L4/L5: Legal/reputational risk (founder escalation).",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/escalation_sop.md"
+        docUrl: "/dashboard/docs/escalation_sop"
       },
       {
         title: "KPI Dashboard Guide",
@@ -260,7 +261,7 @@ const KB_SECTIONS = [
         howToUse: "Review weekly with BDM. Review monthly with the founder. Flag any metric that is 20%+ below target.",
         howItWorks: "Covers Sales KPIs (calls, demos, pipeline value, revenue), Delivery KPIs (project health), and Operational KPIs (CRM hygiene, response times).",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/kpi_dashboard.md"
+        docUrl: "/dashboard/docs/kpi_dashboard"
       },
       {
         title: "Financial Model & Growth Targets",
@@ -269,7 +270,7 @@ const KB_SECTIONS = [
         howToUse: "Review at the start of each month. Compare active customer counts against the monthly target table. If behind, check lead flow and CAC.",
         howItWorks: "Defines the Cash Engine (Web Dev & Atlas setups) and the Scale Engine (Grafty & SaaS MRR). Includes breakeven points per product.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/financial_model.md"
+        docUrl: "/dashboard/docs/financial_model"
       },
       {
         title: "Grafty Landing Page Copy Specs",
@@ -278,7 +279,7 @@ const KB_SECTIONS = [
         howToUse: "Use when rebuilding or updating grafty.pro. Each section has exact copy, layout specs, and CTA positioning.",
         howItWorks: "Structured as a conversion-optimised direct-response page targeting SME business owners in India.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/grafty_landing_page_copy.md"
+        docUrl: "/dashboard/docs/grafty_landing_page_copy"
       },
       {
         title: "Atlas Landing Page Copy Specs",
@@ -287,7 +288,7 @@ const KB_SECTIONS = [
         howToUse: "Use when rebuilding or updating the Atlas build-ecommerce page. Each section has exact copy, comparison tables, and CTA positioning.",
         howItWorks: "Structured as a conversion page targeting D2C brands and retail businesses frustrated with Shopify's transaction fees and poor India localisation.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/atlas_landing_page_copy.md"
+        docUrl: "/dashboard/docs/atlas_landing_page_copy"
       },
       {
         title: "Role Checklists",
@@ -296,7 +297,7 @@ const KB_SECTIONS = [
         howToUse: "Print or pin to desk on Day 1. Use as the daily operating rhythm. Do not skip checklist items.",
         howItWorks: "Covers Sales (CRM updates, calls, follow-ups), Developers (task hygiene, PR standards), Designers (handoff discipline), and Support (ticket management).",
         roles: ["Super Admin", "Manager", "Staff"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/role_checklists.md"
+        docUrl: "/dashboard/docs/role_checklists"
       },
       {
         title: "Evaluation & Certification Tests",
@@ -305,7 +306,7 @@ const KB_SECTIONS = [
         howToUse: "Test 1 (Day 7): Setup & navigation. Test 2 (Week 3): Live audit. Test 3 (Month 1): Continuity. Test 4 (Month 1): Role Reversal (teach back).",
         howItWorks: "Scored 1–10 per section. A score below 6 requires a re-test before full role access is granted.",
         roles: ["Super Admin", "Manager"],
-        docUrl: "https://github.com/Stalzyz/garage/blob/main/docs/evaluation_tests.md"
+        docUrl: "/dashboard/docs/evaluation_tests"
       }
     ]
   }
@@ -313,6 +314,7 @@ const KB_SECTIONS = [
 
 
 export default function KnowledgeBaseDashboard() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
@@ -452,15 +454,13 @@ export default function KnowledgeBaseDashboard() {
                               </div>
                               {'docUrl' in item && item.docUrl && (
                                 <div className="pt-3 border-t border-white/5">
-                                  <a
-                                    href={(item as any).docUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                  <button
+                                    onClick={() => router.push((item as any).docUrl)}
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/15 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-wide hover:bg-blue-600/25 hover:border-blue-400/50 transition-all duration-200"
                                   >
-                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <FileText className="w-3.5 h-3.5" />
                                     Open Full Document
-                                  </a>
+                                  </button>
                                 </div>
                               )}
                             </div>
