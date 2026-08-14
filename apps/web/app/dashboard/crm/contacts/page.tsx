@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key, RefreshCcw } from "lucide-react"
+import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key, RefreshCcw, Trash2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
@@ -66,6 +66,20 @@ export default function ContactsPage() {
       toast.error(err.message || "Failed to reset PIN");
     } finally {
       setIsInviting(false);
+    }
+  };
+  const handleDeleteContact = async (e: React.MouseEvent, contact: any) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`)) return;
+
+    try {
+      await fetchApi(`/crm/contacts/${contact.id}`, {
+        method: "DELETE"
+      });
+      toast.success("Contact deleted successfully");
+      mutate();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete contact");
     }
   };
 
@@ -228,6 +242,13 @@ export default function ContactsPage() {
                     >
                       <RefreshCcw className="w-4 h-4" />
                     </button>
+                    <button 
+                      onClick={(e) => handleDeleteContact(e, contact)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded bg-red-950/20 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-colors group/btn relative ml-1 border border-red-500/20"
+                      title="Delete Contact"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                     <span className="text-[10px] font-mono tracking-widest uppercase bg-white/10 px-2 py-1 rounded text-white/60">
                       {contact.tier || 'BRONZE'}
                     </span>
@@ -325,7 +346,7 @@ export default function ContactsPage() {
             </select>
           </div>
           
-          <div className="pt-4 mt-6 border-t border-white/10">
+          <div className="pt-4 mt-6 border-t border-white/10 space-y-3">
             <button 
               type="submit"
               disabled={isSubmitting}
@@ -333,6 +354,31 @@ export default function ContactsPage() {
             >
               {isSubmitting ? "Saving..." : editingContactId ? "Update Contact" : "Save Contact"}
             </button>
+            {editingContactId && (
+              <button 
+                type="button"
+                onClick={async () => {
+                  if (confirm("Are you sure you want to delete this contact?")) {
+                    try {
+                      setIsSubmitting(true);
+                      await fetchApi(`/crm/contacts/${editingContactId}`, { method: "DELETE" });
+                      toast.success("Contact deleted successfully");
+                      setIsAddOpen(false);
+                      setEditingContactId(null);
+                      mutate();
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to delete contact");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full py-3 bg-red-950/40 hover:bg-red-900/60 text-red-400 font-bold border border-red-500/20 rounded-xl transition-all disabled:opacity-50"
+              >
+                Delete Contact
+              </button>
+            )}
           </div>
         </form>
       </SlideOver>

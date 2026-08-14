@@ -6,12 +6,6 @@ import { signIn, getSession, useSession } from "next-auth/react"
 import { useOrganization } from "@/context/OrganizationContext"
 import { Eye, EyeOff, Loader2, Zap } from "lucide-react"
 
-// Demo client credentials
-const DEMO_CLIENTS = [
-  { email: "redbrick@client.com", password: "demo1234", name: "RedBrick Realty", avatar: "R" },
-  { email: "techflow@client.com", password: "demo1234", name: "Techflow SaaS",   avatar: "T" },
-  { email: "fitburst@client.com", password: "demo1234", name: "Fitburst Gym",    avatar: "F" },
-]
 
 export default function ClientPortalLogin() {
   const router = useRouter()
@@ -70,10 +64,6 @@ export default function ClientPortalLogin() {
     }
   }
 
-  const handleQuickLogin = (client: typeof DEMO_CLIENTS[0]) => {
-    setEmail(client.email)
-    setPassword("demo1234")
-  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex">
@@ -147,22 +137,6 @@ export default function ClientPortalLogin() {
           <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
           <p className="text-white/50 text-sm mb-8">Sign in to your client account to continue.</p>
 
-          {/* Quick Login Pills */}
-          <div className="mb-6">
-            <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Quick Demo Access</p>
-            <div className="flex gap-2 flex-wrap">
-              {DEMO_CLIENTS.map(c => (
-                <button key={c.email} onClick={() => handleQuickLogin(c)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-white/70 hover:text-white transition-all"
-                >
-                  <span className="w-5 h-5 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-[9px] font-bold text-white">
-                    {c.avatar}
-                  </span>
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
