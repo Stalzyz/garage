@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Sparkles, Upload, Search, UserPlus, Globe, Link, CheckCircle2, Copy, ArrowRight, MoreHorizontal } from "lucide-react"
+import { Zap, Upload, Search, UserPlus, Globe, Link, CheckCircle2, Copy, ArrowRight, MoreHorizontal } from "lucide-react"
 
 export default function AIProspectingDashboard() {
   const [urlInput, setUrlInput] = useState("")
@@ -84,7 +84,7 @@ export default function AIProspectingDashboard() {
               {analyzing ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Scraping...</>
               ) : (
-                <><Sparkles className="w-4 h-4" /> Enrich & Generate</>
+                <><Zap className="w-4 h-4" /> Enrich & Generate</>
               )}
             </button>
           </div>
@@ -108,8 +108,8 @@ export default function AIProspectingDashboard() {
                 <p className="text-muted-foreground">{prospect.role} @ <span className="font-semibold text-foreground">{prospect.company}</span></p>
                 
                 <div className="flex gap-4 mt-3 text-xs font-medium">
-                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">📍 {prospect.location}</span>
-                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">🏢 {prospect.industry}</span>
+                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50"> {prospect.location}</span>
+                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50"> {prospect.industry}</span>
                 </div>
               </div>
               
@@ -123,7 +123,7 @@ export default function AIProspectingDashboard() {
             {/* AI Icebreakers */}
             <div className="p-6">
               <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" /> AI Generated Icebreakers
+                <Zap className="w-5 h-5 text-primary" /> AI Generated Icebreakers
               </h3>
               
               <div className="grid gap-4">

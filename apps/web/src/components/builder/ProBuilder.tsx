@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import grapesjs, { Editor } from "grapesjs"
 import GjsEditor, { Canvas } from "@grapesjs/react"
-import { Monitor, Tablet, Smartphone, Save, Eye, Undo, Redo, Layout, Box, Type, Image as ImageIcon, Layers, Sparkles, Code, X } from "lucide-react"
+import { Monitor, Tablet, Smartphone, Save, Eye, Undo, Redo, Layout, Box, Type, Image as ImageIcon, Layers, Zap, Code, X } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import "grapesjs/dist/css/grapes.min.css"
@@ -284,7 +284,7 @@ export function ProBuilder({ initialHtml = "", initialCss = "", onSave }: ProBui
             disabled={!hasTextSelection}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors ${hasTextSelection ? 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-500/30' : 'bg-[#1e1e1e] text-gray-500 cursor-not-allowed border border-[#333]'}`}
           >
-            <Sparkles className="w-3.5 h-3.5" /> AI Magic
+            <Zap className="w-3.5 h-3.5" /> AI Magic
           </button>
         </div>
 
@@ -450,7 +450,7 @@ export function ProBuilder({ initialHtml = "", initialCss = "", onSave }: ProBui
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-[#252526] border border-[#333] rounded-xl shadow-2xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
+              <Zap className="w-5 h-5 text-indigo-400" />
               <h3 className="text-lg font-bold">AI Magic Write</h3>
             </div>
             <textarea
@@ -466,7 +466,7 @@ export function ProBuilder({ initialHtml = "", initialCss = "", onSave }: ProBui
                 disabled={!aiPrompt || isGenerating}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
               >
-                {isGenerating ? "Generating..." : "Generate ✨"}
+                {isGenerating ? "Generating..." : "Generate "}
               </button>
             </div>
           </div>

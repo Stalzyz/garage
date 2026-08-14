@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Folder, FileText, Image as ImageIcon, Video, File, Plus, Upload, Search, Filter, MoreVertical, HardDrive, Share2, Download, Trash2, Sparkles, Loader2 } from "lucide-react"
+import { Folder, FileText, Image as ImageIcon, Video, File, Plus, Upload, Search, Filter, MoreVertical, HardDrive, Share2, Download, Trash2, Zap, Loader2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { SlideOver } from "@/components/SlideOver"
 import { format } from "date-fns"
@@ -214,7 +214,7 @@ export default function DrivePage() {
               className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-30 flex items-center"
               title="Semantic AI Search"
             >
-              {isAiSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {isAiSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Play, Pause, BarChart2, Star, Sparkles, TrendingUp, AlertTriangle, FileText, CheckCircle2 } from "lucide-react"
+import { Mic, Play, Pause, BarChart2, Star, Zap, TrendingUp, AlertTriangle, FileText, CheckCircle2 } from "lucide-react"
 
 export default function CallIntelligenceDashboard() {
   return (
@@ -113,7 +113,7 @@ export default function CallIntelligenceDashboard() {
         <div className="w-full xl:w-[400px] flex-none space-y-6">
           <div className="bg-card border border-border/50 rounded-2xl shadow-sm h-[600px] flex flex-col relative overflow-hidden">
             <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-border/50 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Zap className="w-5 h-5 text-primary" />
               <h3 className="font-bold text-foreground">AI Call Summary</h3>
             </div>
             

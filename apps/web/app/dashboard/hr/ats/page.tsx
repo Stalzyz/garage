@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, MoreHorizontal, Sparkles, UploadCloud, Calendar, UserCheck, Star, BrainCircuit } from "lucide-react"
+import { Search, Plus, MoreHorizontal, Zap, UploadCloud, Calendar, UserCheck, Star, BrainCircuit } from "lucide-react"
 
 import { SlideOver } from "@/components/SlideOver"
 
@@ -69,7 +69,7 @@ export default function ATSDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              Applicant Tracking <Sparkles className="w-5 h-5 text-primary" />
+              Applicant Tracking <Zap className="w-5 h-5 text-primary" />
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Manage hiring pipeline with AI-powered resume screening.</p>
           </div>
@@ -149,7 +149,7 @@ export default function ATSDashboard() {
                             candidate.score >= 60 ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                             'bg-red-500/10 text-red-500 border-red-500/20'
                           }`}>
-                            <Sparkles className="w-3 h-3" /> {candidate.score}% Match
+                            <Zap className="w-3 h-3" /> {candidate.score}% Match
                           </div>
                         ) : (
                           <span className="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 uppercase">

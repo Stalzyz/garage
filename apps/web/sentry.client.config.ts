@@ -14,5 +14,5 @@ if (dsn) {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
   });
-  console.log("[Sentry] Browser monitoring initialized ✓");
+  console.log("[Sentry] Browser monitoring initialized ");
 }

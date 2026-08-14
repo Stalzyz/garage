@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Activity, AlertTriangle, CheckCircle2, ChevronRight, Clock, CreditCard, Download, FileText, MessageSquare, PlayCircle, Plus, Sparkles, Video } from "lucide-react"
+import { Activity, AlertTriangle, CheckCircle2, ChevronRight, Clock, CreditCard, Download, FileText, MessageSquare, PlayCircle, Plus, Zap, Video } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
 
 export default function MissionControl() {
@@ -42,7 +42,7 @@ export default function MissionControl() {
             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-violet-500 to-blue-500"></div>
             <div className="flex gap-4">
               <div className="w-10 h-10 shrink-0 rounded-full bg-violet-500/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-violet-400" />
+                <Zap className="w-5 h-5 text-violet-400" />
               </div>
               <div className="space-y-4">
                 <p className="text-white text-lg font-medium">Good Morning. You have <span className="text-violet-400 font-bold">2 actions required</span> today.</p>

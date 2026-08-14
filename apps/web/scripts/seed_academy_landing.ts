@@ -17,7 +17,7 @@ async function main() {
     ],
     skipDuplicates: true
   })
-  console.log("✅ Seeded Hiring Partners")
+  console.log(" Seeded Hiring Partners")
 
   // 2. Instructors
   const defaultPassword = await bcrypt.hash("Password123!", 10)
@@ -81,7 +81,7 @@ async function main() {
       }
     }
   })
-  console.log("✅ Seeded Instructors")
+  console.log(" Seeded Instructors")
 
   // 3. Student Showcase
   const studentUser = await prisma.user.upsert({
@@ -121,7 +121,7 @@ async function main() {
       }
     }
   })
-  console.log("✅ Seeded Student Showcase")
+  console.log(" Seeded Student Showcase")
 
 }
 

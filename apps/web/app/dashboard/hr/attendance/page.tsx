@@ -498,8 +498,8 @@ export default function StaffAttendanceDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-xs space-y-0.5 text-muted-foreground">
-                            {log.isGeofenced && <div className="text-emerald-500 font-semibold flex items-center gap-1">📍 Verified GPS location</div>}
-                            {log.isRegularized && <div className="text-blue-500 font-semibold flex items-center gap-1">⚖️ Regularized record</div>}
+                            {log.isGeofenced && <div className="text-emerald-500 font-semibold flex items-center gap-1"> Verified GPS location</div>}
+                            {log.isRegularized && <div className="text-blue-500 font-semibold flex items-center gap-1">️ Regularized record</div>}
                             {!log.isGeofenced && !log.isRegularized && <div>Standard web verification</div>}
                           </div>
                         </td>

@@ -2,7 +2,7 @@
 
 import { useApi, fetchApi } from "@/lib/useApi"
 import { useState } from "react"
-import { Calendar as CalendarIcon, Sparkles, Send, Loader2, Clock, CheckCircle2 } from "lucide-react"
+import { Calendar as CalendarIcon, Zap, Send, Loader2, Clock, CheckCircle2 } from "lucide-react"
 
 const Linkedin = (props: any) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -102,7 +102,7 @@ export default function ContentSchedulerPage() {
         <div className="flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 pb-8">
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-400" /> AI Composer
+              <Zap className="w-5 h-5 text-purple-400" /> AI Composer
             </h2>
             
             <div className="space-y-4 mb-6">
@@ -149,7 +149,7 @@ export default function ContentSchedulerPage() {
                 disabled={!topic || isGenerating}
                 className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                 {isGenerating ? "Generating Magic..." : "Generate Post"}
               </button>
             </div>

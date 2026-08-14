@@ -45,11 +45,11 @@ export default function RealtimeIndicator() {
 function formatEvent(event: { type: string; payload?: unknown }): string | null {
   const p = event.payload as any
   switch (event.type) {
-    case "PROJECT_UPDATE":    return `📦 Project update: ${p?.projectName}`
-    case "INVOICE_CREATED":   return `🧾 New invoice created: ${p?.invoiceId}`
-    case "PROPOSAL_APPROVED": return `✅ Proposal approved by ${p?.clientName}`
-    case "DELIVERABLE_READY": return `📁 Deliverable ready: ${p?.fileName}`
-    case "NEW_LEAD":          return `👤 New lead: ${p?.name}`
+    case "PROJECT_UPDATE":    return ` Project update: ${p?.projectName}`
+    case "INVOICE_CREATED":   return ` New invoice created: ${p?.invoiceId}`
+    case "PROPOSAL_APPROVED": return ` Proposal approved by ${p?.clientName}`
+    case "DELIVERABLE_READY": return ` Deliverable ready: ${p?.fileName}`
+    case "NEW_LEAD":          return ` New lead: ${p?.name}`
     case "NOTIFICATION":      return p?.message
     default:                  return null
   }

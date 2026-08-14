@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, getSession, useSession } from "next-auth/react"
 import { useOrganization } from "@/context/OrganizationContext"
-import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react"
+import { Eye, EyeOff, Loader2, Zap } from "lucide-react"
 
 // Demo client credentials
 const DEMO_CLIENTS = [
@@ -89,7 +89,7 @@ export default function ClientPortalLogin() {
           {org.logoUrl
             ? <img src={org.logoUrl} alt={org.name} className="w-10 h-10 rounded-xl object-contain" />
             : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                <Sparkles className="w-5 h-5 text-white" />
+                <Zap className="w-5 h-5 text-white" />
               </div>
           }
           <div>
@@ -114,9 +114,9 @@ export default function ClientPortalLogin() {
         {/* Feature Cards */}
         <div className="relative space-y-3">
           {[
-            { icon: "📁", label: "Project Deliverables", desc: "View milestones & approvals" },
-            { icon: "📄", label: "Invoices & Payments",  desc: "Download and track payments" },
-            { icon: "✅", label: "Proposal Approvals",   desc: "Review and sign-off remotely" },
+            { icon: "", label: "Project Deliverables", desc: "View milestones & approvals" },
+            { icon: "", label: "Invoices & Payments",  desc: "Download and track payments" },
+            { icon: "", label: "Proposal Approvals",   desc: "Review and sign-off remotely" },
           ].map(item => (
             <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5">
               <span className="text-xl">{item.icon}</span>
@@ -138,7 +138,7 @@ export default function ClientPortalLogin() {
             {org.logoUrl
               ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
               : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
+                  <Zap className="w-4 h-4 text-white" />
                 </div>
             }
             <p className="text-sm font-bold text-white">{org.name} Client Portal</p>

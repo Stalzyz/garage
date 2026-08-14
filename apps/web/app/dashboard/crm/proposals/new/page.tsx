@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Save, Plus, Trash2, Send, Sparkles, Loader2, PenTool } from "lucide-react"
+import { ChevronLeft, Save, Plus, Trash2, Send, Zap, Loader2, PenTool } from "lucide-react"
 import Link from "next/link"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -234,7 +234,7 @@ export default function InteractiveProposalBuilder() {
                   disabled={isGenerating || !formData.title}
                   className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
                 >
-                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                   {isGenerating ? "Generating..." : "AI Generate Content"}
                 </button>
               </div>

@@ -27,15 +27,17 @@ export default async function DashboardLayout({
 
   return (
       <SessionProvider session={session}>
-          <div className="flex h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300">
+          <div className="flex h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300 print:h-auto print:block print:overflow-visible">
             <WebSocketProvider>
             <CurrentUserProvider>
               <Sidebar />
-              <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-dash-bg-surface backdrop-blur-3xl md:rounded-tl-[2.5rem] md:border-t md:border-l border-dash-border-subtle md:mt-2 shadow-2xl relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-300">
+              <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-dash-bg-surface backdrop-blur-3xl md:rounded-tl-[2.5rem] md:border-t md:border-l border-dash-border-subtle md:mt-2 shadow-2xl relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-300 print:overflow-visible print:h-auto print:block print:p-0 print:m-0 print:border-none print:shadow-none">
                 {children}
               </main>
-              <CommandPalette />
-              <TelemetryNotifier />
+              <div className="print:hidden">
+                <CommandPalette />
+                <TelemetryNotifier />
+              </div>
 
             </CurrentUserProvider>
           </WebSocketProvider>

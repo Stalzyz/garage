@@ -397,10 +397,10 @@ export default function ESSDashboard() {
                   onChange={e => setRequestForm({ ...requestForm, type: e.target.value as any })}
                   className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white"
                 >
-                  <option value="SHIFT_SWAP">🔄 Shift Swap</option>
-                  <option value="OVERTIME_CLAIM">⚡ Overtime Claim</option>
-                  <option value="ASSET_ALLOCATION">💻 Asset Allocation</option>
-                  <option value="CUSTOM_CLAIM">💵 Custom Claim</option>
+                  <option value="SHIFT_SWAP"> Shift Swap</option>
+                  <option value="OVERTIME_CLAIM"> Overtime Claim</option>
+                  <option value="ASSET_ALLOCATION"> Asset Allocation</option>
+                  <option value="CUSTOM_CLAIM"> Custom Claim</option>
                 </select>
               </div>
 

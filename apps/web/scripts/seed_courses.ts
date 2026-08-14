@@ -50,9 +50,9 @@ async function main() {
     }
   });
 
-  console.log(`✅ Seeded Course: ${course.name}`);
-  console.log(`✅ Seeded LMSCourse with ID: ${lmsCourse.id}`);
-  console.log(`✅ Seeded Module: ${module1.title}`);
+  console.log(` Seeded Course: ${course.name}`);
+  console.log(` Seeded LMSCourse with ID: ${lmsCourse.id}`);
+  console.log(` Seeded Module: ${module1.title}`);
 }
 
 main()

@@ -112,7 +112,7 @@ export default function AssetHub() {
       previewColor: PREVIEW_GRADIENTS[Math.floor(Math.random() * PREVIEW_GRADIENTS.length)],
     }))
     setAssets(prev => [...newAssets, ...prev])
-    showToast(`✅ ${names.length} file${names.length > 1 ? "s" : ""} uploaded!`)
+    showToast(` ${names.length} file${names.length > 1 ? "s" : ""} uploaded!`)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -414,7 +414,7 @@ export default function AssetHub() {
                 <button className="w-full flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
                   <Download className="w-4 h-4" /> Download
                 </button>
-                <button onClick={() => { showToast("🔗 Shareable link copied!") }}
+                <button onClick={() => { showToast(" Shareable link copied!") }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 bg-muted hover:bg-muted/80 text-foreground rounded-xl text-sm font-medium transition-colors"
                 >
                   <Link2 className="w-4 h-4" /> Copy Link

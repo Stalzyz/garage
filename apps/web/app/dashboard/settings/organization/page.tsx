@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Loader2, Palette, Image as ImageIcon, CheckCircle, BookOpen, Sparkles } from "lucide-react";
+import { Loader2, Palette, Image as ImageIcon, CheckCircle, BookOpen, Zap } from "lucide-react";
 
 export default function OrganizationSettingsPage() {
   const [org, setOrg] = useState<any>(null);
@@ -249,7 +249,7 @@ export default function OrganizationSettingsPage() {
         {/* AI Integrations */}
         <div className="bg-[#111111] border border-[#222] rounded-xl p-6">
           <h2 className="text-lg font-medium text-white mb-6 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-emerald-500" /> AI Integrations
+            <Zap className="w-5 h-5 text-emerald-500" /> AI Integrations
           </h2>
           
           <div className="space-y-4">

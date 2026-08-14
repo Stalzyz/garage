@@ -44,7 +44,7 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
       category: "New Category",
       title: "New Section",
       subtitle: "Add some descriptive text here.",
-      iconName: "Sparkles",
+      iconName: "Zap",
       colorHex: "#3b82f6",
       cta: "Click Here"
     }])
@@ -150,7 +150,7 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
                   </div>
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-white/50 uppercase mb-1">Lucide Icon</label>
-                    <input value={card.iconName || ''} onChange={e => updateCard(idx, { iconName: e.target.value })} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-purple-500 outline-none" placeholder="e.g. Sparkles" />
+                    <input value={card.iconName || ''} onChange={e => updateCard(idx, { iconName: e.target.value })} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-purple-500 outline-none" placeholder="e.g. Zap" />
                   </div>
                 </div>
               </div>

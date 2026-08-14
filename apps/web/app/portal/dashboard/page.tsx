@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import {
-  Sparkles, LogOut, Briefcase, FileText, CheckCircle,
+  Zap, LogOut, Briefcase, FileText, CheckCircle,
   Clock, Download, MessageSquare, Bell, ChevronRight,
   Package, Star, AlertCircle, ExternalLink, GraduationCap, PlayCircle,
   CreditCard, Landmark, Eye, LifeBuoy, X, Loader2, Calendar, UploadCloud, Layers
@@ -325,7 +325,7 @@ export default function ClientDashboard() {
   const unreadCount = notifications.filter((n: any) => !n.readAt).length
 
   const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-    { id: "overview",  label: "Overview",  icon: Sparkles },
+    { id: "overview",  label: "Overview",  icon: Zap },
     { id: "projects",  label: "Projects",  icon: Briefcase },
     { id: "invoices",  label: "Invoices",  icon: FileText },
     { id: "proposals", label: "Proposals", icon: CheckCircle },
@@ -351,7 +351,7 @@ export default function ClientDashboard() {
           {org.logoUrl
             ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
             : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                <Sparkles className="w-4 h-4 text-white" />
+                <Zap className="w-4 h-4 text-white" />
               </div>
           }
           <div>
@@ -440,7 +440,7 @@ export default function ClientDashboard() {
           <>
             <div>
               <h1 className="text-2xl font-bold text-white">
-                Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{clientName}</span> 👋
+                Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{clientName}</span> 
               </h1>
               <p className="text-white/40 text-sm mt-1">Here's a snapshot of your active engagement with {org.name}.</p>
             </div>

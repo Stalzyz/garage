@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Sparkles, Loader2 } from "lucide-react"
+import { Zap, Loader2 } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { Modal } from "./modal"
@@ -57,7 +57,7 @@ export function AIAssistButton({
         onClick={() => setIsOpen(true)}
         className={buttonClassName}
       >
-        <Sparkles className="w-3.5 h-3.5" />
+        <Zap className="w-3.5 h-3.5" />
         {buttonLabel}
       </button>
 
@@ -66,7 +66,7 @@ export function AIAssistButton({
           <div className="w-[500px] p-6 text-left">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
+                <Zap className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">AI Assistant</h2>
@@ -100,7 +100,7 @@ export function AIAssistButton({
                   disabled={isGenerating || !prompt.trim()}
                   className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-500 transition-colors text-sm flex items-center shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:opacity-50"
                 >
-                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
                   Generate
                 </button>
               </div>

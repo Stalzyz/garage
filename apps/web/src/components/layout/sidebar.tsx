@@ -230,12 +230,12 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden md:flex h-screen w-72 flex-col border-r border-dash-border-strong shrink-0 bg-dash-bg-base relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="print:hidden hidden md:flex h-screen w-72 flex-col border-r border-dash-border-strong shrink-0 bg-dash-bg-base relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden">
         {sidebarContent}
       </div>
 
       {/* Mobile Top Header Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-b border-dash-border-strong z-40 flex items-center justify-between px-5">
+      <div className="print:hidden md:hidden fixed top-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-b border-dash-border-strong z-40 flex items-center justify-between px-5">
         <div className="flex items-center gap-2.5">
           {org.logoUrl ? (
             <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-dash-border-strong relative">
@@ -255,7 +255,7 @@ export function Sidebar() {
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-t border-dash-border-strong z-40 flex items-center justify-around px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+      <div className="print:hidden md:hidden fixed bottom-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-t border-dash-border-strong z-40 flex items-center justify-around px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
         {getBottomTabs(role).map(tab => {
           const TabIcon = tab.icon
           const isTabActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname?.startsWith(`${tab.href}/`))

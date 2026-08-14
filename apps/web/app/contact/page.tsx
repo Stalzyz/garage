@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Send, MapPin, Mail, Phone, ArrowRight, Sparkles, Orbit } from 'lucide-react'
+import { Send, MapPin, Mail, Phone, ArrowRight, Zap, Orbit } from 'lucide-react'
 import { useOrganization } from '@/context/OrganizationContext'
 
 export default function ContactPage() {
@@ -48,7 +48,7 @@ export default function ContactPage() {
           className="flex-1 w-full"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-8">
-            <Sparkles className="w-3 h-3" /> Let's Collaborate
+            <Zap className="w-3 h-3" /> Let's Collaborate
           </div>
           <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.9] tracking-tighter mb-8">
             Start a <br/>
@@ -179,14 +179,14 @@ export default function ContactPage() {
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 pl-1">Mobile Number</label>
                   <div className="flex gap-3">
                     <select name="countryCode" className="w-[120px] bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white outline-none focus:border-blue-500/50 focus:bg-black/60 transition-all appearance-none cursor-pointer">
-                      <option value="+1">🇺🇸 +1</option>
-                      <option value="+44">🇬🇧 +44</option>
-                      <option value="+91">🇮🇳 +91</option>
-                      <option value="+61">🇦🇺 +61</option>
-                      <option value="+81">🇯🇵 +81</option>
-                      <option value="+49">🇩🇪 +49</option>
-                      <option value="+33">🇫🇷 +33</option>
-                      <option value="+86">🇨🇳 +86</option>
+                      <option value="+1"> +1</option>
+                      <option value="+44"> +44</option>
+                      <option value="+91"> +91</option>
+                      <option value="+61"> +61</option>
+                      <option value="+81"> +81</option>
+                      <option value="+49"> +49</option>
+                      <option value="+33"> +33</option>
+                      <option value="+86"> +86</option>
                     </select>
                     <input required name="phone" type="tel" placeholder="(555) 000-0000" className="flex-1 bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-blue-500/50 focus:bg-black/60 transition-all placeholder:text-white/20" />
                   </div>

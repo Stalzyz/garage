@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Plus, Star, Briefcase, Users, Mail, Phone, Tag, X, CheckCircle, Clock, ToggleLeft, ToggleRight, TrendingUp, Sparkles, Network, Loader2 } from "lucide-react"
+import { Search, Plus, Star, Briefcase, Users, Mail, Phone, Tag, X, CheckCircle, Clock, ToggleLeft, ToggleRight, TrendingUp, Zap, Network, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -88,7 +88,7 @@ export default function VendorDirectory() {
           rating: ratingValue
         })
       });
-      toast.success("✅ Review Telemetry Uploaded");
+      toast.success(" Review Telemetry Uploaded");
       setIsRating(false);
       setRatingValue(0);
       setRatingComment("");

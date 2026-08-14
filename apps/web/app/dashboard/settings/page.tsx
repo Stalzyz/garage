@@ -197,7 +197,7 @@ export default function SystemSettingsPage() {
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-semibold text-white">
-                              {logoPreview ? '✅ Logo selected — click to change' : 'Click or drag & drop your logo'}
+                              {logoPreview ? ' Logo selected — click to change' : 'Click or drag & drop your logo'}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
                           </div>
@@ -244,7 +244,7 @@ export default function SystemSettingsPage() {
                           </div>
                           <div className="text-center">
                             <p className="text-sm font-semibold text-white">
-                              {academyLogoPreview ? '✅ Academy logo selected' : 'Click or drag & drop academy logo'}
+                              {academyLogoPreview ? ' Academy logo selected' : 'Click or drag & drop academy logo'}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
                           </div>

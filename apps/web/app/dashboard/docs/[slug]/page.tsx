@@ -30,7 +30,7 @@ function renderMarkdown(md: string): string {
     // Links
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors">$1</a>')
     // Checkboxes
-    .replace(/^- \[x\] (.+)$/gm, '<li class="flex items-start gap-2 text-white/80 mb-1"><span class="mt-1 w-4 h-4 rounded bg-emerald-600/30 border border-emerald-500/50 flex items-center justify-center flex-shrink-0 text-emerald-400 text-[10px]">✓</span>$1</li>')
+    .replace(/^- \[x\] (.+)$/gm, '<li class="flex items-start gap-2 text-white/80 mb-1"><span class="mt-1 w-4 h-4 rounded bg-emerald-600/30 border border-emerald-500/50 flex items-center justify-center flex-shrink-0 text-emerald-400 text-[10px]"></span>$1</li>')
     .replace(/^- \[ \] (.+)$/gm, '<li class="flex items-start gap-2 text-white/60 mb-1"><span class="mt-1 w-4 h-4 rounded bg-white/5 border border-white/20 flex-shrink-0"></span>$1</li>')
     // Unordered list items
     .replace(/^[-*] (.+)$/gm, '<li class="text-white/80 mb-1 pl-1">• $1</li>')

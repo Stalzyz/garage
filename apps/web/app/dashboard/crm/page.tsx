@@ -544,7 +544,7 @@ export default function CRMDashboard() {
                   onClick={() => setIsLeadModalOpen(false)}
                   className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
-                  ✕ Close
+                   Close
                 </button>
               </div>
 
@@ -729,7 +729,7 @@ export default function CRMDashboard() {
                   onClick={() => setIsActivityModalOpen(false)}
                   className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
-                  ✕ Close
+                   Close
                 </button>
               </div>
 
@@ -809,7 +809,7 @@ export default function CRMDashboard() {
                   onClick={() => setIsConvertModalOpen(false)}
                   className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
                 >
-                  ✕ Close
+                   Close
                 </button>
               </div>
 

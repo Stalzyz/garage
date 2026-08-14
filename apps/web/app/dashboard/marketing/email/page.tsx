@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, Send, Save, Eye, Users, Search, Type, Image as ImageIcon, Layout, Type as TypeIcon, Sparkles, Loader2 } from "lucide-react"
+import { Mail, Send, Save, Eye, Users, Search, Type, Image as ImageIcon, Layout, Type as TypeIcon, Zap, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"

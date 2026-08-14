@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { EmailService } from '../automations/email.service';
 
 const CreateCompanySchema = z.object({
   name: z.string().min(1),
@@ -215,6 +216,20 @@ export default async function contactsRouter(app: FastifyInstance) {
       });
     }
 
+    if (tempPassword) {
+      await EmailService.sendEmail(
+        user.email,
+        'Welcome to the Client Portal',
+        `<h1>Welcome to Grekam OS Client Portal</h1>
+        <p>Hi ${user.firstName},</p>
+        <p>An account has been created for you. You can login using the following credentials:</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Password:</strong> ${tempPassword}</p>
+        <br/>
+        <p>We recommend changing your password after logging in.</p>`
+      );
+    }
+
     return { 
       success: true, 
       message: 'Portal credentials generated.',
@@ -247,6 +262,16 @@ export default async function contactsRouter(app: FastifyInstance) {
       where: { id: user.id },
       data: { passwordHash }
     });
+
+    await EmailService.sendEmail(
+      user.email,
+      'Your Client Portal PIN has been reset',
+      `<h1>Portal PIN Reset</h1>
+      <p>Hi ${user.firstName},</p>
+      <p>Your portal PIN has been successfully reset. You can login using the following temporary credentials:</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Password:</strong> ${tempPassword}</p>`
+    );
 
     return { 
       success: true, 

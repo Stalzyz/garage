@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Phone, Mic, PhoneOff, User, Sparkles, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone } from "lucide-react"
+import { Phone, Mic, PhoneOff, User, Zap, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -173,7 +173,7 @@ export default function PowerDialerDashboard() {
             </div>
             <div className="flex-1 overflow-y-auto p-2">
               <div className="space-y-1">
-                {QUEUE.map((lead, i) => (
+                {queue.map((lead, i) => (
                   <div key={lead.id} className={`p-3 rounded-xl border flex items-center gap-3 transition-colors ${
                     i === queuePos ? 'bg-primary/10 border-primary/30' : 
                     i < queuePos ? 'bg-muted/30 border-transparent opacity-50' : 
@@ -267,7 +267,7 @@ export default function PowerDialerDashboard() {
           <div className="bg-card border border-border/50 rounded-2xl shadow-sm h-[600px] flex flex-col relative overflow-hidden">
             {/* Sparkle Header */}
             <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-border/50 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Zap className="w-5 h-5 text-primary" />
               <h3 className="font-bold text-foreground">AI Dynamic Script</h3>
             </div>
             

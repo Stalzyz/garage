@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Plus, Bot, Sparkles, Code, Braces, Layout, Trash, Trash2, GripVertical, Globe } from "lucide-react"
+import { ArrowLeft, Save, Plus, Bot, Zap, Code, Braces, Layout, Trash, Trash2, GripVertical, Globe } from "lucide-react"
 import { MediaPicker } from "../../../../src/components/builder/MediaPicker"
 
 export default function CMSPageEditor() {
@@ -122,7 +122,7 @@ export default function CMSPageEditor() {
           { id: 'p2', title: 'Lumina Dashboard', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80' },
         ];
         initContent = [
-          { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures.", iconName: "Sparkles", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
+          { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures.", iconName: "Zap", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
           { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: dummyProjects },
           { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure?", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
           { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
@@ -210,7 +210,7 @@ export default function CMSPageEditor() {
         category: "New Service", 
         title: "Untitled", 
         subtitle: "Description goes here.", 
-        iconName: "Sparkles", 
+        iconName: "Zap", 
         colorHex: "#4ade80",
         cta: "Learn More",
         isContactForm: false,
@@ -324,7 +324,7 @@ export default function CMSPageEditor() {
                 disabled={isGenerating || !aiPrompt}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 disabled:opacity-50 transition-colors shrink-0"
               >
-                {isGenerating ? <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isGenerating ? <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Zap className="w-4 h-4" />}
                 Generate HTML
               </button>
             </div>
@@ -403,7 +403,7 @@ export default function CMSPageEditor() {
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lucide Icon Name</label>
-                              <input type="text" value={card.iconName || ''} onChange={e => updateCard(idx, 'iconName', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Sparkles, Code2" />
+                              <input type="text" value={card.iconName || ''} onChange={e => updateCard(idx, 'iconName', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Zap, Code2" />
                             </div>
                             <div className="col-span-1 md:col-span-2">
                               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Button CTA Text</label>

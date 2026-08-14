@@ -192,10 +192,10 @@ export default function RequestsQueuePage() {
             className="bg-background border border-border/50 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
           >
             <option value="ALL">All Types</option>
-            <option value="SHIFT_SWAP">🔄 Shift Swap</option>
-            <option value="OVERTIME_CLAIM">⚡ Overtime Claim</option>
-            <option value="ASSET_ALLOCATION">💻 Asset Allocation</option>
-            <option value="CUSTOM_CLAIM">💵 Custom Claim</option>
+            <option value="SHIFT_SWAP"> Shift Swap</option>
+            <option value="OVERTIME_CLAIM"> Overtime Claim</option>
+            <option value="ASSET_ALLOCATION"> Asset Allocation</option>
+            <option value="CUSTOM_CLAIM"> Custom Claim</option>
           </select>
 
           <div className="relative flex-1">
