@@ -15,7 +15,7 @@ async function main() {
   ];
 
   for (const c of clients) {
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: c.email },
       update: { passwordHash, role: 'CLIENT', status: 'ACTIVE' },
       create: {
@@ -27,7 +27,41 @@ async function main() {
         lastName: c.lastName,
       },
     });
-    console.log(`✅ Created/Updated client: ${c.email}`);
+
+    // Create Company
+    const company = await prisma.company.upsert({
+      where: { name: c.lastName },
+      update: {},
+      create: {
+        name: c.lastName,
+        industry: 'Demo',
+        website: `https://${c.lastName.toLowerCase()}.com`
+      }
+    });
+
+    // Create Contact
+    const contact = await prisma.contact.upsert({
+      where: { email: c.email },
+      update: { companyId: company.id },
+      create: {
+        email: c.email,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        companyId: company.id,
+      }
+    });
+
+    // Create Client Profile
+    await prisma.clientProfile.upsert({
+      where: { userId: user.id },
+      update: { contactId: contact.id },
+      create: {
+        userId: user.id,
+        contactId: contact.id,
+      }
+    });
+
+    console.log(`✅ Created/Updated client and linked profile: ${c.email}`);
   }
 
   console.log('🎉 Client seed completed successfully!');
