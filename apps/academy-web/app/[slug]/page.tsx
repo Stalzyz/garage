@@ -194,6 +194,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
   let lmsModules: any[] = [];
   let relatedCourses: any[] = [];
   let cmsCoverImage: string | undefined = undefined;
+  let trailerVideoId: string | null = null;
 
   // Extract cover image from the first CMS section if it exists
   if (page.sections.length > 0) {
@@ -228,6 +229,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
       if (course?.lmsCourse?.modules) {
         lmsModules = course.lmsCourse.modules;
       }
+      trailerVideoId = course?.lmsCourse?.trailerVideoId || null;
 
       // Fetch 3 other courses
       relatedCourses = await prisma.course.findMany({
@@ -254,6 +256,7 @@ export default async function CMSPublicPage({ params }: { params: { slug: string
           description={page.description || "Master your craft with industry experts."}
           coverImage={cmsCoverImage}
           courseCode={courseCode}
+          trailerVideoId={trailerVideoId}
         />
       )}
 

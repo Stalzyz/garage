@@ -32,7 +32,10 @@ export default function PortfolioAdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          imageUrl: formData.thumbnailUrl,
+          linkUrl: formData.projectUrl,
           technologies: formData.technologies.split(',').map(t => t.trim()).filter(Boolean)
         })
       })
@@ -111,8 +114,8 @@ export default function PortfolioAdminPage() {
           {projects.map((project) => (
             <div key={project.id} className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col relative overflow-hidden group">
               <div className="h-40 bg-slate-100 relative">
-                {project.thumbnailUrl ? (
-                  <img src={project.thumbnailUrl} alt={project.title} className="w-full h-full object-cover" />
+                {project.imageUrl ? (
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full text-slate-300">
                     <Briefcase className="w-12 h-12" />
@@ -138,8 +141,8 @@ export default function PortfolioAdminPage() {
                 )}
 
                 <div className="flex items-center gap-3 mt-auto pt-3 border-t border-slate-100">
-                  {project.projectUrl && (
-                    <a href={project.projectUrl} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline flex items-center gap-1 font-medium">
+                  {project.linkUrl && (
+                    <a href={project.linkUrl} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline flex items-center gap-1 font-medium">
                       <ExternalLink className="w-3.5 h-3.5" /> Live Demo
                     </a>
                   )}

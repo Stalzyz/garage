@@ -76,9 +76,12 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
               alt="Grekam Design Academy"
               width={140}
               height={42}
-              className={`h-8 w-auto transition-all duration-300 ${
-                (!scrolled && theme === "light") ? "invert brightness-0" : ""
-              }`}
+              className="h-8 w-auto transition-all duration-300"
+              style={{
+                filter: (!scrolled && theme === "light")
+                  ? "invert(63%) sepia(50%) saturate(601%) hue-rotate(152deg) brightness(88%) contrast(92%)"
+                  : "none"
+              }}
             />
           </Link>
         </Magnetic>
