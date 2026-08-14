@@ -40,6 +40,10 @@ export const EmailService = {
         if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
       }
 
+      if (fromAddress && !fromAddress.includes('<')) {
+        fromAddress = `"${fromAddress}" <${user}>`;
+      }
+
       const transporter = nodemailer.createTransport({
         host,
         port,
