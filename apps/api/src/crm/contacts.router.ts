@@ -115,6 +115,48 @@ export default async function contactsRouter(app: FastifyInstance) {
         'Welcome to the Client Portal',
         emailHtml
       );
+    } else {
+      const loginUrl = process.env.AUTH_URL || 'https://garage.grekam.in/auth/login';
+      const emailHtml = `
+        <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+          <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <div style="background-color: #1e3a8a; padding: 32px; text-align: center;">
+              <h2 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.025em;">Welcome to Grekam OS</h2>
+            </div>
+            <div style="padding: 40px 32px;">
+              <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin-top: 0;">Hi ${user.firstName},</p>
+              <p style="font-size: 15px; line-height: 1.6; color: #4b5563;">Your client portal access is ready. Since you already have an account, you can log in using your existing credentials:</p>
+              
+              <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 28px 0; border: 1px solid #e5e7eb;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600; width: 100px;">Portal Link</td>
+                    <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #1e3a8a;"><a href="${loginUrl}" style="color: #1e3a8a; text-decoration: underline;">${loginUrl}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600;">Email</td>
+                    <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #111827;">${user.email}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="text-align: center; margin: 28px 0 16px 0;">
+                <a href="${loginUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">Log In to Portal</a>
+              </div>
+
+              <p style="font-size: 12px; line-height: 1.5; color: #9ca3af; text-align: center; margin-top: 36px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                If you forgot your password, please use the passcode reset option on the login screen.
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await EmailService.sendEmail(
+        user.email,
+        'Welcome to the Client Portal',
+        emailHtml
+      );
     }
 
     return { user, tempPassword };
