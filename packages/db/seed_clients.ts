@@ -29,27 +29,40 @@ async function main() {
     });
 
     // Create Company
-    const company = await prisma.company.upsert({
-      where: { name: c.lastName },
-      update: {},
-      create: {
-        name: c.lastName,
-        industry: 'Demo',
-        website: `https://${c.lastName.toLowerCase()}.com`
-      }
+    let company = await prisma.company.findFirst({
+      where: { name: c.lastName }
     });
+    
+    if (!company) {
+      company = await prisma.company.create({
+        data: {
+          name: c.lastName,
+          industry: 'Demo',
+          website: `https://${c.lastName.toLowerCase()}.com`
+        }
+      });
+    }
 
     // Create Contact
-    const contact = await prisma.contact.upsert({
-      where: { email: c.email },
-      update: { companyId: company.id },
-      create: {
-        email: c.email,
-        firstName: c.firstName,
-        lastName: c.lastName,
-        companyId: company.id,
-      }
+    let contact = await prisma.contact.findFirst({
+      where: { email: c.email }
     });
+
+    if (!contact) {
+      contact = await prisma.contact.create({
+        data: {
+          email: c.email,
+          firstName: c.firstName,
+          lastName: c.lastName,
+          companyId: company.id,
+        }
+      });
+    } else if (contact.companyId !== company.id) {
+      contact = await prisma.contact.update({
+        where: { id: contact.id },
+        data: { companyId: company.id }
+      });
+    }
 
     // Create Client Profile
     await prisma.clientProfile.upsert({
