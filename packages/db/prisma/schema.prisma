@@ -394,6 +394,15 @@ model CommunicationLog {
   @@map("communication_logs")
 }
 
+model DncNumber {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  reason    String?
+  addedAt   DateTime @default(now())
+
+  @@map("dnc_numbers")
+}
+
 model ClientProfile {
   id        String  @id @default(cuid())
   userId    String  @unique

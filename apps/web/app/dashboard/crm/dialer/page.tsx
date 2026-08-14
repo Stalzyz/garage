@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Phone, Mic, PhoneOff, User, Zap, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -18,11 +18,107 @@ export default function PowerDialerDashboard() {
   const { data: apiResponse, mutate } = useApi<any>("/crm/leads")
   const leads = apiResponse?.data || []
   
-  // Filter for leads with phone numbers and sort by NEW/CONTACTED first
-  const queue = leads.filter((l: any) => !!l.phone).slice(0, 50)
+  // Filter for leads with phone numbers and sort by score descending (Lead Scoring)
+  const queue = leads
+    .filter((l: any) => !!l.phone)
+    .sort((a: any, b: any) => (b.score || 0) - (a.score || 0))
+    .slice(0, 50)
   const activeLead = queue[queuePos]
 
   const [callNotes, setCallNotes] = useState("")
+  const [selectedDisposition, setSelectedDisposition] = useState<string | null>(null)
+
+  const [meetingSummary, setMeetingSummary] = useState("")
+  const [meetingTime, setMeetingTime] = useState("")
+  const [attendeeEmail, setAttendeeEmail] = useState("")
+  const [isScheduling, setIsScheduling] = useState(false)
+
+  useEffect(() => {
+    if (activeLead) {
+      setAttendeeEmail(activeLead.email || "")
+      setMeetingSummary(`Intro Call with ${activeLead.name}`)
+    }
+  }, [activeLead])
+
+  const handleScheduleMeeting = async () => {
+    if (!meetingTime || !meetingSummary || !attendeeEmail) {
+      toast.error("Please fill in summary, date/time, and email.")
+      return
+    }
+    setIsScheduling(true)
+    try {
+      const start = new Date(meetingTime)
+      const end = new Date(start.getTime() + 30 * 60 * 1000) // default 30 mins
+      await fetchApi('/crm/calendar/invite', {
+        method: 'POST',
+        body: JSON.stringify({
+          leadId: activeLead.id,
+          summary: meetingSummary,
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+          attendeeEmail,
+        })
+      });
+      toast.success("Google Calendar invite sent to prospect!")
+      
+      // Directly log WON status and disposition activity
+      await fetchApi(`/crm/leads/${activeLead.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "WON" })
+      })
+      await fetchApi(`/crm/leads/${activeLead.id}/activities`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "CALL",
+          content: `[Call Disposition] Outcome marked as: Meeting Booked. Google Calendar Invite sent.`
+        })
+      })
+      
+      setMeetingSummary("")
+      setMeetingTime("")
+      mutate()
+    } catch (err: any) {
+      toast.error("Failed to schedule meeting: " + err.message)
+    } finally {
+      setIsScheduling(false)
+    }
+  }
+
+  const [isDncOpen, setIsDncOpen] = useState(false)
+  const [dncNumberInput, setDncNumberInput] = useState("")
+  const [dncReasonInput, setDncReasonInput] = useState("")
+  const { data: dncResponse, mutate: mutateDnc } = useApi<any>(isDncOpen ? "/crm/dnc" : null)
+  const dncList = dncResponse?.data || []
+
+  const handleAddDnc = async () => {
+    if (!dncNumberInput) return
+    try {
+      await fetchApi("/crm/dnc", {
+        method: "POST",
+        body: JSON.stringify({ phone: dncNumberInput, reason: dncReasonInput })
+      })
+      toast.success("Number added to DNC list")
+      setDncNumberInput("")
+      setDncReasonInput("")
+      mutateDnc()
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add DNC number")
+    }
+  }
+
+  const handleRemoveDnc = async (id: string) => {
+    try {
+      await fetchApi(`/crm/dnc/${id}`, {
+        method: "DELETE"
+      })
+      toast.success("Number removed from DNC list")
+      mutateDnc()
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove DNC number")
+    }
+  }
 
   const handleStartDialer = async () => {
     setCallState("dialing")
@@ -77,6 +173,40 @@ export default function PowerDialerDashboard() {
     }, 2000)
   }
 
+  const handleDisposition = async (disposition: string) => {
+    setSelectedDisposition(disposition)
+    
+    if (disposition === "Meeting Booked") {
+      // Don't auto-save; wait for meeting scheduling form submission
+      return
+    }
+
+    let newStatus: string | null = null
+    if (disposition === "Call Back Later") newStatus = "CONTACTED"
+    else if (disposition === "Not Interested") newStatus = "LOST"
+    else if (disposition === "Left Voicemail") newStatus = "CONTACTED"
+
+    if (newStatus && activeLead) {
+      try {
+        await fetchApi(`/crm/leads/${activeLead.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus })
+        })
+        await fetchApi(`/crm/leads/${activeLead.id}/activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "CALL",
+            content: `[Call Disposition] Outcome marked as: ${disposition}`
+          })
+        })
+        toast.success(`Disposition logged: ${disposition}`)
+        mutate()
+      } catch (err: any) {
+        toast.error("Failed to sync disposition status: " + err.message)
+      }
+    }
+  }
+
   const saveCallNotes = async () => {
     if (activeLead && callNotes.trim()) {
       try {
@@ -84,7 +214,7 @@ export default function PowerDialerDashboard() {
           method: "POST",
           body: JSON.stringify({
             type: "CALL",
-            content: `[Call] ${callNotes}`
+            content: `[Call Notes] ${callNotes}`
           })
         })
         toast.success("Call notes saved!")
@@ -99,6 +229,7 @@ export default function PowerDialerDashboard() {
       await saveCallNotes()
     }
     setCallNotes("")
+    setSelectedDisposition(null)
     if (queuePos + 1 < queue.length) {
       setQueuePos(queuePos + 1)
       setCallState("idle")
@@ -146,6 +277,12 @@ export default function PowerDialerDashboard() {
             </label>
             <div className="flex items-center justify-between md:justify-start gap-4">
               <span className="text-sm font-medium text-muted-foreground">Queue: {queuePos + 1}/{queue.length}</span>
+              <button 
+                onClick={() => setIsDncOpen(true)}
+                className="text-xs font-bold text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg bg-muted/40 hover:bg-muted/70 border border-border/50 transition-colors"
+              >
+                Manage DNC
+              </button>
               {callState === "idle" || callState === "wrapup" ? (
                 <button 
                   onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
@@ -190,7 +327,12 @@ export default function PowerDialerDashboard() {
                       <User className="w-5 h-5 text-muted-foreground" />
                     )}
                     <div className="flex-1">
-                      <div className="font-medium text-foreground text-sm">{lead.name}</div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-foreground text-sm">{lead.name}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                          Score: {lead.score || 0}
+                        </span>
+                      </div>
                       <div className="text-xs text-muted-foreground">{lead.company}</div>
                     </div>
                   </div>
@@ -312,11 +454,68 @@ export default function PowerDialerDashboard() {
                     <FileText className="w-4 h-4" /> Quick Disposition
                   </div>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Meeting Booked</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Call Back Later</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Not Interested</button>
-                    <button className="px-3 py-1.5 bg-background border border-border/50 rounded-lg text-xs font-medium hover:border-primary transition-colors">Left Voicemail</button>
+                    {["Meeting Booked", "Call Back Later", "Not Interested", "Left Voicemail"].map((disp) => {
+                      const isActive = selectedDisposition === disp;
+                      return (
+                        <button
+                          key={disp}
+                          onClick={() => handleDisposition(disp)}
+                          className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${
+                            isActive
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : "bg-background border-border/50 text-foreground hover:border-primary"
+                          }`}
+                        >
+                          {disp}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {selectedDisposition === "Meeting Booked" && (
+                    <div className="my-3 p-3 bg-background border border-border rounded-lg space-y-2">
+                      <div className="text-xs font-bold text-foreground">Schedule Google Calendar Event</div>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-muted-foreground uppercase font-bold">Event Title</label>
+                        <input 
+                          type="text" 
+                          value={meetingSummary} 
+                          onChange={e => setMeetingSummary(e.target.value)} 
+                          className="w-full bg-muted/30 border border-border/50 rounded p-1.5 text-xs text-foreground focus:outline-none"
+                          placeholder="e.g. Intro Call"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-muted-foreground uppercase font-bold">Prospect Email</label>
+                        <input 
+                          type="email" 
+                          value={attendeeEmail} 
+                          onChange={e => setAttendeeEmail(e.target.value)} 
+                          className="w-full bg-muted/30 border border-border/50 rounded p-1.5 text-xs text-foreground focus:outline-none"
+                          placeholder="prospect@company.com"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-muted-foreground uppercase font-bold">Date & Time</label>
+                        <input 
+                          type="datetime-local" 
+                          value={meetingTime} 
+                          onChange={e => setMeetingTime(e.target.value)} 
+                          className="w-full bg-muted/30 border border-border/50 rounded p-1.5 text-xs text-foreground focus:outline-none"
+                        />
+                      </div>
+
+                      <button 
+                        onClick={handleScheduleMeeting} 
+                        disabled={isScheduling}
+                        className="w-full mt-2 py-1.5 bg-emerald-500 text-white font-bold text-xs rounded hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                      >
+                        {isScheduling ? "Creating event..." : "Confirm & Send Calendar Invite"}
+                      </button>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-sm font-medium text-muted-foreground">Call Notes</label>
                     <AIAssistButton 
@@ -338,6 +537,69 @@ export default function PowerDialerDashboard() {
         </div>
 
       </div>
+
+      {/* DNC Drawer */}
+      {isDncOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 animate-fade-in">
+          <div className="w-full max-w-md bg-background border-l border-border h-full flex flex-col p-6 shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
+              <h3 className="text-lg font-bold text-foreground">Do Not Call (DNC) List</h3>
+              <button onClick={() => setIsDncOpen(false)} className="text-muted-foreground hover:text-foreground font-bold">Close</button>
+            </div>
+
+            {/* Add to DNC Form */}
+            <div className="space-y-4 mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
+              <h4 className="text-sm font-bold text-foreground">Add Phone Number</h4>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Phone number (e.g. +1234567890)"
+                  value={dncNumberInput}
+                  onChange={(e) => setDncNumberInput(e.target.value)}
+                  className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <input
+                  type="text"
+                  placeholder="Reason (optional)"
+                  value={dncReasonInput}
+                  onChange={(e) => setDncReasonInput(e.target.value)}
+                  className="w-full bg-background border border-border/50 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={handleAddDnc}
+                  className="w-full py-2 bg-primary text-primary-foreground font-bold text-xs rounded-lg hover:bg-primary/95 transition-all shadow-sm"
+                >
+                  Add to DNC
+                </button>
+              </div>
+            </div>
+
+            {/* DNC List */}
+            <div className="flex-1 overflow-y-auto space-y-2">
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Restricted Numbers</div>
+              {dncList.length === 0 ? (
+                <div className="text-sm text-muted-foreground py-8 text-center">No DNC numbers listed.</div>
+              ) : (
+                dncList.map((item: any) => (
+                  <div key={item.id} className="p-3 bg-muted/10 border border-border/50 rounded-xl flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-mono font-bold text-foreground">{item.phone}</div>
+                      {item.reason && <div className="text-xs text-muted-foreground mt-0.5">{item.reason}</div>}
+                    </div>
+                    <button
+                      onClick={() => handleRemoveDnc(item.id)}
+                      className="text-xs text-red-500 hover:text-red-600 font-bold px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

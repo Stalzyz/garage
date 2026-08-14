@@ -8,6 +8,8 @@ import publicLeadsRouter from './public-leads.router';
 import publicProposalsRouter from './public-proposals.router';
 import adsWebhookRouter from './ads-webhook.router';
 import telephonyRouter from './telephony.router';
+import dncRouter from './dnc.router';
+import calendarRouter from './calendar.router';
 
 export default async function crmModule(app: FastifyInstance) {
   // Public routes
@@ -24,6 +26,8 @@ export default async function crmModule(app: FastifyInstance) {
     await protectedApp.register(proposalsRouter);
     await protectedApp.register(telemetryRouter);
     await protectedApp.register(telephonyRouter);
+    await protectedApp.register(dncRouter);
+    await protectedApp.register(calendarRouter);
     await protectedApp.register(aiRouter, { prefix: '/ai' });
   });
 }

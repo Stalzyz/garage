@@ -85,7 +85,13 @@ export default async function leadsRouter(app: FastifyInstance) {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return { data: leads, total: leads.length };
+    const dncList = await app.prisma.dncNumber.findMany({
+      select: { phone: true }
+    });
+    const dncPhones = new Set(dncList.map(d => d.phone.trim()));
+    const filteredLeads = leads.filter(l => !l.phone || !dncPhones.has(l.phone.trim()));
+
+    return { data: filteredLeads, total: filteredLeads.length };
   });
 
   // GET /api/v1/crm/leads/:id — get single lead with full history
