@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
 import { AssetReviewer } from "@/components/portal/AssetReviewer"
+import { PaymentModal } from "@/components/portal/PaymentModal"
 import { SupportTickets } from "@/components/portal/SupportTickets"
 import { ProjectTimeline } from "@/components/portal/ProjectTimeline"
 import { useCurrency } from "@/hooks/useCurrency"
@@ -59,6 +60,8 @@ export default function ClientDashboard() {
   const [sandboxInvoice, setSandboxInvoice] = useState<any>(null)
   const [sandboxProcessing, setSandboxProcessing] = useState(false)
   const [payingId, setPayingId] = useState<string | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [paymentTarget, setPaymentTarget] = useState<{invoiceId: string, amount: number} | null>(null)
 
   // API Fetches
   const { data: dashboard, error: dashError, isLoading: dashLoading, mutate: dashMutate } = useApi<any>("/portal/dashboard")
@@ -96,7 +99,7 @@ export default function ClientDashboard() {
     })
   }
 
-  const handlePayInvoice = async (invoiceId: string) => {
+  const handlePayWithGateway = async (invoiceId: string) => {
     setPayingId(invoiceId)
     try {
       const res = await fetchApi<any>(`/finance/invoices/${invoiceId}/pay`, {
@@ -153,9 +156,15 @@ export default function ClientDashboard() {
     }
   }
 
+  const triggerPayFullInvoice = (inv: any) => {
+    setPaymentTarget({ invoiceId: inv.id, amount: inv.total || inv.totalAmount || 0 });
+    setShowPaymentModal(true);
+  }
+
   const handlePayInstallment = async (projectId: string, milestone: any) => {
     try {
       let invoiceId = milestone.invoiceId
+      let targetAmount = milestone.amount;
       
       if (!invoiceId) {
         toast.info("Generating invoice for installment...")
@@ -165,13 +174,15 @@ export default function ClientDashboard() {
         })
         if (genRes?.success && genRes.invoice) {
           invoiceId = genRes.invoice.id
+          targetAmount = genRes.invoice.total || milestone.amount;
           toast.success("Invoice generated successfully!")
         } else {
           throw new Error("Failed to generate invoice for this installment")
         }
       }
       
-      await handlePayInvoice(invoiceId)
+      setPaymentTarget({ invoiceId, amount: targetAmount })
+      setShowPaymentModal(true)
     } catch (err: any) {
       toast.error(err.message || "Installment payment failed")
     }
@@ -657,9 +668,6 @@ export default function ClientDashboard() {
                             >
                               <CreditCard className="w-3.5 h-3.5" /> Pay Installment
                             </button>
-                            <button onClick={() => handlePayment('bank', milestone.id, milestone.amount)} className="p-1.5 text-white/40 hover:text-white transition-colors border border-white/10 rounded-lg hover:bg-white/5" title="Bank Transfer">
-                              <Landmark className="w-4 h-4" />
-                            </button>
                           </div>
                         )}
                       </div>
@@ -732,7 +740,7 @@ export default function ClientDashboard() {
                           </span>
                           {inv.status !== 'PAID' && (
                             <button 
-                              onClick={() => handlePayInvoice(inv.id)}
+                              onClick={() => triggerPayFullInvoice(inv)}
                               disabled={payingId === inv.id}
                               className="px-2.5 py-1 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-white/10 text-white text-xs font-bold transition-colors"
                             >
@@ -1008,6 +1016,20 @@ export default function ClientDashboard() {
             </button>
           </div>
         </div>
+      )}
+      
+      {showPaymentModal && paymentTarget && (
+        <PaymentModal
+          invoiceId={paymentTarget.invoiceId}
+          amount={paymentTarget.amount}
+          currency={symbol}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            mutate();
+          }}
+          onPayWithGateway={(id) => handlePayWithGateway(id)}
+        />
       )}
     </div>
   )
