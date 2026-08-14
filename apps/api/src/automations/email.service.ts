@@ -43,6 +43,7 @@ export const EmailService = {
       const transporter = nodemailer.createTransport({
         host,
         port,
+        secure: port === 465,
         auth: { user, pass },
       });
 
