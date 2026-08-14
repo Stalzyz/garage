@@ -15,7 +15,7 @@ export const authConfig = {
         if (isLoggedIn) return true
         return false // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {
-        if (nextUrl.pathname.startsWith('/auth/login') || nextUrl.pathname === '/') {
+        if (nextUrl.pathname.startsWith('/auth/login') || nextUrl.pathname === '/login') {
           // @ts-ignore
           const role = auth?.user?.role;
           if (role === 'CLIENT') {
