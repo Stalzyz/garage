@@ -1,4 +1,4 @@
-import SupportTickets from "@/components/portal/SupportTickets"
+import { SupportTickets } from "@/components/portal/SupportTickets"
 
 export default function PortalSupportPage() {
   return (

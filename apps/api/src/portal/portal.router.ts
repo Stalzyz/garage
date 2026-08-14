@@ -469,9 +469,6 @@ export default async function portalRouter(app: FastifyInstance) {
       return reply.forbidden('Access denied');
     }
 
-    // ProposalComment model does not exist yet in Prisma schema.
-    // Commented out to prevent build failure.
-    /*
     const newComment = await app.prisma.proposalComment.create({
       data: {
         proposalId,
@@ -494,7 +491,5 @@ export default async function portalRouter(app: FastifyInstance) {
       );
     }
     return newComment;
-    */
-    return {};
   });
 }

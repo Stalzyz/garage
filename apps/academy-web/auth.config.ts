@@ -10,10 +10,8 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
       const isOnPortal = nextUrl.pathname.startsWith('/portal')
-      const isOnStudent = nextUrl.pathname.startsWith('/student')
       
-
-      if (isOnDashboard || isOnPortal || isOnStudent) {
+      if (isOnDashboard || isOnPortal) {
         if (isLoggedIn) return true
         return false // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {
@@ -23,7 +21,7 @@ export const authConfig = {
           if (role === 'CLIENT') {
             return Response.redirect(new URL('/portal', nextUrl));
           } else if (role === 'STUDENT') {
-            return Response.redirect(new URL('/student', nextUrl));
+            return Response.redirect(new URL('/dashboard/student/certificates', nextUrl));
           }
           return Response.redirect(new URL('/dashboard', nextUrl));
         }

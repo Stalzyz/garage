@@ -16,6 +16,8 @@ export default function PortalLayoutClient({ children }: { children: React.React
     return <>{children}</>
   }
 
+    const isStudent = session?.user?.role === 'STUDENT'
+
   return (
     <div className="flex flex-col h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
       
@@ -26,16 +28,28 @@ export default function PortalLayoutClient({ children }: { children: React.React
             <div className="w-8 h-8 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold font-mono">
               G
             </div>
-            <span className="font-bold tracking-widest text-sm text-white/80 uppercase">Client Portal</span>
+            <span className="font-bold tracking-widest text-sm text-white/80 uppercase">
+              {isStudent ? "Student Portal" : "Client Portal"}
+            </span>
           </div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/portal/dashboard" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
-            <Link href="/portal/projects" className="text-white/60 hover:text-white transition-colors">Projects</Link>
-            <Link href="/portal/client/files" className="text-white/60 hover:text-white transition-colors">Deliverables</Link>
-            <Link href="/portal/invoices" className="text-white/60 hover:text-white transition-colors">Invoices</Link>
-            <Link href="/portal/proposals" className="text-white/60 hover:text-white transition-colors">Proposals</Link>
+            {isStudent ? (
+              <>
+                <Link href="/portal/student" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
+                <a href="https://academy.grekam.in" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors flex items-center gap-1">Academy OS</a>
+                <a href="https://academy.grekam.in/dashboard/student/certificates" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors">My Certificates</a>
+              </>
+            ) : (
+              <>
+                <Link href="/portal/dashboard" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
+                <Link href="/portal/projects" className="text-white/60 hover:text-white transition-colors">Projects</Link>
+                <Link href="/portal/client/files" className="text-white/60 hover:text-white transition-colors">Deliverables</Link>
+                <Link href="/portal/invoices" className="text-white/60 hover:text-white transition-colors">Invoices</Link>
+                <Link href="/portal/proposals" className="text-white/60 hover:text-white transition-colors">Proposals</Link>
+              </>
+            )}
           </div>
         </div>
 
