@@ -189,7 +189,7 @@ export default async function vendorsRouter(app: FastifyInstance) {
         assignment.vendor.user.email,
         EmailTemplates.vendorBrief(
           assignment.vendor.user.firstName || assignment.vendor.company || 'Partner',
-          assignment.project?.name || 'New Project'
+          (assignment as any).project?.name || 'New Project'
         )
       );
     }

@@ -256,14 +256,14 @@ export const EmailTemplates = {
          style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
         View Full Details →
       </a>
-    `, \`\${projectName} is \${progress}% complete — weekly update\`),
+    `, `\${projectName} is \${progress}% complete — weekly update`),
   }),
 
   // ── Phase 1: New Transactional Templates ─────────────────────────────────────
 
   portalInvite: (clientName: string, passwordResetLink: string) => ({
-    subject: \`✦ Welcome to Grekam Visuals, \${clientName}\`,
-    html: baseTemplate(\`
+    subject: `✦ Welcome to Grekam Visuals, \${clientName}`,
+    html: baseTemplate(`
       <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, \${clientName}!</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
         Your client portal account has been created. Here you can track projects, approve proposals, pay invoices, and download deliverables.
@@ -276,12 +276,12 @@ export const EmailTemplates = {
         </a>
       </div>
       <p style="color:rgba(255,255,255,0.4);font-size:12px;">This link will expire in 24 hours.</p>
-    \`, \`Your client portal account is ready\`),
+    `, `Your client portal account is ready`),
   }),
 
   invoicePaid: (clientName: string, invoiceId: string, amount: number) => ({
-    subject: \`✅ Payment Received — Invoice \${invoiceId}\`,
-    html: baseTemplate(\`
+    subject: `✅ Payment Received — Invoice \${invoiceId}`,
+    html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Thank You!</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
         Hi \${clientName}, we have successfully received your payment of <strong>₹\${amount.toLocaleString('en-IN')}</strong> for Invoice \${invoiceId}.
@@ -293,18 +293,18 @@ export const EmailTemplates = {
          style="display:inline-block;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
         View Invoice in Portal →
       </a>
-    \`, \`Payment received for \${invoiceId}\`),
+    `, `Payment received for \${invoiceId}`),
   }),
 
   proposalApproved: (clientName: string, proposalTitle: string) => ({
-    subject: \`🎉 Proposal Approved — \${proposalTitle}\`,
-    html: baseTemplate(\`
+    subject: `🎉 Proposal Approved — \${proposalTitle}`,
+    html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Let's get started!</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
         Hi \${clientName}, we've received your approval for <strong>\${proposalTitle}</strong>. 
         Our team will be in touch shortly with the next steps.
       </p>
-    \`, \`Your proposal approval has been received\`),
+    `, `Your proposal approval has been received`),
   }),
 
   newComment: (clientName: string, authorName: string, entityTitle: string, snippet: string, link: string) => ({

@@ -176,7 +176,7 @@ export default async function subscriptionsRouter(app: FastifyInstance) {
     });
 
     if (primaryContact?.email) {
-      const { sendEmail, EmailTemplates } = await import('../../integrations/email.service');
+      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
       await sendEmail(
         primaryContact.email,
         EmailTemplates.subscriptionStarted(primaryContact.firstName || 'Client', parsed.planName)
