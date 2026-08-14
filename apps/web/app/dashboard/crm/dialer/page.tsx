@@ -36,8 +36,11 @@ export default function PowerDialerDashboard() {
       }
 
       try {
-        toast.info(`Sending dial signal to your mobile: ${activeLead.phone}`)
-        // Mock API Call replaced with generic logic
+        await fetchApi('/crm/dial-mobile', {
+          method: 'POST',
+          body: JSON.stringify({ leadPhone: activeLead.phone, email })
+        })
+        toast.info(`Dial signal sent to your mobile: ${activeLead.phone}`)
       } catch (err) {
         console.error("Failed to trigger mobile dial:", err)
         toast.error("Could not trigger mobile dial. Check connection.")
