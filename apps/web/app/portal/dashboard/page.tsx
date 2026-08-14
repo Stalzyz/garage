@@ -305,6 +305,21 @@ export default function ClientDashboard() {
 
   if (!session?.user) return null;
 
+  if (dashError || !dashboard) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Error Loading Dashboard</h2>
+          <p className="text-white/40 mb-4">There was a problem connecting to the API.</p>
+          <button onClick={() => mutate()} className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium transition-colors">
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const clientName = session.user.name || "Client"
   const avatarInitials = clientName.charAt(0).toUpperCase()
   const unreadCount = notifications.filter((n: any) => !n.readAt).length
