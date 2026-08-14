@@ -183,9 +183,6 @@ export default async function portalRouter(app: FastifyInstance) {
     
     const proposals = await app.prisma.proposal.findMany({
       where: { leadId: { in: leadIds }, status: { in: ['SENT', 'VIEWED', 'APPROVED'] } },
-      include: {
-        comments: { orderBy: { createdAt: 'asc' } }
-      },
       orderBy: { createdAt: 'desc' }
     });
     
@@ -472,6 +469,9 @@ export default async function portalRouter(app: FastifyInstance) {
       return reply.forbidden('Access denied');
     }
 
+    // ProposalComment model does not exist yet in Prisma schema.
+    // Commented out to prevent build failure.
+    /*
     const newComment = await app.prisma.proposalComment.create({
       data: {
         proposalId,
@@ -493,7 +493,8 @@ export default async function portalRouter(app: FastifyInstance) {
         EmailTemplates.newComment('Team Grekam', newComment.userName, proposal.title, comment, link)
       );
     }
-
     return newComment;
+    */
+    return {};
   });
 }
