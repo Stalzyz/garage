@@ -2,6 +2,8 @@ import type { NextAuthConfig } from "next-auth"
 
 export const authConfig = {
   trustHost: true,
+  session: { strategy: "jwt" },
+  secret: process.env.AUTH_SECRET || "fallback-dev-secret-if-env-fails-12345",
   pages: {
     signIn: '/auth/login',
   },

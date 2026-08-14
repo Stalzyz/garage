@@ -7,10 +7,7 @@ import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  trustHost: true,
   debug: true,
-  session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET || "fallback-dev-secret-if-env-fails-12345",
   providers: [
     CredentialsProvider({
       name: 'Credentials',
