@@ -15,9 +15,28 @@ export const authConfig = {
       const isOnStudent = nextUrl.pathname.startsWith('/portal/student')
       const isOnClientPortal = isOnPortalProtected && !isOnStudent
 
+      const isLoginPage = nextUrl.pathname === '/auth/login' || nextUrl.pathname === '/portal' || nextUrl.pathname === '/portal/'
+
       if (isLoggedIn) {
         // @ts-ignore
         const role = auth?.user?.role;
+
+        // Logged in users visiting login pages should be sent to their dashboard
+        if (isLoginPage) {
+          if (role === 'CLIENT') {
+            return Response.redirect(new URL('/portal/dashboard', nextUrl));
+          } else if (role === 'STUDENT') {
+            return Response.redirect(new URL('/portal/student', nextUrl));
+          } else {
+            return Response.redirect(new URL('/dashboard', nextUrl));
+          }
+        }
+
+        // Allow logged in users to access public pages (e.g. /, /contact, /academy) freely
+        const isProtectedRoute = isOnDashboard || isOnPortalProtected || isOnStudent;
+        if (!isProtectedRoute) {
+          return true;
+        }
 
         if (role === 'CLIENT') {
           // Clients should only access /portal/* (except student portal and login page /portal)

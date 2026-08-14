@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+
+expect "# " { send "cat /etc/nginx/sites-enabled/grekam.in\r" }
+expect "# " { send "cat /etc/nginx/sites-enabled/garage.grekam.in\r" }
+expect "# " { send "exit\r" }
+expect eof
