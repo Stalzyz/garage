@@ -98,7 +98,7 @@ export default function DocViewerPage() {
   const title = DOC_TITLES[slug] || slug.replace(/_/g, " ").replace(/-/g, " ")
 
   return (
-    <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#050505] text-white overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex-none px-6 py-4 border-b border-white/10 flex items-center justify-between gap-4 bg-black/30">
         <div className="flex items-center gap-3 min-w-0">
@@ -122,8 +122,7 @@ export default function DocViewerPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1">
         {loading && (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />

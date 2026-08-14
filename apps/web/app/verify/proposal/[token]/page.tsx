@@ -191,18 +191,7 @@ export default function PublicProposalPage() {
           </div>
 
           {/* Content */}
-          <div className="prose prose-invert prose-violet max-w-none mb-16 prose-p:text-slate-300 prose-p:leading-relaxed prose-headings:text-white prose-li:text-slate-300">
-            {proposal.notes?.split('\n').map((line: string, i: number) => {
-                if (line.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold mt-12 mb-6 border-b border-white/5 pb-4">{line.replace('## ', '')}</h2>
-                if (line.startsWith('# ')) return <h1 key={i} className="text-3xl font-bold mt-12 mb-6">{line.replace('# ', '')}</h1>
-                if (line.startsWith('- ')) return <li key={i} className="ml-4 mb-2">{line.replace('- ', '')}</li>
-                if (line.startsWith('1. ') || line.startsWith('2. ') || line.startsWith('3. ')) {
-                   return <li key={i} className="ml-4 mb-3 font-medium text-white">{line.replace(/^\d+\.\s/, '')}</li>
-                }
-                if (line.trim() === '') return <br key={i} />
-                return <p key={i} className="mb-6">{line.replace(/\*\*(.*?)\*\*/g, '$1')}</p>
-            })}
-          </div>
+          <div className="prose prose-invert prose-violet max-w-none mb-16 prose-p:text-slate-300 prose-p:leading-relaxed prose-headings:text-white prose-li:text-slate-300" dangerouslySetInnerHTML={{ __html: proposal.notes || '' }} />
 
           {/* Pricing Table */}
           <div className="mb-16">

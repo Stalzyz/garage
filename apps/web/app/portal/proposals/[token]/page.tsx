@@ -101,11 +101,10 @@ export default function PublicProposalPage() {
             {proposal.lead?.company && <p className="text-slate-600">{proposal.lead?.company}</p>}
           </div>
 
-          {/* Scope / Notes */}
           {proposal.notes && (
-            <div className="p-10 border-b border-black/10 whitespace-pre-wrap text-slate-700 leading-relaxed">
+            <div className="p-10 border-b border-black/10 text-slate-700 leading-relaxed prose prose-slate max-w-none">
               <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Project Overview</h4>
-              {proposal.notes}
+              <div dangerouslySetInnerHTML={{ __html: proposal.notes }} />
             </div>
           )}
 
