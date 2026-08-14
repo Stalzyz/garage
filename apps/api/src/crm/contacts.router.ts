@@ -28,6 +28,97 @@ const LogCommunicationSchema = z.object({
 });
 
 export default async function contactsRouter(app: FastifyInstance) {
+  // Helper to create client portal user and send onboarding email
+  async function createPortalUserAndSendInvite(contact: any) {
+    if (!contact.email) return null;
+
+    let user = await app.prisma.user.findUnique({ where: { email: contact.email } });
+    let tempPassword = '';
+    
+    if (!user) {
+      // Generate 4-digit PIN
+      if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
+        tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
+      } else {
+        tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
+      }
+      
+      const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+      
+      user = await app.prisma.user.create({
+        data: {
+          email: contact.email,
+          passwordHash,
+          role: 'CLIENT',
+          status: 'ACTIVE',
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          phone: contact.phone,
+        }
+      });
+    }
+
+    // Check if ClientProfile exists
+    let profile = await app.prisma.clientProfile.findUnique({ where: { userId: user.id } });
+    if (!profile) {
+      profile = await app.prisma.clientProfile.create({
+        data: {
+          userId: user.id,
+          contactId: contact.id,
+        }
+      });
+    }
+
+    if (tempPassword) {
+      const loginUrl = process.env.AUTH_URL || 'https://garage.grekam.in/auth/login';
+      const emailHtml = `
+        <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+          <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <div style="background-color: #1e3a8a; padding: 32px; text-align: center;">
+              <h2 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.025em;">Welcome to Grekam OS</h2>
+            </div>
+            <div style="padding: 40px 32px;">
+              <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin-top: 0;">Hi ${user.firstName},</p>
+              <p style="font-size: 15px; line-height: 1.6; color: #4b5563;">Your client portal access is ready. You can log in using the credentials below to view your proposals, projects, files, and pay invoices.</p>
+              
+              <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 28px 0; border: 1px solid #e5e7eb;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600; width: 100px;">Portal Link</td>
+                    <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #1e3a8a;"><a href="${loginUrl}" style="color: #1e3a8a; text-decoration: underline;">${loginUrl}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600;">Email</td>
+                    <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #111827;">${user.email}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600;">Passcode</td>
+                    <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #b91c1c; font-family: monospace; letter-spacing: 1px;">${tempPassword}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="text-align: center; margin: 28px 0 16px 0;">
+                <a href="${loginUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">Log In to Portal</a>
+              </div>
+
+              <p style="font-size: 12px; line-height: 1.5; color: #9ca3af; text-align: center; margin-top: 36px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                This is an automated system invitation. Please change your passcode after your first login.
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await EmailService.sendEmail(
+        user.email,
+        'Welcome to the Client Portal',
+        emailHtml
+      );
+    }
+
+    return { user, tempPassword };
+  }
   // ─── COMPANIES ─────────────────────────────────────────────────────────────
 
   // GET /api/v1/crm/companies
@@ -134,6 +225,9 @@ export default async function contactsRouter(app: FastifyInstance) {
   app.post('/contacts', async (req, reply) => {
     const body = CreateContactSchema.parse(req.body);
     const contact = await app.prisma.contact.create({ data: body });
+    if (contact.email) {
+      await createPortalUserAndSendInvite(contact);
+    }
     reply.code(201);
     return contact;
   });
@@ -149,6 +243,24 @@ export default async function contactsRouter(app: FastifyInstance) {
   // DELETE /api/v1/crm/contacts/:id
   app.delete('/contacts/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
+    
+    // Dissociate related proposals
+    await app.prisma.proposal.updateMany({
+      where: { contactId: id },
+      data: { contactId: null },
+    });
+
+    // Dissociate client profiles
+    await app.prisma.clientProfile.updateMany({
+      where: { contactId: id },
+      data: { contactId: null },
+    });
+
+    // Delete communication logs
+    await app.prisma.communicationLog.deleteMany({
+      where: { contactId: id },
+    });
+
     await app.prisma.contact.delete({ where: { id } });
     reply.code(204);
   });
@@ -178,63 +290,13 @@ export default async function contactsRouter(app: FastifyInstance) {
     if (!contact) return reply.notFound('Contact not found');
     if (!contact.email) return reply.badRequest('Contact must have an email address to invite.');
 
-    // Check if user already exists
-    let user = await app.prisma.user.findUnique({ where: { email: contact.email } });
-    let tempPassword = '';
-    
-    if (!user) {
-      // Generate 4-digit PIN
-      if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
-        tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
-      } else {
-        tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
-      }
-      
-      const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
-      
-      user = await app.prisma.user.create({
-        data: {
-          email: contact.email,
-          passwordHash,
-          role: 'CLIENT',
-          status: 'ACTIVE',
-          firstName: contact.firstName,
-          lastName: contact.lastName,
-          phone: contact.phone,
-        }
-      });
-    }
-
-    // Check if ClientProfile exists
-    let profile = await app.prisma.clientProfile.findUnique({ where: { userId: user.id } });
-    if (!profile) {
-      profile = await app.prisma.clientProfile.create({
-        data: {
-          userId: user.id,
-          contactId: contact.id,
-        }
-      });
-    }
-
-    if (tempPassword) {
-      await EmailService.sendEmail(
-        user.email,
-        'Welcome to the Client Portal',
-        `<h1>Welcome to Grekam OS Client Portal</h1>
-        <p>Hi ${user.firstName},</p>
-        <p>An account has been created for you. You can login using the following credentials:</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <p><strong>Password:</strong> ${tempPassword}</p>
-        <br/>
-        <p>We recommend changing your password after logging in.</p>`
-      );
-    }
+    const res = await createPortalUserAndSendInvite(contact);
 
     return { 
       success: true, 
       message: 'Portal credentials generated.',
-      credentials: tempPassword ? { email: user.email, password: tempPassword } : null,
-      alreadyExists: !tempPassword
+      credentials: res?.tempPassword ? { email: res.user.email, password: res.tempPassword } : null,
+      alreadyExists: !res?.tempPassword
     };
   });
 
@@ -263,14 +325,50 @@ export default async function contactsRouter(app: FastifyInstance) {
       data: { passwordHash }
     });
 
+    const loginUrl = process.env.AUTH_URL || 'https://garage.grekam.in/auth/login';
+    const emailHtml = `
+      <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+        <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div style="background-color: #1e3a8a; padding: 32px; text-align: center;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.025em;">Portal Passcode Reset</h2>
+          </div>
+          <div style="padding: 40px 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin-top: 0;">Hi ${user.firstName},</p>
+            <p style="font-size: 15px; line-height: 1.6; color: #4b5563;">Your client portal passcode has been reset. You can log in using the new temporary passcode below:</p>
+            
+            <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 28px 0; border: 1px solid #e5e7eb;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600; width: 100px;">Portal Link</td>
+                  <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #1e3a8a;"><a href="${loginUrl}" style="color: #1e3a8a; text-decoration: underline;">${loginUrl}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600;">Email</td>
+                  <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #111827;">${user.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-weight: 600;">Temporary Passcode</td>
+                  <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #b91c1c; font-family: monospace; letter-spacing: 1px;">${tempPassword}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center; margin: 28px 0 16px 0;">
+              <a href="${loginUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">Log In to Portal</a>
+            </div>
+
+            <p style="font-size: 12px; line-height: 1.5; color: #9ca3af; text-align: center; margin-top: 36px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+              Please change this passcode immediately after logging in.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+
     await EmailService.sendEmail(
       user.email,
       'Your Client Portal PIN has been reset',
-      `<h1>Portal PIN Reset</h1>
-      <p>Hi ${user.firstName},</p>
-      <p>Your portal PIN has been successfully reset. You can login using the following temporary credentials:</p>
-      <p><strong>Email:</strong> ${user.email}</p>
-      <p><strong>Password:</strong> ${tempPassword}</p>`
+      emailHtml
     );
 
     return { 
