@@ -14,29 +14,13 @@ export default function DesktopSandbox() {
   const [fontWeight, setFontWeight] = useState(900); // Live typography controller
   const [letterSpacing, setLetterSpacing] = useState(0); // Live letter spacing controller
   const [isHoveringCanvas, setIsHoveringCanvas] = useState(false);
+  const [isHoveringSnap, setIsHoveringSnap] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  const dragRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const verticalLineRef = useRef<HTMLDivElement>(null);
   const horizontalLineRef = useRef<HTMLDivElement>(null);
   const coordsRef = useRef<HTMLSpanElement>(null);
-
-  // Initialize dragX with a offset to make misalignment clear
-  const dragX = useMotionValue(-220);
-
-  // Map drag proximity to snap target color dynamically (avoiding react re-renders)
-  const targetBg = useTransform(
-    dragX,
-    [-300, -100, 0, 100, 300],
-    [
-      "rgba(239, 68, 68, 0.15)", // red
-      "rgba(245, 158, 11, 0.3)", // amber
-      "rgba(52, 211, 153, 0.6)", // green/cyan (accent color)
-      "rgba(245, 158, 11, 0.3)", // amber
-      "rgba(239, 68, 68, 0.15)"  // red
-    ]
-  );
 
   const triggerReveal = isAligned || skipActive;
 
@@ -78,25 +62,6 @@ export default function DesktopSandbox() {
     return () => clearInterval(timer);
   }, [triggerReveal]);
 
-  // Monitor drag changes to detect when it crosses the target center grid line
-  useEffect(() => {
-    const unsubscribe = dragX.onChange((latest) => {
-      if (isAligned) return;
-      
-      // Calculate active position relative to parent center grid line
-      // Increased snap threshold to 30px for better UX
-      if (Math.abs(latest) < 30) {
-        // Snap directly to center
-        dragX.set(0);
-        setIsAligned(true);
-        if (navigator.vibrate) {
-          navigator.vibrate(15);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [isAligned, dragX]);
-
   // Track mouse coordinates directly via DOM mutations for maximum performance (0 re-renders)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -125,6 +90,13 @@ export default function DesktopSandbox() {
     { name: "Rose", hex: "#fb7185" },
     { name: "Amber", hex: "#f59e0b" },
   ];
+
+  const handleSnap = () => {
+    setIsAligned(true);
+    if (navigator.vibrate) {
+      navigator.vibrate([15, 10, 15]);
+    }
+  };
 
   return (
     <div 
@@ -193,9 +165,15 @@ export default function DesktopSandbox() {
           </div>
           {/* Target Snap Line */}
           <div className="w-[1px] h-full relative bg-white/10">
-            <motion.div 
+            <div 
               className="absolute inset-0 transition-colors duration-300" 
-              style={{ backgroundColor: triggerReveal ? `${accentColor}40` : targetBg }}
+              style={{ 
+                backgroundColor: triggerReveal 
+                  ? `${accentColor}40` 
+                  : isHoveringSnap 
+                  ? "rgba(245, 158, 11, 0.4)" 
+                  : "rgba(239, 68, 68, 0.2)" 
+              }}
             />
             <span className="absolute top-[30%] -translate-x-1/2 bg-black px-2.5 py-1 border border-white/10 rounded font-mono text-[10px] text-white/60 tracking-wider">
               {triggerReveal ? "GRID_LOCKED" : "TARGET_ALIGN_AXIS (X: 50.0%)"}
@@ -209,11 +187,12 @@ export default function DesktopSandbox() {
           </div>
         </div>
 
-        {/* Center Sandbox: Draggable text block */}
+        {/* Center Sandbox: Grid Alignment Core Interaction */}
         <div className="relative z-10 my-auto max-w-5xl mx-auto w-full">
           {!triggerReveal ? (
             <div className="space-y-16">
-              <div className="max-w-2xl">
+              {/* Misaligned skewed headline layout */}
+              <div className="max-w-2xl transform skew-x-3 rotate-1 translate-x-4 opacity-75 transition-all duration-700">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-500/30 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-wider mb-6">
                   <Lock className="w-3 h-3" /> Layout System Misaligned
                 </span>
@@ -221,56 +200,40 @@ export default function DesktopSandbox() {
                   Design is about <span className="text-white/30">aligning elements.</span>
                 </h1>
                 <p className="text-base text-white/40 font-mono mt-4">
-                  Drag the highlighted card on the right to align it with the grid axis.
+                  The Swiss layout system is currently skewed. Trigger layout snapping to align components.
                 </p>
               </div>
 
-              {/* Slider Track Area */}
-              <div className="w-full h-32 bg-white/[0.01] border border-white/10 rounded-2xl relative flex items-center px-8">
-                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-red-500/40 pointer-events-none" />
-                
-                {/* Draggable block */}
-                <motion.div 
-                  ref={dragRef}
-                  drag="x"
-                  dragConstraints={{ left: -300, right: 300 }}
-                  dragElastic={0.05}
-                  dragMomentum={false}
-                  style={{ x: dragX }}
-                  onDragEnd={(event, info) => {
-                    const currentX = dragX.get();
-                    // Magnetic centering: snap to exact center if released within 60px
-                    if (Math.abs(currentX) < 60) {
-                      dragX.set(0);
-                      setIsAligned(true);
-                      if (navigator.vibrate) {
-                        navigator.vibrate(15);
-                      }
-                    }
-                  }}
-                  className="w-80 p-5 bg-white text-black rounded-xl cursor-grab active:cursor-grabbing shadow-2xl relative z-10 flex flex-col justify-between select-none"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="font-mono text-[10px] text-black/40 font-bold uppercase tracking-wider">Drag to Center</span>
-                    <MoveHorizontal className="w-4 h-4 text-black/50 animate-pulse" />
+              {/* Click to Snap Action Area */}
+              <div className="w-full py-8 bg-white/[0.01] border border-white/10 rounded-2xl relative flex flex-col md:flex-row items-center justify-between px-8 gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full border border-red-500/20 bg-red-500/5 flex items-center justify-center text-red-400 animate-pulse">
+                    <Lock size={18} />
                   </div>
-                  <h3 className="font-editorial-display font-extrabold text-lg uppercase tracking-tight mt-3">
-                    Tutorials teach tools, not design.
-                  </h3>
-                </motion.div>
-                
-                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 font-mono text-[10px] uppercase tracking-widest pointer-events-none">
-                  ◄ SLIDE LEFT OR RIGHT ►
+                  <div>
+                    <h3 className="font-mono text-xs uppercase tracking-widest text-white/70">Swiss Grid snap required</h3>
+                    <p className="text-[10px] font-mono text-white/40 mt-0.5">CLICK THE BUTTON TO LOCK DESIGN COLUMNS</p>
+                  </div>
                 </div>
+
+                <button 
+                  onClick={handleSnap}
+                  onMouseEnter={() => setIsHoveringSnap(true)}
+                  onMouseLeave={() => setIsHoveringSnap(false)}
+                  className="group relative px-8 py-4 bg-white text-black font-mono text-xs uppercase tracking-widest font-bold rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-white/10 flex items-center gap-2"
+                >
+                  <span>[ Snap to Grid ]</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
               </div>
 
               {/* Prominent, readable Skip option with automatic countdown */}
-              <div className="flex justify-center pt-4">
+              <div className="flex justify-center">
                 <button 
                   onClick={() => setSkipActive(true)}
                   className="text-xs font-mono uppercase tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-6 py-3 rounded-full transition-all flex items-center gap-2 bg-black/40 backdrop-blur-sm"
                 >
-                  <span>Skip Interaction</span>
+                  <span>Skip Snap Interaction</span>
                   <span className="text-[#49abc9] font-bold">({countdown}s)</span>
                 </button>
               </div>
