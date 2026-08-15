@@ -49,11 +49,11 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
   }, []);
 
   const navLinks = [
-    { name: "The Problem", href: "/#act-1" },
-    { name: "The Twist", href: "/#act-2" },
-    { name: "The Evidence", href: "/#act-3" },
-    { name: "The Offer", href: "/#act-4" },
-    { name: "The Decision", href: "/#act-5" },
+    { name: "Courses", href: "/#courses" },
+    { name: "The Method", href: "/#curriculum" },
+    { name: "Gallery", href: "/gallery" },
+    { name: "Contact", href: "/contact" },
+    { name: "Enroll", href: "/#enroll" },
   ];
 
   return (

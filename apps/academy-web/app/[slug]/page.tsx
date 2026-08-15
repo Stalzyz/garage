@@ -287,7 +287,12 @@ export default async function CMSPublicPage({ params }: { params: Promise<{ slug
       {/* Append Conclusion CTA & Related Courses */}
       {courseCode && (
         <>
-          <CourseConclusionCTA palette={palette} />
+          <CourseConclusionCTA 
+            palette={palette} 
+            courseCode={courseCode}
+            courseName={page.title || "Creative Program"}
+            domain={domain}
+          />
           <RelatedCourses courses={relatedCourses} />
         </>
       )}
