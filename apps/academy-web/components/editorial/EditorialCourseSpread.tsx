@@ -107,6 +107,7 @@ function getCourseHref(code: string | undefined, title: string): string {
 export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<any>(null);
 
   const activeCourse = courses[activeIndex] || courses[0];
   const meta = activeCourse?.code ? (courseMetadata[activeCourse.code] || defaultMeta) : defaultMeta;
@@ -145,38 +146,45 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto px-4 md:px-6 relative items-start">
       {/* Left Column: List of courses (scrollable on desktop, accordion block on mobile) */}
-      <div 
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="lg:col-span-6 flex flex-col gap-6 py-6 pr-0 lg:pr-4 lg:max-h-[480px] overflow-visible lg:overflow-y-auto custom-scrollbar group/list scroll-smooth"
-      >
-        {courses.map((course, idx) => {
-          const isSelected = activeIndex === idx;
-          const itemMeta = course.code ? (courseMetadata[course.code] || defaultMeta) : defaultMeta;
-          const itemHref = getCourseHref(course.code, course.title);
-          const itemPalette = inkPalettes[idx % inkPalettes.length];
+      <div className="lg:col-span-6 relative">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex flex-col gap-6 py-6 pr-0 lg:pr-4 lg:max-h-[480px] overflow-visible lg:overflow-y-auto custom-scrollbar group/list scroll-smooth"
+        >
+          {courses.map((course, idx) => {
+            const isSelected = activeIndex === idx;
+            const itemMeta = course.code ? (courseMetadata[course.code] || defaultMeta) : defaultMeta;
+            const itemHref = getCourseHref(course.code, course.title);
+            const itemPalette = inkPalettes[idx % inkPalettes.length];
 
-          return (
-            <div
-              key={idx}
-              onClick={() => setActiveIndex(idx)}
-              onMouseEnter={() => {
-                if (window.innerWidth >= 1024) {
-                  setActiveIndex(idx);
-                }
-              }}
-              className={`border-b border-white/10 pb-6 transition-all duration-300 cursor-pointer ${
-                isSelected 
-                  ? "opacity-100 border-white" 
-                  : "opacity-40 lg:group-hover/list:hover:opacity-100 lg:group-hover/list:opacity-20"
-              }`}
-            >
-              <div className="flex items-baseline gap-4">
-                <span className="font-mono text-xs text-white/50">{`0${idx + 1}`}</span>
-                <h3 className="text-2xl md:text-4xl font-editorial-display font-bold uppercase tracking-tight leading-none">
-                  {course.title}
-                </h3>
-              </div>
+            return (
+              <div
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                onMouseEnter={() => {
+                  if (window.innerWidth >= 1024) {
+                    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setActiveIndex(idx);
+                    }, 150); // 150ms hover debounce delay
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                }}
+                className={`border-b border-white/10 pb-6 transition-all duration-300 cursor-pointer ${
+                  isSelected 
+                    ? "opacity-100 border-white" 
+                    : "opacity-40 lg:group-hover/list:hover:opacity-100 lg:group-hover/list:opacity-20"
+                }`}
+              >
+                <div className="flex items-baseline gap-4">
+                  <span className="font-mono text-xs text-white/50">{String(idx + 1).padStart(2, '0')}</span>
+                  <h3 className="text-2xl md:text-4xl font-editorial-display font-bold uppercase tracking-tight leading-none">
+                    {course.title}
+                  </h3>
+                </div>
 
               {/* Mobile Accordion details collapsed/expanded inline */}
               <AnimatePresence initial={false}>
@@ -249,6 +257,9 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
             </div>
           );
         })}
+        </div>
+        {/* Bottom Fade Mask to indicate there are more items to scroll */}
+        <div className="hidden lg:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0d0d0d] to-transparent pointer-events-none z-10" />
       </div>
 
       {/* Right Column: Dynamic Editorial Preview Spread (Hidden on mobile/tablet, sticky on desktop) */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight, Lock, Unlock, MoveHorizontal, Palette, Type } from "lucide-react";
 import { FeaturedCourses } from "./FeaturedCourses";
 import { Footer } from "./Footer";
@@ -13,12 +13,70 @@ export default function DesktopSandbox() {
   const [accentColor, setAccentColor] = useState("#49abc9"); // Awwwards custom accent color switcher
   const [fontWeight, setFontWeight] = useState(900); // Live typography controller
   const [letterSpacing, setLetterSpacing] = useState(0); // Live letter spacing controller
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringCanvas, setIsHoveringCanvas] = useState(false);
+  const [countdown, setCountdown] = useState(5);
 
   const dragRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragX = useMotionValue(0);
+  const verticalLineRef = useRef<HTMLDivElement>(null);
+  const horizontalLineRef = useRef<HTMLDivElement>(null);
+  const coordsRef = useRef<HTMLSpanElement>(null);
+
+  // Initialize dragX with a offset to make misalignment clear
+  const dragX = useMotionValue(-220);
+
+  // Map drag proximity to snap target color dynamically (avoiding react re-renders)
+  const targetBg = useTransform(
+    dragX,
+    [-300, -100, 0, 100, 300],
+    [
+      "rgba(239, 68, 68, 0.15)", // red
+      "rgba(245, 158, 11, 0.3)", // amber
+      "rgba(52, 211, 153, 0.6)", // green/cyan (accent color)
+      "rgba(245, 158, 11, 0.3)", // amber
+      "rgba(239, 68, 68, 0.15)"  // red
+    ]
+  );
+
+  const triggerReveal = isAligned || skipActive;
+
+  // Restore unlock state from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isUnlocked = localStorage.getItem("grekam_sandbox_unlocked");
+      if (isUnlocked === "true") {
+        setSkipActive(true);
+      }
+    }
+  }, []);
+
+  // Save unlock state to localStorage
+  useEffect(() => {
+    if (triggerReveal && typeof window !== "undefined") {
+      localStorage.setItem("grekam_sandbox_unlocked", "true");
+    }
+  }, [triggerReveal]);
+
+  // Countdown timer for automatic interaction skip
+  useEffect(() => {
+    if (triggerReveal) return;
+    if (typeof window !== "undefined") {
+      const isUnlocked = localStorage.getItem("grekam_sandbox_unlocked");
+      if (isUnlocked === "true") return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setSkipActive(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [triggerReveal]);
 
   // Monitor drag changes to detect when it crosses the target center grid line
   useEffect(() => {
@@ -26,8 +84,10 @@ export default function DesktopSandbox() {
       if (isAligned) return;
       
       // Calculate active position relative to parent center grid line
-      // When the offset is close to 0 (centered)
-      if (Math.abs(latest) < 12) {
+      // Increased snap threshold to 30px for better UX
+      if (Math.abs(latest) < 30) {
+        // Snap directly to center
+        dragX.set(0);
         setIsAligned(true);
         if (navigator.vibrate) {
           navigator.vibrate(15);
@@ -35,19 +95,27 @@ export default function DesktopSandbox() {
       }
     });
     return () => unsubscribe();
-  }, [isAligned]);
+  }, [isAligned, dragX]);
 
-  // Track mouse coordinates for custom vector grid guides
+  // Track mouse coordinates directly via DOM mutations for maximum performance (0 re-renders)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  const triggerReveal = isAligned || skipActive;
+    if (verticalLineRef.current) {
+      verticalLineRef.current.style.left = `${x}px`;
+    }
+    if (horizontalLineRef.current) {
+      horizontalLineRef.current.style.top = `${y}px`;
+    }
+    if (coordsRef.current) {
+      coordsRef.current.style.left = `${x + 12}px`;
+      coordsRef.current.style.top = `${y + 12}px`;
+      coordsRef.current.innerText = `X: ${Math.round(x)}px / Y: ${Math.round(y)}px`;
+    }
+  };
 
   // Curated premium Swiss color themes
   const colorThemes = [
@@ -67,25 +135,28 @@ export default function DesktopSandbox() {
       className="relative w-full bg-[#050505] text-white selection:bg-white/20 overflow-x-hidden"
     >
       
-      {/* Dynamic vector cursor guides */}
+      {/* Dynamic vector cursor guides (DOM refs directly mutated for performance) */}
       {isHoveringCanvas && !triggerReveal && (
         <div className="absolute inset-0 pointer-events-none z-10">
           {/* Vertical guide line */}
           <div 
-            className="absolute top-0 bottom-0 w-[1px] bg-white/10 transition-all duration-75"
-            style={{ left: mousePos.x }}
+            ref={verticalLineRef}
+            className="absolute top-0 bottom-0 w-[1px] bg-white/10 transition-none"
+            style={{ left: "-9999px" }}
           />
           {/* Horizontal guide line */}
           <div 
-            className="absolute left-0 right-0 h-[1px] bg-white/10 transition-all duration-75"
-            style={{ top: mousePos.y }}
+            ref={horizontalLineRef}
+            className="absolute left-0 right-0 h-[1px] bg-white/10 transition-none"
+            style={{ top: "-9999px" }}
           />
           {/* Coordinates readout */}
           <span 
-            className="absolute text-[8px] font-mono text-white/40 bg-black/80 px-1.5 py-0.5 rounded border border-white/10"
-            style={{ left: mousePos.x + 12, top: mousePos.y + 12 }}
+            ref={coordsRef}
+            className="absolute text-[8px] font-mono text-white/40 bg-black/80 px-1.5 py-0.5 rounded border border-white/10 transition-none"
+            style={{ left: "-9999px", top: "-9999px" }}
           >
-            X: {Math.round(mousePos.x)}px / Y: {Math.round(mousePos.y)}px
+            X: 0px / Y: 0px
           </span>
         </div>
       )}
@@ -101,14 +172,16 @@ export default function DesktopSandbox() {
             </span>
             <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider">COHORT 2026 // SWISS GRID SYSTEM v1.2</span>
           </div>
-          
-          <button 
-            onClick={() => setSkipActive(true)}
-            className="text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/40 px-4 py-2 rounded-full transition-all"
-          >
-            Skip Interaction
-          </button>
         </div>
+
+        {/* Ghost Branding Backdrop (visible in locked state to build instant brand identity) */}
+        {!triggerReveal && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+            <h2 className="text-[12vw] font-black uppercase text-white/[0.02] tracking-tighter leading-none text-center select-none font-editorial-display whitespace-nowrap">
+              GREKAM ACADEMY
+            </h2>
+          </div>
+        )}
 
         {/* The Swiss Grid Blueprint Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none flex justify-between px-12 md:px-24">
@@ -120,9 +193,9 @@ export default function DesktopSandbox() {
           </div>
           {/* Target Snap Line */}
           <div className="w-[1px] h-full relative bg-white/10">
-            <div 
-              className="absolute inset-0 transition-colors duration-500" 
-              style={{ backgroundColor: triggerReveal ? `${accentColor}40` : "rgba(239, 68, 68, 0.2)" }}
+            <motion.div 
+              className="absolute inset-0 transition-colors duration-300" 
+              style={{ backgroundColor: triggerReveal ? `${accentColor}40` : targetBg }}
             />
             <span className="absolute top-[30%] -translate-x-1/2 bg-black px-2.5 py-1 border border-white/10 rounded font-mono text-[10px] text-white/60 tracking-wider">
               {triggerReveal ? "GRID_LOCKED" : "TARGET_ALIGN_AXIS (X: 50.0%)"}
@@ -164,6 +237,17 @@ export default function DesktopSandbox() {
                   dragElastic={0.05}
                   dragMomentum={false}
                   style={{ x: dragX }}
+                  onDragEnd={(event, info) => {
+                    const currentX = dragX.get();
+                    // Magnetic centering: snap to exact center if released within 60px
+                    if (Math.abs(currentX) < 60) {
+                      dragX.set(0);
+                      setIsAligned(true);
+                      if (navigator.vibrate) {
+                        navigator.vibrate(15);
+                      }
+                    }
+                  }}
                   className="w-80 p-5 bg-white text-black rounded-xl cursor-grab active:cursor-grabbing shadow-2xl relative z-10 flex flex-col justify-between select-none"
                 >
                   <div className="flex justify-between items-start">
@@ -178,6 +262,17 @@ export default function DesktopSandbox() {
                 <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 font-mono text-[10px] uppercase tracking-widest pointer-events-none">
                   ◄ SLIDE LEFT OR RIGHT ►
                 </div>
+              </div>
+
+              {/* Prominent, readable Skip option with automatic countdown */}
+              <div className="flex justify-center pt-4">
+                <button 
+                  onClick={() => setSkipActive(true)}
+                  className="text-xs font-mono uppercase tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-6 py-3 rounded-full transition-all flex items-center gap-2 bg-black/40 backdrop-blur-sm"
+                >
+                  <span>Skip Interaction</span>
+                  <span className="text-[#49abc9] font-bold">({countdown}s)</span>
+                </button>
               </div>
             </div>
           ) : (
