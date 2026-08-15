@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue } from "framer-motion";
-import { ArrowRight, Lock, Unlock, MoveHorizontal } from "lucide-react";
+import { ArrowRight, Lock, Unlock, MoveHorizontal, Palette, Type } from "lucide-react";
 import { FeaturedCourses } from "./FeaturedCourses";
 import { Footer } from "./Footer";
 import Link from "next/link";
@@ -10,19 +10,15 @@ import Link from "next/link";
 export default function DesktopSandbox() {
   const [isAligned, setIsAligned] = useState(false);
   const [skipActive, setSkipActive] = useState(false);
+  const [accentColor, setAccentColor] = useState("#49abc9"); // Awwwards custom accent color switcher
+  const [fontWeight, setFontWeight] = useState(900); // Live typography controller
+  const [letterSpacing, setLetterSpacing] = useState(0); // Live letter spacing controller
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHoveringCanvas, setIsHoveringCanvas] = useState(false);
+
   const dragRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [gridPosition, setGridPosition] = useState(0);
   const dragX = useMotionValue(0);
-
-  // Calculate the target grid coordinate for the snap
-  useEffect(() => {
-    if (containerRef.current) {
-      const width = containerRef.current.offsetWidth;
-      // We snap at exactly 50% width on the central grid line
-      setGridPosition(width / 2);
-    }
-  }, []);
 
   // Monitor drag changes to detect when it crosses the target center grid line
   useEffect(() => {
@@ -33,7 +29,6 @@ export default function DesktopSandbox() {
       // When the offset is close to 0 (centered)
       if (Math.abs(latest) < 12) {
         setIsAligned(true);
-        // Soft haptic feedback simulation if browser supports it
         if (navigator.vibrate) {
           navigator.vibrate(15);
         }
@@ -42,24 +37,74 @@ export default function DesktopSandbox() {
     return () => unsubscribe();
   }, [isAligned]);
 
+  // Track mouse coordinates for custom vector grid guides
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   const triggerReveal = isAligned || skipActive;
 
+  // Curated premium Swiss color themes
+  const colorThemes = [
+    { name: "Cyan", hex: "#49abc9" },
+    { name: "Coral", hex: "#ff7a59" },
+    { name: "Emerald", hex: "#34d399" },
+    { name: "Rose", hex: "#fb7185" },
+    { name: "Amber", hex: "#f59e0b" },
+  ];
+
   return (
-    <div ref={containerRef} className="relative w-full bg-[#050505] text-white selection:bg-[#49abc9]/30 overflow-x-hidden">
+    <div 
+      ref={containerRef} 
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHoveringCanvas(true)}
+      onMouseLeave={() => setIsHoveringCanvas(false)}
+      className="relative w-full bg-[#050505] text-white selection:bg-white/20 overflow-x-hidden"
+    >
       
-      {/* 1. INTERACTIVE HERO CANVAS (Fades or pushes up once aligned) */}
+      {/* Dynamic vector cursor guides */}
+      {isHoveringCanvas && !triggerReveal && (
+        <div className="absolute inset-0 pointer-events-none z-10">
+          {/* Vertical guide line */}
+          <div 
+            className="absolute top-0 bottom-0 w-[1px] bg-white/10 transition-all duration-75"
+            style={{ left: mousePos.x }}
+          />
+          {/* Horizontal guide line */}
+          <div 
+            className="absolute left-0 right-0 h-[1px] bg-white/10 transition-all duration-75"
+            style={{ top: mousePos.y }}
+          />
+          {/* Coordinates readout */}
+          <span 
+            className="absolute text-[8px] font-mono text-white/40 bg-black/80 px-1.5 py-0.5 rounded border border-white/10"
+            style={{ left: mousePos.x + 12, top: mousePos.y + 12 }}
+          >
+            X: {Math.round(mousePos.x)}px / Y: {Math.round(mousePos.y)}px
+          </span>
+        </div>
+      )}
+
+      {/* 1. INTERACTIVE HERO CANVAS */}
       <section className="relative min-h-screen w-full flex flex-col justify-between p-12 border-b border-white/5 z-20">
         
         {/* Top bar header details */}
         <div className="flex justify-between items-start">
           <div>
-            <span className="font-mono text-xs text-[#49abc9] uppercase tracking-widest block mb-1">[ GREKAM DESIGN ACADEMY ]</span>
+            <span className="font-mono text-xs uppercase tracking-widest block mb-1" style={{ color: accentColor }}>
+              [ GREKAM DESIGN ACADEMY ]
+            </span>
             <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider">COHORT 2026 // SWISS GRID SYSTEM v1.2</span>
           </div>
           
           <button 
             onClick={() => setSkipActive(true)}
-            className="text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-[#49abc9] border border-white/10 hover:border-[#49abc9]/40 px-4 py-2 rounded-full transition-all"
+            className="text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/40 px-4 py-2 rounded-full transition-all"
           >
             Skip Interaction
           </button>
@@ -74,8 +119,12 @@ export default function DesktopSandbox() {
             <span className="absolute bottom-4 left-2 font-mono text-[9px] text-white/20">X: 37.5%</span>
           </div>
           {/* Target Snap Line */}
-          <div className={`w-[1px] h-full relative transition-colors duration-500 ${triggerReveal ? 'bg-[#49abc9]/40' : 'bg-red-500/20'}`}>
-            <span className="absolute top-[35%] -translate-x-1/2 bg-black px-2.5 py-1 border border-white/10 rounded font-mono text-[10px] text-white/60 tracking-wider">
+          <div className="w-[1px] h-full relative bg-white/10">
+            <div 
+              className="absolute inset-0 transition-colors duration-500" 
+              style={{ backgroundColor: triggerReveal ? `${accentColor}40` : "rgba(239, 68, 68, 0.2)" }}
+            />
+            <span className="absolute top-[30%] -translate-x-1/2 bg-black px-2.5 py-1 border border-white/10 rounded font-mono text-[10px] text-white/60 tracking-wider">
               {triggerReveal ? "GRID_LOCKED" : "TARGET_ALIGN_AXIS (X: 50.0%)"}
             </span>
           </div>
@@ -136,31 +185,111 @@ export default function DesktopSandbox() {
               initial={{ opacity: 0, scale: 0.95 }} 
               animate={{ opacity: 1, scale: 1 }} 
               transition={{ type: "spring", stiffness: 100, damping: 15 }}
-              className="max-w-4xl"
+              className="max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"
             >
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 font-mono text-[10px] uppercase tracking-wider mb-6">
-                <Unlock className="w-3 h-3" /> Layout System Aligned
-              </span>
-              <h1 className="text-6xl md:text-8xl font-editorial-display font-black leading-[0.95] uppercase tracking-tighter mb-8">
-                Master your craft.
-              </h1>
-              <p className="text-xl md:text-2xl text-white/60 font-editorial-body max-w-2xl mb-12">
-                Learn to think, build, and deliver real-world design files. We work like a real design studio. No classrooms, no boring textbooks.
-              </p>
-              
-              <div className="flex items-center gap-6">
-                <Link 
-                  href="/auth/login" 
-                  className="bg-[#49abc9] text-black hover:bg-[#49abc9]/90 font-bold uppercase tracking-widest px-8 py-4 rounded-full transition-all flex items-center gap-2"
+              {/* Main Typography Column */}
+              <div className="lg:col-span-8">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 font-mono text-[10px] uppercase tracking-wider mb-6">
+                  <Unlock className="w-3 h-3" /> Layout System Aligned
+                </span>
+                
+                {/* Dynamically controlled responsive typography headline */}
+                <h1 
+                  className="text-6xl md:text-8xl font-editorial-display leading-[0.95] uppercase tracking-tighter mb-8 select-none transition-all duration-300"
+                  style={{ 
+                    fontWeight: fontWeight,
+                    letterSpacing: `${letterSpacing}px`
+                  }}
                 >
-                  Apply Now <ArrowRight className="w-4 h-4" />
-                </Link>
-                <a 
-                  href="#curriculum"
-                  className="text-sm font-mono uppercase tracking-widest text-white/60 hover:text-white border-b border-white/20 pb-1 transition-colors"
-                >
-                  Explore Program
-                </a>
+                  Master your craft.
+                </h1>
+                
+                <p className="text-xl md:text-2xl text-white/60 font-editorial-body max-w-2xl mb-12">
+                  Learn to think, build, and deliver real-world design files. We work like a real design studio. No classrooms, no boring textbooks.
+                </p>
+                
+                <div className="flex items-center gap-6">
+                  <Link 
+                    href="/auth/login" 
+                    className="font-bold uppercase tracking-widest px-8 py-4 rounded-full transition-all flex items-center gap-2 text-black"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    Apply Now <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <a 
+                    href="#curriculum"
+                    className="text-sm font-mono uppercase tracking-widest text-white/60 hover:text-white border-b border-white/20 pb-1 transition-colors"
+                  >
+                    Explore Program
+                  </a>
+                </div>
+              </div>
+
+              {/* Awwwards Design Sandbox Play Panel */}
+              <div className="lg:col-span-4 p-6 bg-white/[0.02] border border-white/10 rounded-3xl space-y-6">
+                <div className="border-b border-white/5 pb-3">
+                  <h3 className="font-bold text-xs uppercase tracking-widest text-white/70 flex items-center gap-1.5">
+                    <Palette className="w-4 h-4" style={{ color: accentColor }} /> Theme Accent Color
+                  </h3>
+                </div>
+                {/* Theme Selector */}
+                <div className="flex flex-wrap gap-2">
+                  {colorThemes.map((theme) => (
+                    <button
+                      key={theme.name}
+                      onClick={() => setAccentColor(theme.hex)}
+                      className="px-3 py-1.5 rounded-full border text-[10px] uppercase font-mono tracking-wider transition-all flex items-center gap-1.5"
+                      style={{ 
+                        borderColor: accentColor === theme.hex ? accentColor : "rgba(255,255,255,0.1)",
+                        backgroundColor: accentColor === theme.hex ? `${theme.hex}15` : "transparent",
+                        color: accentColor === theme.hex ? accentColor : "rgba(255,255,255,0.6)"
+                      }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.hex }} />
+                      {theme.name}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-b border-white/5 pb-3 pt-2">
+                  <h3 className="font-bold text-xs uppercase tracking-widest text-white/70 flex items-center gap-1.5">
+                    <Type className="w-4 h-4" style={{ color: accentColor }} /> Typography Sandbox
+                  </h3>
+                </div>
+                {/* Typo Control Sliders */}
+                <div className="space-y-4 font-mono text-[9px] text-white/40 uppercase">
+                  <div>
+                    <div className="flex justify-between mb-1.5">
+                      <span>Font Weight</span>
+                      <span className="text-white">{fontWeight}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="300" 
+                      max="900" 
+                      step="100"
+                      value={fontWeight} 
+                      onChange={(e) => setFontWeight(Number(e.target.value))}
+                      className="w-full accent-white bg-white/10 rounded h-1 cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1.5">
+                      <span>Letter Spacing</span>
+                      <span className="text-white">{letterSpacing}px</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="-6" 
+                      max="8" 
+                      step="1"
+                      value={letterSpacing} 
+                      onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                      className="w-full accent-white bg-white/10 rounded h-1 cursor-pointer"
+                    />
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -174,7 +303,7 @@ export default function DesktopSandbox() {
         </div>
       </section>
 
-      {/* 2. DYNAMIC CONTENT SECTION (Revealed smoothly once grid snapped or skipped) */}
+      {/* 2. DYNAMIC CONTENT SECTION */}
       <AnimatePresence>
         {triggerReveal && (
           <motion.div 
@@ -187,7 +316,9 @@ export default function DesktopSandbox() {
             <section id="curriculum" className="py-32 px-12 md:px-24 bg-[#0a0a0a] border-b border-white/5">
               <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
                 <div className="lg:col-span-4">
-                  <span className="font-mono text-xs text-[#49abc9] uppercase tracking-widest block mb-4">[ THE METHOD ]</span>
+                  <span className="font-mono text-xs uppercase tracking-widest block mb-4" style={{ color: accentColor }}>
+                    [ THE METHOD ]
+                  </span>
                   <h2 className="text-4xl md:text-5xl font-editorial-display font-bold uppercase leading-none">
                     Real studio workflow.
                   </h2>
@@ -226,7 +357,7 @@ export default function DesktopSandbox() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
                   <div className="p-8 border border-white/10 bg-white/[0.01] rounded-2xl">
-                    <div className="font-mono text-xs text-[#49abc9] mb-4">PHASE 1</div>
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 1</div>
                     <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Basics</h3>
                     <ul className="space-y-2 text-white/60 text-sm font-mono">
                       <li>• Typography rules</li>
@@ -235,7 +366,7 @@ export default function DesktopSandbox() {
                     </ul>
                   </div>
                   <div className="p-8 border border-white/20 bg-white/[0.03] rounded-2xl transform md:-translate-y-4 shadow-2xl">
-                    <div className="font-mono text-xs text-[#49abc9] mb-4">PHASE 2</div>
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 2</div>
                     <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Design</h3>
                     <ul className="space-y-2 text-white/80 text-sm font-mono">
                       <li>• Branding geometry</li>
@@ -244,7 +375,7 @@ export default function DesktopSandbox() {
                     </ul>
                   </div>
                   <div className="p-8 border border-white/10 bg-white/[0.01] rounded-2xl">
-                    <div className="font-mono text-xs text-[#49abc9] mb-4">PHASE 3</div>
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 3</div>
                     <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Career</h3>
                     <ul className="space-y-2 text-white/60 text-sm font-mono">
                       <li>• Portfolio curation</li>
@@ -266,11 +397,11 @@ export default function DesktopSandbox() {
                 
                 <div className="flex gap-16">
                   <div>
-                    <div className="text-4xl md:text-5xl font-black text-[#49abc9] mb-1 font-editorial-display">82%</div>
+                    <div className="text-4xl md:text-5xl font-black mb-1 font-editorial-display" style={{ color: accentColor }}>82%</div>
                     <div className="font-mono text-[10px] text-white/40 uppercase">Hired in 12w</div>
                   </div>
                   <div>
-                    <div className="text-4xl md:text-5xl font-black text-[#49abc9] mb-1 font-editorial-display">Global</div>
+                    <div className="text-4xl md:text-5xl font-black mb-1 font-editorial-display" style={{ color: accentColor }}>Global</div>
                     <div className="font-mono text-[10px] text-white/40 uppercase">Alumni Net</div>
                   </div>
                 </div>

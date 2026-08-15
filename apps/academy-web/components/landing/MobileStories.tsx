@@ -141,7 +141,11 @@ export default function MobileStories() {
               </span>
               
               <div className="space-y-4">
-                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                <Link 
+                  href="/ui_ux_design" 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="block p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all pointer-events-auto"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
                       <Briefcase className="w-5 h-5" />
@@ -152,33 +156,41 @@ export default function MobileStories() {
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/40" />
-                </div>
+                </Link>
 
-                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                <Link 
+                  href="/motion_graphics" 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="block p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all pointer-events-auto"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
                       <Award className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm">Motion Graphic</h3>
-                      <span className="text-[10px] text-white/40 uppercase font-mono">Professional // 12 Weeks</span>
+                      <h3 className="font-bold text-sm">Motion Graphics</h3>
+                      <span className="text-[10px] text-white/40 uppercase font-mono">Professional // 10 Weeks</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/40" />
-                </div>
+                </Link>
 
-                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                <Link 
+                  href="/video_editing_ai" 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="block p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all pointer-events-auto"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
                       <GraduationCap className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm">Visual Compositing</h3>
-                      <span className="text-[10px] text-white/40 uppercase font-mono">VFX Program // 16 Weeks</span>
+                      <h3 className="font-bold text-sm">Video Editing & AI</h3>
+                      <span className="text-[10px] text-white/40 uppercase font-mono">VFX Program // 10 Weeks</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/40" />
-                </div>
+                </Link>
               </div>
             </motion.div>
           )}
