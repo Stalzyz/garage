@@ -1,77 +1,32 @@
-import { prisma } from "../../src/lib/prisma";
-import { FeaturedCourseCard } from "./FeaturedCourseCard";
+"use client";
+
+import { useState, useEffect } from "react";
+import { getCourses } from "../../app/actions/courses";
 import { EditorialCourseSpread } from "../editorial/EditorialCourseSpread";
 
 const defaultCourses = [
-  {
-    title: "Graphic Designing",
-    bgColor: "bg-[#f5f0eb]",
-    imgGradient: "from-[#e67e22]/20 to-[#f39c12]/20",
-  },
-  {
-    title: "UI/UX Designing",
-    bgColor: "bg-[#eaf4fc]",
-    imgGradient: "from-[#3498db]/20 to-[#2980b9]/20",
-  },
-  {
-    title: "2D Animations",
-    bgColor: "bg-[#fceef5]",
-    imgGradient: "from-[#e74c3c]/20 to-[#c0392b]/20",
-  },
-  {
-    title: "Web Designing & Development",
-    bgColor: "bg-[#eefcf5]",
-    imgGradient: "from-[#2ecc71]/20 to-[#27ae60]/20",
-  },
-  {
-    title: "AI Based UI/UX",
-    bgColor: "bg-[#f4eefc]",
-    imgGradient: "from-[#9b59b6]/20 to-[#8e44ad]/20",
-  },
-  {
-    title: "AI Based Web Development",
-    bgColor: "bg-[#eefafc]",
-    imgGradient: "from-[#1abc9c]/20 to-[#16a085]/20",
-  },
+  { title: "Graphic Design", code: "PGDM-2026", coverImage: null },
+  { title: "UI/UX Design", code: "PUXMP-2026", coverImage: null },
+  { title: "Web Design", code: "PWDM-2026", coverImage: null },
+  { title: "Full Stack Development", code: "PFSD-2026", coverImage: null },
+  { title: "Digital Marketing", code: "PDMM-2026", coverImage: null },
+  { title: "Motion Graphics", code: "PMGM-2026", coverImage: null },
+  { title: "Video Editing", code: "PVEM-2026", coverImage: null },
+  { title: "3D & Animation", code: "P3DA-2026", coverImage: null }
 ];
 
-const colorPalette = [
-  { bgColor: "bg-[#f5f0eb]", imgGradient: "from-[#e67e22]/20 to-[#f39c12]/20" },
-  { bgColor: "bg-[#eaf4fc]", imgGradient: "from-[#3498db]/20 to-[#2980b9]/20" },
-  { bgColor: "bg-[#fceef5]", imgGradient: "from-[#e74c3c]/20 to-[#c0392b]/20" },
-  { bgColor: "bg-[#eefcf5]", imgGradient: "from-[#2ecc71]/20 to-[#27ae60]/20" },
-  { bgColor: "bg-[#f4eefc]", imgGradient: "from-[#9b59b6]/20 to-[#8e44ad]/20" },
-  { bgColor: "bg-[#eefafc]", imgGradient: "from-[#1abc9c]/20 to-[#16a085]/20" },
-];
+export function FeaturedCourses() {
+  const [courses, setCourses] = useState<any[]>(defaultCourses);
 
-export async function FeaturedCourses() {
-  let dbCourses: any[] = [];
-  try {
-    dbCourses = await prisma.course.findMany({
-      where: { isPublished: true },
-      select: { 
-        id: true, 
-        name: true,
-        code: true,
-        lmsCourse: { select: { thumbnail: true } } 
+  useEffect(() => {
+    async function load() {
+      const data = await getCourses();
+      if (data && data.length > 0) {
+        setCourses(data);
       }
-    });
-  } catch (error) {
-    console.warn("Could not fetch courses from database during build, using fallbacks.");
-  }
-
-  const coursesToDisplay = dbCourses.length > 0 
-    ? dbCourses.map((c) => ({ title: c.name, code: c.code, coverImage: c.lmsCourse?.thumbnail || null }))
-    : [
-        { title: "Graphic Design", code: "PGDM-2026", coverImage: null },
-        { title: "UI/UX Design", code: "PUXMP-2026", coverImage: null },
-        { title: "Web Design", code: "PWDM-2026", coverImage: null },
-        { title: "Full Stack Development", code: "PFSD-2026", coverImage: null },
-        { title: "Digital Marketing", code: "PDMM-2026", coverImage: null },
-        { title: "Motion Graphics", code: "PMGM-2026", coverImage: null },
-        { title: "Video Editing", code: "PVEM-2026", coverImage: null },
-        { title: "3D & Animation", code: "P3DA-2026", coverImage: null }
-      ];
+    }
+    load();
+  }, []);
 
   return (
     <section className="pt-32 pb-48 bg-[#0d0d0d] border-y border-white/10 text-white" id="courses">
@@ -93,7 +48,7 @@ export async function FeaturedCourses() {
           </p>
         </div>
 
-        <EditorialCourseSpread courses={coursesToDisplay} />
+        <EditorialCourseSpread courses={courses} />
 
       </div>
     </section>
