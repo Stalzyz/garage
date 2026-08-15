@@ -17,11 +17,11 @@ export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
 
   const acts = [
-    { id: "act-1", title: "My Stagnation" },
-    { id: "act-2", title: "The Studio" },
-    { id: "act-3", title: "The Breakthrough" },
-    { id: "act-4", title: "The Package" },
-    { id: "act-5", title: "The Leap" }
+    { id: "act-1", title: "The Problem" },
+    { id: "act-2", title: "The Method" },
+    { id: "act-3", title: "The Results" },
+    { id: "act-4", title: "The Program" },
+    { id: "act-5", title: "Next Step" }
   ];
 
   const handleMainScroll = () => {
@@ -68,13 +68,13 @@ export default function Home() {
       
       {/* Slide 1: Act 1 (Problem Hero - Student Perspective) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-1" number="01" title="My Stagnation" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-1" number="01" title="The Problem" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-4xl mt-12">
             <h1 className="text-4xl md:text-8xl font-editorial-display leading-[0.9] font-black uppercase mb-12">
-              I copied video tutorials for months. My designs looked clean, but they had no soul.
+              Tutorials teach tools, not design.
             </h1>
             <p className="text-xl md:text-3xl font-editorial-body italic text-black/60 max-w-2xl leading-relaxed">
-              I realized standard courses were just wasting my time. They teach you software, but not how to think like a designer.
+              Stop wasting time. Learn how to think, build, and work like a professional.
             </p>
           </div>
         </NarrativeAct>
@@ -84,34 +84,34 @@ export default function Home() {
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
         <MagazineSpread 
           imageSrc="/editorial/magazine_spread.png" 
-          headline="Stop\nUsing\nTemplates" 
-          subtext="Companies don't need another generic portfolio. They want your unique style." 
+          headline="Build\nReal\nSkills" 
+          subtext="Learn to design custom websites and apps from scratch. No templates." 
         />
       </div>
 
       {/* Slide 3: Act 2 (The Twist - Studio Environment) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-2" number="02" title="The Studio" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-2" number="02" title="The Method" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-4">
               <h2 className="text-3xl font-editorial-display font-bold uppercase sticky top-32">
-                When I joined, they threw out the textbook.
+                Learn by doing in a real studio.
               </h2>
             </div>
             <div className="md:col-span-8 space-y-12">
               <p className="text-2xl font-editorial-body leading-relaxed text-white/80">
-                There were no classrooms or boring lectures. On Day 1, I was treated like a junior designer in a real studio. The stakes were real.
+                Work on real projects from day one. No boring lectures or textbooks.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="border-t border-white/20 pt-6">
-                  <div className="editorial-footnote text-white/50 mb-4 font-mono">01 — The Studio</div>
-                  <h4 className="text-xl font-bold mb-2 font-editorial-display">No Classrooms</h4>
-                  <p className="text-white/60 font-editorial-body">We work like a real design studio. You are not just a student; you are a junior designer. The projects are real.</p>
+                  <div className="editorial-footnote text-white/50 mb-4 font-mono">01 — Practical</div>
+                  <h4 className="text-xl font-bold mb-2 font-editorial-display">Real Projects</h4>
+                  <p className="text-white/60 font-editorial-body">Practice with hands-on tasks and solve actual design problems.</p>
                 </div>
                 <div className="border-t border-white/20 pt-6">
-                  <div className="editorial-footnote text-white/50 mb-4 font-mono">02 — The Critique</div>
-                  <h4 className="text-xl font-bold mb-2 font-editorial-display">Direct Feedback</h4>
-                  <p className="text-white/60 font-editorial-body">If my design needed work, they told me. But they also showed me exactly how to fix it. Being too nice won't help you learn.</p>
+                  <div className="editorial-footnote text-white/50 mb-4 font-mono">02 — Feedback</div>
+                  <h4 className="text-xl font-bold mb-2 font-editorial-display">Daily Reviews</h4>
+                  <p className="text-white/60 font-editorial-body">Get clear, direct feedback from expert mentors to improve fast.</p>
                 </div>
               </div>
             </div>
@@ -122,22 +122,22 @@ export default function Home() {
       {/* Slide 4: Testimonial PullQuote */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
         <PullQuote 
-          quote="I spent four years in college and learned more in four weeks here. It was hard, but it was exactly what I needed."
-          author="Sarah Jenkins"
-          role="Art Director at VMLY&R"
+          quote="This program taught me more in weeks than years in college. It gave me the skills to get hired."
+          author="Sarah J."
+          role="Lead Designer"
           theme="light"
         />
       </div>
 
       {/* Slide 5: Act 3 (The Evidence - The Breakthrough) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-3" number="03" title="The Breakthrough" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-3" number="03" title="The Results" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-3xl mb-16">
             <h2 className="text-4xl md:text-6xl font-editorial-display font-bold uppercase mb-6">
-              I built real projects. Not fake mockups.
+              Launch a solid design career.
             </h2>
             <p className="text-xl font-editorial-body text-white/60">
-              No templates. Just my raw process of solving design problems. That is when recruiters started calling me.
+              Develop a strong portfolio that gets you noticed by top companies.
             </p>
           </div>
           
@@ -152,7 +152,7 @@ export default function Home() {
             <div>
               <h3 className="text-2xl font-bold mb-4 font-editorial-display">Our Results</h3>
               <p className="font-editorial-body text-white/70 text-lg">
-                80% of my class got hired before the 12 weeks even ended. We don't promise fake guarantees—we teach you real skills.
+                Build real-world client deliverables and secure a high-paying job.
               </p>
             </div>
             <div className="flex flex-col gap-4">
@@ -175,41 +175,41 @@ export default function Home() {
 
       {/* Slide 6: Act 4 (The Offer - Steve Jobs Single-Tier Pitch) */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-center">
-        <NarrativeAct id="act-4" number="04" title="The Package" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
+        <NarrativeAct id="act-4" number="04" title="The Program" theme="light" className="min-h-full py-16 lg:py-32 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <TypewriterReveal 
-              text="One Course. Everything Included." 
+              text="One complete training program." 
               className="text-3xl md:text-5xl font-editorial-display font-bold uppercase"
             />
             <p className="text-xl md:text-2xl font-editorial-body text-black/70 max-w-2xl mx-auto">
-              We don't have basic, premium, or ultimate versions. We have one training: Our Best Version. You get all the mentoring, all the client projects, and all the career help. Because you don't need a half-baked course. You need to get hired.
+              Get full access to expert mentoring, real projects, and job placement help.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-16">
                <div className="bg-black/5 p-8 border border-black/10">
                   <div className="font-mono text-xs uppercase tracking-widest text-black/50 mb-4">Phase 1</div>
-                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Fundamentals</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Basics</h4>
                   <ul className="space-y-3 font-editorial-body text-black/70">
-                    <li>• Fonts & typography</li>
-                    <li>• Grids & layouts</li>
-                    <li>• How to use colors</li>
+                    <li>• Typography</li>
+                    <li>• Grid layouts</li>
+                    <li>• Color theory</li>
                   </ul>
                </div>
                <div className="bg-black text-white p-8 border border-black transform md:-translate-y-4 shadow-2xl">
                   <div className="font-mono text-xs uppercase tracking-widest text-white/50 mb-4">Phase 2</div>
-                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Building</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Design</h4>
                   <ul className="space-y-3 font-editorial-body text-white/70">
-                    <li>• Logo & brand design</li>
-                    <li>• App & website design</li>
-                    <li>• Design direction</li>
+                    <li>• Branding</li>
+                    <li>• Web & mobile UI</li>
+                    <li>• Design systems</li>
                   </ul>
                </div>
                <div className="bg-black/5 p-8 border border-black/10">
                   <div className="font-mono text-xs uppercase tracking-widest text-black/50 mb-4">Phase 3</div>
-                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Launch</h4>
+                  <h4 className="font-bold text-xl mb-4 font-editorial-display">Career</h4>
                   <ul className="space-y-3 font-editorial-body text-black/70">
-                    <li>• Portfolio building</li>
-                    <li>• Job interview prep</li>
+                    <li>• Portfolio</li>
+                    <li>• Mock interviews</li>
                     <li>• Client handoff</li>
                   </ul>
                </div>
@@ -225,13 +225,13 @@ export default function Home() {
 
       {/* Slide 8: Act 5 (The Decision - The Leap) + Footer */}
       <div className="w-screen h-screen flex-shrink-0 snap-start overflow-y-auto lg:w-auto lg:h-auto lg:overflow-visible flex flex-col justify-between">
-        <NarrativeAct id="act-5" number="05" title="The Leap" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center border-b border-white/10">
+        <NarrativeAct id="act-5" number="05" title="Next Step" theme="dark" className="min-h-full py-16 lg:py-32 flex flex-col justify-center border-b border-white/10">
           <div className="text-center max-w-3xl mx-auto my-auto">
             <h2 className="text-5xl md:text-7xl font-editorial-display font-black uppercase mb-8">
-              I was hesitant too.
+              Ready to start?
             </h2>
             <p className="text-2xl font-editorial-body text-white/60 mb-12 italic">
-              But either you keep copying templates, or you start building your real career.
+              Join the next cohort and build your design career today.
             </p>
             <Link 
               href="/auth/login" 
