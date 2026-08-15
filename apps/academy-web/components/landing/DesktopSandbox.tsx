@@ -113,19 +113,19 @@ export default function DesktopSandbox() {
           {/* Vertical guide line */}
           <div 
             ref={verticalLineRef}
-            className="absolute top-0 bottom-0 w-[1px] bg-white/10 transition-none"
+            className="absolute top-0 bottom-0 w-[1px] bg-white/10 transition-none pointer-events-none"
             style={{ left: "-9999px" }}
           />
           {/* Horizontal guide line */}
           <div 
             ref={horizontalLineRef}
-            className="absolute left-0 right-0 h-[1px] bg-white/10 transition-none"
+            className="absolute left-0 right-0 h-[1px] bg-white/10 transition-none pointer-events-none"
             style={{ top: "-9999px" }}
           />
           {/* Coordinates readout */}
           <span 
             ref={coordsRef}
-            className="absolute text-[8px] font-mono text-white/40 bg-black/80 px-1.5 py-0.5 rounded border border-white/10 transition-none"
+            className="absolute text-[8px] font-mono text-white/40 bg-black/80 px-1.5 py-0.5 rounded border border-white/10 transition-none pointer-events-none"
             style={{ left: "-9999px", top: "-9999px" }}
           >
             X: 0px / Y: 0px
@@ -356,7 +356,7 @@ export default function DesktopSandbox() {
         {/* Footer hints */}
         <div className="flex justify-between items-center text-white/40 font-mono text-[10px] uppercase tracking-widest relative z-10">
           <span>[ SWISS SCALING ON ]</span>
-          <span>DRAG THE CARD TO SNAPPING SYSTEM</span>
+          <span>CLICK THE SNAP BUTTON TO START</span>
           <span>© 2026 GREKAM</span>
         </div>
       </section>

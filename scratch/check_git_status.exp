@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no root@72.61.231.187 "cd /root/grekam-os && git log -n 3 --oneline && git status && pm2 status"
+expect "*?assword:*"
+send "Photoshop09@\r"
+expect eof

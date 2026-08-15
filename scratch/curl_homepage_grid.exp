@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 15
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no root@72.61.231.187 "curl -s http://localhost:3006/ | grep -o -E 'Snap to Grid|Skip Snap'"
+expect "*?assword:*"
+send "Photoshop09@\r"
+expect eof
