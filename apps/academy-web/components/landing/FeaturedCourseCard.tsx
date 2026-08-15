@@ -42,16 +42,18 @@ function getCourseHref(code: string | undefined, title: string): string {
       case 'PUXMP-2026': return '/ui_ux_design';
       case 'PDMM-2026': return '/digital_marketing';
       case 'PVFX-2026': return '/vfx_compositing';
-      case 'PGDM-2026': return '/graphic_design';
+      case 'PGDM-2026':
+      case 'PGDMP-2026': return '/graphic_design';
       case 'PVEM-2026': return '/video_editing_ai';
       case 'P3DA-2026': return '/3d_animation';
       case 'PMGM-2026': return '/motion_graphics';
       case 'PFSD-2026': return '/fullstack_web_dev';
-      case 'PWDM-2026': return '/wordpress_web_design';
+      case 'PWDM-2026':
+      case 'PWD-2026': return '/wordpress_web_design';
     }
   }
   const key = title.toLowerCase().trim()
-  return coursePageMap[key] ?? "/courses"
+  return coursePageMap[key] ?? "/"
 }
 
 export function FeaturedCourseCard({ title, index, code, coverImage }: CourseCardProps) {

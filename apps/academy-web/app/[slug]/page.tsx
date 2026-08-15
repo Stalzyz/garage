@@ -18,12 +18,12 @@ function getCodeFromSlug(slug: string): string | undefined {
     case 'ui_ux_design': return 'PUXMP-2026';
     case 'digital_marketing': return 'PDMM-2026';
     case 'vfx_compositing': return 'PVFX-2026';
-    case 'graphic_design': return 'PGDM-2026';
+    case 'graphic_design': return 'PGDMP-2026';
     case 'video_editing_ai': return 'PVEM-2026';
     case '3d_animation': return 'P3DA-2026';
     case 'motion_graphics': return 'PMGM-2026';
     case 'fullstack_web_dev': return 'PFSD-2026';
-    case 'wordpress_web_design': return 'PWDM-2026';
+    case 'wordpress_web_design': return 'PWD-2026';
     default: return undefined;
   }
 }
@@ -55,7 +55,7 @@ function getPaletteForCourse(code: string | undefined): string {
   return inkPalettes[index];
 }
 
-export default async function CMSPublicPage({ params }: { params: { slug: string } }) {
+export default async function CMSPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const rawSlug = (await params).slug
 
   // Handle Instructor Profiles

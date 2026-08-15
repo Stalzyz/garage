@@ -103,7 +103,7 @@ export default function MobileStories() {
       />
 
       {/* Dynamic Slide Canvas */}
-      <div className="relative z-10 flex-grow flex items-center px-6 pt-16">
+      <div className="relative z-40 pointer-events-none flex-grow flex items-center px-6 pt-16">
         <AnimatePresence mode="wait">
           {activeIdx < slides.length && (
             <motion.div
@@ -214,7 +214,7 @@ export default function MobileStories() {
               
               <Link 
                 href="/auth/login" 
-                className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full transition-all shadow-xl shadow-[#49abc9]/20"
+                className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full transition-all shadow-xl shadow-[#49abc9]/20 pointer-events-auto"
               >
                 Apply Now <ArrowRight className="w-4 h-4" />
               </Link>

@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 15
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no root@72.61.231.187 "cd /root/grekam-os/packages/db && node -e \"const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); p.landingPage.findMany().then(r => console.log(r.map(x => ({ slug: x.slug, active: x.isActive }))))\""
+expect "*?assword:*"
+send "Photoshop09@\r"
+expect eof
