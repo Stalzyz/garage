@@ -62,7 +62,7 @@ export function FeaturedCourseCard({ title, index, code, coverImage }: CourseCar
   const href = getCourseHref(code, title);
 
   return (
-    <Link href={href} className="block group">
+    <a href={href} className="block group">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -145,6 +145,6 @@ export function FeaturedCourseCard({ title, index, code, coverImage }: CourseCar
           </motion.div>
         </div>
       </motion.div>
-    </Link>
+    </a>
   );
 }

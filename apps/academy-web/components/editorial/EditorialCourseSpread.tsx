@@ -235,13 +235,13 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
                       </div>
 
                       {/* Explore CTA */}
-                      <Link
+                      <a
                         href={itemHref}
                         className="inline-flex items-center justify-between w-full bg-white text-black font-mono text-[10px] uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-white/90 transition-all"
                       >
                         <span>Explore Course</span>
                         <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      </a>
                     </div>
                   </motion.div>
                 )}
@@ -312,13 +312,13 @@ export function EditorialCourseSpread({ courses }: { courses: CourseItem[] }) {
             </div>
 
             {/* CTA Link Button */}
-            <Link
+            <a
               href={href}
               className="inline-flex items-center justify-between w-full bg-white text-black font-mono text-xs uppercase tracking-widest px-6 py-4 rounded-xl hover:bg-white/90 transition-all group"
             >
               <span>Explore Course</span>
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" />
-            </Link>
+            </a>
           </motion.div>
         </AnimatePresence>
       </div>

@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 15
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no root@72.61.231.187 "tail -n 100 /root/.pm2/logs/academy-web-error.log"
+expect "*?assword:*"
+send "Photoshop09@\r"
+expect eof

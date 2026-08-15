@@ -13,7 +13,7 @@ type CourseCardProps = {
 export function FeaturedCourseCard({ title, index, slug }: CourseCardProps) {
   const href = slug ? `/${slug}` : "/auth/login";
   return (
-    <Link href={href}>
+    <a href={href}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -41,6 +41,6 @@ export function FeaturedCourseCard({ title, index, slug }: CourseCardProps) {
           </div>
         </div>
       </motion.div>
-    </Link>
+    </a>
   );
 }
