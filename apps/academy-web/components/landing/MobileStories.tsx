@@ -323,12 +323,23 @@ export default function MobileStories() {
               <p className="text-base text-white/60 font-light max-w-xs mx-auto">
                 Join the next cohort and start building your design career today.
               </p>
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full shadow-xl shadow-[#49abc9]/20 active:scale-95 transition-transform"
-              >
-                Apply Now <ArrowRight className="w-4 h-4" />
-              </Link>
+              <div className="flex flex-col items-center gap-4">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full shadow-xl shadow-[#49abc9]/20 active:scale-95 transition-transform"
+                >
+                  Apply Now <ArrowRight className="w-4 h-4" />
+                </Link>
+                
+                <a
+                  href="https://grekam.in/academy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono uppercase tracking-widest text-white/40 hover:text-white border-b border-white/10 pb-0.5 pt-1 transition-all"
+                >
+                  Or read our Curriculum Wiki
+                </a>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

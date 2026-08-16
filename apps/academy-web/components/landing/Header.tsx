@@ -51,6 +51,7 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
   const navLinks = [
     { name: "Courses", href: "/#courses" },
     { name: "The Method", href: "/#curriculum" },
+    { name: "Curriculum Wiki", href: "https://grekam.in/academy" },
     { name: "Gallery", href: "/gallery" },
     { name: "Contact", href: "/contact" },
     { name: "Enroll", href: "/#enroll" },

@@ -403,8 +403,11 @@ export default function SplitReality() {
   const navigate = (type: "agency" | "academy", href: string) => {
     setTransitioning(type)
     setTimeout(() => { 
-      // Use internal routing for academy, external for agency if needed (though both are internal now)
-      router.push(href) 
+      if (href.startsWith("http")) {
+        window.location.href = href;
+      } else {
+        router.push(href);
+      }
     }, 1200)
   }
 
@@ -477,7 +480,7 @@ export default function SplitReality() {
                   if (info.offset.y < -50 || info.velocity.y < -200) {
                     navigate('agency', '/agency');
                   } else if (info.offset.y > 50 || info.velocity.y > 200) {
-                    navigate('academy', '/academy');
+                    navigate('academy', 'https://academy.grekam.in/');
                   }
                 }}
               >
@@ -595,7 +598,7 @@ export default function SplitReality() {
 
         <button
           className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
-          onClick={() => isMobile ? (isAcademy ? navigate("academy", "/academy") : handleMobileTouch("academy")) : navigate("academy", "/academy")}
+          onClick={() => isMobile ? (isAcademy ? navigate("academy", "https://academy.grekam.in/") : handleMobileTouch("academy")) : navigate("academy", "https://academy.grekam.in/")}
           style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
         >
           <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
@@ -734,7 +737,7 @@ export default function SplitReality() {
 
         <button
           className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
-          onClick={() => isMobile ? (isAcademy ? navigate("academy", "/academy") : handleMobileTouch("academy")) : navigate("academy", "/academy")}
+          onClick={() => isMobile ? (isAcademy ? navigate("academy", "https://academy.grekam.in/") : handleMobileTouch("academy")) : navigate("academy", "https://academy.grekam.in/")}
           style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
         >
           <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>

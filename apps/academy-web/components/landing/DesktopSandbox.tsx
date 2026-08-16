@@ -442,6 +442,25 @@ export default function DesktopSandbox() {
                     </ul>
                   </div>
                 </div>
+
+                {/* Curriculum Wiki banner */}
+                <div className="mt-16 p-8 border border-dashed border-white/15 bg-white/[0.01] rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto">
+                  <div className="text-left">
+                    <h4 className="font-bold text-lg uppercase font-editorial-display mb-1 text-white">Need complete program brochures?</h4>
+                    <p className="text-white/50 text-sm leading-relaxed">
+                      Check out our interactive <span className="text-[#49abc9] font-semibold">Curriculum Wiki</span> for a detailed breakdown of timelines, placement stats, and weekly schedules.
+                    </p>
+                  </div>
+                  <a 
+                    href="https://grekam.in/academy" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="px-6 py-3 rounded-full font-mono text-xs uppercase tracking-widest bg-white/10 hover:bg-white text-white hover:text-black transition-all font-bold shrink-0 border border-white/10"
+                  >
+                    Browse Wiki →
+                  </a>
+                </div>
+
               </div>
             </section>
 

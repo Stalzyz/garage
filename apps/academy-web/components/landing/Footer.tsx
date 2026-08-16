@@ -60,6 +60,7 @@ export function Footer() {
             </ul>
             <h4 className="text-[#FAFAF8] font-bold mb-6">Student Resources</h4>
             <ul className="space-y-3 text-sm">
+              <li><a href="https://grekam.in/academy" target="_blank" rel="noopener noreferrer" className="hover:text-[#49abc9] transition-colors text-white font-bold">Curriculum Wiki</a></li>
               <li><Link href="#platform" className="hover:text-[#49abc9] transition-colors">Portfolio Hub</Link></li>
               <li><Link href="#faq" className="hover:text-[#49abc9] transition-colors">FAQs</Link></li>
               <li><Link href="#pricing" className="hover:text-[#49abc9] transition-colors">Payment Plans</Link></li>
