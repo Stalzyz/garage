@@ -109,30 +109,32 @@ export default function MobileStories() {
   const touchStartY = useRef<number | null>(null);
   const isDragging = useRef(false);
 
+  const lastScrollTime = useRef(0);
+
   const slides: StorySlide[] = [
     {
       tag: "01 // THE PROBLEM",
       title: "Tutorials teach tools, not design.",
       subtitle: "Stop wasting time copying template layouts. Learn to think like a professional.",
-      bgGradient: "from-zinc-950 via-zinc-900 to-black",
+      bgGradient: "from-[#7b2cbf]/40 via-zinc-950 to-[#3c096c]/40",
     },
     {
       tag: "02 // MISSION",
       title: "Build Real Skills. No templates.",
       subtitle: "Learn to design custom mobile apps and responsive websites from scratch.",
-      bgGradient: "from-indigo-950 via-zinc-900 to-black",
+      bgGradient: "from-[#00b4d8]/40 via-zinc-950 to-[#0077b6]/40",
     },
     {
       tag: "03 // THE METHOD",
       title: "Learn by doing in a real studio.",
       subtitle: "No classrooms or lectures. Work on real-world client deliverables from Day 1.",
-      bgGradient: "from-purple-950 via-zinc-900 to-black",
+      bgGradient: "from-[#f72585]/40 via-zinc-950 to-[#7209b7]/40",
     },
     {
-      tag: "04 // PROCESS",
-      title: "One complete training program.",
-      subtitle: "Master layout alignment, typography systems, branding, and career mock interviews.",
-      bgGradient: "from-blue-950 via-zinc-900 to-black",
+      tag: "04 // THE PROGRAM",
+      title: "One program. Everything included.",
+      subtitle: "Core program (Graphic Design, UI/UX, etc.) + Communication and Personality Development + Placement and Internship.",
+      bgGradient: "from-[#ffb703]/30 via-zinc-950 to-[#fb8500]/30",
     },
   ];
 
@@ -157,13 +159,22 @@ export default function MobileStories() {
   };
 
   const handleTouchEnd = (e: TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEnd;
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchStartX.current - touchEndX;
+    const diffY = touchStartY.current - touchEndY;
 
     if (isDragging.current) {
-      if (diff > 50) goNext();
-      if (diff < -50) goPrev();
+      // Support both horizontal swiping and vertical swiping
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 50) goNext();
+        if (diffX < -50) goPrev();
+      } else {
+        if (diffY > 50) goNext();
+        if (diffY < -50) goPrev();
+      }
     }
 
     touchStartX.current = null;
@@ -171,61 +182,74 @@ export default function MobileStories() {
     isDragging.current = false;
   };
 
+  const handleWheel = (e: React.WheelEvent) => {
+    const now = Date.now();
+    if (now - lastScrollTime.current < 800) return; // 800ms debounce for smooth scroll transitions
+    if (e.deltaY > 20) {
+      goNext();
+      lastScrollTime.current = now;
+    } else if (e.deltaY < -20) {
+      goPrev();
+      lastScrollTime.current = now;
+    }
+  };
+
   return (
     <div
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
       className="relative w-screen h-[100dvh] bg-[#050505] text-white flex flex-col overflow-hidden select-none"
     >
-      {/* Top Progress Bar */}
-      <div className="absolute top-4 left-0 right-0 z-50 flex gap-1.5 px-4">
-        {Array.from({ length: totalSlides }).map((_, idx) => (
-          <div key={idx} className="h-1 bg-white/20 rounded-full flex-1 overflow-hidden">
-            <div
-              className={`h-full bg-white transition-all duration-300 ${
-                idx <= activeIdx ? "w-full" : "w-0"
-              }`}
-            />
-          </div>
-        ))}
-      </div>
+      
+      {/* Ambient colorful backdrop glow bubble */}
+      <div 
+        className="absolute w-[280px] h-[280px] rounded-full blur-[100px] opacity-35 mix-blend-screen pointer-events-none transition-all duration-1000 -top-12 -left-12"
+        style={{
+          background: activeIdx === 0 ? "radial-gradient(circle, #7b2cbf, transparent)" :
+                      activeIdx === 1 ? "radial-gradient(circle, #00b4d8, transparent)" :
+                      activeIdx === 2 ? "radial-gradient(circle, #f72585, transparent)" :
+                      activeIdx === 3 ? "radial-gradient(circle, #fb8500, transparent)" :
+                      activeIdx === 4 ? "radial-gradient(circle, #3498db, transparent)" :
+                                        "radial-gradient(circle, #e74c3c, transparent)"
+        }}
+      />
+      
+      <div 
+        className="absolute w-[350px] h-[350px] rounded-full blur-[120px] opacity-25 mix-blend-screen pointer-events-none transition-all duration-1000 -bottom-16 -right-16"
+        style={{
+          background: activeIdx === 0 ? "radial-gradient(circle, #3c096c, transparent)" :
+                      activeIdx === 1 ? "radial-gradient(circle, #0077b6, transparent)" :
+                      activeIdx === 2 ? "radial-gradient(circle, #7209b7, transparent)" :
+                      activeIdx === 3 ? "radial-gradient(circle, #ffb703, transparent)" :
+                      activeIdx === 4 ? "radial-gradient(circle, #9b59b6, transparent)" :
+                                        "radial-gradient(circle, #c0392b, transparent)"
+        }}
+      />
 
-      {/* Left / Right Arrow Buttons */}
-      <div className="absolute inset-y-0 left-0 z-50 flex items-center pl-2">
-        <button
-          onClick={goPrev}
-          disabled={activeIdx === 0}
-          className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/60 disabled:opacity-20 active:bg-white/20 transition-all"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="absolute inset-y-0 right-0 z-50 flex items-center pr-2">
-        <button
-          onClick={goNext}
-          disabled={activeIdx === totalSlides - 1}
-          className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/60 disabled:opacity-20 active:bg-white/20 transition-all"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+      {/* Header watermark brand details */}
+      <div className="absolute top-6 left-0 right-0 z-50 flex justify-between items-center px-6">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-white/50">
+          [ GREKAM DESIGN ACADEMY ]
+        </span>
+        <span className="font-mono text-[8px] text-white/30 uppercase tracking-wider">
+          Cohort 2026 // SWISS GRID
+        </span>
       </div>
 
       {/* Slide Content */}
-      <div className="relative z-40 flex-grow flex flex-col justify-center px-10 pt-14 pb-4">
+      <div className="relative z-40 flex-grow flex flex-col justify-center px-8 pt-16 pb-20">
         <AnimatePresence mode="wait">
 
           {/* Story Slides 1–4 */}
           {activeIdx < slides.length && (
             <motion.div
               key={`slide-${activeIdx}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14 }}
               className="space-y-6 max-w-sm"
             >
               <span className="font-mono text-xs text-[#49abc9] uppercase tracking-widest block">
@@ -244,17 +268,17 @@ export default function MobileStories() {
           {isCoursesSlide && (
             <motion.div
               key="courses-selector"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14 }}
+              className="w-full flex flex-col"
             >
               <span className="font-mono text-xs text-[#49abc9] uppercase tracking-widest block mb-4">
                 05 // CHOOSE YOUR COURSE
               </span>
 
-              <div className="overflow-y-auto max-h-[calc(100dvh-160px)] space-y-2.5 pr-1 pb-4">
+              <div className="overflow-y-auto max-h-[calc(100dvh-200px)] space-y-2.5 pr-1 pb-4">
                 {ALL_COURSES.map((course) => {
                   const Icon = course.icon;
                   const colorCls = COLOR_MAP[course.color] || "bg-white/10 text-white";
@@ -283,14 +307,14 @@ export default function MobileStories() {
             </motion.div>
           )}
 
-          {/* Slide 6: Final CTA */}
+          {/* Slide 6: Final CTA (Redirecting to /contact page directly) */}
           {isFinalSlide && (
             <motion.div
               key="final-cta"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14 }}
               className="text-center space-y-8 w-full"
             >
               <h2 className="text-5xl font-editorial-display font-black uppercase tracking-tight leading-none">
@@ -300,8 +324,8 @@ export default function MobileStories() {
                 Join the next cohort and start building your design career today.
               </p>
               <Link
-                href="/auth/login"
-                className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full shadow-xl shadow-[#49abc9]/20"
+                href="/contact"
+                className="inline-flex items-center gap-2 bg-[#49abc9] text-black font-bold uppercase tracking-widest px-8 py-4 rounded-full shadow-xl shadow-[#49abc9]/20 active:scale-95 transition-transform"
               >
                 Apply Now <ArrowRight className="w-4 h-4" />
               </Link>
@@ -310,18 +334,50 @@ export default function MobileStories() {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Status */}
-      <div className="relative z-50 px-6 pb-6 flex justify-between items-center text-white/25 font-mono text-[9px] uppercase tracking-widest">
-        <span>
-          {activeIdx + 1} / {totalSlides}
-        </span>
-        <span className="flex items-center gap-1">
-          <ChevronLeft className="w-3 h-3" /> Swipe <ChevronRight className="w-3 h-3" />
-        </span>
+      {/* Bottom Navigation Center Console (Dots + Flanking Arrows) */}
+      <div className="absolute bottom-6 left-0 right-0 z-50 flex items-center justify-center gap-6">
+        {/* Left Arrow Button */}
+        <button
+          onClick={goPrev}
+          disabled={activeIdx === 0}
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 disabled:opacity-20 active:bg-white/20 transition-all"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Page Dots Indicator */}
+        <div className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-full border border-white/5 backdrop-blur-md">
+          {Array.from({ length: totalSlides }).map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setActiveIdx(idx)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === activeIdx ? "w-4 bg-white" : "w-2 bg-white/25 hover:bg-white/50"
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Right Arrow Button */}
+        <button
+          onClick={goNext}
+          disabled={activeIdx === totalSlides - 1}
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 disabled:opacity-20 active:bg-white/20 transition-all"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Background gradient shader */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#050505] to-[#101010]" />
+      <div 
+        className="absolute inset-0 z-0 bg-[#050505] transition-all duration-1000"
+        style={{
+          background: activeIdx < slides.length ? slides[activeIdx].bgGradient : "from-[#101010] via-zinc-950 to-black"
+        }}
+      />
     </div>
   );
 }

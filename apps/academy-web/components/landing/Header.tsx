@@ -125,7 +125,7 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
 
           <Magnetic pull={0.25}>
             <Link
-              href="/auth/login"
+              href="/contact"
               className={`text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-full transition-all duration-300 ${
                 scrolled
                   ? "bg-white text-black hover:bg-white/90"
@@ -199,7 +199,7 @@ export function Header({ theme = "light" }: { theme?: "light" | "dark" }) {
                 Log In
               </Link>
               <Link
-                href="/auth/login"
+                href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center text-xs font-mono uppercase tracking-widest bg-white text-black py-4 rounded-full font-bold hover:bg-white/90 transition-all"
               >

@@ -44,7 +44,7 @@ export function FinalCTA() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/auth/login">
+            <Link href="/contact">
               <button className="group relative bg-[#FAFAF8] text-[#050505] px-8 py-4 rounded-full font-medium overflow-hidden transition-transform hover:scale-105 active:scale-95 shadow-xl shadow-black/10">
                 <span className="relative z-10 flex items-center gap-2 font-sans tracking-wide">
                   Start Your Creative Journey

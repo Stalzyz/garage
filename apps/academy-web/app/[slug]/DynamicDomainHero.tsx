@@ -3,7 +3,6 @@
 import { CourseDomain } from "./CategoryThemeMapper";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { CTAModal } from "./CTAModal";
 import { ArrowRight, Play } from "lucide-react";
 
 type DynamicDomainHeroProps = {
@@ -23,7 +22,6 @@ export function DynamicDomainHero({
   courseCode,
   trailerVideoId 
 }: DynamicDomainHeroProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [playVideo, setPlayVideo] = useState(false);
 
   // Helper to render the video player or thumbnail image
@@ -83,12 +81,12 @@ export function DynamicDomainHero({
               <p className="text-[#A1A1AA] text-base md:text-lg max-w-2xl font-mono mb-8 leading-relaxed">
                 {description}
               </p>
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-2 active:shadow-none"
+              <a 
+                href={`/contact?course=${courseCode}`}
+                className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-2 active:shadow-none text-center"
               >
                 Enroll Now <ArrowRight size={20} />
-              </button>
+              </a>
             </motion.div>
 
             <motion.div 
@@ -101,13 +99,6 @@ export function DynamicDomainHero({
             </motion.div>
           </div>
         </div>
-        <CTAModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          courseCode={courseCode} 
-          courseName={title} 
-          domain={domain} 
-        />
       </section>
     )
   }
@@ -131,12 +122,12 @@ export function DynamicDomainHero({
             <p className="text-xl md:text-2xl text-black/60 max-w-lg font-sans mb-10">
               {description}
             </p>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="px-8 py-4 bg-[#050505] text-white font-serif italic text-lg tracking-wide hover:bg-pink-600 transition-colors inline-flex items-center gap-3 rounded-full shadow-xl"
+            <a 
+              href={`/contact?course=${courseCode}`}
+              className="px-8 py-4 bg-[#050505] text-white font-serif italic text-lg tracking-wide hover:bg-pink-600 transition-colors inline-flex items-center gap-3 rounded-full shadow-xl text-center"
             >
               Begin Your Journey <ArrowRight size={20} />
-            </button>
+            </a>
           </motion.div>
 
           <motion.div 
@@ -155,13 +146,6 @@ export function DynamicDomainHero({
             <div className="absolute -z-10 top-10 -left-10 bg-white/50 p-4 pb-16 shadow-xl -rotate-6 transform-gpu aspect-[4/5] w-full hidden sm:block rounded-lg" />
           </motion.div>
         </div>
-        <CTAModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          courseCode={courseCode} 
-          courseName={title} 
-          domain={domain} 
-        />
       </section>
     )
   }
@@ -197,16 +181,16 @@ export function DynamicDomainHero({
               {description}
             </p>
             <div className="flex gap-4 justify-center items-center mb-12">
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="px-10 py-5 bg-white text-black font-bold uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all duration-500 inline-flex items-center gap-3"
+              <a 
+                href={`/contact?course=${courseCode}`}
+                className="px-10 py-5 bg-white text-black font-bold uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all duration-500 inline-flex items-center gap-3 text-center"
               >
                 Join The Cast <ArrowRight size={20} />
-              </button>
+              </a>
             </div>
           </motion.div>
 
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -215,14 +199,6 @@ export function DynamicDomainHero({
             {renderPreviewMedia("aspect-video")}
           </motion.div>
         </div>
-
-        <CTAModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          courseCode={courseCode} 
-          courseName={title} 
-          domain={domain} 
-        />
       </section>
     )
   }
@@ -257,16 +233,16 @@ export function DynamicDomainHero({
           transition={{ duration: 0.8, delay: 0.3 }}
           className="mb-12"
         >
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="px-8 py-4 bg-black text-white font-bold rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-black/20 transition-all inline-flex items-center gap-2"
+          <a 
+            href={`/contact?course=${courseCode}`}
+            className="px-8 py-4 bg-black text-white font-bold rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-black/20 transition-all inline-flex items-center gap-2 text-center"
           >
             Start Learning <ArrowRight size={18} />
-          </button>
+          </a>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }} 
+          initial={{ opacity: 0, scale: 0.95 }} 
           animate={{ opacity: 1, scale: 1 }} 
           transition={{ duration: 0.8, delay: 0.4 }}
           className="w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-zinc-900 border-4 border-white"
@@ -274,13 +250,6 @@ export function DynamicDomainHero({
           {renderPreviewMedia("aspect-video")}
         </motion.div>
       </div>
-      <CTAModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        courseCode={courseCode} 
-        courseName={title} 
-        domain={domain} 
-      />
     </section>
   )
 }

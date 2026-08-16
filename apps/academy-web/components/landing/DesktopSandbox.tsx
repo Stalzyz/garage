@@ -268,7 +268,7 @@ export default function DesktopSandbox() {
                 
                 <div className="flex items-center gap-6">
                   <Link 
-                    href="/auth/login" 
+                    href="/contact" 
                     className="font-bold uppercase tracking-widest px-8 py-4 rounded-full transition-all flex items-center gap-2 text-black"
                     style={{ backgroundColor: accentColor }}
                   >
@@ -415,30 +415,30 @@ export default function DesktopSandbox() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
                   <div className="p-8 border border-white/10 bg-white/[0.01] rounded-2xl">
-                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 1</div>
-                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Basics</h3>
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>MODULE 1</div>
+                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Core Program</h3>
                     <ul className="space-y-2 text-white/60 text-sm font-mono">
-                      <li>• Typography rules</li>
-                      <li>• Grid geometry</li>
-                      <li>• Color theory</li>
+                      <li>• Graphic & UI/UX Design</li>
+                      <li>• Web Design & Development</li>
+                      <li>• 2D/3D Animation & VFX</li>
                     </ul>
                   </div>
-                  <div className="p-8 border border-white/20 bg-white/[0.03] rounded-2xl transform md:-translate-y-4 shadow-2xl">
-                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 2</div>
-                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Design</h3>
+                  <div className="p-8 border border-white/25 bg-white/[0.03] rounded-2xl transform md:-translate-y-4 shadow-2xl">
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>MODULE 2</div>
+                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Soft Skills</h3>
                     <ul className="space-y-2 text-white/80 text-sm font-mono">
-                      <li>• Branding geometry</li>
-                      <li>• Web & Mobile UI</li>
-                      <li>• Design systems</li>
+                      <li>• Communication Systems</li>
+                      <li>• Personality Grooming</li>
+                      <li>• Creative Client Pitching</li>
                     </ul>
                   </div>
                   <div className="p-8 border border-white/10 bg-white/[0.01] rounded-2xl">
-                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>PHASE 3</div>
-                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Career</h3>
+                    <div className="font-mono text-xs mb-4" style={{ color: accentColor }}>MODULE 3</div>
+                    <h3 className="font-bold text-xl uppercase mb-3 font-editorial-display">Career Path</h3>
                     <ul className="space-y-2 text-white/60 text-sm font-mono">
-                      <li>• Portfolio curation</li>
-                      <li>• Mock reviews</li>
-                      <li>• Client handoff</li>
+                      <li>• 100% Placement Assistance</li>
+                      <li>• Live Studio Internship</li>
+                      <li>• Portfolio Reviews</li>
                     </ul>
                   </div>
                 </div>
