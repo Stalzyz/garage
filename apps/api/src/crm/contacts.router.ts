@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EmailService } from '../automations/email.service';
+import bcrypt from 'bcryptjs';
+import Papa from 'papaparse';
 
 const CreateCompanySchema = z.object({
   name: z.string().min(1),
@@ -36,14 +38,8 @@ export default async function contactsRouter(app: FastifyInstance) {
     let tempPassword = '';
     
     if (!user) {
-      // Generate 4-digit PIN
-      if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
-        tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
-      } else {
-        tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
-      }
-      
-      const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+      tempPassword = Math.random().toString(36).slice(-8) + "!";
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
       
       user = await app.prisma.user.create({
         data: {
@@ -352,15 +348,8 @@ export default async function contactsRouter(app: FastifyInstance) {
     let user = await app.prisma.user.findUnique({ where: { email: contact.email } });
     if (!user) return reply.badRequest('No portal account exists for this contact.');
 
-    // Generate 4-digit PIN
-    let tempPassword = '';
-    if (contact.phone && contact.phone.replace(/\D/g, '').length >= 4) {
-      tempPassword = contact.phone.replace(/\D/g, '').slice(-4);
-    } else {
-      tempPassword = Math.floor(1000 + Math.random() * 9000).toString();
-    }
-    
-    const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+    let tempPassword = Math.random().toString(36).slice(-8) + "!";
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
     
     await app.prisma.user.update({
       where: { id: user.id },
@@ -426,14 +415,13 @@ export default async function contactsRouter(app: FastifyInstance) {
     const { csvData } = req.body as { csvData: string };
     if (!csvData) return reply.badRequest('Missing CSV data');
 
-    const Papa = require('papaparse');
     const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
 
     if (parsed.errors && parsed.errors.length > 0) {
       return reply.badRequest(`CSV Parse Error: ${parsed.errors[0].message}`);
     }
 
-    const rows = parsed.data;
+    const rows = parsed.data as any[];
     let successCount = 0;
 
     for (const row of rows) {

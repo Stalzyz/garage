@@ -10,8 +10,47 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 
 export const metadata: Metadata = {
-  title: "Grekam Design Academy",
-  description: "Master Design & Tech with Grekam Academy",
+  metadataBase: new URL('https://academy.grekam.in'),
+  title: {
+    default: 'Grekam Academy — Master Design & Tech',
+    template: '%s | Grekam Academy'
+  },
+  description: 'Learn design, visual arts, and digital technology from industry experts. Master professional tools with Grekam Academy.',
+  openGraph: {
+    title: 'Grekam Academy — Master Design & Technical Arts',
+    description: 'Learn design, visual arts, and digital technology from industry experts. Hands-on projects, certification, and career placement.',
+    url: 'https://academy.grekam.in',
+    siteName: 'Grekam Academy',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Grekam Academy Course Preview',
+      }
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Grekam Academy',
+    description: 'Learn visual editing, color grading, and motion design.',
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({

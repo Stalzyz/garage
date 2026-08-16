@@ -7,6 +7,25 @@ import { FeaturedCourses } from "./FeaturedCourses";
 import { Footer } from "./Footer";
 import Link from "next/link";
 
+// Restore storytelling narrative layouts
+import { NarrativeAct } from "../editorial/NarrativeAct";
+import { MagazineSpread } from "../editorial/MagazineSpread";
+import { PullQuote } from "../editorial/PullQuote";
+import { FilmStrip } from "../editorial/FilmStrip";
+
+// Restore original academy home page blocks
+import { HiringPartners } from "./HiringPartners";
+import { About } from "./About";
+import { Methodology } from "./Methodology";
+import { Outcomes } from "./Outcomes";
+import { InstructorsSection } from "./InstructorsSection";
+import { StudentShowcase } from "./StudentShowcase";
+import { StudentExperience } from "./StudentExperience";
+import { PlatformFeatures } from "./PlatformFeatures";
+import { Demographics } from "./Demographics";
+import { SubscriptionCard } from "./SubscriptionCard";
+import { Faq } from "./Faq";
+
 export default function DesktopSandbox() {
   const [isAligned, setIsAligned] = useState(false);
   const [skipActive, setSkipActive] = useState(false);
@@ -220,7 +239,13 @@ export default function DesktopSandbox() {
                   onClick={handleSnap}
                   onMouseEnter={() => setIsHoveringSnap(true)}
                   onMouseLeave={() => setIsHoveringSnap(false)}
-                  className="group relative px-8 py-4 bg-white text-black font-mono text-xs uppercase tracking-widest font-bold rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-white/10 flex items-center gap-2"
+                  className="group relative px-8 py-4 bg-white text-black font-mono text-xs uppercase tracking-widest font-bold rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                  style={{
+                    boxShadow: isHoveringSnap 
+                      ? `0 0 25px ${accentColor}80` 
+                      : `0 0 15px rgba(255,255,255,0.05)`,
+                    border: `1px solid ${isHoveringSnap ? accentColor : 'transparent'}`
+                  }}
                 >
                   <span>[ Snap to Grid ]</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -370,14 +395,30 @@ export default function DesktopSandbox() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="w-full"
           >
-            {/* The Method / Studio layout */}
-            <section id="curriculum" className="py-32 px-12 md:px-24 bg-[#0a0a0a] border-b border-white/5">
-              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+            {/* Act 1: The Problem (recovered from slide 1) */}
+            <NarrativeAct id="act-1" number="01" title="The Problem" theme="dark">
+              <div className="max-w-4xl mt-12 text-left">
+                <h1 className="text-5xl md:text-8xl font-editorial-display leading-[0.9] font-black uppercase mb-12 text-white tracking-tight">
+                  Tutorials teach tools, not design.
+                </h1>
+                <p className="text-xl md:text-3xl font-editorial-body italic text-white/60 max-w-2xl leading-relaxed">
+                  Stop wasting time. Learn how to think, build, and work like a professional.
+                </p>
+              </div>
+            </NarrativeAct>
+
+            {/* Slide 2: Magazine Spread (recovered from slide 2) */}
+            <MagazineSpread 
+              imageSrc="/editorial/magazine_spread.png" 
+              headline="Build\nReal\nSkills" 
+              subtext="Learn to design custom websites and apps from scratch. No templates." 
+            />
+
+            {/* Act 2: The Method (Curriculum Method overview) */}
+            <NarrativeAct id="act-2" number="02" title="The Method" theme="dark" className="border-b border-white/5">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 text-left">
                 <div className="lg:col-span-4">
-                  <span className="font-mono text-xs uppercase tracking-widest block mb-4" style={{ color: accentColor }}>
-                    [ THE METHOD ]
-                  </span>
-                  <h2 className="text-4xl md:text-5xl font-editorial-display font-bold uppercase leading-none">
+                  <h2 className="text-4xl md:text-5xl font-editorial-display font-bold uppercase leading-none text-white">
                     Real studio workflow.
                   </h2>
                 </div>
@@ -390,18 +431,68 @@ export default function DesktopSandbox() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 border-t border-white/10">
                     <div>
                       <div className="font-mono text-xs text-white/40 mb-3">01 // PROJECTS</div>
-                      <h4 className="text-xl font-bold uppercase mb-2 font-editorial-display">Hands-on tasks</h4>
+                      <h4 className="text-xl font-bold uppercase mb-2 font-editorial-display text-white">Hands-on tasks</h4>
                       <p className="text-white/50 text-sm leading-relaxed">Build actual user interfaces, layouts, design systems, and client assets.</p>
                     </div>
                     <div>
                       <div className="font-mono text-xs text-white/40 mb-3">02 // FEEDBACK</div>
-                      <h4 className="text-xl font-bold uppercase mb-2 font-editorial-display">Daily Critiques</h4>
+                      <h4 className="text-xl font-bold uppercase mb-2 font-editorial-display text-white">Daily Critiques</h4>
                       <p className="text-white/50 text-sm leading-relaxed">Your designs are reviewed directly by mentors. Learn what makes work professional.</p>
                     </div>
                   </div>
                 </div>
               </div>
-            </section>
+            </NarrativeAct>
+
+            {/* Slide 4: Testimonial PullQuote */}
+            <PullQuote 
+              quote="This program taught me more in weeks than years in college. It gave me the skills to get hired."
+              author="Sarah J."
+              role="Lead Designer"
+              theme="dark"
+            />
+
+            {/* Act 3: Outcomes (recovered from slide 5) */}
+            <NarrativeAct id="act-3" number="03" title="The Evidence" theme="dark" className="border-b border-white/5">
+              <div className="max-w-3xl mb-16 text-left">
+                <h2 className="text-4xl md:text-6xl font-editorial-display font-bold uppercase mb-6 text-white tracking-tight">
+                  Launch a solid design career.
+                </h2>
+                <p className="text-xl font-editorial-body text-white/60">
+                  Develop a strong portfolio that gets you noticed by top companies.
+                </p>
+              </div>
+              
+              <FilmStrip images={[
+                "/editorial/filmstrip_1.png",
+                "/editorial/filmstrip_2.png",
+                "/editorial/filmstrip_1.png",
+                "/editorial/filmstrip_2.png"
+              ]} />
+              
+              <div className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-white/10 pt-12 text-left">
+                <div>
+                  <h3 className="text-2xl font-bold mb-4 font-editorial-display text-white">Our Results</h3>
+                  <p className="font-editorial-body text-white/70 text-lg">
+                    Build real-world client deliverables and secure a high-paying job.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between border-b border-white/10 pb-4">
+                    <span className="font-mono text-sm text-white/50 uppercase">Students Hired</span>
+                    <span className="font-bold text-xl text-white">82%</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/10 pb-4">
+                    <span className="font-mono text-sm text-white/50 uppercase">Average Salary</span>
+                    <span className="font-bold text-xl text-white">₹6.5L+</span>
+                  </div>
+                  <div className="flex justify-between pb-4">
+                    <span className="font-mono text-sm text-white/50 uppercase">Graduate Network</span>
+                    <span className="font-bold text-xl text-white">Global</span>
+                  </div>
+                </div>
+              </div>
+            </NarrativeAct>
 
             {/* Courses section */}
             <FeaturedCourses />
@@ -464,26 +555,20 @@ export default function DesktopSandbox() {
               </div>
             </section>
 
-            {/* Outcomes stats */}
-            <section className="py-24 px-12 md:px-24 bg-[#0a0a0a]">
-              <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
-                <div>
-                  <h3 className="text-3xl font-editorial-display font-bold uppercase mb-2">Our Results</h3>
-                  <p className="text-white/50 text-sm max-w-sm">We teach high-end layout execution that secures roles at global studios.</p>
-                </div>
-                
-                <div className="flex gap-16">
-                  <div>
-                    <div className="text-4xl md:text-5xl font-black mb-1 font-editorial-display" style={{ color: accentColor }}>82%</div>
-                    <div className="font-mono text-[10px] text-white/40 uppercase">Hired in 12w</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl md:text-5xl font-black mb-1 font-editorial-display" style={{ color: accentColor }}>Global</div>
-                    <div className="font-mono text-[10px] text-white/40 uppercase">Alumni Net</div>
-                  </div>
-                </div>
-              </div>
-            </section>
+            {/* Hiring Partners / Placement Companies */}
+            <HiringPartners />
+
+            {/* Methodology & Student Experience */}
+            <About />
+            <Methodology />
+            <Outcomes />
+            <InstructorsSection />
+            <StudentShowcase />
+            <StudentExperience />
+            <PlatformFeatures />
+            <Demographics />
+            <SubscriptionCard />
+            <Faq />
 
             <Footer />
           </motion.div>

@@ -105,28 +105,45 @@ export default async function leavesRoutes(app: FastifyInstance) {
 
     if (!request) return reply.status(404).send({ error: 'Not found' });
 
-    const leave = await server.prisma.leaveRequest.update({
-      where: { id: req.params.id },
-      data: { 
-        status: status as any, 
-        approvedBy,
-        approvedAt: status === "APPROVED" ? new Date() : null
-      }
-    });
+    const leave = await server.prisma.$transaction(async (tx) => {
+      const updatedLeave = await tx.leaveRequest.update({
+        where: { id: req.params.id },
+        data: { 
+          status: status as any, 
+          approvedBy,
+          approvedAt: status === "APPROVED" ? new Date() : null
+        }
+      });
 
-    if (status === "APPROVED" && request.status !== "APPROVED") {
-       // Deduct from balance
-       const year = new Date().getFullYear();
-       const balanceRecord = await server.prisma.leaveBalance.findUnique({
-         where: { employeeId_type_year: { employeeId: request.employeeId, type: request.type, year } }
-       });
-       if (balanceRecord) {
-         await server.prisma.leaveBalance.update({
-           where: { id: balanceRecord.id },
-           data: { balance: balanceRecord.balance - request.days }
-         });
-       }
-    }
+      const year = new Date().getFullYear();
+
+      // Case 1: Deduct balance when transitioning TO approved FROM non-approved
+      if (status === "APPROVED" && request.status !== "APPROVED") {
+        const balanceRecord = await tx.leaveBalance.findUnique({
+          where: { employeeId_type_year: { employeeId: request.employeeId, type: request.type, year } }
+        });
+        if (balanceRecord) {
+          await tx.leaveBalance.update({
+            where: { id: balanceRecord.id },
+            data: { balance: balanceRecord.balance - request.days }
+          });
+        }
+      }
+      // Case 2: Refund balance when transitioning FROM approved TO non-approved (e.g. REJECTED, PENDING)
+      else if (status !== "APPROVED" && request.status === "APPROVED") {
+        const balanceRecord = await tx.leaveBalance.findUnique({
+          where: { employeeId_type_year: { employeeId: request.employeeId, type: request.type, year } }
+        });
+        if (balanceRecord) {
+          await tx.leaveBalance.update({
+            where: { id: balanceRecord.id },
+            data: { balance: balanceRecord.balance + request.days }
+          });
+        }
+      }
+
+      return updatedLeave;
+    });
 
     return reply.send(leave);
   });

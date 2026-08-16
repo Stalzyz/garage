@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const CreateStudentSchema = z.object({
   firstName: z.string().min(1),
@@ -57,7 +58,7 @@ export default async function studentsRouter(app: FastifyInstance) {
     
     const cleanBatchId = body.batchId && body.batchId.trim() !== '' ? body.batchId : undefined;
     const cleanDob = body.dateOfBirth && body.dateOfBirth.trim() !== '' ? new Date(body.dateOfBirth) : undefined;
-    const passwordHash = crypto.createHash('sha256').update('Grekam@2026').digest('hex');
+    const passwordHash = await bcrypt.hash('Grekam@2026', 10);
     const studentCode = `GRA-${new Date().getFullYear() % 100}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
     const student = await app.prisma.$transaction(async (tx: any) => {

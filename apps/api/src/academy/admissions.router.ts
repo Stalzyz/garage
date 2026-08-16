@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 
 const CreateApplicationSchema = z.object({
   firstName: z.string().min(1),
@@ -52,18 +53,22 @@ export default async function admissionsRouter(app: FastifyInstance) {
   app.post('/applications', async (req, reply) => {
     const body = CreateApplicationSchema.parse(req.body);
     
+    let tempPassword = '';
+    
     // Create User, Student, and Application in a transaction
     const application = await app.prisma.$transaction(async (tx) => {
       // 1. Check if User exists
       let user = await tx.user.findUnique({ where: { email: body.email } });
       if (!user) {
+        tempPassword = Math.random().toString(36).slice(-8) + "!";
+        const passwordHash = await bcrypt.hash(tempPassword, 10);
         user = await tx.user.create({
           data: {
             firstName: body.firstName,
             lastName: body.lastName,
             email: body.email,
             role: 'STUDENT',
-            passwordHash: '$2a$10$x4R4Qz4hVfQW9y4r4hVfQ.W9y4r4hVfQW9y4r4hVfQW9y4r4hVfQ', // Dummy hash for now
+            passwordHash,
           }
         });
       }
@@ -97,7 +102,10 @@ export default async function admissionsRouter(app: FastifyInstance) {
     });
 
     reply.code(201);
-    return application;
+    return {
+      ...application,
+      credentials: tempPassword ? { email: body.email, password: tempPassword } : null
+    };
   });
 
   // PATCH /api/v1/academy/applications/:id

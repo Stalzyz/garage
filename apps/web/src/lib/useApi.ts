@@ -1,20 +1,64 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Central API URL config (now relative because of Next.js rewrites)
 export const API_BASE_URL = '/api/v1';
 
+// ─────────────────────────────────────────────────────
+// In-memory SWR cache: { url → { data, timestamp } }
+// ─────────────────────────────────────────────────────
+const swrCache = new Map<string, { data: any; ts: number }>();
+// In-flight deduplication: prevents 2 components from firing the same request simultaneously
+const inFlight = new Map<string, Promise<any>>();
+
+// How long (ms) to consider cached data still "fresh" — revalidation fires in background after this
+const STALE_TTL = 30_000; // 30 seconds
+
+async function apiFetch(url: string): Promise<any> {
+  // Deduplicate concurrent identical requests
+  if (inFlight.has(url)) return inFlight.get(url)!;
+
+  const headers: Record<string, string> = {};
+  const promise = fetch(url, {
+    credentials: 'include',
+    headers,
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        let errorBody;
+        try { errorBody = await res.json(); } catch {}
+        throw new Error(errorBody?.message || errorBody?.error || `Error ${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .finally(() => {
+      inFlight.delete(url);
+    });
+
+  inFlight.set(url, promise);
+  return promise;
+}
+
 export function useApi<T>(endpoint: string | null, options?: RequestInit) {
-  const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(endpoint ? true : false);
+  const cacheKey = endpoint ? `${API_BASE_URL}${endpoint}` : null;
+  const cached = cacheKey ? swrCache.get(cacheKey) : null;
+
+  const [data, setData] = useState<T | null>(cached?.data ?? null);
+  const [isLoading, setIsLoading] = useState<boolean>(endpoint ? !cached : false);
   const [error, setError] = useState<Error | null>(null);
   const [version, setVersion] = useState(0);
+  const isMutating = useRef(false);
 
-  const mutate = () => setVersion(v => v + 1);
+  const mutate = () => {
+    // Force a fresh fetch, bypass cache
+    if (cacheKey) swrCache.delete(cacheKey);
+    isMutating.current = true;
+    setVersion(v => v + 1);
+  };
 
   useEffect(() => {
-    if (!endpoint) {
+    if (!endpoint || !cacheKey) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -22,57 +66,35 @@ export function useApi<T>(endpoint: string | null, options?: RequestInit) {
     }
     let isMounted = true;
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const url = `${API_BASE_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}t=${Date.now()}`;
-        const headers: Record<string, string> = {
-          ...(options?.headers as Record<string, string> || {})
-        };
-        
-        let body = options?.body;
-        if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
-          headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-          if (!body && headers['Content-Type'] === 'application/json') {
-            body = "{}";
-          }
-        }
+    const cached = swrCache.get(cacheKey);
+    const isStale = !cached || (Date.now() - cached.ts > STALE_TTL);
+    const isForcedMutate = isMutating.current;
+    isMutating.current = false;
 
-        const response = await fetch(url, {
-          ...options,
-          body,
-          credentials: 'include', // Send cookies cross-origin
-          cache: 'no-store', // Prevent aggressive caching
-          headers
-        });
-        
-        if (!response.ok) {
-          let errorBody;
-          try { errorBody = await response.json(); } catch {}
-          
-          if (response.status === 404 || response.status === 401) {
-             throw new Error(errorBody?.message || errorBody?.error || `Error ${response.status}: ${response.statusText}`);
-          }
-          throw new Error(errorBody?.message || errorBody?.error || `Error ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
+    // Serve stale data immediately while revalidating in background
+    if (cached && !isForcedMutate) {
+      setData(cached.data);
+      setIsLoading(false);
+      if (!isStale) return; // Data is fresh — no need to re-fetch
+    }
+
+    // Either data is missing, stale, or was forced — fetch fresh data
+    setIsLoading(!cached); // Only show spinner if there's no stale data to show
+
+    apiFetch(cacheKey)
+      .then((result) => {
+        swrCache.set(cacheKey, { data: result, ts: Date.now() });
         if (isMounted) {
           setData(result);
           setError(null);
         }
-      } catch (err: any) {
-        if (isMounted) {
-          setError(err);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchData();
+      })
+      .catch((err: any) => {
+        if (isMounted) setError(err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
 
     return () => {
       isMounted = false;
@@ -82,14 +104,14 @@ export function useApi<T>(endpoint: string | null, options?: RequestInit) {
   return { data, isLoading, error, mutate };
 }
 
-// Utility for non-hook POST/PATCH requests
+// Utility for non-hook POST/PATCH/DELETE requests (no caching — always real-time)
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
     ...(options?.headers as Record<string, string> || {})
   };
-  
+
   let body = options?.body;
-  
+
   if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     if (!body && headers['Content-Type'] === 'application/json') {
@@ -101,7 +123,6 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     ...options,
     body,
     credentials: 'include',
-    cache: 'no-store',
     headers
   });
 
@@ -110,7 +131,6 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     try { errorBody = await response.json(); } catch {}
 
     if (response.status === 404 || response.status === 401) {
-      // Don't throw for expected auth/missing endpoints to prevent Next.js dev overlay
       if (errorBody) return errorBody as unknown as T;
       return null as unknown as T;
     }
@@ -123,3 +143,5 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
 
   return response.json();
 }
+
+

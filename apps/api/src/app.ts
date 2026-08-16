@@ -65,6 +65,18 @@ export async function buildApp(opts: any = {}): Promise<any> {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
+  // Capture raw body for webhook signature verification
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    try {
+      const json = JSON.parse(body as string);
+      (req as any).rawBody = body;
+      done(null, json);
+    } catch (err: any) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
+  });
+
   // Core Plugins
   await app.register(cors, {
     origin: [process.env.CORS_ORIGIN || 'http://localhost:3000', 'http://127.0.0.1:3000'],

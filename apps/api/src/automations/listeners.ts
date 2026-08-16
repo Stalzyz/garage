@@ -68,7 +68,8 @@ export function registerGlobalListeners() {
 
     // WhatsApp receipt to client
     if (data.clientPhone) {
-      await whatsappService.sendInvoiceNotification(data.clientPhone, data.clientName, data.invoiceNumber, parseFloat(data.amount));
+      const numericAmount = typeof data.amount === 'number' ? data.amount : parseFloat(data.amount.replace(/[^0-9.]/g, '')) || 0;
+      await whatsappService.sendInvoiceNotification(data.clientPhone, data.clientName, data.invoiceNumber, numericAmount);
     }
   });
 

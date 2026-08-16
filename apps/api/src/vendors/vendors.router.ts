@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { sendEmail, EmailTemplates } from '../integrations/email.service';
 
 const CreateVendorSchema = z.object({
   userId: z.string().optional(),
@@ -80,7 +82,6 @@ export default async function vendorsRouter(app: FastifyInstance) {
         const parts = fullName.split(" ");
         const firstName = parts[0] || "New";
         const lastName = parts.slice(1).join(" ") || "Vendor";
-        const bcrypt = require('bcryptjs');
         const passwordHash = await bcrypt.hash('GrekamVendor@123', 10);
         
         userRecord = await app.prisma.user.create({
@@ -133,7 +134,6 @@ export default async function vendorsRouter(app: FastifyInstance) {
     });
     
     if (vendor.user?.email) {
-      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
       const portalUrl = process.env.PORTAL_URL || 'https://garage.grekam.in';
       const link = `${portalUrl}/portal/vendor/onboarding?token=${vendor.vendorCode}`;
       await sendEmail(
@@ -184,7 +184,6 @@ export default async function vendorsRouter(app: FastifyInstance) {
     });
 
     if (assignment.vendor?.user?.email) {
-      const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
       await sendEmail(
         assignment.vendor.user.email,
         EmailTemplates.vendorBrief(

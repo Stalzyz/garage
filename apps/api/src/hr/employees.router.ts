@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export default async function employeeRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -77,7 +78,7 @@ export default async function employeeRoutes(app: FastifyInstance) {
     
     // Generate a secure random password
     const tempPassword = Math.random().toString(36).slice(-8) + "!";
-    const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     const existingUser = await server.prisma.user.findUnique({ where: { email: data.email } });
     if (existingUser) {
@@ -246,7 +247,7 @@ export default async function employeeRoutes(app: FastifyInstance) {
     }
 
     const tempPassword = Math.random().toString(36).slice(-8) + "!";
-    const passwordHash = await require('bcryptjs').hash(tempPassword, 10);
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     await server.prisma.user.update({
       where: { id: employee.userId },

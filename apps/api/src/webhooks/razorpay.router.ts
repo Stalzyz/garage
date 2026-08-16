@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { createNotification } from '../notifications/notifications.service';
+import { EventBus, SystemEvents } from '../automations/event-bus';
 
 // In a real app, you would import PrismaClient from your db setup
 // import prisma from '../../lib/prisma';
@@ -49,7 +50,7 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
       
       // 1. Verify Signature
       if (signature && process.env.NODE_ENV === 'production') {
-        const bodyText = JSON.stringify(req.body);
+        const bodyText = (req as any).rawBody || JSON.stringify(req.body);
         const expectedSignature = crypto
           .createHmac('sha256', secret)
           .update(bodyText)
@@ -109,6 +110,23 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
                     // In a real app, send "Payment Received" email to client here
                     app.log.info(`Marked milestone ${milestone.id} as PAID and queued receipt email.`);
                   }
+                });
+
+                let clientPhone: string | undefined = undefined;
+                if (invoice.clientEmail) {
+                  const contact = await app.prisma.contact.findFirst({
+                    where: { email: invoice.clientEmail }
+                  });
+                  clientPhone = contact?.whatsapp || contact?.phone || undefined;
+                }
+
+                EventBus.emit(SystemEvents.INVOICE_PAID, {
+                  invoiceId: invoice.id,
+                  invoiceNumber: invoice.invoiceNumber,
+                  clientEmail: invoice.clientEmail,
+                  clientName: invoice.clientName,
+                  clientPhone,
+                  amount: `${invoice.currency} ${invoice.totalAmount}`,
                 });
 
                 try {

@@ -165,7 +165,7 @@ export default async function submissionsRouter(app: FastifyInstance) {
             title:        submission.assignment.title,
             description:  submission.feedback || 'Assignment approved by mentor',
             mediaUrls:    submission.fileUrls,
-            projectUrl:   submission.linkUrl,
+            linkUrl:      submission.linkUrl,
             category:     'ASSIGNMENT',
           }
         });

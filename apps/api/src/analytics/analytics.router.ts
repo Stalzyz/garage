@@ -25,6 +25,8 @@ export default async function analyticsRouter(app: FastifyInstance) {
       app.prisma.ticket.count({ where: { status: 'OPEN' } }),
     ]);
 
+    // Add Cache-Control for stale-while-revalidate — data is ok to be ~30s stale
+    reply.header('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
     return {
       agency: {
         revenueCollected: paidInvoices._sum.totalAmount ?? 0,
@@ -66,6 +68,7 @@ export default async function analyticsRouter(app: FastifyInstance) {
     // Initialize last N months
     for (let i = numMonths - 1; i >= 0; i--) {
       const d = new Date();
+      d.setDate(1); // Set to 1st of month to prevent day-overflow bugs (e.g. Feb 31st overflow)
       d.setMonth(d.getMonth() - i);
       const monthLabel = d.toLocaleString('default', { month: 'short' });
       const yearMonth = `${d.getFullYear()}-${d.getMonth()}`;
@@ -92,6 +95,7 @@ export default async function analyticsRouter(app: FastifyInstance) {
       }
     });
 
+    reply.header('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
     return { data: Object.values(chartDataMap) };
   });
 

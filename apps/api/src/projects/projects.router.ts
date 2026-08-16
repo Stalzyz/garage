@@ -269,20 +269,54 @@ export default async function projectsRouter(app: FastifyInstance) {
         create: { projectId: id, type }
       });
 
-      // Simple implementation: delete old milestones and create new ones
-      await tx.billingMilestone.deleteMany({
+      const existingMilestones = await tx.billingMilestone.findMany({
         where: { scheduleId: sched.id }
       });
 
-      await tx.billingMilestone.createMany({
-        data: milestones.map((m: any) => ({
-          scheduleId: sched.id,
-          name: m.name,
-          amount: m.amount,
-          dueDate: m.dueDate ? new Date(m.dueDate) : null,
-          status: 'PENDING'
-        }))
-      });
+      const payloadMilestonesWithId = milestones.filter((m: any) => m.id);
+      const payloadMilestoneIds = new Set(payloadMilestonesWithId.map((m: any) => m.id));
+
+      // Milestones to delete: in DB, NOT in payload, and NOT invoiced/paid
+      const milestonesToDelete = existingMilestones.filter(
+        m => !payloadMilestoneIds.has(m.id) && m.status === 'PENDING'
+      );
+      const deleteIds = milestonesToDelete.map(m => m.id);
+
+      if (deleteIds.length > 0) {
+        await tx.billingMilestone.deleteMany({
+          where: { id: { in: deleteIds } }
+        });
+      }
+
+      // Update existing milestones
+      for (const m of payloadMilestonesWithId) {
+        const existing = existingMilestones.find(em => em.id === m.id);
+        if (existing) {
+          const isPending = existing.status === 'PENDING';
+          await tx.billingMilestone.update({
+            where: { id: m.id },
+            data: {
+              name: m.name,
+              dueDate: m.dueDate ? new Date(m.dueDate) : null,
+              ...(isPending && { amount: m.amount }) // only update amount if pending
+            }
+          });
+        }
+      }
+
+      // Milestones to create: in payload, have no ID
+      const milestonesToCreate = milestones.filter((m: any) => !m.id);
+      if (milestonesToCreate.length > 0) {
+        await tx.billingMilestone.createMany({
+          data: milestonesToCreate.map((m: any) => ({
+            scheduleId: sched.id,
+            name: m.name,
+            amount: m.amount,
+            dueDate: m.dueDate ? new Date(m.dueDate) : null,
+            status: 'PENDING'
+          }))
+        });
+      }
 
       return await tx.billingSchedule.findUnique({
         where: { id: sched.id },

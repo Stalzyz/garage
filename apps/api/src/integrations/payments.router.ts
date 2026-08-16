@@ -31,9 +31,7 @@ export default async function paymentsRouter(app: FastifyInstance) {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'mock_secret';
     const signature = req.headers['x-razorpay-signature'] as string;
     
-    // Fastify request.raw is the raw Node.js request. Fastify body might already be parsed.
-    // For verifying we ideally need raw body. Using JSON.stringify for simplicity if not raw.
-    const payload = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    const payload = (req as any).rawBody || (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
 
     const isValid = paymentsService.verifyRazorpayWebhook(payload, signature, secret);
 

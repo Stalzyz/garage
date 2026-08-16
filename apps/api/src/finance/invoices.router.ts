@@ -192,7 +192,7 @@ export default async function invoicesRouter(app: FastifyInstance) {
             taxRate: item.taxRate,
             discountRate: item.discountRate || 0,
             hsnCode: item.hsnCode,
-            total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 + item.taxRate / 100),
+            total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 - body.discountRate / 100) * (1 + item.taxRate / 100),
             sortOrder: index,
           })),
         },
@@ -238,17 +238,20 @@ export default async function invoicesRouter(app: FastifyInstance) {
       if (items) {
         await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
         await tx.invoiceItem.createMany({
-          data: items.map((item, index) => ({
-            invoiceId: id,
-            description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            taxRate: item.taxRate,
-            discountRate: item.discountRate || 0,
-            hsnCode: item.hsnCode,
-            total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 + item.taxRate / 100),
-            sortOrder: index,
-          })),
+          data: items.map((item, index) => {
+            const overallDiscount = body.discountRate !== undefined ? body.discountRate : originalInvoice.discountRate;
+            return {
+              invoiceId: id,
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              taxRate: item.taxRate,
+              discountRate: item.discountRate || 0,
+              hsnCode: item.hsnCode,
+              total: (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)) * (1 - overallDiscount / 100) * (1 + item.taxRate / 100),
+              sortOrder: index,
+            };
+          }),
         });
       }
       return tx.invoice.update({
@@ -259,11 +262,19 @@ export default async function invoicesRouter(app: FastifyInstance) {
     });
 
     if (rest.status === 'PAID') {
+      let clientPhone: string | undefined = undefined;
+      if (invoice.clientEmail) {
+        const contact = await app.prisma.contact.findFirst({
+          where: { email: invoice.clientEmail }
+        });
+        clientPhone = contact?.whatsapp || contact?.phone || undefined;
+      }
       EventBus.emit(SystemEvents.INVOICE_PAID, {
         invoiceId: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
         clientEmail: invoice.clientEmail,
         clientName: invoice.clientName,
+        clientPhone,
         amount: `${invoice.currency} ${invoice.totalAmount}`,
       });
     }

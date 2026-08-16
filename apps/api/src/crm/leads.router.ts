@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+import Papa from 'papaparse';
 
 const LeadStatusValues = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'ENQUIRY', 'COUNSELLING', 'TRIAL', 'ENROLLED_ACADEMY', 'DROPPED'] as const;
 const LeadSourceValues = ['WEBSITE', 'WHATSAPP', 'REFERRAL', 'COLD_OUTREACH', 'INSTAGRAM', 'LINKEDIN', 'ACADEMY_ALUMNI', 'OTHER'] as const;
@@ -64,6 +65,11 @@ export default async function leadsRouter(app: FastifyInstance) {
       businessUnit?: string;
     };
 
+    const dncList = await app.prisma.dncNumber.findMany({
+      select: { phone: true }
+    });
+    const dncPhones = dncList.map(d => d.phone.trim()).filter(Boolean);
+
     const leads = await app.prisma.lead.findMany({
       where: {
         ...(status && { status: status as any }),
@@ -77,6 +83,12 @@ export default async function leadsRouter(app: FastifyInstance) {
             { courseInterest: { contains: search, mode: 'insensitive' } },
           ],
         }),
+        ...(dncPhones.length > 0 && {
+          OR: [
+            { phone: null },
+            { phone: { notIn: dncPhones } }
+          ]
+        })
       },
       include: {
         activities: { orderBy: { createdAt: 'desc' }, take: 3 },
@@ -85,13 +97,7 @@ export default async function leadsRouter(app: FastifyInstance) {
       orderBy: { updatedAt: 'desc' },
     });
 
-    const dncList = await app.prisma.dncNumber.findMany({
-      select: { phone: true }
-    });
-    const dncPhones = new Set(dncList.map(d => d.phone.trim()));
-    const filteredLeads = leads.filter(l => !l.phone || !dncPhones.has(l.phone.trim()));
-
-    return { data: filteredLeads, total: filteredLeads.length };
+    return { data: leads, total: leads.length };
   });
 
   // GET /api/v1/crm/leads/:id — get single lead with full history
@@ -217,14 +223,13 @@ export default async function leadsRouter(app: FastifyInstance) {
     const { csvData, businessUnit } = req.body as { csvData: string; businessUnit?: string };
     if (!csvData) return reply.badRequest('Missing CSV data');
 
-    const Papa = require('papaparse');
     const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
 
     if (parsed.errors && parsed.errors.length > 0) {
       return reply.badRequest(`CSV Parse Error: ${parsed.errors[0].message}`);
     }
 
-    const rows = parsed.data;
+    const rows = parsed.data as any[];
     let successCount = 0;
 
     for (const row of rows) {

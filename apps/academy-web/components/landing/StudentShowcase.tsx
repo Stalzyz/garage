@@ -1,34 +1,21 @@
-import { prisma } from "../../src/lib/prisma";
+"use client";
+
+import { useState, useEffect } from "react";
+import { getPortfolioProjects } from "../../app/actions/courses";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ExternalLink } from "lucide-react";
 
-export async function StudentShowcase() {
-  let projects: any[] = [];
-  try {
-    projects = await prisma.portfolioProject.findMany({
-      include: {
-        portfolio: {
-          include: {
-            student: {
-              include: {
-                user: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-    });
-  } catch (error) {
-    console.warn("Could not fetch portfolio projects from database during build.");
-  }
+export function StudentShowcase() {
+  const [projects, setProjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getPortfolioProjects();
+      setProjects(data || []);
+    }
+    load();
+  }, []);
 
   if (!projects || projects.length === 0) return null;
 
@@ -85,7 +72,7 @@ export async function StudentShowcase() {
                 </p>
                 <div className="pt-4 border-t border-white/10 mt-auto flex items-center justify-between">
                   <span className="text-sm font-medium text-white/80">
-                    By {project.portfolio.student.user.firstName} {project.portfolio.student.user.lastName}
+                    By {project.portfolio?.student?.user?.firstName || ""} {project.portfolio?.student?.user?.lastName || ""}
                   </span>
                 </div>
               </div>

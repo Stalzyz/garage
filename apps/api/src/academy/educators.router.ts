@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 
 const CreateEducatorSchema = z.object({
   firstName: z.string().min(1),
@@ -27,19 +28,23 @@ export default async function educatorsRouter(app: FastifyInstance) {
   app.post('/educators', async (req, reply) => {
     const body = CreateEducatorSchema.parse(req.body);
     
+    let tempPassword = '';
+    
     // Create User, then Educator
     const educator = await app.prisma.$transaction(async (tx) => {
       // 1. Check if user exists or Create User
       let user = await tx.user.findUnique({ where: { email: body.email } });
       
       if (!user) {
+        tempPassword = Math.random().toString(36).slice(-8) + "!";
+        const passwordHash = await bcrypt.hash(tempPassword, 10);
         user = await tx.user.create({
           data: {
             firstName: body.firstName,
             lastName: body.lastName,
             email: body.email,
             role: 'EDUCATOR',
-            passwordHash: '$2a$10$x4R4Qz4hVfQW9y4r4hVfQ.W9y4r4hVfQW9y4r4hVfQW9y4r4hVfQ', // Dummy
+            passwordHash,
           }
         });
       }
@@ -64,7 +69,10 @@ export default async function educatorsRouter(app: FastifyInstance) {
     });
 
     reply.code(201);
-    return educator;
+    return {
+      ...educator,
+      credentials: tempPassword ? { email: body.email, password: tempPassword } : null
+    };
   });
 
   // PATCH /api/v1/academy/educators/:id

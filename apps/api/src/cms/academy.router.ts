@@ -35,15 +35,32 @@ export default async function academyRouter(app: FastifyInstance) {
     return { data: projects };
   });
 
-  app.post('/portfolio', async (req, reply) => {
+  app.post('/portfolio', { preHandler: [app.requireAuth] }, async (req, reply) => {
     const data = req.body as { title: string, description: string, imageUrl?: string, linkUrl?: string, technologies?: string[], studentId?: string };
     
-    let studentPortfolio = await app.prisma.studentPortfolio.findFirst();
+    let targetStudentId = '';
+
+    if (req.user.role === 'STUDENT') {
+      const student = await app.prisma.student.findUnique({ where: { userId: req.user.id } });
+      if (!student) return reply.code(400).send({ error: 'Active user does not have a student profile.' });
+      targetStudentId = student.id;
+    } else {
+      if (data.studentId) {
+        targetStudentId = data.studentId;
+      } else {
+        const firstStudent = await app.prisma.student.findFirst();
+        if (!firstStudent) return reply.code(400).send({ error: 'No students found in the database.' });
+        targetStudentId = firstStudent.id;
+      }
+    }
+
+    let studentPortfolio = await app.prisma.studentPortfolio.findUnique({
+      where: { studentId: targetStudentId }
+    });
+
     if (!studentPortfolio) {
-      const user = await app.prisma.user.findFirst();
-      if (!user) throw new Error("No users found to attach portfolio");
       studentPortfolio = await app.prisma.studentPortfolio.create({
-        data: { studentId: user.id }
+        data: { studentId: targetStudentId }
       });
     }
 
@@ -59,8 +76,20 @@ export default async function academyRouter(app: FastifyInstance) {
     return { data: project };
   });
 
-  app.delete('/portfolio/:id', async (req, reply) => {
+  app.delete('/portfolio/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
     const { id } = req.params as { id: string };
+
+    if (req.user.role === 'STUDENT') {
+      const student = await app.prisma.student.findUnique({ where: { userId: req.user.id } });
+      const project = await app.prisma.portfolioProject.findUnique({
+        where: { id },
+        include: { portfolio: true }
+      });
+      if (project && student && project.portfolio.studentId !== student.id) {
+        return reply.code(403).send({ error: 'You are not authorized to delete this project.' });
+      }
+    }
+
     await app.prisma.portfolioProject.delete({ where: { id } });
     return { success: true };
   });

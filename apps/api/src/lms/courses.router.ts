@@ -150,8 +150,20 @@ export default async function coursesRoutes(app: FastifyInstance) {
       const modulesToDelete = existingModuleIds.filter(id => !payloadModuleIds.includes(id));
       const lessonsToDelete = existingLessonIds.filter(id => !payloadLessonIds.includes(id));
 
-      if (lessonsToDelete.length > 0) {
-        await tx.lMSLesson.deleteMany({ where: { id: { in: lessonsToDelete } } });
+      // Fetch lessons that belong to modules being deleted
+      const lessonsInDeletedModules = await tx.lMSLesson.findMany({
+        where: { moduleId: { in: modulesToDelete } },
+        select: { id: true }
+      });
+      const moduleLessonIds = lessonsInDeletedModules.map(l => l.id);
+
+      // Combine direct lesson deletions and lesson cascade deletions
+      const allLessonsToDelete = Array.from(new Set([...lessonsToDelete, ...moduleLessonIds]));
+
+      if (allLessonsToDelete.length > 0) {
+        // Delete lesson progress first to avoid database constraint violations
+        await tx.lessonProgress.deleteMany({ where: { lessonId: { in: allLessonsToDelete } } });
+        await tx.lMSLesson.deleteMany({ where: { id: { in: allLessonsToDelete } } });
       }
       if (modulesToDelete.length > 0) {
         await tx.lMSModule.deleteMany({ where: { id: { in: modulesToDelete } } });
@@ -216,7 +228,26 @@ export default async function coursesRoutes(app: FastifyInstance) {
   server.delete('/:id', {
     schema: { params: z.object({ id: z.string() }) }
   }, async (req, reply) => {
-    await server.prisma.lMSCourse.delete({ where: { id: req.params.id } });
+    const lmsCourseId = req.params.id;
+    const lmsCourse = await server.prisma.lMSCourse.findUnique({
+      where: { id: lmsCourseId },
+      include: { modules: { include: { lessons: true } } }
+    });
+    if (!lmsCourse) return reply.status(404).send({ error: "Course not found" });
+
+    const lessonIds = lmsCourse.modules.flatMap(m => m.lessons.map(l => l.id));
+
+    await server.prisma.$transaction(async (tx) => {
+      // 1. Delete lesson progress records to avoid constraint violations
+      if (lessonIds.length > 0) {
+        await tx.lessonProgress.deleteMany({ where: { lessonId: { in: lessonIds } } });
+      }
+      // 2. Delete LMS Course (cascades to modules and lessons)
+      await tx.lMSCourse.delete({ where: { id: lmsCourseId } });
+      // 3. Delete base Course
+      await tx.course.delete({ where: { id: lmsCourse.courseId } });
+    });
+
     return reply.code(204).send();
   });
 }

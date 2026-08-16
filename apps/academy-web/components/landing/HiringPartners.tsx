@@ -1,20 +1,20 @@
-import { prisma } from "../../src/lib/prisma";
+"use client";
+
+import { useState, useEffect } from "react";
+import { getHiringPartners } from "../../app/actions/courses";
 import { TrustedByMarquee } from "./TrustedByMarquee";
 import { TrustedBy } from "./TrustedBy";
 
-export async function HiringPartners() {
-  let partners: any[] = [];
-  try {
-    partners = await prisma.placementCompany.findMany({
-      select: {
-        name: true,
-        logoUrl: true,
-      },
-      take: 15, // limit to 15 companies
-    });
-  } catch (error) {
-    console.warn("Could not fetch placement companies from database during build, using fallbacks.");
-  }
+export function HiringPartners() {
+  const [partners, setPartners] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getHiringPartners();
+      setPartners(data || []);
+    }
+    load();
+  }, []);
 
   if (partners.length > 0) {
     return <TrustedByMarquee partners={partners} />;

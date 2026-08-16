@@ -1,27 +1,19 @@
-import { prisma } from "../../src/lib/prisma";
+"use client";
+
+import { useState, useEffect } from "react";
+import { getEducators } from "../../app/actions/courses";
 import Image from "next/image";
 
-export async function InstructorsSection() {
-  let educators: any[] = [];
-  try {
-    educators = await prisma.educator.findMany({
-      where: {
-        verificationStatus: "VERIFIED"
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            avatarUrl: true,
-          }
-        }
-      },
-      take: 4,
-    });
-  } catch (error) {
-    console.warn("Could not fetch educators from database during build.");
-  }
+export function InstructorsSection() {
+  const [educators, setEducators] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getEducators();
+      setEducators(data || []);
+    }
+    load();
+  }, []);
 
   if (!educators || educators.length === 0) return null;
 
