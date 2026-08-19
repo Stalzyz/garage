@@ -46,14 +46,22 @@ export default function EmailTemplatesSettingsPage() {
   const [testResult, setTestResult] = useState<any>(null)
   const [isTestModalOpen, setIsTestModalOpen] = useState(false)
 
-  // Currently selected template
-  const currentTemplate = templates.find(t => t.code === selectedCode) || templates[0]
+  const filteredTemplates = templates.filter(t => {
+    if (activeCategory === "ALL") return true
+    return t.category === activeCategory
+  })
+
+  // Currently selected template (fallback to first filtered template)
+  const currentTemplate = filteredTemplates.find(t => t.code === selectedCode) || filteredTemplates[0]
 
   useEffect(() => {
-    if (templates.length > 0 && !selectedCode) {
-      setSelectedCode(templates[0].code)
+    if (filteredTemplates.length > 0) {
+      const existsInFiltered = filteredTemplates.some(t => t.code === selectedCode)
+      if (!existsInFiltered) {
+        setSelectedCode(filteredTemplates[0].code)
+      }
     }
-  }, [templates, selectedCode])
+  }, [activeCategory, templates])
 
   useEffect(() => {
     if (currentTemplate) {
@@ -63,12 +71,7 @@ export default function EmailTemplatesSettingsPage() {
         isActive: currentTemplate.isActive ?? true
       })
     }
-  }, [selectedCode, response])
-
-  const filteredTemplates = templates.filter(t => {
-    if (activeCategory === "ALL") return true
-    return t.category === activeCategory
-  })
+  }, [selectedCode, activeCategory, response])
 
   const handleInsertVariable = (varName: string) => {
     const placeholder = `{{${varName}}}`

@@ -120,22 +120,19 @@ const UpdateTemplateSchema = z.object({
 });
 
 export default async function emailTemplatesRouter(app: FastifyInstance) {
-  // GET /api/v1/settings/templates — List all templates (auto-seeds defaults if DB empty)
+  // GET /api/v1/settings/templates — List all templates (guarantees all default templates exist)
   app.get('/', async (req, reply) => {
-    let templates = await app.prisma.emailTemplate.findMany({
-      orderBy: [{ category: 'asc' }, { code: 'asc' }],
-    });
-
-    if (templates.length === 0) {
-      for (const t of DEFAULT_TEMPLATES) {
-        await app.prisma.emailTemplate.create({
-          data: t,
-        });
-      }
-      templates = await app.prisma.emailTemplate.findMany({
-        orderBy: [{ category: 'asc' }, { code: 'asc' }],
+    for (const t of DEFAULT_TEMPLATES) {
+      await app.prisma.emailTemplate.upsert({
+        where: { code: t.code },
+        create: t,
+        update: {},
       });
     }
+
+    const templates = await app.prisma.emailTemplate.findMany({
+      orderBy: [{ category: 'asc' }, { code: 'asc' }],
+    });
 
     return { success: true, data: templates };
   });
