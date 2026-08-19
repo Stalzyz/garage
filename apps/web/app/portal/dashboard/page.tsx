@@ -490,12 +490,17 @@ export default function ClientDashboard() {
                 {dashboard.activeProject ? (
                   <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden h-full flex flex-col justify-between">
                     <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Briefcase className="w-4 h-4 text-violet-400" />
                         <p className="text-sm font-semibold text-white">{dashboard.activeProject.name}</p>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CONFIG[dashboard.activeProject.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
                           {STATUS_CONFIG[dashboard.activeProject.status]?.label || dashboard.activeProject.status}
                         </span>
+                        {dashboard.activeProject.budget > 0 && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full font-mono">
+                            {symbol}{dashboard.activeProject.budget.toLocaleString()}
+                          </span>
+                        )}
                       </div>
                       <button onClick={() => setTab("projects")} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
                         View Detail <ChevronRight className="w-3 h-3" />
@@ -598,7 +603,15 @@ export default function ClientDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white">{p.name}</h2>
-                  <p className="text-xs text-white/40 mt-0.5">Due: {p.dueDate ? new Date(p.dueDate).toLocaleDateString() : 'TBD'}</p>
+                  <div className="flex items-center gap-2 text-xs text-white/40 mt-0.5">
+                    <span>Due: {p.dueDate ? new Date(p.dueDate).toLocaleDateString() : 'TBD'}</span>
+                    {p.budget > 0 && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-400 font-semibold font-mono">Budget: {symbol}{p.budget.toLocaleString()}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[p.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
                   {STATUS_CONFIG[p.status]?.label || p.status}

@@ -132,6 +132,7 @@ export default async function portalRouter(app: FastifyInstance) {
         name: activeProject.name,
         status: activeProject.status,
         progress,
+        budget: activeProject.budget,
         phases: activeProject.phases.map(p => ({
           name: p.name,
           done: !!p.completedAt
@@ -193,6 +194,7 @@ export default async function portalRouter(app: FastifyInstance) {
         status: p.status,
         progress,
         dueDate: p.dueDate,
+        budget: p.budget,
         phases: p.phases.map(phase => ({
           name: phase.name,
           done: !!phase.completedAt

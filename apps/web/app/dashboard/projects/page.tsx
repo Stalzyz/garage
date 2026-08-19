@@ -50,7 +50,8 @@ export default function ProjectsDashboard() {
     companyId: "",
     newCompanyName: "",
     managerId: "usr_1", // Default manager
-    dueDate: ""
+    dueDate: "",
+    budget: ""
   })
 
   const handleDeleteProject = async (id: string, name: string) => {
@@ -75,7 +76,8 @@ export default function ProjectsDashboard() {
         managerId: formData.managerId,
         ...(formData.contactId && { contactId: formData.contactId }),
         ...(formData.companyId && formData.companyId !== "NEW" && { companyId: formData.companyId }),
-        ...(formData.newCompanyName && { newCompanyName: formData.newCompanyName })
+        ...(formData.newCompanyName && { newCompanyName: formData.newCompanyName }),
+        ...(formData.budget && { budget: parseFloat(formData.budget) })
       }
       if (formData.dueDate) {
         payload.dueDate = new Date(formData.dueDate).toISOString()
@@ -87,7 +89,7 @@ export default function ProjectsDashboard() {
       })
       toast.success("Project initialized successfully")
       setIsInitializeOpen(false)
-      setFormData({ name: "", type: "WEBSITE", customTypeName: "", contactId: "", companyId: "", newCompanyName: "", managerId: "usr_1", dueDate: "" })
+      setFormData({ name: "", type: "WEBSITE", customTypeName: "", contactId: "", companyId: "", newCompanyName: "", managerId: "usr_1", dueDate: "", budget: "" })
       window.location.reload()
     } catch (err: any) {
       toast.error(err.message || "Failed to initialize project")
@@ -531,6 +533,16 @@ export default function ProjectsDashboard() {
                 className="w-full mt-2 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
               />
             )}
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Project Budget (₹)</label>
+            <input 
+              type="number"
+              value={formData.budget}
+              onChange={e => setFormData({...formData, budget: e.target.value})}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              placeholder="e.g. 150000"
+            />
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Deadline</label>
