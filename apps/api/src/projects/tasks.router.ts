@@ -1,14 +1,15 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { sendTemplatedEmail } from '../services/emailRenderer';
 
 const CreateTaskSchema = z.object({
   projectId: z.string().min(1),
   title: z.string().min(1),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'BLOCKED']).optional(),
   priority: z.enum(['CRITICAL', 'HIGH', 'NORMAL', 'LOW']).optional(),
-  assigneeId: z.string().optional(),
-  dueDate: z.string().datetime().optional(),
+  assigneeId: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
 });
 
 const UpdateTaskSchema = CreateTaskSchema.partial();
@@ -40,10 +41,49 @@ export default async function tasksRouter(app: FastifyInstance) {
     const body = CreateTaskSchema.parse(req.body);
     const task = await app.prisma.task.create({
       data: {
-        ...body,
+        projectId: body.projectId,
+        title: body.title,
+        description: body.description || undefined,
+        status: body.status || 'TODO',
+        priority: body.priority || 'NORMAL',
+        assigneeId: body.assigneeId || undefined,
         dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
       },
     });
+
+    // Auto-trigger TASK_ASSIGNED email to staff if assigned
+    if (task.assigneeId) {
+      (async () => {
+        try {
+          const [employee, project] = await Promise.all([
+            app.prisma.employee.findFirst({
+              where: { OR: [{ id: task.assigneeId! }, { userId: task.assigneeId! }] },
+              include: { user: true }
+            }),
+            app.prisma.project.findUnique({ where: { id: task.projectId } })
+          ]);
+          const staffEmail = employee?.user?.email || employee?.email;
+          const staffName = employee?.user?.firstName || employee?.firstName || 'Staff';
+          if (staffEmail) {
+            await sendTemplatedEmail(app, {
+              code: 'TASK_ASSIGNED',
+              to: staffEmail,
+              data: {
+                staffName,
+                projectName: project?.name || 'Project',
+                taskTitle: task.title,
+                priority: task.priority,
+                dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A',
+                taskUrl: `https://garage.grekam.in/dashboard/projects/${task.projectId}`
+              }
+            });
+          }
+        } catch (err: any) {
+          app.log.warn(`Task email notify warning: ${err.message}`);
+        }
+      })();
+    }
+
     reply.code(201);
     return task;
   });
@@ -55,8 +95,13 @@ export default async function tasksRouter(app: FastifyInstance) {
     const task = await app.prisma.task.update({
       where: { id },
       data: {
-        ...body,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
+        ...(body.projectId && { projectId: body.projectId }),
+        ...(body.title && { title: body.title }),
+        ...(body.description !== undefined && { description: body.description || undefined }),
+        ...(body.status && { status: body.status }),
+        ...(body.priority && { priority: body.priority }),
+        ...(body.assigneeId !== undefined && { assigneeId: body.assigneeId || undefined }),
+        ...(body.dueDate !== undefined && { dueDate: body.dueDate ? new Date(body.dueDate) : undefined }),
       },
     });
     return task;

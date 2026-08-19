@@ -1,7 +1,36 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+import { sendTemplatedEmail } from '../services/emailRenderer';
 import Papa from 'papaparse';
+
+async function notifyAssignedStaff(app: FastifyInstance, assignedToId: string, lead: any) {
+  try {
+    const employee = await app.prisma.employee.findFirst({
+      where: { OR: [{ id: assignedToId }, { userId: assignedToId }] },
+      include: { user: true }
+    });
+    const staffEmail = employee?.user?.email || employee?.email;
+    const staffName = employee?.user?.firstName || employee?.firstName || 'Staff Member';
+    if (staffEmail) {
+      await sendTemplatedEmail(app, {
+        code: 'LEAD_ASSIGNED',
+        to: staffEmail,
+        data: {
+          staffName,
+          leadName: lead.name,
+          phone: lead.phone || 'N/A',
+          email: lead.email || 'N/A',
+          leadSource: lead.source || 'Website',
+          interestTier: lead.tier || lead.courseInterest || 'General Enquiry',
+          crmLink: 'https://garage.grekam.in/dashboard/crm'
+        }
+      });
+    }
+  } catch (err: any) {
+    app.log.warn(`Lead assigned email notify warning: ${err.message}`);
+  }
+}
 
 const LeadStatusValues = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'ENQUIRY', 'COUNSELLING', 'TRIAL', 'ENROLLED_ACADEMY', 'DROPPED'] as const;
 const LeadSourceValues = ['WEBSITE', 'WHATSAPP', 'REFERRAL', 'COLD_OUTREACH', 'INSTAGRAM', 'LINKEDIN', 'ACADEMY_ALUMNI', 'OTHER'] as const;
@@ -140,6 +169,10 @@ export default async function leadsRouter(app: FastifyInstance) {
     } else {
       EventBus.emit(SystemEvents.LEAD_CREATED, lead);
     }
+
+    if (lead.assignedToId) {
+      notifyAssignedStaff(app, lead.assignedToId, lead);
+    }
     
     reply.code(201);
     return lead;
@@ -164,6 +197,10 @@ export default async function leadsRouter(app: FastifyInstance) {
       where: { id },
       data: { ...body, score },
     });
+
+    if (lead.assignedToId && lead.assignedToId !== originalLead.assignedToId) {
+      notifyAssignedStaff(app, lead.assignedToId, lead);
+    }
 
     // Check if status changed
     if (body.status && body.status !== originalLead.status) {
