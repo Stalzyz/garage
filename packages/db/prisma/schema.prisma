@@ -3035,3 +3035,19 @@ model UnifiedRequest {
   @@map("unified_requests")
 }
 
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  category    String   // "CLIENT" | "STAFF" | "STUDENT"
+  subject     String
+  bodyHtml    String   @db.Text
+  variables   Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("email_templates")
+  @@index([category])
+}
+

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug, Loader2, Upload } from "lucide-react"
+import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug, Loader2, Upload, Mail } from "lucide-react"
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
 
@@ -138,6 +138,12 @@ export default function SystemSettingsPage() {
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors text-white/70 hover:bg-white/10 hover:text-white"
           >
             <Plug className="w-4 h-4" /> Integrations & APIs
+          </a>
+          <a 
+            href="/dashboard/settings/email-templates"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <Mail className="w-4 h-4 text-indigo-400" /> Email Templates
           </a>
         </div>
 
