@@ -29,6 +29,9 @@ const INITIAL_PROJECTS = [
 
 export default function ProjectsDashboard() {
   const { data, isLoading } = useApi<{data: any[], total: number}>("/projects")
+  const { data: companiesData } = useApi<any>("/crm/companies")
+  const companies = companiesData?.data || []
+
   const [view, setView] = useState<"KANBAN" | "GRID" | "LIST">("KANBAN")
   const [search, setSearch] = useState("")
   const [projects, setProjects] = useState<any[]>([])
@@ -40,6 +43,7 @@ export default function ProjectsDashboard() {
   const [formData, setFormData] = useState({
     name: "",
     type: "WEBSITE",
+    companyId: "",
     managerId: "usr_1", // Default manager
     dueDate: ""
   })
@@ -51,7 +55,8 @@ export default function ProjectsDashboard() {
       const payload: any = {
         name: formData.name,
         type: formData.type,
-        managerId: formData.managerId
+        managerId: formData.managerId,
+        ...(formData.companyId && { companyId: formData.companyId })
       }
       if (formData.dueDate) {
         payload.dueDate = new Date(formData.dueDate).toISOString()
@@ -63,7 +68,7 @@ export default function ProjectsDashboard() {
       })
       toast.success("Project initialized successfully")
       setIsInitializeOpen(false)
-      setFormData({ name: "", type: "WEBSITE", managerId: "usr_1", dueDate: "" })
+      setFormData({ name: "", type: "WEBSITE", companyId: "", managerId: "usr_1", dueDate: "" })
       // Trigger reload to fetch new project
       window.location.reload()
     } catch (err: any) {
@@ -440,6 +445,21 @@ export default function ProjectsDashboard() {
               <option value="MOTION">Motion Graphics</option>
               <option value="FULL_PACKAGE">Full Package</option>
               <option value="CUSTOM">Custom Project</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Assign Client / Company</label>
+            <select 
+              value={formData.companyId}
+              onChange={e => setFormData({...formData, companyId: e.target.value})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="">Unassigned (No Company)</option>
+              {companies.map((comp: any) => (
+                <option key={comp.id} value={comp.id}>
+                  {comp.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
