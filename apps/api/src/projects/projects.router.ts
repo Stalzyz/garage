@@ -140,10 +140,43 @@ export default async function projectsRouter(app: FastifyInstance) {
   app.patch('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = UpdateProjectSchema.parse(req.body);
+    let targetCompanyId = body.companyId;
+
+    if (body.contactId) {
+      const contact = await app.prisma.contact.findUnique({
+        where: { id: body.contactId },
+        include: { company: true }
+      });
+
+      if (contact) {
+        if (contact.companyId) {
+          targetCompanyId = contact.companyId;
+        } else {
+          const companyName = body.newCompanyName?.trim() || `${contact.firstName} ${contact.lastName}`.trim() || 'Independent Client';
+          const newComp = await app.prisma.company.create({
+            data: { name: companyName }
+          });
+          await app.prisma.contact.update({
+            where: { id: contact.id },
+            data: { companyId: newComp.id }
+          });
+          targetCompanyId = newComp.id;
+        }
+      }
+    } else if (body.newCompanyName && body.newCompanyName.trim()) {
+      const newComp = await app.prisma.company.create({
+        data: { name: body.newCompanyName.trim() }
+      });
+      targetCompanyId = newComp.id;
+    }
+
+    const { contactId, newCompanyName, ...updateData } = body;
+
     const project = await app.prisma.project.update({
       where: { id },
       data: {
-        ...body,
+        ...updateData,
+        ...(targetCompanyId !== undefined && { companyId: targetCompanyId }),
         startDate: body.startDate ? new Date(body.startDate) : undefined,
         dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
         completedAt: body.completedAt ? new Date(body.completedAt) : undefined,

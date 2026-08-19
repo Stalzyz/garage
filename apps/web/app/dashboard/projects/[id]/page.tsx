@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { FinanceTab } from "./FinanceTab"
 import { SlideOver } from "@/components/SlideOver"
+import { toast } from "sonner"
 
 const TABS = [
   { id: "tasks", label: "Tasks", icon: KanbanSquare },
@@ -173,8 +174,14 @@ export default function ProjectDetailsPage() {
               <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border text-indigo-400 border-indigo-400/20 bg-indigo-400/10">{project.status}</span>
             </div>
-            <p className="text-sm text-muted-foreground">Type: {project.type} · Due: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'N/A'}</p>
+            <p className="text-sm text-muted-foreground">Type: {project.type} · Due: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'N/A'} · Client: {project.company?.name || 'Unassigned'}</p>
           </div>
+          <button 
+            onClick={() => setActiveTab("settings")}
+            className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+          >
+            <Settings className="w-3.5 h-3.5" /> Edit Project Settings
+          </button>
         </div>
 
         {/* Tabs */}
@@ -291,9 +298,9 @@ export default function ProjectDetailsPage() {
         )}
 
         {activeTab === "settings" && (
-          <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-            Settings view placeholder
-          </div>
+          <ProjectSettingsView project={project} onProjectUpdated={() => {
+            window.location.reload()
+          }} />
         )}
       </div>
 
@@ -367,6 +374,231 @@ export default function ProjectDetailsPage() {
           </button>
         </form>
       </SlideOver>
+    </div>
+  )
+}
+
+function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onProjectUpdated: () => void }) {
+  const { data: companiesData } = useApi<any>("/crm/companies")
+  const { data: contactsData } = useApi<any>("/crm/contacts")
+  const { data: hrData } = useApi<any>("/hr/employees")
+
+  const companies = companiesData?.data || []
+  const contacts = contactsData?.data || []
+  const employees = hrData?.employees || []
+
+  const [formData, setFormData] = useState({
+    name: project.name || "",
+    type: project.type || "WEBSITE",
+    status: project.status || "BRIEFING",
+    companyId: project.companyId || "",
+    contactId: "",
+    newCompanyName: "",
+    managerId: project.managerId || "usr_1",
+    budget: project.budget ? String(project.budget) : "",
+    dueDate: project.dueDate ? new Date(project.dueDate).toISOString().split('T')[0] : "",
+    description: project.description || ""
+  })
+
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSaving(true)
+    try {
+      const payload: any = {
+        name: formData.name,
+        type: formData.type,
+        status: formData.status,
+        managerId: formData.managerId,
+        description: formData.description,
+        ...(formData.budget && { budget: parseFloat(formData.budget) }),
+        ...(formData.dueDate && { dueDate: new Date(formData.dueDate).toISOString() }),
+        ...(formData.contactId && { contactId: formData.contactId }),
+        ...(formData.companyId && formData.companyId !== "NEW" && { companyId: formData.companyId }),
+        ...(formData.newCompanyName && { newCompanyName: formData.newCompanyName })
+      }
+
+      await fetchApi(`/projects/${project.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload)
+      })
+
+      toast.success("Project updated successfully!")
+      onProjectUpdated()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update project")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="max-w-4xl p-6 space-y-8 text-foreground">
+      <div className="flex items-center justify-between border-b border-border/50 pb-5">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Project Settings & Configuration</h2>
+          <p className="text-sm text-muted-foreground">Manage project details, client assignments, status, and timeline.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border/60 rounded-2xl p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Project Name *</label>
+            <input 
+              required
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+              placeholder="e.g. Faith Model School"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Project Type *</label>
+            <select 
+              value={formData.type}
+              onChange={e => setFormData({...formData, type: e.target.value})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+            >
+              <option value="BRAND_IDENTITY">Brand Identity</option>
+              <option value="WEBSITE">Website</option>
+              <option value="CAMPAIGN">Campaign</option>
+              <option value="MOTION">Motion Graphics</option>
+              <option value="FULL_PACKAGE">Full Package</option>
+              <option value="CUSTOM">Custom Project</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Project Status *</label>
+            <select 
+              value={formData.status}
+              onChange={e => setFormData({...formData, status: e.target.value})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+            >
+              <option value="BRIEFING">Briefing</option>
+              <option value="DISCOVERY">Discovery</option>
+              <option value="CONCEPT">Concept</option>
+              <option value="PRODUCTION">Production</option>
+              <option value="REVIEW">Review</option>
+              <option value="DELIVERY">Delivery</option>
+              <option value="CLOSED">Closed / Completed</option>
+              <option value="ON_HOLD">On Hold</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Assign Client Contact</label>
+            <select 
+              value={formData.contactId}
+              onChange={e => {
+                const selectedContactId = e.target.value;
+                const contact = contacts.find((c: any) => c.id === selectedContactId);
+                setFormData({
+                  ...formData,
+                  contactId: selectedContactId,
+                  ...(contact?.companyId && { companyId: contact.companyId })
+                });
+              }}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+            >
+              <option value="">Select Contact / Client...</option>
+              {contacts.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.firstName} {c.lastName} {c.email ? `(${c.email})` : ''} {c.company?.name ? `— ${c.company.name}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Company / Organization</label>
+            <select 
+              value={formData.companyId}
+              onChange={e => setFormData({...formData, companyId: e.target.value, ...(e.target.value !== "NEW" && { newCompanyName: "" })})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+            >
+              <option value="">Independent (No Company)</option>
+              {companies.map((comp: any) => (
+                <option key={comp.id} value={comp.id}>
+                  {comp.name}
+                </option>
+              ))}
+              <option value="NEW">+ Create New Company...</option>
+            </select>
+            {formData.companyId === "NEW" && (
+              <input 
+                type="text"
+                placeholder="Enter new company name..."
+                value={formData.newCompanyName}
+                onChange={e => setFormData({...formData, newCompanyName: e.target.value})}
+                className="w-full mt-2 bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
+              />
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Deadline</label>
+            <input 
+              type="date"
+              value={formData.dueDate}
+              onChange={e => setFormData({...formData, dueDate: e.target.value})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm [color-scheme:dark]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Budget</label>
+            <input 
+              type="number"
+              value={formData.budget}
+              onChange={e => setFormData({...formData, budget: e.target.value})}
+              placeholder="e.g. 50000"
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Project Manager</label>
+            <select 
+              value={formData.managerId}
+              onChange={e => setFormData({...formData, managerId: e.target.value})}
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
+            >
+              <option value="usr_1">Default Manager (usr_1)</option>
+              {employees.map((emp: any) => (
+                <option key={emp.id} value={emp.userId || emp.id}>
+                  {emp.user?.firstName || emp.firstName} {emp.user?.lastName || emp.lastName} ({emp.jobTitle || 'Staff'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Description / Scope</label>
+            <textarea 
+              rows={4}
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+              placeholder="Add project scope or notes..."
+              className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50 resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border/50 flex justify-end gap-3">
+          <button 
+            type="submit"
+            disabled={isSaving}
+            className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 text-sm flex items-center gap-2"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {isSaving ? "Saving Changes..." : "Save Project Settings"}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
