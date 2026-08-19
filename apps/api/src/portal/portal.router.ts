@@ -22,8 +22,8 @@ export default async function portalRouter(app: FastifyInstance) {
         contact = await app.prisma.contact.create({
           data: {
             email: req.user.email,
-            firstName: req.user.firstName || req.user.name?.split(' ')[0] || 'Client',
-            lastName: req.user.lastName || req.user.name?.split(' ').slice(1).join(' ') || '',
+            firstName: (req.user as any).firstName || req.user.name?.split(' ')[0] || 'Client',
+            lastName: (req.user as any).lastName || req.user.name?.split(' ').slice(1).join(' ') || '',
             tier: 'BRONZE'
           },
           include: { company: true }
