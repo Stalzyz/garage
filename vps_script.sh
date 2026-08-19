@@ -27,6 +27,11 @@ cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-we
 echo "Academy static assets copied to standalone."
 
 echo ""
+echo "==> [2.5/6] Applying DB schema changes..."
+cd /root/grekam-os/packages/db && npx prisma db push --accept-data-loss 2>&1 | tail -5
+cd /root/grekam-os
+
+echo ""
 echo "==> [4.5/6] Building apps/api..."
 pnpm --filter=@grekam/api build 2>&1 | tail -5
 
