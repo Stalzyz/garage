@@ -34,6 +34,64 @@ export const DEFAULT_TEMPLATES = [
     variables: ['clientName', 'invoiceNumber', 'projectName', 'amount', 'dueDate', 'invoiceUrl'],
   },
   {
+    code: 'INVOICE_DUE_SOON',
+    name: 'Payment Reminder: 3 Days Before Due',
+    category: 'CLIENT',
+    subject: 'Upcoming Payment Reminder: Invoice #{{invoiceNumber}} due in 3 days',
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>This is a friendly reminder that invoice <strong>#{{invoiceNumber}}</strong> for <strong>{{projectName}}</strong> is due in 3 days on <strong>{{dueDate}}</strong>.</p>
+<p><strong>Total Amount Due:</strong> ₹{{amount}}</p>
+<div class="button-container">
+  <a href="{{invoiceUrl}}" class="btn-primary">Pay Invoice Now</a>
+</div>
+<p>If you have already processed this payment, please disregard this notice.</p>`,
+    variables: ['clientName', 'invoiceNumber', 'projectName', 'amount', 'dueDate', 'invoiceUrl'],
+  },
+  {
+    code: 'INVOICE_DUE_TODAY',
+    name: 'Payment Reminder: Invoice Due Today',
+    category: 'CLIENT',
+    subject: 'Action Required: Invoice #{{invoiceNumber}} is due today — ₹{{amount}}',
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>Your invoice <strong>#{{invoiceNumber}}</strong> for <strong>{{projectName}}</strong> is due today, <strong>{{dueDate}}</strong>.</p>
+<p><strong>Amount Payable:</strong> ₹{{amount}}</p>
+<div class="button-container">
+  <a href="{{invoiceUrl}}" class="btn-primary">Complete Payment</a>
+</div>
+<p>Click the link above to make a quick online payment via UPI, Credit Card, or Net Banking.</p>`,
+    variables: ['clientName', 'invoiceNumber', 'projectName', 'amount', 'dueDate', 'invoiceUrl'],
+  },
+  {
+    code: 'INVOICE_OVERDUE_GENTLE',
+    name: 'Payment Reminder: 3 Days Overdue',
+    category: 'CLIENT',
+    subject: 'Payment Overdue: Invoice #{{invoiceNumber}} (3 Days Overdue)',
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>We haven't received payment for invoice <strong>#{{invoiceNumber}}</strong> (₹{{amount}}), which was due on <strong>{{dueDate}}</strong>.</p>
+<p>If you experienced any billing issues or need assistance, please let us know so we can help:</p>
+<div class="button-container">
+  <a href="{{invoiceUrl}}" class="btn-primary">Settle Invoice Online</a>
+</div>
+<p>Thank you for your prompt attention to this matter.</p>`,
+    variables: ['clientName', 'invoiceNumber', 'projectName', 'amount', 'dueDate', 'invoiceUrl'],
+  },
+  {
+    code: 'INVOICE_OVERDUE_URGENT',
+    name: 'Payment Reminder: 7 Days Overdue (Urgent)',
+    category: 'CLIENT',
+    subject: '[URGENT] Overdue Notice: Invoice #{{invoiceNumber}} — Action Required',
+    bodyHtml: `<p>Dear <strong>{{clientName}}</strong>,</p>
+<p>Invoice <strong>#{{invoiceNumber}}</strong> for <strong>{{projectName}}</strong> is now <strong>7 days overdue</strong>.</p>
+<p><strong>Outstanding Balance:</strong> ₹{{amount}}<br>
+<strong>Original Due Date:</strong> {{dueDate}}</p>
+<p>To avoid any disruption to ongoing project milestones, please settle the outstanding balance immediately:</p>
+<div class="button-container">
+  <a href="{{invoiceUrl}}" class="btn-primary">Pay Outstanding Balance</a>
+</div>
+<p>If you have questions regarding this payment, please contact your account manager directly.</p>`,
+    variables: ['clientName', 'invoiceNumber', 'projectName', 'amount', 'dueDate', 'invoiceUrl'],
+  },
+  {
     code: 'PROPOSAL_SENT',
     name: 'Project Proposal Ready',
     category: 'CLIENT',
@@ -83,6 +141,82 @@ export const DEFAULT_TEMPLATES = [
     variables: ['staffName', 'projectName', 'taskTitle', 'priority', 'dueDate', 'taskUrl'],
   },
   {
+    code: 'TASK_DUE_SOON',
+    name: 'Task Reminder: 24 Hours Before Deadline',
+    category: 'STAFF',
+    subject: '⏰ Deadline Warning: Task "{{taskTitle}}" is due in 24 hours',
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>This is a reminder that task <strong>"{{taskTitle}}"</strong> on project <strong>{{projectName}}</strong> is due tomorrow on <strong>{{dueDate}}</strong>.</p>
+<p><strong>Priority:</strong> {{priority}}</p>
+<div class="button-container">
+  <a href="{{taskUrl}}" class="btn-primary">Update Task Status</a>
+</div>
+<p>Please log your progress or notify your project manager if you need additional assistance.</p>`,
+    variables: ['staffName', 'projectName', 'taskTitle', 'priority', 'dueDate', 'taskUrl'],
+  },
+  {
+    code: 'TASK_OVERDUE_ALERT',
+    name: 'Task Overdue Alert',
+    category: 'STAFF',
+    subject: '🚨 Overdue Alert: Task "{{taskTitle}}" is past due date',
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>The following assigned task is currently overdue:</p>
+<p><strong>Task:</strong> {{taskTitle}}<br>
+<strong>Project:</strong> {{projectName}}<br>
+<strong>Original Due Date:</strong> {{dueDate}}<br>
+<strong>Priority:</strong> {{priority}}</p>
+<div class="button-container">
+  <a href="{{taskUrl}}" class="btn-primary">Complete Task Now</a>
+</div>
+<p>Please update the task status or request a deadline extension in the portal.</p>`,
+    variables: ['staffName', 'projectName', 'taskTitle', 'priority', 'dueDate', 'taskUrl'],
+  },
+  {
+    code: 'DAILY_STAFF_DIGEST',
+    name: 'Daily Morning Staff Briefing',
+    category: 'STAFF',
+    subject: '☀️ Daily Workspace Briefing for {{todayDate}}',
+    bodyHtml: `<p>Good morning <strong>{{staffName}}</strong>!</p>
+<p>Here is your daily task summary for today, {{todayDate}}:</p>
+<ul>
+  <li><strong>Pending Tasks Due Today:</strong> {{pendingTasksCount}}</li>
+  <li><strong>Assigned Leads to Call:</strong> {{leadsToCallCount}}</li>
+  <li><strong>Open High Priority Tickets:</strong> {{highPriorityTickets}}</li>
+</ul>
+<div class="button-container">
+  <a href="{{dashboardLink}}" class="btn-primary">Open Workspace Briefing</a>
+</div>
+<p>Have a productive day!</p>`,
+    variables: ['staffName', 'todayDate', 'pendingTasksCount', 'leadsToCallCount', 'highPriorityTickets', 'dashboardLink'],
+  },
+  {
+    code: 'LEAVE_STATUS_STAFF',
+    name: 'Leave Request Status Notice',
+    category: 'STAFF',
+    subject: 'Leave Request Update: {{leaveStatus}} ({{startDate}} to {{endDate}})',
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>Your leave request for <strong>{{leaveType}}</strong> ({{startDate}} to {{endDate}}) has been marked as <strong>{{leaveStatus}}</strong>.</p>
+<p><strong>Approver Notes:</strong> {{approverNotes}}</p>
+<div class="button-container">
+  <a href="{{hrLink}}" class="btn-primary">View Attendance & Leaves</a>
+</div>`,
+    variables: ['staffName', 'leaveType', 'startDate', 'endDate', 'leaveStatus', 'approverNotes', 'hrLink'],
+  },
+  {
+    code: 'PAYSLIP_GENERATED',
+    name: 'Monthly Payslip Notice',
+    category: 'STAFF',
+    subject: 'Salary Payslip Issued for {{monthYear}}',
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>Your salary payslip for <strong>{{monthYear}}</strong> has been generated and is now available in your employee portal.</p>
+<p><strong>Net Salary:</strong> ₹{{netPay}}<br>
+<strong>Payment Date:</strong> {{paymentDate}}</p>
+<div class="button-container">
+  <a href="{{payslipUrl}}" class="btn-primary">Download Payslip PDF</a>
+</div>`,
+    variables: ['staffName', 'monthYear', 'netPay', 'paymentDate', 'payslipUrl'],
+  },
+  {
     code: 'STUDENT_ADMISSION',
     name: 'Student Admission & Passport Welcome',
     category: 'STUDENT',
@@ -96,6 +230,35 @@ export const DEFAULT_TEMPLATES = [
 </div>
 <p>Get ready to build real-world skills!</p>`,
     variables: ['studentName', 'courseName', 'batchName', 'rollNo', 'startDate', 'lmsLink'],
+  },
+  {
+    code: 'FEE_REMINDER_STUDENT',
+    name: 'Student Fee Installment Due Alert',
+    category: 'STUDENT',
+    subject: 'Fee Installment Reminder: {{courseName}} (Due: {{dueDate}})',
+    bodyHtml: `<p>Dear <strong>{{studentName}}</strong> (Roll No: {{rollNo}}),</p>
+<p>This is a reminder regarding your upcoming fee installment for <strong>{{courseName}}</strong>.</p>
+<p><strong>Installment Amount:</strong> ₹{{amount}}<br>
+<strong>Due Date:</strong> {{dueDate}}</p>
+<div class="button-container">
+  <a href="{{feePortalLink}}" class="btn-primary">Pay Installment Online</a>
+</div>
+<p>Thank you for keeping your tuition payments up to date.</p>`,
+    variables: ['studentName', 'rollNo', 'courseName', 'amount', 'dueDate', 'feePortalLink'],
+  },
+  {
+    code: 'ATTENDANCE_WARNING_STUDENT',
+    name: 'Student Low Attendance Alert',
+    category: 'STUDENT',
+    subject: '⚠️ Academic Notice: Attendance Alert for {{courseName}} ({{attendancePercentage}}%)',
+    bodyHtml: `<p>Dear <strong>{{studentName}}</strong>,</p>
+<p>Your current attendance in <strong>{{courseName}}</strong> (Batch: {{batchName}}) is currently at <strong>{{attendancePercentage}}%</strong>, which is below the required 75% minimum threshold.</p>
+<p><strong>Classes Attended:</strong> {{attendedClasses}} / {{totalClasses}}</p>
+<div class="button-container">
+  <a href="{{attendanceLink}}" class="btn-primary">Check Attendance Record</a>
+</div>
+<p>Please discuss with your course educator to make up for missed sessions.</p>`,
+    variables: ['studentName', 'courseName', 'batchName', 'attendancePercentage', 'attendedClasses', 'totalClasses', 'attendanceLink'],
   },
   {
     code: 'CERTIFICATE_ISSUED',
@@ -213,6 +376,25 @@ export default async function emailTemplatesRouter(app: FastifyInstance) {
       lmsLink: 'https://academy.grekam.in',
       certificateUrl: 'https://academy.grekam.in/verify/CERT-99201',
       completionDate: new Date().toLocaleDateString(),
+      todayDate: new Date().toLocaleDateString(),
+      pendingTasksCount: '4',
+      leadsToCallCount: '7',
+      highPriorityTickets: '2',
+      dashboardLink: 'https://garage.grekam.in/dashboard',
+      leaveType: 'Casual Leave',
+      endDate: 'Aug 24, 2026',
+      leaveStatus: 'APPROVED',
+      approverNotes: 'Approved by Operations Manager',
+      hrLink: 'https://garage.grekam.in/dashboard/hr',
+      monthYear: 'August 2026',
+      netPay: '65,000',
+      paymentDate: 'Aug 31, 2026',
+      payslipUrl: 'https://garage.grekam.in/dashboard/hr/payslips',
+      feePortalLink: 'https://academy.grekam.in/dashboard/fees',
+      attendancePercentage: '68',
+      attendedClasses: '17',
+      totalClasses: '25',
+      attendanceLink: 'https://academy.grekam.in/dashboard/attendance',
     };
 
     const rendered = renderEmailTemplate(template.bodyHtml, template.subject, sampleData);
