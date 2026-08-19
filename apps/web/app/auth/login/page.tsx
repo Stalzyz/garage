@@ -59,6 +59,11 @@ export default function LoginPage() {
           setIsPending(false)
           return
         }
+        if (err.includes("Access Denied") || err.includes("Academy portal")) {
+          setErrorMessage("Access Denied: Please log in via the Academy portal.");
+          setIsPending(false)
+          return;
+        }
         setErrorMessage("Invalid email or password.")
         setIsPending(false)
         return

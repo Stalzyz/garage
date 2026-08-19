@@ -44,7 +44,11 @@ export default function ClientPortalLogin() {
       })
 
       if (res?.error) {
-        setError("Invalid email or password.")
+        if (res.error.includes("Access Denied") || res.error.includes("Academy portal")) {
+          setError("Access Denied: Please log in via the Academy portal.")
+        } else {
+          setError("Invalid email or password.")
+        }
       } else {
         const session = await getSession()
         const role = session?.user?.role
