@@ -3,20 +3,20 @@ import { z } from 'zod';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']),
+  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']).default('WEBSITE'),
   companyId: z.string().optional().nullable(),
   contactId: z.string().optional().nullable(),
   newCompanyName: z.string().optional().nullable(),
-  managerId: z.string().min(1),
-  budget: z.number().optional(),
-  startDate: z.string().datetime().optional(),
-  dueDate: z.string().datetime().optional(),
-  description: z.string().optional(),
+  managerId: z.string().optional().nullable(),
+  budget: z.union([z.number(), z.string().transform(v => parseFloat(v))]).optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
 });
 
 const UpdateProjectSchema = CreateProjectSchema.partial().extend({
   status: z.enum(['BRIEFING', 'DISCOVERY', 'CONCEPT', 'PRODUCTION', 'REVIEW', 'DELIVERY', 'CLOSED', 'ON_HOLD']).optional(),
-  completedAt: z.string().datetime().optional(),
+  completedAt: z.string().optional().nullable(),
 });
 
 export default async function projectsRouter(app: FastifyInstance) {
@@ -127,6 +127,7 @@ export default async function projectsRouter(app: FastifyInstance) {
     const project = await app.prisma.project.create({
       data: {
         ...projectData,
+        managerId: body.managerId || 'usr_1',
         companyId: targetCompanyId,
         startDate: body.startDate ? new Date(body.startDate) : undefined,
         dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
