@@ -522,6 +522,7 @@ model Project {
   dueDate     DateTime?
   completedAt DateTime?
   description String?
+  customTypeName String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 

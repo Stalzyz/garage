@@ -423,13 +423,10 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
     e.preventDefault()
     setIsSaving(true)
     try {
-      const finalType = formData.type === "CUSTOM" && formData.customTypeName.trim()
-        ? formData.customTypeName.trim().toUpperCase().replace(/\s+/g, '_')
-        : formData.type
-
       const payload: any = {
         name: formData.name,
-        type: finalType,
+        type: formData.type,
+        ...(formData.type === "CUSTOM" && { customTypeName: formData.customTypeName.trim() || null }),
         status: formData.status,
         managerId: formData.managerId,
         description: formData.description,

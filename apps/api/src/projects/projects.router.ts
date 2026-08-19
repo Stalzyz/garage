@@ -4,7 +4,8 @@ import { sendTemplatedEmail } from '../services/emailRenderer';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
-  type: z.string().min(1).default('WEBSITE'),
+  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']).default('WEBSITE'),
+  customTypeName: z.string().optional().nullable(),
   companyId: z.string().optional().nullable(),
   contactId: z.string().optional().nullable(),
   newCompanyName: z.string().optional().nullable(),
@@ -128,7 +129,8 @@ export default async function projectsRouter(app: FastifyInstance) {
     const project = await app.prisma.project.create({
       data: {
         name: body.name,
-        type: (body.type || 'WEBSITE') as any,
+        type: body.type || 'WEBSITE',
+        customTypeName: body.customTypeName || null,
         managerId: body.managerId || 'usr_1',
         companyId: targetCompanyId || null,
         description: body.description || null,
@@ -220,7 +222,8 @@ export default async function projectsRouter(app: FastifyInstance) {
       where: { id },
       data: {
         ...(updateData.name && { name: updateData.name }),
-        ...(updateData.type && { type: updateData.type as any }),
+        ...(updateData.type && { type: updateData.type }),
+        ...(updateData.customTypeName !== undefined && { customTypeName: updateData.customTypeName }),
         ...(updateData.status && { status: updateData.status }),
         ...(updateData.managerId && { managerId: updateData.managerId }),
         ...(updateData.description !== undefined && { description: updateData.description }),
