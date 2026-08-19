@@ -211,6 +211,11 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     const { contactId, newCompanyName, ...updateData } = body;
 
+    const oldProject = await app.prisma.project.findUnique({
+      where: { id },
+      include: { company: { include: { contacts: true } } }
+    });
+
     const project = await app.prisma.project.update({
       where: { id },
       data: {
@@ -225,7 +230,63 @@ export default async function projectsRouter(app: FastifyInstance) {
         ...(body.dueDate !== undefined && { dueDate: body.dueDate ? new Date(body.dueDate) : null }),
         ...(body.completedAt !== undefined && { completedAt: body.completedAt ? new Date(body.completedAt) : null }),
       },
+      include: { company: { include: { contacts: true } } }
     });
+
+    // Auto-trigger Client Notification on Stage / Detail Change
+    (async () => {
+      try {
+        let contact: any = null;
+        if (body.contactId) {
+          contact = await app.prisma.contact.findUnique({ where: { id: body.contactId } });
+        } else {
+          contact = project.company?.contacts?.[0];
+        }
+
+        if (contact) {
+          const statusChanged = oldProject && oldProject.status !== project.status;
+          const templateCode = statusChanged ? 'PROJECT_STAGE_CHANGED' : 'PROJECT_UPDATED';
+
+          if (contact.email) {
+            await sendTemplatedEmail(app, {
+              code: templateCode,
+              to: contact.email,
+              data: {
+                clientName: `${contact.firstName} ${contact.lastName}`.trim(),
+                projectName: project.name,
+                oldStatus: oldProject?.status || 'PLANNING',
+                newStatus: project.status,
+                projectType: project.type,
+                dueDate: project.dueDate ? project.dueDate.toLocaleDateString() : 'TBD',
+                updateDate: new Date().toLocaleDateString(),
+                portalLink: `https://garage.grekam.in/portal/projects/${project.id}`
+              }
+            });
+          }
+
+          // In-app notification for client user
+          const clientUser = await app.prisma.user.findFirst({
+            where: { email: contact.email }
+          });
+
+          if (clientUser) {
+            await app.prisma.notification.create({
+              data: {
+                userId: clientUser.id,
+                title: statusChanged
+                  ? `Project "${project.name}" stage updated to ${project.status}`
+                  : `Project "${project.name}" details updated`,
+                message: `Status: ${project.status}. Click to view updated project milestones.`,
+                type: 'SYSTEM',
+              }
+            });
+          }
+        }
+      } catch (err: any) {
+        app.log.warn(`Client update notification warning: ${err.message}`);
+      }
+    })();
+
     return project;
   });
 

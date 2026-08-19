@@ -4,6 +4,35 @@ import { renderEmailTemplate } from '../services/emailRenderer';
 
 export const DEFAULT_TEMPLATES = [
   {
+    code: 'PROJECT_STAGE_CHANGED',
+    name: 'Project Stage / Status Update',
+    category: 'CLIENT',
+    subject: 'Project Update: {{projectName}} is now {{newStatus}}',
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>The status for your project <strong>{{projectName}}</strong> has been updated to <strong>{{newStatus}}</strong>.</p>
+<p><strong>Updated Stage:</strong> {{newStatus}}<br>
+<strong>Updated Date:</strong> {{updateDate}}</p>
+<div class="button-container">
+  <a href="{{portalLink}}" class="btn-primary">View Project Progress</a>
+</div>
+<p>Log in to your portal to view updated milestones, deliverables, and team comments.</p>`,
+    variables: ['clientName', 'projectName', 'oldStatus', 'newStatus', 'updateDate', 'portalLink'],
+  },
+  {
+    code: 'PROJECT_UPDATED',
+    name: 'Project Details Updated',
+    category: 'CLIENT',
+    subject: 'Project Details Updated: {{projectName}}',
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>Changes have been made to your project <strong>{{projectName}}</strong> details.</p>
+<p><strong>Project Type / Scope:</strong> {{projectType}}<br>
+<strong>Target Completion Date:</strong> {{dueDate}}</p>
+<div class="button-container">
+  <a href="{{portalLink}}" class="btn-primary">View Project Details</a>
+</div>`,
+    variables: ['clientName', 'projectName', 'projectType', 'dueDate', 'portalLink'],
+  },
+  {
     code: 'WELCOME_CLIENT',
     name: 'Client Welcome & Portal Invitation',
     category: 'CLIENT',

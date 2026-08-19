@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical, CreditCard } from "lucide-react"
+import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical, CreditCard, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { FinanceTab } from "./FinanceTab"
@@ -390,6 +390,7 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
   const [formData, setFormData] = useState({
     name: project.name || "",
     type: project.type || "WEBSITE",
+    customTypeName: "",
     status: project.status || "BRIEFING",
     companyId: project.companyId || "",
     contactId: "",
@@ -401,14 +402,32 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
   })
 
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteProject = async () => {
+    if (!confirm(`Are you sure you want to delete project "${project.name}"? This action cannot be undone.`)) return;
+    setIsDeleting(true);
+    try {
+      await fetchApi(`/projects/${project.id}`, { method: "DELETE" })
+      toast.success(`Project "${project.name}" deleted successfully`)
+      window.location.href = "/dashboard/projects"
+    } catch (err: any) {
+      toast.error(`Failed to delete project: ${err.message}`)
+      setIsDeleting(false);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
     try {
+      const finalType = formData.type === "CUSTOM" && formData.customTypeName.trim()
+        ? formData.customTypeName.trim().toUpperCase().replace(/\s+/g, '_')
+        : formData.type
+
       const payload: any = {
         name: formData.name,
-        type: formData.type,
+        type: finalType,
         status: formData.status,
         managerId: formData.managerId,
         description: formData.description,
@@ -440,6 +459,15 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
           <h2 className="text-xl font-bold text-foreground">Project Settings & Configuration</h2>
           <p className="text-sm text-muted-foreground">Manage project details, client assignments, status, and timeline.</p>
         </div>
+        <button
+          type="button"
+          onClick={handleDeleteProject}
+          disabled={isDeleting}
+          className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 font-bold rounded-xl transition-all text-xs flex items-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          {isDeleting ? "Deleting..." : "Delete Project"}
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border/60 rounded-2xl p-6 shadow-sm">
@@ -462,13 +490,23 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
               onChange={e => setFormData({...formData, type: e.target.value})}
               className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm"
             >
+              <option value="WEBSITE">Website Development</option>
+              <option value="MOBILE_APP">Mobile App Development</option>
               <option value="BRAND_IDENTITY">Brand Identity</option>
-              <option value="WEBSITE">Website</option>
               <option value="CAMPAIGN">Campaign</option>
               <option value="MOTION">Motion Graphics</option>
               <option value="FULL_PACKAGE">Full Package</option>
-              <option value="CUSTOM">Custom Project</option>
+              <option value="CUSTOM">Custom Project Type...</option>
             </select>
+            {formData.type === "CUSTOM" && (
+              <input 
+                type="text"
+                placeholder="Enter custom project type name..."
+                value={formData.customTypeName}
+                onChange={e => setFormData({...formData, customTypeName: e.target.value})}
+                className="w-full mt-2 bg-muted/30 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
+              />
+            )}
           </div>
 
           <div>

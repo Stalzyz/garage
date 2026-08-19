@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, Filter, Briefcase, Calendar, CheckCircle, Clock, Kanban, ArrowRightCircle, LayoutGrid, List } from "lucide-react"
+import { Plus, Search, Filter, Briefcase, Calendar, CheckCircle, Clock, Kanban, ArrowRightCircle, LayoutGrid, List, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -45,6 +45,7 @@ export default function ProjectsDashboard() {
   const [formData, setFormData] = useState({
     name: "",
     type: "WEBSITE",
+    customTypeName: "",
     contactId: "",
     companyId: "",
     newCompanyName: "",
@@ -52,13 +53,28 @@ export default function ProjectsDashboard() {
     dueDate: ""
   })
 
+  const handleDeleteProject = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete project "${name}"? This action cannot be undone.`)) return;
+    try {
+      await fetchApi(`/projects/${id}`, { method: "DELETE" })
+      toast.success(`Project "${name}" deleted successfully`)
+      window.location.reload()
+    } catch (err: any) {
+      toast.error(`Failed to delete project: ${err.message}`)
+    }
+  }
+
   const handleInitializeProject = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
+      const finalType = formData.type === "CUSTOM" && formData.customTypeName.trim() 
+        ? formData.customTypeName.trim().toUpperCase().replace(/\s+/g, '_')
+        : formData.type
+
       const payload: any = {
         name: formData.name,
-        type: formData.type,
+        type: finalType,
         managerId: formData.managerId,
         ...(formData.contactId && { contactId: formData.contactId }),
         ...(formData.companyId && formData.companyId !== "NEW" && { companyId: formData.companyId }),
@@ -74,8 +90,7 @@ export default function ProjectsDashboard() {
       })
       toast.success("Project initialized successfully")
       setIsInitializeOpen(false)
-      setFormData({ name: "", type: "WEBSITE", contactId: "", companyId: "", newCompanyName: "", managerId: "usr_1", dueDate: "" })
-      // Trigger reload to fetch new project
+      setFormData({ name: "", type: "WEBSITE", customTypeName: "", contactId: "", companyId: "", newCompanyName: "", managerId: "usr_1", dueDate: "" })
       window.location.reload()
     } catch (err: any) {
       toast.error(err.message || "Failed to initialize project")
@@ -403,11 +418,20 @@ export default function ProjectsDashboard() {
                         {project.dueDate}
                       </td>
                       <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center text-white/80 font-bold border border-white/20 text-[10px]">
-                            {project.manager[0]}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center text-white/80 font-bold border border-white/20 text-[10px]">
+                              {project.manager[0]}
+                            </div>
+                            <span className="text-xs text-white/70">{project.manager}</span>
                           </div>
-                          <span className="text-xs text-white/70">{project.manager}</span>
+                          <button 
+                            onClick={() => handleDeleteProject(project.id, project.name)}
+                            title="Delete Project"
+                            className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -445,13 +469,23 @@ export default function ProjectsDashboard() {
               onChange={e => setFormData({...formData, type: e.target.value})}
               className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
             >
+              <option value="WEBSITE">Website Development</option>
+              <option value="MOBILE_APP">Mobile App Development</option>
               <option value="BRAND_IDENTITY">Brand Identity</option>
-              <option value="WEBSITE">Website</option>
               <option value="CAMPAIGN">Campaign</option>
               <option value="MOTION">Motion Graphics</option>
               <option value="FULL_PACKAGE">Full Package</option>
-              <option value="CUSTOM">Custom Project</option>
+              <option value="CUSTOM">Custom Project Type...</option>
             </select>
+            {formData.type === "CUSTOM" && (
+              <input 
+                type="text"
+                placeholder="Enter custom project type / category name..."
+                value={formData.customTypeName}
+                onChange={e => setFormData({...formData, customTypeName: e.target.value})}
+                className="w-full mt-2 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              />
+            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Assign Client Contact</label>
