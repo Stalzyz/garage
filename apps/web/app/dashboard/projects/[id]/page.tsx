@@ -387,10 +387,12 @@ function ProjectSettingsView({ project, onProjectUpdated }: { project: any, onPr
   const contacts = contactsData?.data || []
   const employees = hrData?.employees || []
 
+  const isStandardType = ["WEBSITE", "MOBILE_APP", "BRAND_IDENTITY", "CAMPAIGN", "MOTION", "FULL_PACKAGE"].includes(project.type)
+
   const [formData, setFormData] = useState({
     name: project.name || "",
-    type: project.type || "WEBSITE",
-    customTypeName: "",
+    type: isStandardType ? (project.type || "WEBSITE") : "CUSTOM",
+    customTypeName: isStandardType ? "" : (project.type || ""),
     status: project.status || "BRIEFING",
     companyId: project.companyId || "",
     contactId: "",
