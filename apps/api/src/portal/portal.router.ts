@@ -1,26 +1,56 @@
 import { FastifyInstance } from 'fastify';
 
 export default async function portalRouter(app: FastifyInstance) {
-  // Middleware to ensure user is a CLIENT and has a profile
+  // Middleware to ensure user is authenticated and has a client profile/contact
   app.addHook('preHandler', async (req, reply) => {
     if (!req.user) {
       return reply.forbidden('Authentication required');
     }
     
     // Find client profile
-    const profile = await app.prisma.clientProfile.findUnique({
+    let profile = await app.prisma.clientProfile.findUnique({
       where: { userId: req.user.id },
-      include: { contact: true }
+      include: { contact: { include: { company: true } } }
     });
     
     if (!profile || !profile.contact) {
-      return reply.forbidden('Client profile not found');
+      let contact = await app.prisma.contact.findFirst({
+        where: { email: req.user.email }
+      });
+
+      if (!contact) {
+        contact = await app.prisma.contact.create({
+          data: {
+            email: req.user.email,
+            firstName: req.user.firstName || req.user.name?.split(' ')[0] || 'Client',
+            lastName: req.user.lastName || req.user.name?.split(' ').slice(1).join(' ') || '',
+            tier: 'BRONZE'
+          },
+          include: { company: true }
+        });
+      }
+
+      if (!profile) {
+        profile = await app.prisma.clientProfile.create({
+          data: {
+            userId: req.user.id,
+            contactId: contact.id
+          },
+          include: { contact: { include: { company: true } } }
+        });
+      } else if (!profile.contactId) {
+        profile = await app.prisma.clientProfile.update({
+          where: { id: profile.id },
+          data: { contactId: contact.id },
+          include: { contact: { include: { company: true } } }
+        });
+      }
     }
     
-    // Attach companyId to request for easy access in handlers
-    (req as any).companyId = profile.contact.companyId || null;
-    (req as any).contactId = profile.contact.id;
-    (req as any).contactEmail = profile.contact.email || req.user.email;
+    // Attach companyId and contactId to request for easy access in handlers
+    (req as any).companyId = profile.contact?.companyId || null;
+    (req as any).contactId = profile.contact?.id || null;
+    (req as any).contactEmail = profile.contact?.email || req.user.email;
   });
 
   // GET /api/v1/portal/me — get authenticated client profile info

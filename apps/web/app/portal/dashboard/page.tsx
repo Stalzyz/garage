@@ -312,7 +312,7 @@ export default function ClientDashboard() {
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Error Loading Dashboard</h2>
-          <p className="text-white/40 mb-4">There was a problem connecting to the API.</p>
+          <p className="text-white/40 mb-4">{dashError?.message || "There was a problem connecting to the API."}</p>
           <button onClick={() => mutate()} className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium transition-colors">
             Try Again
           </button>
