@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import { sendEmail } from '../integrations/email.service';
 
 export interface EmailRenderResult {
   subject: string;
@@ -166,9 +167,10 @@ export async function sendTemplatedEmail(
       options.data
     );
 
-    // Send email using system mailer / Resend / Nodemailer
-    app.log.info(`[EMAIL SENT] To: ${options.to} | Subject: ${subject}`);
-    return { success: true, subject, html };
+    // Send email using real SMTP transport!
+    const result = await sendEmail(options.to, { subject, html });
+    app.log.info(`[EMAIL TRANSMITTED] To: ${options.to} | Subject: ${subject} | MessageId: ${result.messageId}`);
+    return { success: true, subject, html, messageId: result.messageId, previewUrl: result.previewUrl };
   } catch (err: any) {
     app.log.error(`Failed to send templated email (${options.code}): ${err.message}`);
     return false;

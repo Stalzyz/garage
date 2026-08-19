@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { sendTemplatedEmail } from '../services/emailRenderer';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
@@ -136,6 +137,40 @@ export default async function projectsRouter(app: FastifyInstance) {
         dueDate: body.dueDate ? new Date(body.dueDate) : null,
       },
     });
+
+    // Auto-trigger WELCOME_CLIENT email notification to client contact
+    (async () => {
+      try {
+        let contact = null;
+        if (body.contactId) {
+          contact = await app.prisma.contact.findUnique({
+            where: { id: body.contactId },
+            include: { company: true }
+          });
+        } else if (targetCompanyId) {
+          contact = await app.prisma.contact.findFirst({
+            where: { companyId: targetCompanyId },
+            include: { company: true }
+          });
+        }
+
+        if (contact && contact.email) {
+          await sendTemplatedEmail(app, {
+            code: 'WELCOME_CLIENT',
+            to: contact.email,
+            data: {
+              clientName: `${contact.firstName} ${contact.lastName}`.trim(),
+              companyName: contact.company?.name || project.name,
+              portalLink: 'https://garage.grekam.in/portal/dashboard',
+              accountManager: 'Grekam Project Manager'
+            }
+          });
+        }
+      } catch (err: any) {
+        app.log.warn(`Project client email notification warning: ${err.message}`);
+      }
+    })();
+
     reply.code(201);
     return project;
   });
