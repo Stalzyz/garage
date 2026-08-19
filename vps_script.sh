@@ -27,6 +27,10 @@ cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-we
 echo "Academy static assets copied to standalone."
 
 echo ""
+echo "==> [4.5/6] Building apps/api..."
+pnpm --filter=@grekam/api build 2>&1 | tail -5
+
+echo ""
 echo "==> [5/6] Restarting PM2 processes..."
 pm2 restart grekam-os-web || echo "grekam-os-web not found, skip"
 pm2 restart grekam-os-api || echo "grekam-os-api not found, skip"

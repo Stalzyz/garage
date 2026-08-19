@@ -27,12 +27,14 @@ export default async function projectsRouter(app: FastifyInstance) {
     if (user.role === 'CLIENT') {
       const clientProfile = await app.prisma.clientProfile.findUnique({
         where: { userId: user.id },
-        include: { contact: true }
+        include: { contact: { include: { company: true } } }
       });
-      if (!clientProfile || !clientProfile.contact?.companyId) {
+      if (!clientProfile || !clientProfile.contact) {
         return { data: [], total: 0 };
       }
-      enforcedCompanyId = clientProfile.contact.companyId;
+      if (clientProfile.contact.companyId) {
+        enforcedCompanyId = clientProfile.contact.companyId;
+      }
     }
 
     const projects = await app.prisma.project.findMany({

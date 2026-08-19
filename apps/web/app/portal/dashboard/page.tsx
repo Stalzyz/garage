@@ -64,6 +64,7 @@ export default function ClientDashboard() {
   const [paymentTarget, setPaymentTarget] = useState<{invoiceId: string, amount: number} | null>(null)
 
   // API Fetches
+  const { data: profileMe } = useApi<any>("/portal/me")
   const { data: dashboard, error: dashError, isLoading: dashLoading, mutate: dashMutate } = useApi<any>("/portal/dashboard")
   const { data: projects, error: projError, isLoading: projLoading, mutate: projMutate } = useApi<any>("/portal/projects")
   const { data: invoices, error: invError, isLoading: invLoading, mutate: invMutate } = useApi<any>("/portal/invoices")
@@ -320,7 +321,9 @@ export default function ClientDashboard() {
     )
   }
 
-  const clientName = session.user.name || "Client"
+  const clientName = profileMe?.name || session?.user?.name || "Client"
+  const companyName = profileMe?.companyName || "Independent Client"
+  const tier = profileMe?.tier || "BRONZE"
   const avatarInitials = clientName.charAt(0).toUpperCase()
   const unreadCount = notifications.filter((n: any) => !n.readAt).length
 
@@ -439,10 +442,25 @@ export default function ClientDashboard() {
         {tab === "overview" && (
           <>
             <div>
-              <h1 className="text-2xl font-bold text-white">
-                Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{clientName}</span> 
-              </h1>
-              <p className="text-white/40 text-sm mt-1">Here's a snapshot of your active engagement with {org.name}.</p>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-white">
+                  Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{clientName}</span> 
+                </h1>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2.5 py-0.5 rounded-full">
+                  {tier} Tier
+                </span>
+              </div>
+              <p className="text-white/40 text-sm mt-1.5 flex flex-wrap items-center gap-2">
+                <span className="text-white/80 font-medium">{companyName}</span>
+                <span>•</span>
+                <span>{profileMe?.email || session?.user?.email}</span>
+                {profileMe?.phone && (
+                  <>
+                    <span>•</span>
+                    <span>{profileMe.phone}</span>
+                  </>
+                )}
+              </p>
             </div>
 
             {/* Stats */}

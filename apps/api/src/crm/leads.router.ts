@@ -183,6 +183,45 @@ export default async function leadsRouter(app: FastifyInstance) {
     reply.code(204);
   });
 
+  // PATCH /api/v1/crm/leads/bulk — bulk update lead status or assignee
+  app.patch('/leads/bulk', async (req, reply) => {
+    const schema = z.object({
+      ids: z.array(z.string()),
+      status: z.enum(LeadStatusValues).optional(),
+      assignedToId: z.union([z.string(), z.literal(""), z.null()]).optional().transform(val => val === "" ? null : val),
+    });
+
+    const { ids, status, assignedToId } = schema.parse(req.body);
+    const data: any = {};
+    if (status !== undefined) data.status = status;
+    if (assignedToId !== undefined) data.assignedToId = assignedToId;
+
+    if (Object.keys(data).length === 0) {
+      return reply.badRequest('No data provided for update');
+    }
+
+    const updated = await app.prisma.lead.updateMany({
+      where: { id: { in: ids } },
+      data,
+    });
+
+    return { success: true, count: updated.count };
+  });
+
+  // POST /api/v1/crm/leads/bulk-delete — bulk delete leads
+  app.post('/leads/bulk-delete', async (req, reply) => {
+    const schema = z.object({
+      ids: z.array(z.string()),
+    });
+
+    const { ids } = schema.parse(req.body);
+    const deleted = await app.prisma.lead.deleteMany({
+      where: { id: { in: ids } },
+    });
+
+    return { success: true, count: deleted.count };
+  });
+
   // POST /api/v1/crm/leads/:id/activities — log activity
   app.post('/leads/:id/activities', async (req, reply) => {
     const { id } = req.params as { id: string };

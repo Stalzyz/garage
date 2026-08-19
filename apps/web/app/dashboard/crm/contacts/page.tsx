@@ -1,14 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key, RefreshCcw, Trash2 } from "lucide-react"
+import { Search, Plus, Filter, Mail, Phone, MapPin, Building2, UserCircle2, Key, RefreshCcw, Trash2, Briefcase } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
 
 export default function ContactsPage() {
   const { data, mutate, isLoading } = useApi<any>("/crm/contacts")
+  const { data: companiesData } = useApi<any>("/crm/companies")
   const contacts = data?.data || []
+  const companies = companiesData?.data || []
 
   
   const [inviteData, setInviteData] = useState<any>(null);
@@ -256,12 +258,34 @@ export default function ContactsPage() {
                 </div>
                 
                 <h3 className="font-bold text-lg text-white mb-1 truncate">{contact.firstName} {contact.lastName}</h3>
-                <div className="flex items-center gap-1.5 text-sm text-white/50 mb-4 truncate">
-                  <Building2 className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{contact.company?.name || "Independent"}</span>
+                <div className="flex items-center gap-1.5 text-sm text-white/50 mb-3 truncate">
+                  <Building2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                  <span className="truncate">{contact.company?.name || "Independent Client"}</span>
                 </div>
+
+                {/* Associated Projects */}
+                {contact.company?.projects && contact.company.projects.length > 0 ? (
+                  <div className="mb-3 space-y-1.5 bg-black/40 p-2.5 rounded-xl border border-white/5">
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-400 flex items-center justify-between">
+                      <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> Active Projects</span>
+                      <span className="bg-violet-500/20 px-1.5 py-0.2 rounded text-[9px] font-mono text-violet-300">{contact.company.projects.length}</span>
+                    </div>
+                    {contact.company.projects.slice(0, 2).map((proj: any) => (
+                      <div key={proj.id} className="flex items-center justify-between text-xs text-white/80">
+                        <span className="font-medium truncate mr-2">{proj.name}</span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase shrink-0">
+                          {proj.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mb-3 bg-black/20 p-2.5 rounded-xl border border-white/5 text-xs text-white/30 italic flex items-center gap-1.5">
+                    <Briefcase className="w-3 h-3 text-white/20" /> No active projects
+                  </div>
+                )}
                 
-                <div className="space-y-2 mt-4 pt-4 border-t border-white/10">
+                <div className="space-y-2 pt-3 border-t border-white/10">
                   <div className="flex items-center gap-2 text-xs text-white/60">
                     <Mail className="w-3.5 h-3.5 text-white/40 shrink-0" />
                     <span className="truncate">{contact.email}</span>
@@ -332,6 +356,21 @@ export default function ContactsPage() {
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
               placeholder="e.g. +1 234 567 8900"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Company / Organization</label>
+            <select 
+              value={formData.companyId}
+              onChange={e => setFormData({...formData, companyId: e.target.value})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="">Independent (No Company)</option>
+              {companies.map((comp: any) => (
+                <option key={comp.id} value={comp.id}>
+                  {comp.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Tier</label>

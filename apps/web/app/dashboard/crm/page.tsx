@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { 
   Users, TrendingUp, Target, Plus, 
   ArrowUpRight, Filter, IndianRupee, Globe,
   Search, BookOpen, GraduationCap, Calendar,
-  MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins
+  MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
+  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -19,17 +20,22 @@ export default function CRMDashboard() {
   const { data: session } = useSession()
   const { symbol, formatCurrency } = useCurrency()
   
-  // API Fetch for Leads and Batches
+  // API Fetch for Leads, Batches, and Employees
   const { data: leadsData, mutate: mutateLeads, isLoading: leadsLoading } = useApi<any>('/crm/leads')
   const { data: batchesData } = useApi<any>('/academy/batches')
+  const { data: employeesData } = useApi<any>('/hr/employees')
   
   const leads = leadsData?.data || []
   const batches = batchesData?.data || []
+  const employees = employeesData?.employees || []
 
   // State
   const [activeTab, setActiveTab] = useState<'AGENCY' | 'ACADEMY'>('AGENCY')
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
+  const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN')
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
+  const [groupBy, setGroupBy] = useState<'NONE' | 'STATUS' | 'SOURCE' | 'ASSIGNEE'>('NONE')
   
   // Modals
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
@@ -103,6 +109,109 @@ export default function CRMDashboard() {
     const wonCount = relevantLeads.filter((l: any) => l.status === 'WON' || l.status === 'ENROLLED_ACADEMY').length
     return Math.round((wonCount / relevantLeads.length) * 100)
   })()
+
+  // Helper to map assignee ID to active staff name
+  const getAssigneeName = (userId: string | null) => {
+    if (!userId) return "Unassigned"
+    const emp = employees.find((e: any) => e.userId === userId)
+    if (emp && emp.user) {
+      return `${emp.user.firstName} ${emp.user.lastName}`
+    }
+    return `ID: ${userId}`
+  }
+
+  // Dynamic Grouping Logic for List View
+  const groupedLeads = useMemo(() => {
+    if (groupBy === 'NONE') {
+      return [{ key: 'All Leads', title: 'All Leads', list: filteredLeads }]
+    }
+    const groups: { [key: string]: any[] } = {}
+    
+    filteredLeads.forEach((lead: any) => {
+      let groupKey = ""
+      if (groupBy === 'STATUS') {
+        groupKey = lead.status
+      } else if (groupBy === 'SOURCE') {
+        groupKey = lead.source
+      } else if (groupBy === 'ASSIGNEE') {
+        groupKey = lead.assignedToId || 'Unassigned'
+      }
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = []
+      }
+      groups[groupKey].push(lead)
+    })
+
+    return Object.keys(groups).map(key => {
+      let title = key
+      if (groupBy === 'STATUS') {
+        title = key.replace(/_/g, ' ')
+      } else if (groupBy === 'ASSIGNEE') {
+        title = key === 'Unassigned' ? 'Unassigned' : getAssigneeName(key)
+      }
+      return {
+        key,
+        title,
+        list: groups[key]
+      }
+    })
+  }, [filteredLeads, groupBy, employees])
+
+  // Bulk Actions
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedLeadIds.length === 0) return
+    try {
+      await fetchApi('/crm/leads/bulk', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ids: selectedLeadIds,
+          status: newStatus
+        })
+      })
+      toast.success(`Bulk updated status of ${selectedLeadIds.length} leads`)
+      setSelectedLeadIds([])
+      mutateLeads()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update leads status')
+    }
+  }
+
+  const handleBulkAssign = async (staffId: string | null) => {
+    if (selectedLeadIds.length === 0) return
+    try {
+      await fetchApi('/crm/leads/bulk', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ids: selectedLeadIds,
+          assignedToId: staffId || ""
+        })
+      })
+      toast.success(`Bulk assigned ${selectedLeadIds.length} leads`)
+      setSelectedLeadIds([])
+      mutateLeads()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to assign leads')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedLeadIds.length === 0) return
+    if (!confirm(`Are you sure you want to delete ${selectedLeadIds.length} leads?`)) return
+    try {
+      await fetchApi('/crm/leads/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({
+          ids: selectedLeadIds
+        })
+      })
+      toast.success(`Bulk deleted ${selectedLeadIds.length} leads`)
+      setSelectedLeadIds([])
+      mutateLeads()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete leads')
+    }
+  }
 
   // Actions
   const handleOpenCreateLead = () => {
@@ -335,7 +444,7 @@ export default function CRMDashboard() {
         {/* Business Unit Selector */}
         <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
           <button
-            onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); }}
+            onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
             className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
               activeTab === 'AGENCY' 
                 ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
@@ -345,7 +454,7 @@ export default function CRMDashboard() {
             Agency CRM
           </button>
           <button
-            onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); }}
+            onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
             className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
               activeTab === 'ACADEMY' 
                 ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
@@ -506,7 +615,49 @@ export default function CRMDashboard() {
           </div>
         </div>
 
-        {/* Kanban Board View */}
+        {/* View Mode & Grouping Controls */}
+        <div className="flex flex-wrap items-center justify-between border-t border-white/5 pt-4 gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setViewMode('KANBAN'); setSelectedLeadIds([]); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-all ${
+                viewMode === 'KANBAN'
+                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                  : 'text-white/40 hover:text-white/70 border border-transparent'
+              }`}
+            >
+              <Kanban className="w-3.5 h-3.5" /> Kanban
+            </button>
+            <button
+              onClick={() => { setViewMode('LIST'); setSelectedLeadIds([]); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-all ${
+                viewMode === 'LIST'
+                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                  : 'text-white/40 hover:text-white/70 border border-transparent'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" /> List View
+            </button>
+          </div>
+
+          {viewMode === 'LIST' && (
+            <div className="flex items-center gap-3">
+              <label className="text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/45">Group By</label>
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as any)}
+                className="bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-3 py-1.5 text-xs text-[var(--dash-text-primary)] focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              >
+                <option value="NONE">None</option>
+                <option value="STATUS">Stage</option>
+                <option value="SOURCE">Source</option>
+                <option value="ASSIGNEE">Staff Assignee</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Dynamic CRM View */}
         {leadsLoading ? (
           <div className="flex justify-center py-20 relative z-10">
             <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mb-3" />
@@ -515,7 +666,7 @@ export default function CRMDashboard() {
           <div className="text-center py-20 text-[var(--dash-text-primary)]/40 font-mono text-xs uppercase border border-dashed border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-2xl">
             No lead nodes matches filters.
           </div>
-        ) : (
+        ) : viewMode === 'KANBAN' ? (
           <KanbanBoard 
             leads={filteredLeads}
             activeTab={activeTab}
@@ -523,6 +674,135 @@ export default function CRMDashboard() {
             onOpenLead={handleOpenEditLead}
             onLogActivity={handleOpenActivityModal}
           />
+        ) : (
+          <div className="space-y-8 relative z-10 overflow-x-auto">
+            {groupedLeads.map((group) => (
+              <div key={group.key} className="space-y-3">
+                {groupBy !== 'NONE' && (
+                  <div className="flex items-center gap-2 px-1 text-xs font-mono font-bold tracking-widest uppercase text-blue-400 border-b border-white/5 pb-2">
+                    <ChevronDown className="w-4 h-4" />
+                    <span>{group.title}</span>
+                    <span className="text-[10px] bg-white/10 text-white/50 px-2 py-0.5 rounded-full font-mono font-normal">
+                      {group.list.length}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="w-full border border-white/5 rounded-2xl overflow-hidden bg-white/[0.01] backdrop-blur-md">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/5 bg-white/[0.02]">
+                        <th className="p-4 w-12 text-center">
+                          <input 
+                            type="checkbox"
+                            checked={group.list.length > 0 && group.list.every(l => selectedLeadIds.includes(l.id))}
+                            onChange={(e) => {
+                              const leadIds = group.list.map(l => l.id);
+                              if (e.target.checked) {
+                                setSelectedLeadIds(prev => Array.from(new Set([...prev, ...leadIds])));
+                              } else {
+                                setSelectedLeadIds(prev => prev.filter(id => !leadIds.includes(id)));
+                              }
+                            }}
+                            className="rounded border-white/10 bg-transparent text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                          />
+                        </th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Lead Name</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">
+                          {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
+                        </th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Contact Info</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Stage</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Assignee</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Source</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-center">Score</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Created Date</th>
+                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {group.list.map((lead: any) => {
+                        const isSelected = selectedLeadIds.includes(lead.id);
+                        return (
+                          <tr 
+                            key={lead.id} 
+                            className={`hover:bg-white/[0.03] transition-colors ${isSelected ? 'bg-blue-600/5' : ''}`}
+                          >
+                            <td className="p-4 text-center">
+                              <input 
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedLeadIds(prev => [...prev, lead.id]);
+                                  } else {
+                                    setSelectedLeadIds(prev => prev.filter(id => id !== lead.id));
+                                  }
+                                }}
+                                className="rounded border-white/10 bg-transparent text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-4 font-semibold text-sm">
+                              <span>{lead.name}</span>
+                            </td>
+                            <td className="p-4 text-sm text-[var(--dash-text-primary)]/60">
+                              {activeTab === 'AGENCY' ? (
+                                lead.company || <span className="text-white/20">—</span>
+                              ) : (
+                                lead.courseInterest || <span className="text-white/20">—</span>
+                              )}
+                            </td>
+                            <td className="p-4 text-xs font-mono space-y-0.5">
+                              {lead.email && <div className="text-[var(--dash-text-primary)]/60">{lead.email}</div>}
+                              {lead.phone && <div className="text-[var(--dash-text-primary)]/40">{lead.phone}</div>}
+                              {!lead.email && !lead.phone && <span className="text-white/20">—</span>}
+                            </td>
+                            <td className="p-4">
+                              <span className="text-[10px] font-mono tracking-widest uppercase bg-white/5 border border-white/10 px-2 py-1 rounded text-white/70">
+                                {lead.status.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="p-4 text-sm font-medium">
+                              <span className={lead.assignedToId ? 'text-white/80' : 'text-white/20 font-normal italic'}>
+                                {getAssigneeName(lead.assignedToId)}
+                              </span>
+                            </td>
+                            <td className="p-4 text-xs font-mono uppercase text-white/50">
+                              {lead.source}
+                            </td>
+                            <td className="p-4 text-center font-bold font-mono text-xs text-blue-400">
+                              {lead.score}
+                            </td>
+                            <td className="p-4 text-xs text-[var(--dash-text-primary)]/40 font-mono">
+                              {new Date(lead.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="flex gap-2 justify-end">
+                                <button 
+                                  onClick={() => handleOpenActivityModal(lead)}
+                                  className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
+                                  title="Log Activity"
+                                >
+                                  <ClipboardList className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleOpenEditLead(lead)}
+                                  className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
+                                  title="Edit Lead"
+                                >
+                                  <MoreVertical className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -597,13 +877,19 @@ export default function CRMDashboard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Staff Assiginee ID</label>
-                    <input
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign to Telecaller / Staff</label>
+                    <select
                       value={leadForm.assignedToId}
                       onChange={(e) => setLeadForm({ ...leadForm, assignedToId: e.target.value })}
-                      placeholder="e.g. cl01xyz..."
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    />
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] cursor-pointer"
+                    >
+                      <option value="">Unassigned</option>
+                      {employees.map((emp: any) => (
+                        <option key={emp.userId} value={emp.userId}>
+                          {emp.user ? `${emp.user.firstName} ${emp.user.lastName} (${emp.jobTitle})` : emp.employeeCode}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -931,6 +1217,86 @@ export default function CRMDashboard() {
         </div>
       </div>
     )}
+
+    {/* BULK ACTIONS FLOATING TOOLBAR */}
+    <AnimatePresence>
+      {selectedLeadIds.length > 0 && (
+        <motion.div 
+          initial={{ y: 100, x: "-50%", opacity: 0 }}
+          animate={{ y: 0, x: "-50%", opacity: 1 }}
+          exit={{ y: 100, x: "-50%", opacity: 0 }}
+          className="fixed bottom-6 left-1/2 bg-[#0f0f13] border border-white/10 rounded-2xl px-6 py-4 shadow-2xl flex flex-col sm:flex-row items-center gap-4 z-40 max-w-[95vw] w-max"
+        >
+          <div className="text-xs font-mono text-white/80">
+            <span className="text-blue-400 font-bold font-mono mr-1">{selectedLeadIds.length}</span> leads selected
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select 
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleBulkStatusChange(e.target.value);
+                  e.target.value = "";
+                }
+              }}
+              className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+            >
+              <option value="">Move to Stage...</option>
+              {activeTab === 'AGENCY' ? (
+                <>
+                  <option value="NEW">New</option>
+                  <option value="CONTACTED">Contacted</option>
+                  <option value="QUALIFIED">Qualified</option>
+                  <option value="PROPOSAL_SENT">Proposal Sent</option>
+                  <option value="NEGOTIATION">Negotiation</option>
+                  <option value="WON">Won</option>
+                  <option value="LOST">Lost</option>
+                </>
+              ) : (
+                <>
+                  <option value="ENQUIRY">Enquiry</option>
+                  <option value="COUNSELLING">Counselling</option>
+                  <option value="TRIAL">Trial Class</option>
+                  <option value="ENROLLED_ACADEMY">Enrolled</option>
+                  <option value="DROPPED">Dropped</option>
+                </>
+              )}
+            </select>
+
+            <select 
+              onChange={(e) => {
+                if (e.target.value !== undefined) {
+                  handleBulkAssign(e.target.value === "UNASSIGNED" ? null : e.target.value);
+                  e.target.value = "";
+                }
+              }}
+              className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+            >
+              <option value="">Assign to Staff...</option>
+              <option value="UNASSIGNED">Unassigned</option>
+              {employees.map((emp: any) => (
+                <option key={emp.userId} value={emp.userId}>
+                  {emp.user ? `${emp.user.firstName} ${emp.user.lastName}` : emp.employeeCode}
+                </option>
+              ))}
+            </select>
+
+            <button 
+              onClick={handleBulkDelete}
+              className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 rounded-xl px-3 py-1.5 text-xs text-red-400 font-bold transition-all flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+
+            <button 
+              onClick={() => setSelectedLeadIds([])}
+              className="text-xs text-white/50 hover:text-white transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   </div>
 )
 }

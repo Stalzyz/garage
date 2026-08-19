@@ -10,19 +10,39 @@ import { useCurrency } from "@/hooks/useCurrency"
 export default function ClientPortalPage() {
   const { data: session } = useSession()
   const { symbol } = useCurrency()
-  const { data: projectsData, isLoading: loadingProjects } = useApi<any>("/projects")
-  const { data: invoicesData, isLoading: loadingInvoices } = useApi<any>("/finance/invoices")
+  const { data: profileMe } = useApi<any>("/portal/me")
+  const { data: projectsData, isLoading: loadingProjects } = useApi<any>("/portal/projects")
+  const { data: invoicesData, isLoading: loadingInvoices } = useApi<any>("/portal/invoices")
 
-  const projects = projectsData?.data || []
-  const invoices = invoicesData?.data || []
+  const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || [])
+  const invoices = Array.isArray(invoicesData) ? invoicesData : (invoicesData?.data || [])
+
+  const clientName = profileMe?.name || session?.user?.name || "Client"
+  const companyName = profileMe?.companyName || "Independent Client"
+  const tier = profileMe?.tier || "BRONZE"
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {session?.user?.name || "Client"}</h1>
-        <p className="text-white/50 mt-2">Here is the latest status on your projects and billing.</p>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">Welcome, {clientName}</h1>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full">
+            {tier} Tier
+          </span>
+        </div>
+        <p className="text-white/60 text-sm mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-white font-medium">{companyName}</span>
+          <span>•</span>
+          <span>{profileMe?.email || session?.user?.email}</span>
+          {profileMe?.phone && (
+            <>
+              <span>•</span>
+              <span>{profileMe.phone}</span>
+            </>
+          )}
+        </p>
       </div>
 
       {/* Grid */}

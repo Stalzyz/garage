@@ -237,7 +237,23 @@ export default async function contactsRouter(app: FastifyInstance) {
         }),
       },
       include: {
-        company: { select: { id: true, name: true } },
+        company: {
+          select: {
+            id: true,
+            name: true,
+            projects: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+                type: true,
+                budget: true,
+                dueDate: true
+              },
+              orderBy: { updatedAt: 'desc' }
+            }
+          }
+        },
         communicationLogs: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
       orderBy: [{ isPrimary: 'desc' }, { firstName: 'asc' }],
@@ -251,7 +267,13 @@ export default async function contactsRouter(app: FastifyInstance) {
     const contact = await app.prisma.contact.findUnique({
       where: { id },
       include: {
-        company: true,
+        company: {
+          include: {
+            projects: {
+              orderBy: { updatedAt: 'desc' }
+            }
+          }
+        },
         communicationLogs: { orderBy: { createdAt: 'desc' } },
       },
     });

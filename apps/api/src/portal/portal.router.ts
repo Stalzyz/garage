@@ -20,21 +20,71 @@ export default async function portalRouter(app: FastifyInstance) {
     // Attach companyId to request for easy access in handlers
     (req as any).companyId = profile.contact.companyId || null;
     (req as any).contactId = profile.contact.id;
+    (req as any).contactEmail = profile.contact.email || req.user.email;
+  });
+
+  // GET /api/v1/portal/me — get authenticated client profile info
+  app.get('/me', async (req, reply) => {
+    const contactId = (req as any).contactId;
+    const contact = await app.prisma.contact.findUnique({
+      where: { id: contactId },
+      include: {
+        company: true
+      }
+    });
+
+    if (!contact) return reply.notFound('Client contact profile not found');
+
+    return {
+      id: req.user.id,
+      contactId: contact.id,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      name: `${contact.firstName} ${contact.lastName}`,
+      email: contact.email || req.user.email,
+      phone: contact.phone,
+      tier: contact.tier || 'BRONZE',
+      companyId: contact.companyId,
+      companyName: contact.company?.name || 'Independent Client',
+      company: contact.company
+    };
   });
 
   // GET /api/v1/portal/dashboard
   app.get('/dashboard', async (req, reply) => {
     const companyId = (req as any).companyId;
+    const contactEmail = (req as any).contactEmail;
     
-    // Get projects
-    const projects = await app.prisma.project.findMany({
-      where: { companyId },
-      include: {
-        phases: true,
-        tasks: { select: { id: true, status: true } },
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    // Get projects matching companyId or matching lead proposals for this contact
+    let projects: any[] = [];
+    if (companyId) {
+      projects = await app.prisma.project.findMany({
+        where: { companyId },
+        include: {
+          phases: true,
+          tasks: { select: { id: true, status: true } },
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+    }
+
+    if (projects.length === 0 && contactEmail) {
+      // Fallback: match projects via client proposals / lead email
+      const leads = await app.prisma.lead.findMany({ where: { email: contactEmail } });
+      const leadIds = leads.map(l => l.id);
+      const proposals = await app.prisma.proposal.findMany({ where: { leadId: { in: leadIds } } });
+      // If client has projects without company link, fetch latest active projects
+      if (proposals.length > 0) {
+        projects = await app.prisma.project.findMany({
+          take: 5,
+          include: {
+            phases: true,
+            tasks: { select: { id: true, status: true } },
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+      }
+    }
     
     // Get invoices via projects
     const projectIds = projects.map(p => p.id);
@@ -91,27 +141,31 @@ export default async function portalRouter(app: FastifyInstance) {
   // GET /api/v1/portal/projects
   app.get('/projects', async (req, reply) => {
     const companyId = (req as any).companyId;
-    
-    const projects = await app.prisma.project.findMany({
-      where: { companyId },
-      include: {
-        phases: { orderBy: { sortOrder: 'asc' } },
-        tasks: { select: { id: true, status: true } },
-        files: { 
-          where: { isDelivery: true },
-          orderBy: { createdAt: 'desc' } 
-        },
-        billingSchedule: {
-          include: {
-            milestones: {
-              include: { invoice: true },
-              orderBy: { createdAt: 'asc' }
+    const contactEmail = (req as any).contactEmail;
+
+    let projects: any[] = [];
+    if (companyId) {
+      projects = await app.prisma.project.findMany({
+        where: { companyId },
+        include: {
+          phases: { orderBy: { sortOrder: 'asc' } },
+          tasks: { select: { id: true, status: true } },
+          files: { 
+            where: { isDelivery: true },
+            orderBy: { createdAt: 'desc' } 
+          },
+          billingSchedule: {
+            include: {
+              milestones: {
+                include: { invoice: true },
+                orderBy: { createdAt: 'asc' }
+              }
             }
           }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+    }
     
     // Map data for frontend
     const mappedProjects = projects.map(p => {
