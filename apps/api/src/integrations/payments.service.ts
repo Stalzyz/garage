@@ -19,14 +19,23 @@ export class PaymentsService {
 
   // --- Razorpay Methods ---
 
-  async createRazorpayOrder(amount: number, currency = 'INR', receiptId: string) {
+  async createRazorpayOrder(amount: number, currency = 'INR', receiptId: string, customKeys?: { keyId: string; keySecret: string }) {
     try {
       const options = {
-        amount: amount * 100, // amount in smallest currency unit
+        amount: Math.round(amount * 100), // amount in smallest currency unit
         currency,
         receipt: receiptId,
       };
-      const order = await this.razorpay.orders.create(options);
+
+      let client = this.razorpay;
+      if (customKeys?.keyId && customKeys?.keySecret) {
+        client = new Razorpay({
+          key_id: customKeys.keyId,
+          key_secret: customKeys.keySecret,
+        });
+      }
+
+      const order = await client.orders.create(options);
       return { success: true, order };
     } catch (err: any) {
       console.error('[Razorpay] Order creation failed', err);

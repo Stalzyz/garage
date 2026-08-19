@@ -5,6 +5,7 @@ import { generateInvoicePDF } from './pdf.service';
 import { paymentsService } from '../integrations/payments.service';
 import { auditLog } from '../utils/audit';
 import { sendEmail, EmailTemplates } from '../integrations/email.service';
+import { decrypt } from '../settings/integrations.router';
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 function toCsv(rows: Record<string, any>[], headers: string[]): string {
@@ -330,8 +331,19 @@ export default async function invoicesRouter(app: FastifyInstance) {
     if (!invoice) return reply.notFound('Invoice not found');
     if (invoice.status === 'PAID') return reply.badRequest('Invoice is already paid');
 
-    // Get Razorpay keys
-    const keyId = process.env.RAZORPAY_KEY_ID;
+    // Get Razorpay keys from IntegrationKey database store or environment variables
+    const integrationKeys = await app.prisma.integrationKey.findMany({
+      where: { service: 'RAZORPAY', isActive: true }
+    });
+
+    let keyId = process.env.RAZORPAY_KEY_ID;
+    let keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    for (const k of integrationKeys) {
+      if (k.keyName === 'RAZORPAY_KEY_ID') keyId = decrypt(k.encryptedValue);
+      if (k.keyName === 'RAZORPAY_KEY_SECRET') keySecret = decrypt(k.encryptedValue);
+    }
+
     const isLive = !!keyId && keyId !== 'rzp_test_mock';
 
     if (invoice.status === 'DRAFT') {
@@ -340,7 +352,12 @@ export default async function invoicesRouter(app: FastifyInstance) {
 
     if (isLive) {
       const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
-      const res = await paymentsService.createRazorpayOrder(remainingAmount, invoice.currency, invoice.invoiceNumber);
+      const res = await paymentsService.createRazorpayOrder(
+        remainingAmount, 
+        invoice.currency, 
+        invoice.invoiceNumber,
+        keyId && keySecret ? { keyId, keySecret } : undefined
+      );
       if (res.success && res.order) {
         return {
           isLive: true,

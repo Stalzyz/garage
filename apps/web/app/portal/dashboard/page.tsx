@@ -146,7 +146,7 @@ export default function ClientDashboard() {
       } else {
         const allInvoices = invoices || []
         const targetInvoice = allInvoices.find((inv: any) => inv.id === invoiceId)
-        setSandboxInvoice(targetInvoice || { id: invoiceId, total: 0, number: "INV-GEN" })
+        setSandboxInvoice(targetInvoice || { id: invoiceId, total: paymentTarget?.amount || 0, number: targetInvoice?.invoiceNumber || "INV-GEN" })
         setShowSandbox(true)
       }
     } catch (err: any) {
