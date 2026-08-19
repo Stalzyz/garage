@@ -4,7 +4,7 @@ import { sendTemplatedEmail } from '../services/emailRenderer';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']).default('WEBSITE'),
+  type: z.string().min(1).default('WEBSITE'),
   companyId: z.string().optional().nullable(),
   contactId: z.string().optional().nullable(),
   newCompanyName: z.string().optional().nullable(),
@@ -276,7 +276,7 @@ export default async function projectsRouter(app: FastifyInstance) {
                 title: statusChanged
                   ? `Project "${project.name}" stage updated to ${project.status}`
                   : `Project "${project.name}" details updated`,
-                message: `Status: ${project.status}. Click to view updated project milestones.`,
+                body: `Status: ${project.status}. Click to view updated project milestones.`,
                 type: 'SYSTEM',
               }
             });
