@@ -126,11 +126,14 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     const project = await app.prisma.project.create({
       data: {
-        ...projectData,
+        name: body.name,
+        type: body.type || 'WEBSITE',
         managerId: body.managerId || 'usr_1',
-        companyId: targetCompanyId,
-        startDate: body.startDate ? new Date(body.startDate) : undefined,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
+        companyId: targetCompanyId || null,
+        description: body.description || null,
+        budget: body.budget || null,
+        startDate: body.startDate ? new Date(body.startDate) : null,
+        dueDate: body.dueDate ? new Date(body.dueDate) : null,
       },
     });
     reply.code(201);
@@ -176,11 +179,16 @@ export default async function projectsRouter(app: FastifyInstance) {
     const project = await app.prisma.project.update({
       where: { id },
       data: {
-        ...updateData,
+        ...(updateData.name && { name: updateData.name }),
+        ...(updateData.type && { type: updateData.type }),
+        ...(updateData.status && { status: updateData.status }),
+        ...(updateData.managerId && { managerId: updateData.managerId }),
+        ...(updateData.description !== undefined && { description: updateData.description }),
+        ...(updateData.budget !== undefined && { budget: updateData.budget }),
         ...(targetCompanyId !== undefined && { companyId: targetCompanyId }),
-        startDate: body.startDate ? new Date(body.startDate) : undefined,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-        completedAt: body.completedAt ? new Date(body.completedAt) : undefined,
+        ...(body.startDate !== undefined && { startDate: body.startDate ? new Date(body.startDate) : null }),
+        ...(body.dueDate !== undefined && { dueDate: body.dueDate ? new Date(body.dueDate) : null }),
+        ...(body.completedAt !== undefined && { completedAt: body.completedAt ? new Date(body.completedAt) : null }),
       },
     });
     return project;
