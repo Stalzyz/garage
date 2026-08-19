@@ -10,8 +10,8 @@ async function notifyAssignedStaff(app: FastifyInstance, assignedToId: string, l
       where: { OR: [{ id: assignedToId }, { userId: assignedToId }] },
       include: { user: true }
     });
-    const staffEmail = employee?.user?.email || employee?.email;
-    const staffName = employee?.user?.firstName || employee?.firstName || 'Staff Member';
+    const staffEmail = employee?.user?.email || (employee as any)?.email;
+    const staffName = employee?.user?.firstName || (employee as any)?.firstName || 'Staff Member';
     if (staffEmail) {
       await sendTemplatedEmail(app, {
         code: 'LEAD_ASSIGNED',

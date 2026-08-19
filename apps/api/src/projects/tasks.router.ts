@@ -62,8 +62,8 @@ export default async function tasksRouter(app: FastifyInstance) {
             }),
             app.prisma.project.findUnique({ where: { id: task.projectId } })
           ]);
-          const staffEmail = employee?.user?.email || employee?.email;
-          const staffName = employee?.user?.firstName || employee?.firstName || 'Staff';
+          const staffEmail = employee?.user?.email || (employee as any)?.email;
+          const staffName = employee?.user?.firstName || (employee as any)?.firstName || 'Staff';
           if (staffEmail) {
             await sendTemplatedEmail(app, {
               code: 'TASK_ASSIGNED',

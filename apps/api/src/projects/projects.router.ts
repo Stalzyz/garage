@@ -141,7 +141,7 @@ export default async function projectsRouter(app: FastifyInstance) {
     // Auto-trigger WELCOME_CLIENT email notification to client contact
     (async () => {
       try {
-        let contact = null;
+        let contact: any = null;
         if (body.contactId) {
           contact = await app.prisma.contact.findUnique({
             where: { id: body.contactId },
