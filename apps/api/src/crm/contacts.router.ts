@@ -18,6 +18,7 @@ const CreateContactSchema = z.object({
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
   companyId: z.string().optional(),
+  newCompanyName: z.string().optional(),
   tier: z.enum(['GOLD', 'SILVER', 'BRONZE']).optional(),
   isPrimary: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
@@ -283,8 +284,14 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/contacts
   app.post('/contacts', async (req, reply) => {
-    const body = CreateContactSchema.parse(req.body);
-    const contact = await app.prisma.contact.create({ data: body });
+    const { newCompanyName, ...data } = CreateContactSchema.parse(req.body);
+    if (newCompanyName && newCompanyName.trim()) {
+      const company = await app.prisma.company.create({
+        data: { name: newCompanyName.trim() }
+      });
+      data.companyId = company.id;
+    }
+    const contact = await app.prisma.contact.create({ data });
     if (contact.email) {
       await createPortalUserAndSendInvite(contact);
     }
@@ -295,8 +302,14 @@ export default async function contactsRouter(app: FastifyInstance) {
   // PATCH /api/v1/crm/contacts/:id
   app.patch('/contacts/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const body = CreateContactSchema.partial().parse(req.body);
-    const contact = await app.prisma.contact.update({ where: { id }, data: body });
+    const { newCompanyName, ...data } = CreateContactSchema.partial().parse(req.body);
+    if (newCompanyName && newCompanyName.trim()) {
+      const company = await app.prisma.company.create({
+        data: { name: newCompanyName.trim() }
+      });
+      data.companyId = company.id;
+    }
+    const contact = await app.prisma.contact.update({ where: { id }, data });
     return contact;
   });
 

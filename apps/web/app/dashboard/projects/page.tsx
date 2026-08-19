@@ -30,7 +30,9 @@ const INITIAL_PROJECTS = [
 export default function ProjectsDashboard() {
   const { data, isLoading } = useApi<{data: any[], total: number}>("/projects")
   const { data: companiesData } = useApi<any>("/crm/companies")
+  const { data: contactsData } = useApi<any>("/crm/contacts")
   const companies = companiesData?.data || []
+  const contacts = contactsData?.data || []
 
   const [view, setView] = useState<"KANBAN" | "GRID" | "LIST">("KANBAN")
   const [search, setSearch] = useState("")
@@ -43,7 +45,9 @@ export default function ProjectsDashboard() {
   const [formData, setFormData] = useState({
     name: "",
     type: "WEBSITE",
+    contactId: "",
     companyId: "",
+    newCompanyName: "",
     managerId: "usr_1", // Default manager
     dueDate: ""
   })
@@ -56,7 +60,9 @@ export default function ProjectsDashboard() {
         name: formData.name,
         type: formData.type,
         managerId: formData.managerId,
-        ...(formData.companyId && { companyId: formData.companyId })
+        ...(formData.contactId && { contactId: formData.contactId }),
+        ...(formData.companyId && formData.companyId !== "NEW" && { companyId: formData.companyId }),
+        ...(formData.newCompanyName && { newCompanyName: formData.newCompanyName })
       }
       if (formData.dueDate) {
         payload.dueDate = new Date(formData.dueDate).toISOString()
@@ -68,7 +74,7 @@ export default function ProjectsDashboard() {
       })
       toast.success("Project initialized successfully")
       setIsInitializeOpen(false)
-      setFormData({ name: "", type: "WEBSITE", companyId: "", managerId: "usr_1", dueDate: "" })
+      setFormData({ name: "", type: "WEBSITE", contactId: "", companyId: "", newCompanyName: "", managerId: "usr_1", dueDate: "" })
       // Trigger reload to fetch new project
       window.location.reload()
     } catch (err: any) {
@@ -448,19 +454,52 @@ export default function ProjectsDashboard() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Assign Client / Company</label>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Assign Client Contact</label>
             <select 
-              value={formData.companyId}
-              onChange={e => setFormData({...formData, companyId: e.target.value})}
+              value={formData.contactId}
+              onChange={e => {
+                const selectedContactId = e.target.value;
+                const contact = contacts.find((c: any) => c.id === selectedContactId);
+                setFormData({
+                  ...formData,
+                  contactId: selectedContactId,
+                  ...(contact?.companyId && { companyId: contact.companyId })
+                });
+              }}
               className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
             >
-              <option value="">Unassigned (No Company)</option>
+              <option value="">Select Contact / Client...</option>
+              {contacts.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.firstName} {c.lastName} {c.email ? `(${c.email})` : ''} {c.company?.name ? `— ${c.company.name}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Company / Organization</label>
+            <select 
+              value={formData.companyId}
+              onChange={e => setFormData({...formData, companyId: e.target.value, ...(e.target.value !== "NEW" && { newCompanyName: "" })})}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+            >
+              <option value="">Independent (No Company)</option>
               {companies.map((comp: any) => (
                 <option key={comp.id} value={comp.id}>
                   {comp.name}
                 </option>
               ))}
+              <option value="NEW">+ Create New Company...</option>
             </select>
+            {formData.companyId === "NEW" && (
+              <input 
+                type="text"
+                placeholder="Enter new company name..."
+                value={formData.newCompanyName}
+                onChange={e => setFormData({...formData, newCompanyName: e.target.value})}
+                className="w-full mt-2 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              />
+            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Deadline</label>

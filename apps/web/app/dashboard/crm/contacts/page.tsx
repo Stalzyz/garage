@@ -95,6 +95,7 @@ export default function ContactsPage() {
       email: contact.email || "",
       phone: contact.phone || "",
       companyId: contact.companyId || "",
+      newCompanyName: "",
       tier: contact.tier || "BRONZE"
     });
     setIsAddOpen(true);
@@ -111,7 +112,8 @@ export default function ContactsPage() {
       }
       if (formData.email) payload.email = formData.email
       if (formData.phone) payload.phone = formData.phone
-      if (formData.companyId) payload.companyId = formData.companyId
+      if (formData.companyId && formData.companyId !== 'NEW') payload.companyId = formData.companyId
+      if (formData.newCompanyName) payload.newCompanyName = formData.newCompanyName
 
       if (editingContactId) {
         await fetchApi(`/crm/contacts/${editingContactId}`, {
@@ -128,7 +130,7 @@ export default function ContactsPage() {
       }
       setIsAddOpen(false)
       setEditingContactId(null)
-      setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", tier: "BRONZE" })
+      setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", newCompanyName: "", tier: "BRONZE" })
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to create contact")
@@ -361,7 +363,7 @@ export default function ContactsPage() {
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Company / Organization</label>
             <select 
               value={formData.companyId}
-              onChange={e => setFormData({...formData, companyId: e.target.value})}
+              onChange={e => setFormData({...formData, companyId: e.target.value, ...(e.target.value !== "NEW" && { newCompanyName: "" })})}
               className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white"
             >
               <option value="">Independent (No Company)</option>
@@ -370,7 +372,17 @@ export default function ContactsPage() {
                   {comp.name}
                 </option>
               ))}
+              <option value="NEW">+ Create New Company...</option>
             </select>
+            {formData.companyId === "NEW" && (
+              <input 
+                type="text"
+                placeholder="Enter new company name..."
+                value={formData.newCompanyName}
+                onChange={e => setFormData({...formData, newCompanyName: e.target.value})}
+                className="w-full mt-2 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 text-white placeholder:text-white/30"
+              />
+            )}
           </div>
           <div>
             <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Tier</label>

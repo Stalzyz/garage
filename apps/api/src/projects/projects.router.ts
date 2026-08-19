@@ -4,7 +4,9 @@ import { z } from 'zod';
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
   type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']),
-  companyId: z.string().optional(),
+  companyId: z.string().optional().nullable(),
+  contactId: z.string().optional().nullable(),
+  newCompanyName: z.string().optional().nullable(),
   managerId: z.string().min(1),
   budget: z.number().optional(),
   startDate: z.string().datetime().optional(),
@@ -90,9 +92,42 @@ export default async function projectsRouter(app: FastifyInstance) {
   // POST /api/v1/projects
   app.post('/', async (req, reply) => {
     const body = CreateProjectSchema.parse(req.body);
+    let targetCompanyId = body.companyId || null;
+
+    if (body.contactId) {
+      const contact = await app.prisma.contact.findUnique({
+        where: { id: body.contactId },
+        include: { company: true }
+      });
+
+      if (contact) {
+        if (contact.companyId) {
+          targetCompanyId = contact.companyId;
+        } else {
+          const companyName = body.newCompanyName?.trim() || `${contact.firstName} ${contact.lastName}`.trim() || 'Independent Client';
+          const newComp = await app.prisma.company.create({
+            data: { name: companyName }
+          });
+          await app.prisma.contact.update({
+            where: { id: contact.id },
+            data: { companyId: newComp.id }
+          });
+          targetCompanyId = newComp.id;
+        }
+      }
+    } else if (body.newCompanyName && body.newCompanyName.trim()) {
+      const newComp = await app.prisma.company.create({
+        data: { name: body.newCompanyName.trim() }
+      });
+      targetCompanyId = newComp.id;
+    }
+
+    const { contactId, newCompanyName, ...projectData } = body;
+
     const project = await app.prisma.project.create({
       data: {
-        ...body,
+        ...projectData,
+        companyId: targetCompanyId,
         startDate: body.startDate ? new Date(body.startDate) : undefined,
         dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
       },
