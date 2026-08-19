@@ -8,14 +8,31 @@ import Link from "next/link"
 
 // Server action logic
 async function resetPassword(prevState: unknown, formData: FormData) {
-  await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulated delay for animation
   const email = formData.get("email")
   
   if (!email || typeof email !== "string" || !email.includes("@")) {
-    return { error: "INVALID SYSTEM ID DETECTED." }
+    return { error: "Please enter a valid email address." }
   }
   
-  return { success: "RECOVERY LINK DISPATCHED TO COMMS CHANNEL." }
+  try {
+    const apiUrl = process.env.API_INTERNAL_URL || 'http://localhost:4000/api/v1';
+    const res = await fetch(`${apiUrl}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, portalType: 'ADMIN' })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      return { error: data.message || "Failed to process request. Please try again." }
+    }
+    
+    return { success: "Temporary password has been sent to your email." }
+  } catch (err: any) {
+    return { error: "Unable to connect to recovery server." }
+  }
 }
 
 export default function ForgotPasswordPage() {

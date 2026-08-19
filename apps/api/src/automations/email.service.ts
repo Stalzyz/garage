@@ -4,14 +4,14 @@ import { decrypt } from '../settings/integrations.router';
 import { Resend } from 'resend';
 
 export const EmailService = {
-  async sendEmail(to: string, subject: string, htmlContent: string) {
+  async sendEmail(to: string, subject: string, htmlContent: string, fromOverride?: string) {
     try {
       // 1. Check if Organization has Resend API Key
       const org = await prisma.organization.findFirst();
       if (org?.resendApiKey) {
         const resend = new Resend(org.resendApiKey);
         const data = await resend.emails.send({
-          from: 'Grekam OS <onboarding@resend.dev>', // Should ideally be configured or verified domain
+          from: fromOverride || 'Grekam OS <onboarding@resend.dev>', // Should ideally be configured or verified domain
           to: [to],
           subject,
           html: htmlContent
@@ -30,14 +30,14 @@ export const EmailService = {
       let port = parseInt(process.env.SMTP_PORT || '587');
       let user = process.env.SMTP_USER || 'ethereal_user';
       let pass = process.env.SMTP_PASS || 'ethereal_pass';
-      let fromAddress = '"Grekam OS" <noreply@grekam.com>';
+      let fromAddress = fromOverride || '"Grekam OS" <noreply@grekam.com>';
 
       for (const k of keys) {
         if (k.keyName === 'SMTP_HOST') host = decrypt(k.encryptedValue);
         if (k.keyName === 'SMTP_PORT') port = parseInt(decrypt(k.encryptedValue));
         if (k.keyName === 'SMTP_USER') user = decrypt(k.encryptedValue);
         if (k.keyName === 'SMTP_PASS') pass = decrypt(k.encryptedValue);
-        if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
+        if (!fromOverride && k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
       }
 
       if (fromAddress && !fromAddress.includes('<')) {

@@ -64,6 +64,40 @@ export default function ClientPortalLogin() {
     }
   }
 
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotSuccess, setForgotSuccess] = useState("")
+  const [forgotError, setForgotError] = useState("")
+  const [isForgotLoading, setIsForgotLoading] = useState(false)
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotError("")
+    setForgotSuccess("")
+    setIsForgotLoading(true)
+
+    try {
+      const res = await fetch("/api/v1/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotEmail, portalType: "CLIENT" })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        setForgotError(data.message || "Failed to submit request.")
+      } else {
+        setForgotSuccess("A temporary password has been sent to your email address.")
+      }
+    } catch (err) {
+      setForgotError("Unable to connect to recovery server.")
+    } finally {
+      setIsForgotLoading(false)
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex">
@@ -134,62 +168,105 @@ export default function ClientPortalLogin() {
             <p className="text-sm font-bold text-white">{org.name} Client Portal</p>
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
-          <p className="text-white/50 text-sm mb-8">Sign in to your client account to continue.</p>
+          {!isForgotPassword ? (
+            <>
+              <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
+              <p className="text-white/50 text-sm mb-8">Sign in to your client account to continue.</p>
 
+              {/* Form */}
+              <form onSubmit={handleLogin} className="space-y-4">
+                {error && (
+                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {error}
+                  </div>
+                )}
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                {error}
-              </div>
-            )}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
+                  <input
+                    type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                    placeholder="you@company.com"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                    autoComplete="email"
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                placeholder="you@company.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
-                autoComplete="email"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
+                      placeholder="Enter your password"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                      autoComplete="current-password"
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="Enter your password"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
-                  autoComplete="current-password"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                <div className="flex items-center justify-between text-xs">
+                  <label className="flex items-center gap-2 text-white/50 cursor-pointer">
+                    <input type="checkbox" className="rounded border-white/20 bg-white/5" />
+                    Remember me
+                  </label>
+                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-violet-400 hover:text-violet-300 transition-colors">
+                    Forgot password?
+                  </button>
+                </div>
+
+                <button type="submit" disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isLoading ? "Signing in..." : "Sign In to Portal"}
                 </button>
-              </div>
-            </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-white mb-1">Access Recovery</h2>
+              <p className="text-white/50 text-sm mb-8">Enter your registered email to request a temporary password.</p>
 
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-white/50 cursor-pointer">
-                <input type="checkbox" className="rounded border-white/20 bg-white/5" />
-                Remember me
-              </label>
-              <button type="button" className="text-violet-400 hover:text-violet-300 transition-colors">
-                Forgot password?
-              </button>
-            </div>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                {forgotError && (
+                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {forgotError}
+                  </div>
+                )}
+                {forgotSuccess && (
+                  <div className="px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+                    {forgotSuccess}
+                  </div>
+                )}
 
-            <button type="submit" disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {isLoading ? "Signing in..." : "Sign In to Portal"}
-            </button>
-          </form>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
+                  <input
+                    type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required
+                    placeholder="you@company.com"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end text-xs">
+                  <button type="button" onClick={() => { setIsForgotPassword(false); setForgotSuccess(""); setForgotError(""); }} className="text-violet-400 hover:text-violet-300 transition-colors">
+                    Back to Sign In
+                  </button>
+                </div>
+
+                <button type="submit" disabled={isForgotLoading}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isForgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isForgotLoading ? "Sending Recovery..." : "Send Recovery Email"}
+                </button>
+              </form>
+            </>
+          )}
 
           <p className="text-xs text-white/30 mt-8 text-center">
             This portal is for {org.name} clients only.
