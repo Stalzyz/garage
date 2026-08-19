@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+set timeout 120
+set script {
+cd /root/grekam-os/packages/db && node -e "
+const {PrismaClient}=require('@prisma/client');
+const bcrypt=require('bcryptjs');
+const p=new PrismaClient();
+
+async function run() {
+  const user = await p.user.findFirst({
+    orderBy: { updatedAt: 'desc' }
+  });
+  console.log('Most recently updated user:', user.email);
+  console.log('Role:', user.role);
+  console.log('Password hash in DB:', user.passwordHash);
+
+  // Let's reset their password to a clean string 'temp123!' and test compare
+  const temp = 'temp123!';
+  const hash = await bcrypt.hash(temp, 10);
+  console.log('New hash generated locally:', hash);
+  const matchLocally = await bcrypt.compare(temp, hash);
+  console.log('Match locally:', matchLocally);
+
+  // Update DB and re-test
+  await p.user.update({
+    where: { id: user.id },
+    data: { passwordHash: hash }
+  });
+
+  const updatedUser = await p.user.findUnique({ where: { id: user.id } });
+  console.log('Updated hash in DB:', updatedUser.passwordHash);
+  const matchDB = await bcrypt.compare(temp, updatedUser.passwordHash);
+  console.log('Match with DB hash:', matchDB);
+
+  await p.\$disconnect();
+}
+run();
+" 2>&1
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

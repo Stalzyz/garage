@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set timeout 120
+set script {
+cd /root/grekam-os/packages/db && node -e "
+const {PrismaClient}=require('@prisma/client');
+const p=new PrismaClient();
+p.user.findUnique({
+  where: { email: 'greeksgraphic@gmail.com' }
+}).then(r=>{
+  console.log(JSON.stringify(r, null, 2));
+  return p.\$disconnect();
+});
+" 2>&1
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

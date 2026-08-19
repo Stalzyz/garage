@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { createNotification } from '../notifications/notifications.service';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+import { sendEmail, EmailTemplates } from '../integrations/email.service';
 
 // In a real app, you would import PrismaClient from your db setup
 // import prisma from '../../lib/prisma';
@@ -144,6 +145,27 @@ export async function handleRazorpayWebhook(req: FastifyRequest<{ Body: Razorpay
                   });
                 } catch (wsErr) {
                   app.log.error(wsErr, "Failed to broadcast WebSocket event");
+                }
+
+                // Send payment receipt email to client
+                if (invoice.clientEmail) {
+                  try {
+                    const receiptTemplate = EmailTemplates.invoiceDue(
+                      invoice.clientName,
+                      invoice.invoiceNumber,
+                      invoice.totalAmount,
+                      new Date().toLocaleDateString()
+                    );
+                    // Customise subject line to be a receipt
+                    await sendEmail(invoice.clientEmail, {
+                      ...receiptTemplate,
+                      subject: `Payment Receipt: ${invoice.invoiceNumber} — Thank you!`,
+                      html: receiptTemplate.html?.replace('Payment Due', 'Payment Received — Thank You!') || receiptTemplate.html,
+                    } as any);
+                    app.log.info(`Payment receipt email sent to ${invoice.clientEmail}`);
+                  } catch (emailErr) {
+                    app.log.warn({ emailErr }, 'Failed to send payment receipt email');
+                  }
                 }
               }
             } else if (payment.notes?.batch_id && payment.notes?.student_id) {

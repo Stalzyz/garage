@@ -1,0 +1,62 @@
+#!/usr/bin/expect -f
+set timeout 120
+set script {
+cd /root/grekam-os/packages/db && node -e "
+const {PrismaClient}=require('@prisma/client');
+const p=new PrismaClient();
+
+async function run() {
+  const project = await p.project.findFirst();
+  if (!project) {
+    console.log('No project found!');
+    return p.\$disconnect();
+  }
+  console.log('Testing billing schedule for project:', project.id, project.name);
+
+  // Let's call PUT /api/v1/projects/:id/billing-schedule internally by simulating it,
+  // or just run the business logic block in a try-catch to see where it throws!
+  const type = 'INSTALLMENTS';
+  const milestones = [
+    { name: 'Milestone 1', amount: 500, dueDate: '2026-08-25' },
+    { name: 'Milestone 2', amount: 1000, dueDate: '' }
+  ];
+
+  try {
+    const sched = await p.billingSchedule.upsert({
+      where: { projectId: project.id },
+      update: { type },
+      create: { projectId: project.id, type }
+    });
+    console.log('Schedule upserted:', sched.id);
+
+    // Delete existing milestones
+    await p.billingMilestone.deleteMany({
+      where: { scheduleId: sched.id }
+    });
+    console.log('Existing milestones deleted.');
+
+    // Create new milestones
+    await p.billingMilestone.createMany({
+      data: milestones.map((m) => ({
+        scheduleId: sched.id,
+        name: m.name,
+        amount: m.amount,
+        dueDate: m.dueDate ? new Date(m.dueDate) : null,
+        status: 'PENDING'
+      }))
+    });
+    console.log('New milestones created successfully!');
+  } catch (err) {
+    console.error('Error during transaction:', err);
+  }
+
+  await p.\$disconnect();
+}
+run();
+" 2>&1
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

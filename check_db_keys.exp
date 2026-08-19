@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 60
+set script {
+cd /root/grekam-os/packages/db && node -e "
+const {PrismaClient}=require('@prisma/client');
+const p=new PrismaClient();
+p.integrationKey.findMany().then(keys => {
+  console.log('KEYS:', keys.map(k => ({ id: k.id, service: k.service, keyName: k.keyName, isActive: k.isActive })));
+  p.\$disconnect();
+}).catch(err => {
+  console.error(err);
+  p.\$disconnect();
+});
+"
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

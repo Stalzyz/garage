@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
-set timeout 60
+set timeout 120
 set script {
-pm2 show grekam-os-api | grep -i RAZORPAY
+pm2 logs grekam-os-web --lines 50 --nostream 2>&1 | tail -45
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { sendTemplatedEmail } from '../services/emailRenderer';
+import { sendEmail, EmailTemplates } from '../integrations/email.service';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
@@ -529,7 +530,21 @@ export default async function projectsRouter(app: FastifyInstance) {
     
     const milestone = await app.prisma.billingMilestone.findUnique({
       where: { id: milestoneId },
-      include: { schedule: { include: { project: { include: { company: true } } } } }
+      include: {
+        schedule: {
+          include: {
+            project: {
+              include: {
+                company: {
+                  include: {
+                    contacts: { take: 1, orderBy: { createdAt: 'asc' } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!milestone || milestone.schedule.projectId !== id) {
@@ -537,10 +552,13 @@ export default async function projectsRouter(app: FastifyInstance) {
     }
 
     if (milestone.invoiceId) {
-      return reply.badRequest('Invoice already generated for this milestone');
+      // Return the existing invoice id so portal can proceed to payment
+      return { success: true, invoice: { id: milestone.invoiceId } };
     }
 
     const project = milestone.schedule.project;
+    const clientEmail = project.company?.contacts?.[0]?.email || undefined;
+    const clientName = project.company?.name || 'Client';
     
     // Create the invoice
     const invoice = await app.prisma.$transaction(async (tx) => {
@@ -548,13 +566,13 @@ export default async function projectsRouter(app: FastifyInstance) {
         data: {
           invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
           projectId: project.id,
-          clientName: project.company?.name || 'Unknown Client',
-          clientEmail: undefined,
+          clientName,
+          clientEmail: clientEmail || null,
           businessUnit: 'AGENCY',
           subtotal: milestone.amount,
-          totalAmount: milestone.amount, // ignoring tax for simplicity here
+          totalAmount: milestone.amount,
           dueDate: milestone.dueDate || new Date(),
-          status: 'DRAFT',
+          status: 'SENT',
           billingMilestone: {
             connect: { id: milestone.id }
           },
@@ -577,6 +595,21 @@ export default async function projectsRouter(app: FastifyInstance) {
 
       return inv;
     });
+
+    // Send email notification to client if we have their email
+    if (clientEmail) {
+      try {
+        const template = EmailTemplates.invoiceDue(
+          clientName,
+          invoice.invoiceNumber,
+          invoice.totalAmount,
+          invoice.dueDate.toLocaleDateString()
+        );
+        await sendEmail(clientEmail, template);
+      } catch (emailErr) {
+        app.log.warn({ emailErr }, 'Failed to send invoice email to client');
+      }
+    }
 
     return { success: true, invoice };
   });

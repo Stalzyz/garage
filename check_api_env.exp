@@ -1,7 +1,8 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-pm2 show grekam-os-api | grep -i RAZORPAY
+ls -la /root/grekam-os/apps/api/
+cat /root/grekam-os/apps/api/.env | grep -i RAZORPAY
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

@@ -6,7 +6,8 @@ import { toast } from "sonner"
 import { Plus, Trash2, Save, Send, CreditCard, Loader2 } from "lucide-react"
 
 export function FinanceTab({ projectId, budget }: { projectId: string, budget: number }) {
-  const { data: schedule, isLoading, mutate } = useApi<any>(`/projects/${projectId}/billing-schedule`)
+  const { data: rawSchedule, isLoading, mutate } = useApi<any>(`/projects/${projectId}/billing-schedule`)
+  const schedule = rawSchedule?.schedule ?? rawSchedule
   
   const [type, setType] = useState<"ONE_TIME" | "INSTALLMENTS">("ONE_TIME")
   const [milestones, setMilestones] = useState<any[]>([])

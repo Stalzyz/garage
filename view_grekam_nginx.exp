@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-pm2 show grekam-os-api | grep -i RAZORPAY
+cat /etc/nginx/sites-available/grekam.in
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

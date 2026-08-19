@@ -1,7 +1,8 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-pm2 show grekam-os-api | grep -i RAZORPAY
+curl -I http://localhost:3000/portal 2>&1
+curl -s http://localhost:3000/portal | grep -i "error" | head -10
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
