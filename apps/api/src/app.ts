@@ -173,7 +173,11 @@ export async function buildApp(opts: any = {}): Promise<any> {
   await app.register(settingsModule, { prefix: '/api/v1/settings' });
 
   const razorpayWebhook = (await import('./webhooks/razorpay.router')).default;
+  const { handleRazorpayWebhook } = await import('./webhooks/razorpay.router');
   await app.register(razorpayWebhook, { prefix: '/api/v1/webhooks' });
+  app.post('/api/billing/razorpay/webhook', async (req, reply) => {
+    return handleRazorpayWebhook(req as any, reply as any, app as any);
+  });
 
   const metaWebhook = (await import('./webhooks/meta.router')).default;
   await app.register(metaWebhook, { prefix: '/api/v1/webhooks' });

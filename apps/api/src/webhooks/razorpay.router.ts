@@ -41,35 +41,38 @@ interface RazorpayWebhookBody {
   };
 }
 
-export default async function razorpayWebhookRouter(app: FastifyInstance) {
-  // POST /api/v1/webhooks/razorpay
-  app.post<{ Body: RazorpayWebhookBody }>('/razorpay', async (req: FastifyRequest<{ Body: RazorpayWebhookBody }>, reply: FastifyReply) => {
-    try {
-      const signature = req.headers['x-razorpay-signature'] as string;
-      const secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'dev_secret';
-      
-      // 1. Verify Signature
-      if (signature && process.env.NODE_ENV === 'production') {
-        const bodyText = (req as any).rawBody || JSON.stringify(req.body);
-        const expectedSignature = crypto
-          .createHmac('sha256', secret)
-          .update(bodyText)
-          .digest('hex');
+export async function handleRazorpayWebhook(req: FastifyRequest<{ Body: RazorpayWebhookBody }>, reply: FastifyReply, app: FastifyInstance) {
+  try {
+    const signature = req.headers['x-razorpay-signature'] as string;
+    
+    const key = await app.prisma.integrationKey.findFirst({
+      where: { service: 'RAZORPAY', keyName: 'RAZORPAY_WEBHOOK_SECRET', isActive: true }
+    });
+    const { decrypt } = await import('../settings/integrations.router');
+    const secret = key?.encryptedValue ? decrypt(key.encryptedValue) : (process.env.RAZORPAY_WEBHOOK_SECRET || 'dev_secret');
+    
+    // 1. Verify Signature
+    if (signature && process.env.NODE_ENV === 'production') {
+      const bodyText = (req as any).rawBody || JSON.stringify(req.body);
+      const expectedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(bodyText)
+        .digest('hex');
 
-        if (expectedSignature !== signature) {
-          app.log.warn('Razorpay signature mismatch');
-          return reply.code(400).send({ error: 'Invalid signature' });
-        }
+      if (expectedSignature !== signature) {
+        app.log.warn('Razorpay signature mismatch');
+        return reply.code(400).send({ error: 'Invalid signature' });
       }
+    }
 
-      const event = req.body.event;
-      app.log.info({ event }, 'Received verified Razorpay webhook');
+    const event = req.body.event;
+    app.log.info({ event }, 'Received verified Razorpay webhook');
 
-      switch (event) {
-        case 'payment.captured': {
-          const payment = req.body.payload.payment?.entity;
-          if (payment) {
-            app.log.info(`Payment Captured: ${payment.id} for Order: ${payment.order_id}`);
+    switch (event) {
+      case 'payment.captured': {
+        const payment = req.body.payload.payment?.entity;
+        if (payment) {
+          app.log.info(`Payment Captured: ${payment.id} for Order: ${payment.order_id}`);
             
             if (payment.notes?.invoice_id) {
               const invoice = await app.prisma.invoice.findUnique({
@@ -341,5 +344,10 @@ export default async function razorpayWebhookRouter(app: FastifyInstance) {
       app.log.error(error);
       return reply.code(500).send({ error: 'Webhook processing failed' });
     }
+}
+
+export default async function razorpayWebhookRouter(app: FastifyInstance) {
+  app.post<{ Body: RazorpayWebhookBody }>('/razorpay', async (req, reply) => {
+    return handleRazorpayWebhook(req, reply, app);
   });
 }
