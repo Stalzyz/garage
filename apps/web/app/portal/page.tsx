@@ -17,8 +17,14 @@ export default function ClientPortalLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
+  const [isClient, setIsClient] = useState(false)
+
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (isClient && status === "authenticated" && session?.user) {
       const role = session.user.role
       if (role === 'CLIENT') {
         router.push("/portal/dashboard")
@@ -29,7 +35,9 @@ export default function ClientPortalLogin() {
       }
       router.refresh()
     }
-  }, [status, session, router])
+  }, [status, session, router, isClient])
+
+  if (!isClient) return null
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
