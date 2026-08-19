@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+# Check if SMTP keys exist in DB and patch .env with SMTP credentials
+set timeout 120
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s"
+expect "password:"
+send "Stalinkumar@20\r"
+expect "# "
+
+# Check current .env
+send "cat /root/grekam-os/apps/api/.env\r"
+expect "# "
+
+# Check if SMTP_HOST is already in .env
+send "grep -c SMTP_HOST /root/grekam-os/apps/api/.env 2>/dev/null || echo 0\r"
+expect "# "
+
+# Check what integration keys exist in DB
+send "cd /root/grekam-os/packages/db && node -e \"const {PrismaClient}=require('@prisma/client'); const p=new PrismaClient(); p.integrationKey.findMany({where:{service:'SMTP'}}).then(r=>{console.log(JSON.stringify(r,null,2));p.\$disconnect()})\" 2>/dev/null\r"
+expect "# "
+
+send "pm2 logs grekam-os-api --lines 30 --nostream 2>&1 | head -60\r"
+expect "# "
+
+send "exit\r"
+expect eof

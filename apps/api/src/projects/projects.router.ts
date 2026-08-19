@@ -143,33 +143,53 @@ export default async function projectsRouter(app: FastifyInstance) {
     // Auto-trigger WELCOME_CLIENT email notification to client contact
     (async () => {
       try {
+        app.log.info(`[PROJECT_EMAIL] Project created: ${project.id} | contactId: ${body.contactId || 'none'} | companyId: ${targetCompanyId || 'none'}`);
+        
         let contact: any = null;
         if (body.contactId) {
           contact = await app.prisma.contact.findUnique({
             where: { id: body.contactId },
             include: { company: true }
           });
+          app.log.info(`[PROJECT_EMAIL] Contact lookup by ID: ${JSON.stringify({ id: contact?.id, email: contact?.email })}`);
         } else if (targetCompanyId) {
           contact = await app.prisma.contact.findFirst({
             where: { companyId: targetCompanyId },
             include: { company: true }
           });
+          app.log.info(`[PROJECT_EMAIL] Contact lookup by companyId: ${JSON.stringify({ id: contact?.id, email: contact?.email })}`);
         }
 
-        if (contact && contact.email) {
-          await sendTemplatedEmail(app, {
-            code: 'WELCOME_CLIENT',
-            to: contact.email,
-            data: {
-              clientName: `${contact.firstName} ${contact.lastName}`.trim(),
-              companyName: contact.company?.name || project.name,
-              portalLink: 'https://garage.grekam.in/portal/dashboard',
-              accountManager: 'Grekam Project Manager'
-            }
-          });
+        if (!contact || !contact.email) {
+          app.log.warn(`[PROJECT_EMAIL] No contact/email found — skipping welcome email for project ${project.id}`);
+          return;
+        }
+
+        const clientName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Client';
+        const companyName = contact.company?.name || project.name;
+
+        // Try DB template first
+        const sent = await sendTemplatedEmail(app, {
+          code: 'WELCOME_CLIENT',
+          to: contact.email,
+          data: {
+            clientName,
+            companyName,
+            portalLink: 'https://garage.grekam.in/portal/dashboard',
+            accountManager: 'Grekam Project Manager'
+          }
+        });
+
+        if (!sent) {
+          // Fallback: send direct using hardcoded EmailTemplates
+          app.log.warn(`[PROJECT_EMAIL] DB template send failed, trying direct EmailTemplates fallback`);
+          const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
+          const tmpl = EmailTemplates.dripWelcome(clientName);
+          const result = await sendEmail(contact.email, tmpl);
+          app.log.info(`[PROJECT_EMAIL] Fallback email sent: ${result.messageId} | Preview: ${result.previewUrl}`);
         }
       } catch (err: any) {
-        app.log.warn(`Project client email notification warning: ${err.message}`);
+        app.log.error(`[PROJECT_EMAIL] Failed to send welcome email for project ${project.id}: ${err.message}`);
       }
     })();
 

@@ -39,13 +39,17 @@ async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; 
   let transporter: nodemailer.Transporter;
 
   if (host && user && pass) {
+    console.log(`[EmailService] Using SMTP: ${host}:${port} as ${user.slice(0,5)}...`);
     transporter = nodemailer.createTransport({
       host,
       port,
+      secure: port === 465,
       auth: { user, pass },
+      tls: { rejectUnauthorized: false }
     });
   } else {
     // Ethereal test account — no config needed, check console for preview URL
+    console.log(`[EmailService] SMTP not configured (host=${host}, user=${user ? 'set' : 'missing'}, pass=${pass ? 'set' : 'missing'}) — falling back to Ethereal`);
     const testAccount = await nodemailer.createTestAccount();
     transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',

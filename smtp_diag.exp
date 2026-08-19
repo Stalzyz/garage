@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 120
+set script {
+cat /root/grekam-os/apps/api/.env
+echo "=== SMTP KEYS IN DB ==="
+cd /root/grekam-os/packages/db && node -e "const {PrismaClient}=require('@prisma/client');const p=new PrismaClient();p.integrationKey.findMany({where:{service:'SMTP'}}).then(r=>{console.log('Count:',r.length);r.forEach(k=>console.log(' -',k.keyName));return p.\$disconnect();});" 2>&1
+echo "=== RECENT API LOGS ==="
+pm2 logs grekam-os-api --lines 30 --nostream 2>&1 | tail -40
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
