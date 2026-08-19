@@ -55,7 +55,7 @@ export default async function portalRouter(app: FastifyInstance) {
     const companyId = (req as any).companyId;
     const contactEmail = (req as any).contactEmail;
     
-    // Get projects matching companyId or matching lead proposals for this contact
+    // Get projects matching companyId for this client
     let projects: any[] = [];
     if (companyId) {
       projects = await app.prisma.project.findMany({
@@ -66,24 +66,6 @@ export default async function portalRouter(app: FastifyInstance) {
         },
         orderBy: { createdAt: 'desc' }
       });
-    }
-
-    if (projects.length === 0 && contactEmail) {
-      // Fallback: match projects via client proposals / lead email
-      const leads = await app.prisma.lead.findMany({ where: { email: contactEmail } });
-      const leadIds = leads.map(l => l.id);
-      const proposals = await app.prisma.proposal.findMany({ where: { leadId: { in: leadIds } } });
-      // If client has projects without company link, fetch latest active projects
-      if (proposals.length > 0) {
-        projects = await app.prisma.project.findMany({
-          take: 5,
-          include: {
-            phases: true,
-            tasks: { select: { id: true, status: true } },
-          },
-          orderBy: { createdAt: 'desc' }
-        });
-      }
     }
     
     // Get invoices via projects
