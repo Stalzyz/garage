@@ -3,11 +3,17 @@ import { redirect } from "next/navigation"
 import { SessionProvider } from "next-auth/react"
 import PortalLayoutClient from "./portal-layout-client"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   let session = null
   try {
     session = await auth()
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.digest === 'DYNAMIC_SERVER_USAGE' || err?.message?.includes('DYNAMIC_SERVER_USAGE')) {
+      throw err
+    }
     console.warn("Session check in PortalLayout failed gracefully:", err)
   }
   
