@@ -112,7 +112,7 @@ export const InvoicePDF = ({ invoice, orgName, orgAddress, orgLogoUrl, gstNumber
       <View style={styles.header}>
         <View style={styles.brandBlock}>
           {orgLogoUrl && <Image src={orgLogoUrl} style={styles.logo} />}
-          {!orgLogoUrl && <Text style={styles.brandName}>{orgName}</Text>}
+          <Text style={styles.brandName}>{orgName}</Text>
           {orgAddress && <Text style={styles.brandSub}>{orgAddress}</Text>}
           {gstNumber && <Text style={styles.brandSub}>GSTIN: {gstNumber}</Text>}
         </View>

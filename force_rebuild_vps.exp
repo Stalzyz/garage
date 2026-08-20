@@ -6,7 +6,7 @@ expect "assword:"
 send "Photoshop09@\r"
 expect "#"
 
-send "cd /root/grekam-os && git log -1 --oneline\r"
+send "cd /root/grekam-os && git --no-pager log -1 --oneline\r"
 expect "#"
 
 send "rm -rf apps/web/.next apps/academy-web/.next\r"

@@ -558,6 +558,125 @@ export default async function portalRouter(app: FastifyInstance) {
     return file;
   });
 
+  // POST /api/v1/portal/projects/:projectId/milestones/:milestoneId/pay
+  app.post('/projects/:projectId/milestones/:milestoneId/pay', async (req, reply) => {
+    const { projectId, milestoneId } = req.params as { projectId: string; milestoneId: string };
+    const companyId = (req as any).companyId;
+
+    const project = await app.prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        company: {
+          include: {
+            contacts: { take: 1, orderBy: { createdAt: 'asc' } }
+          }
+        }
+      }
+    });
+
+    if (!project || project.companyId !== companyId) {
+      return reply.forbidden('Access denied');
+    }
+
+    const milestone = await app.prisma.billingMilestone.findUnique({
+      where: { id: milestoneId },
+      include: { invoice: true }
+    });
+
+    if (!milestone) {
+      return reply.notFound('Milestone not found');
+    }
+
+    let invoice = milestone.invoice;
+
+    if (!invoice) {
+      const clientEmail = project.company?.contacts?.[0]?.email || undefined;
+      const clientName = project.company?.name || 'Client';
+
+      invoice = await app.prisma.$transaction(async (tx) => {
+        const inv = await tx.invoice.create({
+          data: {
+            invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+            projectId: project.id,
+            clientName,
+            clientEmail: clientEmail || null,
+            businessUnit: 'AGENCY',
+            subtotal: milestone.amount,
+            totalAmount: milestone.amount,
+            paidAmount: 0,
+            status: 'SENT',
+            currency: 'INR',
+            dueDate: milestone.dueDate || new Date(Date.now() + 7 * 86400000),
+            items: {
+              create: [
+                {
+                  description: milestone.name,
+                  quantity: 1,
+                  unitPrice: milestone.amount,
+                  total: milestone.amount
+                }
+              ]
+            }
+          }
+        });
+
+        await tx.billingMilestone.update({
+          where: { id: milestoneId },
+          data: { invoiceId: inv.id }
+        });
+
+        return inv;
+      });
+    }
+
+    const integrationKeys = await app.prisma.integrationKey.findMany({
+      where: { service: 'RAZORPAY', isActive: true }
+    });
+
+    let keyId = process.env.RAZORPAY_KEY_ID;
+    let keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    const { decrypt } = await import('../settings/integrations.router');
+
+    for (const k of integrationKeys) {
+      if (k.keyName === 'RAZORPAY_KEY_ID') {
+        const val = decrypt(k.encryptedValue);
+        if (val && !val.includes('***')) keyId = val;
+      }
+      if (k.keyName === 'RAZORPAY_KEY_SECRET') {
+        const val = decrypt(k.encryptedValue);
+        if (val && !val.includes('***')) keySecret = val;
+      }
+    }
+
+    const isLive = !!keyId && keyId.startsWith('rzp_') && keyId !== 'rzp_test_mock';
+
+    if (isLive) {
+      const { paymentsService } = await import('../integrations/payments.service');
+      const res = await paymentsService.createRazorpayOrder(
+        invoice.totalAmount,
+        invoice.currency,
+        invoice.invoiceNumber,
+        keyId && keySecret ? { keyId, keySecret } : undefined
+      );
+      if (res.success && res.order) {
+        return {
+          isLive: true,
+          keyId: keyId,
+          orderId: res.order.id,
+          amount: res.order.amount,
+          currency: res.order.currency,
+          clientName: invoice.clientName,
+          clientEmail: invoice.clientEmail
+        };
+      } else {
+        return reply.badRequest(`Payment initialization failed: ${res.error || 'Unknown error'}`);
+      }
+    }
+
+    return { isLive: false, sandboxMode: true };
+  });
+
   // POST /api/v1/portal/proposals/:proposalId/comments
   app.post('/proposals/:proposalId/comments', async (req, reply) => {
     const { proposalId } = req.params as { proposalId: string };
