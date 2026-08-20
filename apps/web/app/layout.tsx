@@ -82,15 +82,17 @@ export default function RootLayout({
         <Script id="chunk-error-handler" strategy="beforeInteractive">{`
           (function() {
             window.addEventListener('error', function(e) {
-              var msg = e && e.message ? e.message : '';
-              if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('CSS_CHUNK_LOAD_FAILED') !== -1) {
-                var key = 'last_chunk_reload';
-                var lastReload = parseInt(sessionStorage.getItem(key) || '0', 10);
-                if (Date.now() - lastReload > 10000) {
-                  sessionStorage.setItem(key, Date.now().toString());
-                  window.location.reload(true);
+              try {
+                var msg = e && e.message ? e.message : '';
+                if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('CSS_CHUNK_LOAD_FAILED') !== -1) {
+                  var key = 'last_chunk_reload';
+                  var lastReload = parseInt(sessionStorage.getItem(key) || '0', 10);
+                  if (Date.now() - lastReload > 10000) {
+                    sessionStorage.setItem(key, Date.now().toString());
+                    window.location.reload(true);
+                  }
                 }
-              }
+              } catch (err) {}
             }, true);
           })();
         `}</Script>
