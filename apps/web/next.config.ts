@@ -29,6 +29,23 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Portal pages — NEVER cache HTML to prevent stale chunk errors on deployment
+        source: '/portal/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
+        source: '/portal',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
         // Static assets — aggressive long-term caching
         source: '/_next/static/:path*',
         headers: [
