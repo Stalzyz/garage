@@ -12,12 +12,13 @@ import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motio
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false)
   useEffect(() => {
+    if (typeof window === 'undefined') return
     const media = window.matchMedia(query)
-    if (media.matches !== matches) setMatches(media.matches)
-    const listener = () => setMatches(media.matches)
-    window.addEventListener("resize", listener)
-    return () => window.removeEventListener("resize", listener)
-  }, [matches, query])
+    setMatches(media.matches)
+    const listener = (e: MediaQueryListEvent) => setMatches(e.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [query])
   return matches
 }
 
@@ -367,6 +368,14 @@ export default function SplitReality() {
   
 
   useEffect(() => {
+    // Detect mobile/touch device — redirect to portal directly
+    // The interactive split-screen canvas homepage is desktop-only
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768
+    if (isTouchDevice) {
+      router.replace('/portal')
+      return
+    }
+
     setIsClient(true)
     const keyMap: Record<string, "blueprint" | "sketch" | "print"> = { d: "blueprint", s: "sketch", p: "print" }
     const onKey = (e: KeyboardEvent) => {
