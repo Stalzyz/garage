@@ -17,6 +17,12 @@ export default function ClientPortalLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotSuccess, setForgotSuccess] = useState("")
+  const [forgotError, setForgotError] = useState("")
+  const [isForgotLoading, setIsForgotLoading] = useState(false)
+
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -33,11 +39,8 @@ export default function ClientPortalLogin() {
       } else {
         router.push("/dashboard")
       }
-      router.refresh()
     }
   }, [status, session, router, isClient])
-
-  if (!isClient) return null
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,7 +70,6 @@ export default function ClientPortalLogin() {
         } else {
           router.push("/dashboard")
         }
-        router.refresh()
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.")
@@ -75,12 +77,6 @@ export default function ClientPortalLogin() {
       setIsLoading(false)
     }
   }
-
-  const [isForgotPassword, setIsForgotPassword] = useState(false)
-  const [forgotEmail, setForgotEmail] = useState("")
-  const [forgotSuccess, setForgotSuccess] = useState("")
-  const [forgotError, setForgotError] = useState("")
-  const [isForgotLoading, setIsForgotLoading] = useState(false)
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
