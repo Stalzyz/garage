@@ -8,6 +8,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 4000,
         AUTH_SECRET: 'HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=',
+        DATABASE_URL: 'postgresql://postgres:Photoshop09%40@localhost:5432/grekam_os?schema=public',
       },
     },
     {
@@ -22,6 +23,7 @@ module.exports = {
         NEXTAUTH_URL: 'https://garage.grekam.in',
         AUTH_TRUST_HOST: 'true',
         AUTH_SECRET: 'HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=',
+        DATABASE_URL: 'postgresql://postgres:Photoshop09%40@localhost:5432/grekam_os?schema=public',
       },
     },
     {
