@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { LessonType } from "@prisma/client"
+import { LessonType } from "@grekam/db"
 
 export async function createModule(lmsCourseId: string, title: string) {
   // Find max sortOrder

@@ -1,9 +1,8 @@
 #!/usr/bin/expect -f
-set timeout 60
+set timeout 30
 set script {
-cat /etc/nginx/sites-enabled/* | grep -C 5 "proxy_pass"
-echo "=== NGINX ERROR LOG ==="
-tail -n 30 /var/log/nginx/error.log
+curl -k -s -o /dev/null -w "%{http_code}\n" https://garage.grekam.in/portal/dashboard
+curl -k -s -o /dev/null -w "%{http_code}\n" https://garage.grekam.in/api/v1/portal/dashboard
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

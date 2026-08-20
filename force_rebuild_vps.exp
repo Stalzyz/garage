@@ -1,67 +1,43 @@
 #!/usr/bin/expect -f
 set timeout 900
 
-puts "\n======================================"
-puts "  FORCE REBUILD & RESTART ON VPS     "
-puts "======================================"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "assword:"
+send "Photoshop09@\r"
+expect "#"
 
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash -s"
-expect {
-  "assword:" {
-    send "Photoshop09@\r"
-  }
-}
+send "cd /root/grekam-os && git log -1 --oneline\r"
+expect "#"
 
-send {
-set -e
-cd /root/grekam-os
+send "rm -rf apps/web/.next apps/academy-web/.next\r"
+expect "#"
 
-echo ""
-echo "==> Confirming latest commit..."
-git log -1 --oneline
+send "pnpm install --frozen-lockfile\r"
+expect "#"
 
-echo ""
-echo "==> [1] Clean Next.js build caches..."
-rm -rf apps/web/.next apps/academy-web/.next
+send "pnpm --filter=web build\r"
+expect "#"
 
-echo ""
-echo "==> [2] Installing dependencies (frozen)..."
-pnpm install --frozen-lockfile 2>&1 | tail -3
+send "cp -rf apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true\r"
+expect "#"
+send "cp -rf apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true\r"
+expect "#"
 
-echo ""
-echo "==> [3] Building apps/web (fresh)..."
-pnpm --filter=web build 2>&1 | tail -10
+send "pnpm --filter=academy-web build\r"
+expect "#"
+send "cp -rf apps/academy-web/.next/static apps/academy-web/.next/standalone/apps/academy-web/.next/ 2>/dev/null || true\r"
+expect "#"
+send "cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-web/ 2>/dev/null || true\r"
+expect "#"
 
-echo ""
-echo "==> [4] Copying static assets to standalone..."
-cp -rf apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
-cp -rf apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
-echo "Static assets copied."
+send "pm2 restart grekam-os-api grekam-os-web academy-web\r"
+expect "#"
 
-echo ""
-echo "==> [5] Building apps/academy-web (fresh)..."
-pnpm --filter=academy-web build 2>&1 | tail -5
-cp -rf apps/academy-web/.next/static apps/academy-web/.next/standalone/apps/academy-web/.next/ 2>/dev/null || true
-cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-web/ 2>/dev/null || true
-echo "Academy static assets copied."
+send "pm2 save\r"
+expect "#"
 
-echo ""
-echo "==> [6] Restarting PM2 processes..."
-pm2 restart grekam-os-api  || echo "api restart failed"
-pm2 restart grekam-os-web  || echo "web restart failed"
-pm2 restart academy-web    || echo "academy restart failed"
+send "pm2 status\r"
+expect "#"
 
-pm2 save
-
-echo ""
-echo "==> [7] Final PM2 status:"
-pm2 status
-
-echo ""
-echo "======================================"
-echo "  REBUILD & RESTART COMPLETE!"
-echo "======================================"
-}
-
-send "\x04"
+send "exit\r"
 expect eof

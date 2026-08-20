@@ -262,7 +262,7 @@ export default function EstimatesDashboard() {
         {editingEst && (
           <form onSubmit={(e) => {
             e.preventDefault()
-            setEstimatesList(estimatesList.map(est => est.id === editingEst.id ? editingEst : est))
+            mutate()
             toast.success("Estimate updated successfully")
             setEditingEst(null)
           }} className="space-y-5">

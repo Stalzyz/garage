@@ -1,17 +1,49 @@
 #!/usr/bin/expect -f
-set timeout 60
+set timeout 30
 set script {
-cd /root/grekam-os/packages/db && node -e "
-const {PrismaClient}=require('@prisma/client');
-const p=new PrismaClient();
-p.integrationKey.findMany().then(keys => {
-  console.log('KEYS:', keys.map(k => ({ id: k.id, service: k.service, keyName: k.keyName, isActive: k.isActive })));
-  p.\$disconnect();
-}).catch(err => {
-  console.error(err);
-  p.\$disconnect();
-});
-"
+cd /root/grekam-os/apps/api && node -e '
+const { PrismaClient } = require("../../packages/db");
+' 2>/dev/null || cd /root/grekam-os/apps/api && node -e '
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+const crypto = require("crypto");
+const ALGORITHM = "aes-256-cbc";
+const SECRET = (process.env.ENCRYPTION_SECRET || "grekam-os-default-secret-32bytes!").slice(0, 32);
+
+function decrypt(text) {
+  try {
+    const [ivHex, encryptedHex] = text.split(":");
+    const iv = Buffer.from(ivHex, "hex");
+    const encrypted = Buffer.from(encryptedHex, "hex");
+    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(SECRET), iv);
+    let decrypted = decipher.update(encrypted);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch (e) {
+    return "DECRYPT_ERROR: " + e.message;
+  }
+}
+
+async function run() {
+  const keys = await prisma.integrationKey.findMany();
+  console.log("DB KEYS COUNT:", keys.length);
+  for (const k of keys) {
+    console.log(k.service, k.keyName, "decrypted ->", decrypt(k.encryptedValue));
+  }
+  const invoices = await prisma.invoice.findMany({ take: 5 });
+  console.log("INVOICES COUNT:", invoices.length);
+  for (const i of invoices) {
+    console.log("Invoice:", i.id, i.invoiceNumber, i.totalAmount, i.status);
+  }
+  const channels = await prisma.chatChannel.findMany({ include: { participants: true, messages: true } });
+  console.log("CHANNELS COUNT:", channels.length);
+  for (const c of channels) {
+    console.log("Channel:", c.id, c.name, "participants:", c.participants.length, "messages:", c.messages.length);
+  }
+  process.exit(0);
+}
+run();
+'
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

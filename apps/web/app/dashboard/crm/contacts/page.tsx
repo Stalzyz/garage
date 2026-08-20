@@ -27,6 +27,7 @@ export default function ContactsPage() {
     email: "",
     phone: "",
     companyId: "",
+    newCompanyName: "",
     tier: "BRONZE"
   })
 
@@ -187,7 +188,7 @@ export default function ContactsPage() {
                 onChange={handleCsvImport}
               />
             </label>
-            <button onClick={() => { setEditingContactId(null); setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", tier: "BRONZE" }); setIsAddOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+            <button onClick={() => { setEditingContactId(null); setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "", newCompanyName: "", tier: "BRONZE" }); setIsAddOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
               <Plus className="w-4 h-4" /> Add Contact
             </button>
           </div>

@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import {
   Zap, LogOut, Briefcase, FileText, CheckCircle,
   Clock, Download, MessageSquare, Bell, ChevronRight,
   Package, Star, AlertCircle, ExternalLink, GraduationCap, PlayCircle,
-  CreditCard, Landmark, Eye, LifeBuoy, X, Loader2, Calendar, UploadCloud, Layers
+  CreditCard, Landmark, Eye, LifeBuoy, X, Loader2, Calendar, UploadCloud, Layers, Send
 } from "lucide-react"
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
@@ -270,6 +271,41 @@ export default function ClientDashboard() {
       toast.error("Failed to send message")
     } finally {
       setIsSendingChat(false)
+    }
+  }
+
+  const handlePayInstallment = async (projectId: string, milestone: any) => {
+    if (!milestone?.invoice?.id && !milestone?.id) {
+      toast.error("No invoice linked to this milestone")
+      return
+    }
+    // Use the linked invoice id if available, otherwise fall back to milestone-based payment
+    const invoiceId = milestone?.invoice?.id || null
+    if (invoiceId) {
+      setPaymentTarget({ invoiceId, amount: milestone.amount })
+      setShowPaymentModal(true)
+    } else {
+      // No invoice yet - use gateway directly with milestone amount
+      setPayingId(milestone.id)
+      try {
+        const res = await fetchApi<any>(`/portal/projects/${projectId}/milestones/${milestone.id}/pay`, {
+          method: 'POST',
+          body: JSON.stringify({})
+        })
+        if (res?.sandboxMode) {
+          setSandboxInvoice({ id: milestone.id, total: milestone.amount, number: milestone.name })
+          setShowSandbox(true)
+        } else {
+          toast.success("Payment initiated!")
+          mutate()
+        }
+      } catch (err: any) {
+        // Fallback: open PaymentModal with the milestone amount
+        setPaymentTarget({ invoiceId: milestone.id, amount: milestone.amount })
+        setShowPaymentModal(true)
+      } finally {
+        setPayingId(null)
+      }
     }
   }
 
@@ -1282,6 +1318,21 @@ export default function ClientDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── SUPPORT ── */}
+        {tab === "support" && (
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/8">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <LifeBuoy className="w-6 h-6 text-violet-400" /> Support &amp; Help Desk
+                </h2>
+                <p className="text-xs text-white/40 mt-1">Create and track support tickets. Our team usually responds within 4 business hours.</p>
+              </div>
+            </div>
+            <SupportTickets />
           </div>
         )}
 

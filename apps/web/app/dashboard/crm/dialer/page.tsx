@@ -313,7 +313,7 @@ export default function PowerDialerDashboard() {
             </div>
             <div className="flex-1 overflow-y-auto p-2">
               <div className="space-y-1">
-                {queue.map((lead, i) => (
+                {queue.map((lead: any, i: any) => (
                   <div key={lead.id} className={`p-3 rounded-xl border flex items-center gap-3 transition-colors ${
                     i === queuePos ? 'bg-primary/10 border-primary/30' : 
                     i < queuePos ? 'bg-muted/30 border-transparent opacity-50' : 
@@ -358,7 +358,7 @@ export default function PowerDialerDashboard() {
                 callState === "dialing" ? "bg-primary/20 text-primary shadow-[0_0_40px_rgba(139,92,246,0.3)] animate-pulse" :
                 "bg-muted text-muted-foreground"
               }`}>
-                {activeLead.name.split(" ").map(n => n[0]).join("")}
+                {activeLead.name.split(" ").map((n: any) => n[0]).join("")}
               </div>
 
               <h2 className="text-3xl font-bold text-foreground mb-1">{activeLead.name}</h2>

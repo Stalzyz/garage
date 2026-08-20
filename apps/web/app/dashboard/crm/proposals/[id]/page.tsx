@@ -85,7 +85,7 @@ export default function ProposalDetailPage() {
     if (!window.confirm("Duplicate this proposal?")) return;
     try {
       const duplicated = await fetchApi(`/crm/proposals/${proposalId}/duplicate`, { method: "POST" });
-      window.location.href = `/dashboard/crm/proposals/${duplicated.id}/edit`;
+      window.location.href = `/dashboard/crm/proposals/${(duplicated as any).id}/edit`;
     } catch (err: any) {
       console.error(err);
       alert("Failed to duplicate.");

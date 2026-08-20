@@ -695,9 +695,9 @@ export default function CRMDashboard() {
                         <th className="p-4 w-12 text-center">
                           <input 
                             type="checkbox"
-                            checked={group.list.length > 0 && group.list.every(l => selectedLeadIds.includes(l.id))}
+                            checked={group.list.length > 0 && group.list.every((l: any) => selectedLeadIds.includes(l.id))}
                             onChange={(e) => {
-                              const leadIds = group.list.map(l => l.id);
+                              const leadIds = group.list.map((l: any) => l.id);
                               if (e.target.checked) {
                                 setSelectedLeadIds(prev => Array.from(new Set([...prev, ...leadIds])));
                               } else {

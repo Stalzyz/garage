@@ -208,7 +208,7 @@ export default function ExpensesPage() {
 
       {/* Add Expense Modal */}
       <SlideOver
-        isOpen={isAddOpen}
+        open={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         title="New Expense"
       >

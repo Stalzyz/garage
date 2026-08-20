@@ -89,7 +89,7 @@ export default function RevenueDashboard() {
 
         {/* Revenue Streams Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {REVENUE_STREAMS.map(stream => (
+          {REVENUE_STREAMS.map((stream: any) => (
             <div key={stream.id} className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm relative overflow-hidden group hover:border-primary/50 transition-colors">
               <div className={`absolute top-0 right-0 w-24 h-24 ${stream.color} opacity-5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
               

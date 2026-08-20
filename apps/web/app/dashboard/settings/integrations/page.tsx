@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Plug, Zap, Video, Mail, CreditCard, Save, CheckCircle2, Webhook, Plus, Trash2, Loader2, Eye, EyeOff, X, KeyRound } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 
-type Service = "RAZORPAY" | "PHONEPE" | "STRIPE" | "SMTP" | "WHATSAPP" | "GOOGLE"
+type Service = "RAZORPAY" | "PHONEPE" | "STRIPE" | "SMTP" | "WHATSAPP" | "GOOGLE" | "OPENAI"
 
 interface IntegrationKey {
   id: string
