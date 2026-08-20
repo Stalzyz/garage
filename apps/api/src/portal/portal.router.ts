@@ -47,10 +47,26 @@ export default async function portalRouter(app: FastifyInstance) {
       }
     }
     
-    // Attach companyId and contactId to request for easy access in handlers
+    // Ensure Student record exists
+    let student = await app.prisma.student.findUnique({
+      where: { userId: req.user.id }
+    });
+    if (!student) {
+      const studentCode = `GRA-${new Date().getFullYear() % 100}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      student = await app.prisma.student.create({
+        data: {
+          userId: req.user.id,
+          studentCode,
+          deliveryMode: 'ONLINE'
+        }
+      });
+    }
+
+    // Attach companyId, contactId, and studentId to request for easy access in handlers
     (req as any).companyId = profile.contact?.companyId || null;
     (req as any).contactId = profile.contact?.id || null;
     (req as any).contactEmail = profile.contact?.email || req.user.email;
+    (req as any).studentId = student.id;
   });
 
   // GET /api/v1/portal/me — get authenticated client profile info
@@ -68,6 +84,7 @@ export default async function portalRouter(app: FastifyInstance) {
     return {
       id: req.user.id,
       contactId: contact.id,
+      studentId: (req as any).studentId,
       firstName: contact.firstName,
       lastName: contact.lastName,
       name: `${contact.firstName} ${contact.lastName}`,

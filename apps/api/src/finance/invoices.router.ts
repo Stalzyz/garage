@@ -368,6 +368,9 @@ export default async function invoicesRouter(app: FastifyInstance) {
           clientName: invoice.clientName,
           clientEmail: invoice.clientEmail
         };
+      } else {
+        app.log.error({ error: res.error }, 'Razorpay order creation failed');
+        return reply.badRequest(`Razorpay payment initiation failed: ${res.error || 'Unknown error'}`);
       }
     }
 
@@ -388,8 +391,8 @@ export default async function invoicesRouter(app: FastifyInstance) {
     const newPaidAmount = invoice.paidAmount + amount;
     const isFullyPaid = newPaidAmount >= invoice.totalAmount;
 
-    const [payment, updatedInvoice] = await app.prisma.$transaction([
-      app.prisma.payment.create({
+    const [payment, updatedInvoice] = await app.prisma.$transaction(async (tx) => {
+      const pm = await tx.payment.create({
         data: {
           invoiceId: id,
           amount,
@@ -398,15 +401,48 @@ export default async function invoicesRouter(app: FastifyInstance) {
           notes,
           paidAt: new Date(),
         }
-      }),
-      app.prisma.invoice.update({
+      });
+
+      const inv = await tx.invoice.update({
         where: { id },
         data: {
           paidAmount: newPaidAmount,
           status: isFullyPaid ? 'PAID' : 'PARTIALLY_PAID'
         }
-      })
-    ]);
+      });
+
+      // Update milestone status if applicable
+      const milestone = await tx.billingMilestone.findFirst({
+        where: { invoiceId: id }
+      });
+      if (milestone) {
+        await tx.billingMilestone.update({
+          where: { id: milestone.id },
+          data: { status: isFullyPaid ? 'PAID' : 'INVOICED' }
+        });
+      }
+
+      return [pm, inv] as const;
+    });
+
+    // Send email notification to client
+    if (updatedInvoice.clientEmail) {
+      try {
+        const receiptTemplate = EmailTemplates.invoiceDue(
+          updatedInvoice.clientName,
+          updatedInvoice.invoiceNumber,
+          amount,
+          new Date().toLocaleDateString()
+        );
+        await sendEmail(updatedInvoice.clientEmail, {
+          ...receiptTemplate,
+          subject: `Payment Receipt: ${updatedInvoice.invoiceNumber} — Thank you!`,
+          html: receiptTemplate.html?.replace('Payment Due', 'Payment Received — Thank You!') || receiptTemplate.html,
+        } as any);
+      } catch (emailErr) {
+        app.log.warn({ emailErr }, 'Failed to send manual payment receipt email');
+      }
+    }
 
     return { success: true, payment, invoice: updatedInvoice };
   });

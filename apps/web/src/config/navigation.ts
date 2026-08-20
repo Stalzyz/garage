@@ -166,7 +166,7 @@ export const navigation: NavItem[] = [
     title: "Chat Hub",
     href: "/dashboard/chat",
     icon: MessageSquare,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "STUDENT"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "STUDENT", "CLIENT", "VENDOR"],
   },
   {
     title: "Asset Drive",

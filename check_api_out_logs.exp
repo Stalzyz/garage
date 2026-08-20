@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-cat /root/.pm2/logs/grekam-os-api-out.log | tail -100
+grep -i "Razorpay" /root/.pm2/logs/grekam-os-api-out* | tail -n 100
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

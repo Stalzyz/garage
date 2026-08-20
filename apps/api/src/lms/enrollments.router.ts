@@ -209,9 +209,23 @@ export default async function enrollmentsRoutes(app: FastifyInstance) {
     try {
       // Dynamic import to avoid issues if module isn't strictly required everywhere
       const Razorpay = (await import('razorpay')).default;
+      
+      const integrationKeys = await server.prisma.integrationKey.findMany({
+        where: { service: 'RAZORPAY', isActive: true }
+      });
+
+      let keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_mock_key';
+      let keySecret = process.env.RAZORPAY_KEY_SECRET || 'mock_secret';
+
+      const { decrypt } = await import('../settings/integrations.router');
+      for (const k of integrationKeys) {
+        if (k.keyName === 'RAZORPAY_KEY_ID') keyId = decrypt(k.encryptedValue);
+        if (k.keyName === 'RAZORPAY_KEY_SECRET') keySecret = decrypt(k.encryptedValue);
+      }
+
       const rzp = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock_key',
-        key_secret: process.env.RAZORPAY_KEY_SECRET || 'mock_secret'
+        key_id: keyId,
+        key_secret: keySecret
       });
 
       const order = await rzp.orders.create({
@@ -229,7 +243,7 @@ export default async function enrollmentsRoutes(app: FastifyInstance) {
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
-        key: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock_key'
+        key: keyId
       });
     } catch (err) {
       server.log.error(err, "Failed to create Razorpay Order");

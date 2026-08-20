@@ -1,7 +1,17 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-cat /root/grekam-os/apps/api/.env
+cd /root/grekam-os/packages/db && node -e "
+const {PrismaClient}=require('@prisma/client');
+const p=new PrismaClient();
+p.student.findMany({ include: { user: true } }).then(students => {
+  console.log('STUDENTS:', students.map(s => ({ id: s.id, userId: s.userId, code: s.studentCode, email: s.user.email })));
+  p.\$disconnect();
+}).catch(err => {
+  console.error(err);
+  p.\$disconnect();
+});
+"
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

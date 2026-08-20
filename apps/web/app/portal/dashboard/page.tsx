@@ -31,7 +31,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   BRIEFING:   { label: "Briefing",      color: "text-slate-400 bg-slate-400/10 border-slate-400/20" },
 }
 
-type TabId = "overview" | "projects" | "invoices" | "proposals" | "courses" | "support"
+type TabId = "overview" | "projects" | "invoices" | "proposals" | "courses" | "chat" | "support"
 
 export default function ClientDashboard() {
   const { data: session, status } = useSession()
@@ -70,6 +70,25 @@ export default function ClientDashboard() {
   const { data: invoices, error: invError, isLoading: invLoading, mutate: invMutate } = useApi<any>("/portal/invoices")
   const { data: proposals, error: propError, isLoading: propLoading, mutate: propMutate } = useApi<any>("/portal/proposals")
   const { data: notifications = [], error: notifError, mutate: notifMutate } = useApi<any>("/portal/notifications")
+  const { data: catalogData, mutate: mutateCatalog } = useApi<any>("/lms/courses")
+  const { data: enrollmentsData, mutate: mutateEnrollments } = useApi<any>("/lms/enrollments/my")
+
+  // Courses & Chat State
+  const [coursesSubTab, setCoursesSubTab] = useState<"my" | "catalog">("my")
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
+  const { data: chatChannelsData, mutate: mutateChannels } = useApi<any>("/chat/channels")
+  const channels = chatChannelsData?.channels || []
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null)
+  const [chatMessage, setChatMessage] = useState("")
+  const [isSendingChat, setIsSendingChat] = useState(false)
+
+  const activeChannel = channels.find((c: any) => c.id === activeChannelId) || channels[0]
+  const currentChannelId = activeChannelId || activeChannel?.id || null
+  const { data: messagesData, mutate: mutateMessages } = useApi<any>(currentChannelId ? `/chat/channels/${currentChannelId}/messages` : null)
+  const chatMessages = messagesData?.messages || []
+
+  const catalogCourses = catalogData?.courses || []
+  const myEnrollments = enrollmentsData?.enrollments || []
 
   const mutate = () => {
     dashMutate()
@@ -77,6 +96,10 @@ export default function ClientDashboard() {
     invMutate()
     propMutate()
     notifMutate()
+    mutateCatalog()
+    mutateEnrollments()
+    mutateChannels()
+    mutateMessages()
   }
 
   useEffect(() => {
@@ -130,8 +153,21 @@ export default function ClientDashboard() {
           theme: {
             color: "#6d28d9"
           },
-          handler: function (response: any) {
+          handler: async function (response: any) {
             toast.success("Payment completed successfully!")
+            try {
+              await fetchApi(`/finance/invoices/${invoiceId}/payments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  amount: res.amount / 100,
+                  method: 'RAZORPAY',
+                  transactionId: response.razorpay_payment_id || response.razorpay_order_id,
+                  notes: `Online Razorpay Payment: ${response.razorpay_payment_id || ''}`
+                })
+              })
+            } catch (e) {
+              console.warn("Payment confirmation captured by webhook", e)
+            }
             mutate()
           },
           modal: {
@@ -162,30 +198,78 @@ export default function ClientDashboard() {
     setShowPaymentModal(true);
   }
 
-  const handlePayInstallment = async (projectId: string, milestone: any) => {
+  const handleEnrollInCourse = async (course: any) => {
+    setEnrollingCourseId(course.id)
     try {
-      let invoiceId = milestone.invoiceId
-      let targetAmount = milestone.amount;
-      
-      if (!invoiceId) {
-        toast.info("Generating invoice for installment...")
-        const genRes = await fetchApi<any>(`/projects/${projectId}/billing-milestones/${milestone.id}/generate-invoice`, {
-          method: 'POST',
-          body: JSON.stringify({})
+      const res = await fetchApi<any>("/lms/enrollments", {
+        method: "POST",
+        body: JSON.stringify({
+          courseId: course.id,
+          studentId: profileMe?.studentId || profileMe?.id
         })
-        if (genRes?.success && genRes.invoice) {
-          invoiceId = genRes.invoice.id
-          targetAmount = genRes.invoice.total || milestone.amount;
-          toast.success("Invoice generated successfully!")
-        } else {
-          throw new Error("Failed to generate invoice for this installment")
+      })
+
+      if (res.requiresPayment) {
+        const scriptLoaded = await loadRazorpayScript()
+        if (!scriptLoaded) {
+          toast.error("Failed to load Razorpay Payment gateway.")
+          return
         }
+
+        const options = {
+          key: res.key,
+          amount: res.amount,
+          currency: res.currency || "INR",
+          name: org.name || "Grekam Academy",
+          description: `Enrollment: ${course.course?.name || "Course"}`,
+          order_id: res.orderId,
+          prefill: {
+            name: profileMe?.name || "",
+            email: profileMe?.email || ""
+          },
+          theme: {
+            color: "#4f46e5"
+          },
+          handler: function () {
+            toast.success("Payment successful! You are enrolled in the course.")
+            mutate()
+            setCoursesSubTab("my")
+          },
+          modal: {
+            ondismiss: function () {
+              toast.info("Payment cancelled")
+            }
+          }
+        }
+
+        const rzp = new (window as any).Razorpay(options)
+        rzp.open()
+      } else {
+        toast.success("Successfully enrolled in course!")
+        mutate()
+        setCoursesSubTab("my")
       }
-      
-      setPaymentTarget({ invoiceId, amount: targetAmount })
-      setShowPaymentModal(true)
     } catch (err: any) {
-      toast.error(err.message || "Installment payment failed")
+      toast.error(err.message || "Failed to enroll in course")
+    } finally {
+      setEnrollingCourseId(null)
+    }
+  }
+
+  const handleSendChatMessage = async () => {
+    if (!chatMessage.trim() || !currentChannelId) return
+    setIsSendingChat(true)
+    try {
+      await fetchApi(`/chat/channels/${currentChannelId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content: chatMessage })
+      })
+      setChatMessage("")
+      mutateMessages()
+    } catch (err: any) {
+      toast.error("Failed to send message")
+    } finally {
+      setIsSendingChat(false)
     }
   }
 
@@ -332,8 +416,9 @@ export default function ClientDashboard() {
     { id: "projects",  label: "Projects",  icon: Briefcase },
     { id: "invoices",  label: "Invoices",  icon: FileText },
     { id: "proposals", label: "Proposals", icon: CheckCircle },
-    { id: "support",   label: "Support",   icon: LifeBuoy },
     { id: "courses",   label: "Courses",   icon: GraduationCap },
+    { id: "chat",      label: "Team Chat", icon: MessageSquare },
+    { id: "support",   label: "Support",   icon: LifeBuoy },
   ]
 
   const handlePayment = (method: 'stripe' | 'razorpay' | 'bank', milestoneId: string, amount: number) => {
@@ -739,7 +824,7 @@ export default function ClientDashboard() {
               <button onClick={() => setShowBookingModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors">
                 <Calendar className="w-3.5 h-3.5" /> Book Call
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
+              <button onClick={() => setTab("chat")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
                 <MessageSquare className="w-3.5 h-3.5" /> Message Team
               </button>
             </div>
@@ -875,21 +960,286 @@ export default function ClientDashboard() {
           </div>
         )}
 
-        {/* ── COURSES (STUDENT PORTAL) ── */}
+        {/* ── COURSES (STUDENT / CLIENT LMS PORTAL) ── */}
         {tab === "courses" && (
           <div className="space-y-6">
-            <div className="flex items-center gap-2 mb-2">
-              <GraduationCap className="w-5 h-5 text-indigo-400" />
-              <h2 className="text-xl font-bold text-white">My Academy Courses</h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/8">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <GraduationCap className="w-6 h-6 text-indigo-400" /> Academy & LMS Courses
+                </h2>
+                <p className="text-xs text-white/40 mt-1">Explore interactive courses, modules, and track your learning progress.</p>
+              </div>
+
+              {/* Sub-tab Switcher */}
+              <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-fit">
+                <button
+                  onClick={() => setCoursesSubTab("my")}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    coursesSubTab === "my"
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  My Courses ({myEnrollments.length})
+                </button>
+                <button
+                  onClick={() => setCoursesSubTab("catalog")}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    coursesSubTab === "catalog"
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  Course Catalog ({catalogCourses.length})
+                </button>
+              </div>
             </div>
-            
-            <div className="bg-[#14141f] border border-white/8 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-              <GraduationCap className="w-12 h-12 text-white/10 mb-4" />
-              <h3 className="text-lg font-bold text-white">No courses yet</h3>
-              <p className="text-white/40 mt-1">You aren't enrolled in any Academy courses.</p>
-              <button className="mt-6 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition-colors">
-                Browse Catalog
-              </button>
+
+            {/* Sub-tab 1: My Enrolled Courses */}
+            {coursesSubTab === "my" && (
+              <div>
+                {myEnrollments.length === 0 ? (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
+                    <GraduationCap className="w-12 h-12 text-indigo-400/20 mb-4" />
+                    <h3 className="text-lg font-bold text-white">No active enrollments yet</h3>
+                    <p className="text-white/40 mt-1 max-w-sm text-xs">
+                      You haven't enrolled in any Academy courses. Browse our curated course catalog to get started.
+                    </p>
+                    <button
+                      onClick={() => setCoursesSubTab("catalog")}
+                      className="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+                    >
+                      <PlayCircle className="w-4 h-4" /> Browse Course Catalog
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {myEnrollments.map((enr: any) => {
+                      const course = enr.batch?.course;
+                      const lmsCourse = course?.lmsCourse;
+                      const progress = enr.completionPct || 0;
+                      return (
+                        <div key={enr.id} className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-indigo-500/30 transition-all group">
+                          <div>
+                            <div className="h-40 bg-gradient-to-br from-indigo-950/40 via-purple-950/20 to-[#14141f] p-5 flex flex-col justify-between border-b border-white/5 relative overflow-hidden">
+                              {lmsCourse?.thumbnail ? (
+                                <img src={lmsCourse.thumbnail} alt={course?.name} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity" />
+                              ) : null}
+                              <div className="relative z-10 flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  {enr.status || 'ACTIVE'}
+                                </span>
+                                <span className="text-xs font-mono text-white/50">{course?.code}</span>
+                              </div>
+                              <h3 className="relative z-10 text-base font-bold text-white line-clamp-1">{course?.name}</h3>
+                            </div>
+
+                            <div className="p-5 space-y-4">
+                              <p className="text-xs text-white/60 line-clamp-2">{course?.description || "Comprehensive hands-on training module."}</p>
+                              
+                              <div>
+                                <div className="flex justify-between text-xs font-bold mb-1.5">
+                                  <span className="text-white/40">Progress</span>
+                                  <span className="text-indigo-400">{progress}%</span>
+                                </div>
+                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                  <div className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between text-[11px] text-white/40 pt-2 border-t border-white/5">
+                                <span>Duration: {course?.duration || 'Self-paced'}</span>
+                                <span>Batch: {enr.batch?.name || 'Online Cohort'}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-5 pt-0">
+                            <a
+                              href={`/dashboard/lms/courses/${lmsCourse?.id || course?.id}`}
+                              className="w-full py-2.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-indigo-500/30 transition-all"
+                            >
+                              <PlayCircle className="w-4 h-4" /> Continue Learning
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-tab 2: Course Catalog */}
+            {coursesSubTab === "catalog" && (
+              <div>
+                {catalogCourses.length === 0 ? (
+                  <div className="bg-[#14141f] border border-white/8 rounded-2xl p-12 text-center text-white/40 text-sm">
+                    No courses currently published in the catalog.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {catalogCourses.map((c: any) => {
+                      const course = c.course || c;
+                      const isEnrolled = myEnrollments.some((enr: any) => enr.batch?.courseId === course.id || enr.batch?.course?.id === course.id);
+                      const isEnrolling = enrollingCourseId === c.id;
+                      const fee = course.fee || 0;
+
+                      return (
+                        <div key={c.id} className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-indigo-500/40 transition-all group">
+                          <div>
+                            <div className="h-44 bg-gradient-to-br from-indigo-900/40 via-purple-950/30 to-[#14141f] p-5 flex flex-col justify-between border-b border-white/5 relative overflow-hidden">
+                              {c.thumbnail ? (
+                                <img src={c.thumbnail} alt={course.name} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-500" />
+                              ) : null}
+                              <div className="relative z-10 flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/80 backdrop-blur-md border border-white/10">
+                                  {course.duration || 'Self-Paced'}
+                                </span>
+                                <span className="text-sm font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 backdrop-blur-md">
+                                  {fee === 0 ? 'FREE' : `₹${fee.toLocaleString()}`}
+                                </span>
+                              </div>
+                              <h3 className="relative z-10 text-base font-bold text-white drop-shadow-md">{course.name}</h3>
+                            </div>
+
+                            <div className="p-5 space-y-4">
+                              <p className="text-xs text-white/60 line-clamp-3 leading-relaxed">
+                                {course.description || "Master new industry skills with hands-on assignments, recorded lessons, and expert feedback."}
+                              </p>
+
+                              <div className="flex items-center gap-4 text-xs text-white/40 pt-2 border-t border-white/5">
+                                <span>{c.modules?.length || 0} Modules</span>
+                                <span>•</span>
+                                <span>Certificate Included</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-5 pt-0">
+                            {isEnrolled ? (
+                              <button
+                                disabled
+                                className="w-full py-2.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold cursor-default"
+                              >
+                                ✓ Already Enrolled
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleEnrollInCourse(c)}
+                                disabled={isEnrolling}
+                                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all"
+                              >
+                                {isEnrolling ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CreditCard className="w-4 h-4" />
+                                )}
+                                {fee === 0 ? "Enroll for Free" : `Enroll Now (₹${fee.toLocaleString()})`}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TEAM CHAT ── */}
+        {tab === "chat" && (
+          <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden h-[680px] flex flex-col md:flex-row">
+            {/* Channels / Conversations List */}
+            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/8 bg-white/1 p-4 flex flex-col">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/8">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Channels
+                </h3>
+              </div>
+
+              <div className="space-y-1.5 flex-1 overflow-y-auto pr-1">
+                {channels.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-white/30">No chat channels available.</div>
+                ) : (
+                  channels.map((ch: any) => {
+                    const isSelected = (currentChannelId === ch.id);
+                    return (
+                      <button
+                        key={ch.id}
+                        onClick={() => setActiveChannelId(ch.id)}
+                        className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between ${
+                          isSelected ? "bg-violet-600/20 border border-violet-500/30 text-white" : "hover:bg-white/5 text-white/60"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold truncate">{ch.name || "Project Support Channel"}</p>
+                          <p className="text-[10px] text-white/40 truncate mt-0.5">{ch.messages?.[0]?.content || "No messages yet"}</p>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Messages Thread */}
+            <div className="flex-1 flex flex-col bg-[#0f0f18]/60">
+              <div className="p-4 border-b border-white/8 flex items-center justify-between bg-white/2">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{activeChannel?.name || "Team & Project Chat"}</h4>
+                  <p className="text-[10px] text-white/40">Direct communication with your dedicated account manager & creative team</p>
+                </div>
+              </div>
+
+              <div className="flex-1 p-6 overflow-y-auto space-y-4">
+                {chatMessages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-white/30">
+                    <MessageSquare className="w-10 h-10 mb-2 opacity-20" />
+                    <p className="text-xs">No messages yet. Send a message to get started!</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg: any) => {
+                    const isMe = msg.userId === profileMe?.id || msg.user?.email === profileMe?.email;
+                    return (
+                      <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-white/50">{isMe ? "You" : (msg.user?.name || "Support Lead")}</span>
+                          <span className="text-[9px] text-white/20">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className={`p-3.5 rounded-2xl max-w-md text-xs leading-relaxed ${
+                          isMe ? "bg-violet-600 text-white rounded-tr-none" : "bg-white/8 text-white/90 border border-white/10 rounded-tl-none"
+                        }`}>
+                          {msg.content}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t border-white/8 bg-white/2 flex gap-3">
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendChatMessage(); } }}
+                  placeholder="Type a message to the team..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500"
+                />
+                <button
+                  onClick={handleSendChatMessage}
+                  disabled={isSendingChat || !chatMessage.trim()}
+                  className="px-5 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-violet-600/30 transition-all"
+                >
+                  {isSendingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Send
+                </button>
+              </div>
             </div>
           </div>
         )}

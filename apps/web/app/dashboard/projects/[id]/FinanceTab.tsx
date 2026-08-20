@@ -62,6 +62,45 @@ export function FinanceTab({ projectId, budget }: { projectId: string, budget: n
     }
   }
 
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null)
+
+  const handleMarkPaid = async (milestone: any) => {
+    setMarkingPaidId(milestone.id)
+    try {
+      let invId = milestone.invoiceId
+      if (!invId) {
+        const invRes = await fetchApi<any>(`/projects/${projectId}/billing-milestones/${milestone.id}/generate-invoice`, {
+          method: "POST"
+        })
+        if (invRes?.success && invRes.invoice) {
+          invId = invRes.invoice.id
+        } else {
+          throw new Error("Failed to generate invoice for milestone")
+        }
+      }
+
+      const payRes = await fetchApi<any>(`/finance/invoices/${invId}/payments`, {
+        method: "POST",
+        body: JSON.stringify({
+          amount: milestone.amount,
+          method: "CASH",
+          notes: "Recorded by Admin as Cash / Offline Payment"
+        })
+      })
+
+      if (payRes?.success) {
+        toast.success("Marked as Paid! Receipt emailed to client.")
+        mutate()
+      } else {
+        toast.error("Failed to record payment")
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to mark as paid")
+    } finally {
+      setMarkingPaidId(null)
+    }
+  }
+
   const handleGenerateInvoice = async (milestoneId: string) => {
     try {
       const res = await fetchApi<any>(`/projects/${projectId}/billing-milestones/${milestoneId}/generate-invoice`, {
@@ -153,7 +192,7 @@ export function FinanceTab({ projectId, budget }: { projectId: string, budget: n
                           </div>
                         </div>
                         
-                        {/* Status / Invoice Generation */}
+                        {/* Status / Invoice Generation / Mark Paid */}
                         {m.id && (
                           <div className="flex items-center gap-3 pt-3 border-t border-border/30">
                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${m.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : m.status === 'INVOICED' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
@@ -162,6 +201,16 @@ export function FinanceTab({ projectId, budget }: { projectId: string, budget: n
                             {m.status === 'PENDING' && (
                               <button onClick={() => handleGenerateInvoice(m.id)} className="text-xs font-bold text-blue-500 hover:text-blue-400 flex items-center gap-1">
                                 <Send className="w-3 h-3" /> Generate Invoice
+                              </button>
+                            )}
+                            {m.status !== 'PAID' && (
+                              <button 
+                                onClick={() => handleMarkPaid(m)} 
+                                disabled={markingPaidId === m.id}
+                                className="text-xs font-bold text-emerald-500 hover:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors"
+                              >
+                                {markingPaidId === m.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CreditCard className="w-3 h-3" />}
+                                Mark Paid (Cash)
                               </button>
                             )}
                             {m.invoiceId && (
