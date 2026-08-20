@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Barlow_Condensed, Inter } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 import { SmoothScroll } from "@/components/SmoothScroll"
 import { OrganizationProvider } from "@/context/OrganizationContext"
@@ -70,27 +71,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                window.addEventListener('error', function(e) {
-                  var msg = e && e.message ? e.message : '';
-                  if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('CSS_CHUNK_LOAD_FAILED') !== -1) {
-                    var key = 'last_chunk_reload';
-                    var lastReload = parseInt(sessionStorage.getItem(key) || '0', 10);
-                    if (Date.now() - lastReload > 10000) {
-                      sessionStorage.setItem(key, Date.now().toString());
-                      window.location.reload(true);
-                    }
-                  }
-                }, true);
-              })();
-            `,
-          }}
-        />
-      </head>
       <body className={`min-h-screen bg-background font-sans antialiased ${barlowCondensed.variable} ${inter.variable}`}>
         <OrganizationProvider>
           <SmoothScroll>
@@ -98,6 +78,22 @@ export default function RootLayout({
           </SmoothScroll>
           <Toaster position="bottom-right" theme="dark" />
         </OrganizationProvider>
+        {/* Chunk-load self-healing: auto-reload on stale JS chunk errors after deployments */}
+        <Script id="chunk-error-handler" strategy="beforeInteractive">{`
+          (function() {
+            window.addEventListener('error', function(e) {
+              var msg = e && e.message ? e.message : '';
+              if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('CSS_CHUNK_LOAD_FAILED') !== -1) {
+                var key = 'last_chunk_reload';
+                var lastReload = parseInt(sessionStorage.getItem(key) || '0', 10);
+                if (Date.now() - lastReload > 10000) {
+                  sessionStorage.setItem(key, Date.now().toString());
+                  window.location.reload(true);
+                }
+              }
+            }, true);
+          })();
+        `}</Script>
       </body>
     </html>
   )
