@@ -122,14 +122,14 @@ export default function ClientPortalLogin() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3 mb-auto">
-          {org.logoUrl
-            ? <img src={org.logoUrl} alt={org.name} className="w-10 h-10 rounded-xl object-contain" />
+          {org?.logoUrl
+            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-10 h-10 rounded-xl object-contain" />
             : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
                 <Zap className="w-5 h-5 text-white" />
               </div>
           }
           <div>
-            <p className="text-sm font-bold text-white">{org.name}</p>
+            <p className="text-sm font-bold text-white">{org?.name || "Grekam OS"}</p>
             <p className="text-[10px] text-white/40 uppercase tracking-widest">Client Portal</p>
           </div>
         </div>
@@ -171,13 +171,13 @@ export default function ClientPortalLogin() {
           
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2 mb-8">
-            {org.logoUrl
-              ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
+            {org?.logoUrl
+              ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-8 h-8 rounded-lg object-contain" />
               : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
             }
-            <p className="text-sm font-bold text-white">{org.name} Client Portal</p>
+            <p className="text-sm font-bold text-white">{org?.name || "Grekam OS"} Client Portal</p>
           </div>
 
           {!isForgotPassword ? (
