@@ -1,7 +1,8 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-cat /etc/nginx/sites-available/grekam.in
+ls -la /etc/nginx/sites-enabled/
+cat /etc/nginx/sites-enabled/*grekam*
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

@@ -47,26 +47,32 @@ export default async function portalRouter(app: FastifyInstance) {
       }
     }
     
-    // Ensure Student record exists
-    let student = await app.prisma.student.findUnique({
-      where: { userId: req.user.id }
-    });
-    if (!student) {
-      const studentCode = `GRA-${new Date().getFullYear() % 100}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-      student = await app.prisma.student.create({
-        data: {
-          userId: req.user.id,
-          studentCode,
-          deliveryMode: 'ONLINE'
-        }
+    // Ensure Student record exists safely
+    let studentId: string | null = null;
+    try {
+      let student = await app.prisma.student.findUnique({
+        where: { userId: req.user.id }
       });
+      if (!student) {
+        const studentCode = `GRA-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+        student = await app.prisma.student.create({
+          data: {
+            userId: req.user.id,
+            studentCode,
+            deliveryMode: 'ONLINE'
+          }
+        });
+      }
+      studentId = student?.id || null;
+    } catch (e) {
+      app.log.warn({ err: e }, "Safe student creation skipped in portal preHandler");
     }
 
     // Attach companyId, contactId, and studentId to request for easy access in handlers
-    (req as any).companyId = profile.contact?.companyId || null;
-    (req as any).contactId = profile.contact?.id || null;
-    (req as any).contactEmail = profile.contact?.email || req.user.email;
-    (req as any).studentId = student.id;
+    (req as any).companyId = profile?.contact?.companyId || null;
+    (req as any).contactId = profile?.contact?.id || null;
+    (req as any).contactEmail = profile?.contact?.email || req.user?.email || "";
+    (req as any).studentId = studentId;
   });
 
   // GET /api/v1/portal/me — get authenticated client profile info

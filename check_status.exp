@@ -1,9 +1,9 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-pm2 status
-curl -I http://localhost:3000/portal
-curl -I http://localhost:3000/auth/login
+cat /etc/nginx/sites-enabled/* | grep -C 5 "proxy_pass"
+echo "=== NGINX ERROR LOG ==="
+tail -n 30 /var/log/nginx/error.log
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

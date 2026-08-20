@@ -1,20 +1,14 @@
 #!/usr/bin/expect -f
-set timeout 30
-spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
+set timeout 60
+set script {
+sed -i 's|http://localhost:4000|http://127.0.0.1:4000|g' /etc/nginx/sites-available/garage.grekam.in
+sed -i 's|http://localhost:3000|http://127.0.0.1:3000|g' /etc/nginx/sites-available/garage.grekam.in
+sed -i 's|http://localhost:3006|http://127.0.0.1:3006|g' /etc/nginx/sites-available/academy.grekam.in
+nginx -t && systemctl reload nginx
+echo "NGINX RELOADED SUCCESSFULLY"
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
 expect "assword:"
 send "Photoshop09@\r"
-expect "# "
-send "sed -i 's/\\\\\\$host/\\$host/g' /etc/nginx/sites-available/academy.grekam.in\r"
-expect "# "
-send "sed -i 's/\\\\\\$http_upgrade/\\$http_upgrade/g' /etc/nginx/sites-available/academy.grekam.in\r"
-expect "# "
-send "sed -i 's/\\\\\\$remote_addr/\\$remote_addr/g' /etc/nginx/sites-available/academy.grekam.in\r"
-expect "# "
-send "sed -i 's/\\\\\\$proxy_add_x_forwarded_for/\\$proxy_add_x_forwarded_for/g' /etc/nginx/sites-available/academy.grekam.in\r"
-expect "# "
-send "sed -i 's/\\\\\\$scheme/\\$scheme/g' /etc/nginx/sites-available/academy.grekam.in\r"
-expect "# "
-send "nginx -s reload\r"
-expect "# "
-send "exit\r"
 expect eof
