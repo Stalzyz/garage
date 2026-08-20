@@ -273,6 +273,32 @@ export default function ClientDashboard() {
     }
   }
 
+  const handleMessageTeam = async (project: any) => {
+    setTab("chat");
+    const projectChannel = channels.find((c: any) => c.projectId === project.id);
+    if (projectChannel) {
+      setActiveChannelId(projectChannel.id);
+    } else {
+      try {
+        const res = await fetchApi<any>("/chat/channels", {
+          method: "POST",
+          body: JSON.stringify({
+            name: `${project.name} Chat`,
+            type: "PROJECT",
+            projectId: project.id,
+            participantIds: []
+          })
+        });
+        if (res?.id) {
+          await mutateChannels();
+          setActiveChannelId(res.id);
+        }
+      } catch (err) {
+        console.error("Failed to auto-create project channel", err);
+      }
+    }
+  }
+
   const handleSimulatePayment = async () => {
     if (!sandboxInvoice) return
     setSandboxProcessing(true)
@@ -824,7 +850,7 @@ export default function ClientDashboard() {
               <button onClick={() => setShowBookingModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors">
                 <Calendar className="w-3.5 h-3.5" /> Book Call
               </button>
-              <button onClick={() => setTab("chat")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
+              <button onClick={() => handleMessageTeam(p)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
                 <MessageSquare className="w-3.5 h-3.5" /> Message Team
               </button>
             </div>
@@ -858,17 +884,32 @@ export default function ClientDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {invoices?.map((inv: any) => (
+                   {invoices?.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-white/2 transition-colors">
-                      <td className="px-6 py-4 text-sm font-mono text-violet-400">{inv.number}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-violet-400">
+                        <Link href={`/portal/invoices/${inv.id}`} className="hover:underline hover:text-violet-300">
+                          {inv.invoiceNumber || inv.id.substring(0, 8).toUpperCase()}
+                        </Link>
+                      </td>
                       <td className="px-4 py-4 text-sm text-white/60">Professional Services</td>
-                      <td className="px-4 py-4 text-sm text-white/40">{new Date(inv.issueDate).toLocaleDateString()}</td>
-                      <td className="px-4 py-4 text-sm font-semibold text-white text-right">{symbol}{inv.total.toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm text-white/40">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-white text-right">{symbol}{inv.totalAmount?.toLocaleString() || '0'}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[inv.status]?.color || STATUS_CONFIG.PENDING.color}`}>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[inv.status]?.color || STATUS_CONFIG.SENT.color}`}>
                             {STATUS_CONFIG[inv.status]?.label || inv.status}
                           </span>
+                          <a 
+                            href={`/api/v1/finance/invoices/${inv.id}/pdf`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                            title="Download PDF"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          </a>
                           {inv.status !== 'PAID' && (
                             <button 
                               onClick={() => triggerPayFullInvoice(inv)}
@@ -1203,7 +1244,7 @@ export default function ClientDashboard() {
                   </div>
                 ) : (
                   chatMessages.map((msg: any) => {
-                    const isMe = msg.userId === profileMe?.id || msg.user?.email === profileMe?.email;
+                    const isMe = msg.senderId === profileMe?.userId || msg.senderId === profileMe?.id || msg.user?.email === profileMe?.email || msg.sender?.email === profileMe?.email;
                     return (
                       <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         <div className="flex items-center gap-2 mb-1">

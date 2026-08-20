@@ -75,7 +75,7 @@ export default function InvoiceBuilderPage() {
   }
 
   const handleDownload = () => {
-    window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/finance/invoices/${params.id}/pdf`, '_blank')
+    window.open(`/api/v1/finance/invoices/${params.id}/pdf`, '_blank')
   }
 
   if (isLoading) {

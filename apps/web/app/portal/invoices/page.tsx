@@ -4,10 +4,11 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { CreditCard, Download, FileText, Loader2, X, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import Link from "next/link"
 
 export default function PortalInvoicesPage() {
-  const { data, isLoading, mutate } = useApi<any>("/finance/invoices")
-  const invoices = data?.data || []
+  const { data, isLoading, mutate } = useApi<any>("/portal/invoices")
+  const invoices = Array.isArray(data) ? data : (data?.data || [])
   
   const [payingId, setPayingId] = useState<string | null>(null)
   
@@ -62,8 +63,21 @@ export default function PortalInvoicesPage() {
           theme: {
             color: "#2563eb"
           },
-          handler: function (response: any) {
+          handler: async function (response: any) {
             toast.success("Payment completed successfully!")
+            try {
+              await fetchApi(`/finance/invoices/${invoiceId}/payments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  amount: res.amount / 100,
+                  method: 'RAZORPAY',
+                  transactionId: response.razorpay_payment_id || response.razorpay_order_id,
+                  notes: `Online Razorpay Payment: ${response.razorpay_payment_id || ''}`
+                })
+              })
+            } catch (e) {
+              console.warn("Payment confirmation captured by webhook", e)
+            }
             mutate()
           },
           modal: {
@@ -140,10 +154,12 @@ export default function PortalInvoicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {invoices.map((invoice: any) => (
+                 {invoices.map((invoice: any) => (
                   <tr key={invoice.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-white">{invoice.invoiceNumber || invoice.id.slice(0, 8).toUpperCase()}</div>
+                      <Link href={`/portal/invoices/${invoice.id}`} className="font-bold text-white hover:text-blue-400 hover:underline">
+                        {invoice.invoiceNumber || invoice.id.slice(0, 8).toUpperCase()}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 text-white/60 text-xs">
                       {new Date(invoice.createdAt).toLocaleDateString()}
@@ -162,9 +178,15 @@ export default function PortalInvoicesPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white" title="Download PDF">
+                        <a 
+                          href={`/api/v1/finance/invoices/${invoice.id}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white" 
+                          title="Download PDF"
+                        >
                           <Download className="w-4 h-4" />
-                        </button>
+                        </a>
                         {invoice.status !== 'PAID' && (
                           <button 
                             disabled={payingId === invoice.id}

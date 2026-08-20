@@ -253,6 +253,28 @@ export default async function portalRouter(app: FastifyInstance) {
     return invoices;
   });
 
+  // GET /api/v1/portal/invoices/:id
+  app.get('/invoices/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const companyId = (req as any).companyId;
+    const projects = await app.prisma.project.findMany({ where: { companyId }, select: { id: true }});
+    const projectIds = projects.map(p => p.id);
+    
+    const invoice = await app.prisma.invoice.findFirst({
+      where: { 
+        id,
+        projectId: { in: projectIds }
+      },
+      include: {
+        items: { orderBy: { sortOrder: 'asc' } },
+        payments: { orderBy: { paidAt: 'desc' } },
+      }
+    });
+    
+    if (!invoice) return reply.notFound('Invoice not found or access denied');
+    return invoice;
+  });
+
   // GET /api/v1/portal/proposals
   app.get('/proposals', async (req, reply) => {
     const contactId = (req as any).contactId;

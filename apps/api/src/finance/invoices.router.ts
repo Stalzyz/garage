@@ -340,11 +340,17 @@ export default async function invoicesRouter(app: FastifyInstance) {
     let keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     for (const k of integrationKeys) {
-      if (k.keyName === 'RAZORPAY_KEY_ID') keyId = decrypt(k.encryptedValue);
-      if (k.keyName === 'RAZORPAY_KEY_SECRET') keySecret = decrypt(k.encryptedValue);
+      if (k.keyName === 'RAZORPAY_KEY_ID') {
+        const val = decrypt(k.encryptedValue);
+        if (val && !val.includes('***')) keyId = val;
+      }
+      if (k.keyName === 'RAZORPAY_KEY_SECRET') {
+        const val = decrypt(k.encryptedValue);
+        if (val && !val.includes('***')) keySecret = val;
+      }
     }
 
-    const isLive = !!keyId && keyId !== 'rzp_test_mock';
+    const isLive = !!keyId && keyId.startsWith('rzp_') && keyId !== 'rzp_test_mock';
 
     if (invoice.status === 'DRAFT') {
       await app.prisma.invoice.update({ where: { id }, data: { status: 'SENT' } });

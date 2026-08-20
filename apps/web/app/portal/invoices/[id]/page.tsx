@@ -27,7 +27,7 @@ export default function PortalInvoicePreviewPage() {
   const org = useOrganization()
   const { symbol } = useCurrency()
   
-  const { data: invoice, isLoading, mutate } = useApi<any>(`/finance/invoices/${params.id}`)
+  const { data: invoice, isLoading, mutate } = useApi<any>(`/portal/invoices/${params.id}`)
   
   const [payingId, setPayingId] = useState<string | null>(null)
   
@@ -80,8 +80,21 @@ export default function PortalInvoicePreviewPage() {
           theme: {
             color: "#2563eb"
           },
-          handler: function (response: any) {
+          handler: async function (response: any) {
             toast.success("Payment completed successfully!")
+            try {
+              await fetchApi(`/finance/invoices/${invoice.id}/payments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  amount: res.amount / 100,
+                  method: 'RAZORPAY',
+                  transactionId: response.razorpay_payment_id || response.razorpay_order_id,
+                  notes: `Online Razorpay Payment: ${response.razorpay_payment_id || ''}`
+                })
+              })
+            } catch (e) {
+              console.warn("Payment confirmation captured by webhook", e)
+            }
             mutate()
           },
           modal: {
@@ -123,7 +136,7 @@ export default function PortalInvoicePreviewPage() {
   }
 
   const handleDownload = () => {
-    window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/finance/invoices/${params.id}/pdf`, '_blank')
+    window.open(`/api/v1/finance/invoices/${params.id}/pdf`, '_blank')
   }
 
   if (isLoading) {
