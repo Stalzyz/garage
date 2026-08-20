@@ -11,6 +11,7 @@ import { AIAssistButton } from "@/components/ui/ai-assist-button"
 export default function PowerDialerDashboard() {
   const [callState, setCallState] = useState<"idle" | "dialing" | "connected" | "voicemail" | "wrapup">("idle")
   const [queuePos, setQueuePos] = useState(0)
+  const [sortBy, setSortBy] = useState<"score" | "name" | "recent">("score")
   const [routeThroughMobile, setRouteThroughMobile] = useState(false)
   const { data: session } = useSession()
 
@@ -18,12 +19,45 @@ export default function PowerDialerDashboard() {
   const { data: apiResponse, mutate } = useApi<any>("/crm/leads")
   const leads = apiResponse?.data || []
   
-  // Filter for leads with phone numbers and sort by score descending (Lead Scoring)
+  // Filter for leads with phone numbers and sort based on dynamic option
   const queue = leads
     .filter((l: any) => !!l.phone)
-    .sort((a: any, b: any) => (b.score || 0) - (a.score || 0))
+    .sort((a: any, b: any) => {
+      if (sortBy === "score") {
+        return (b.score || 0) - (a.score || 0)
+      } else if (sortBy === "name") {
+        return (a.name || "").localeCompare(b.name || "")
+      } else {
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      }
+    })
     .slice(0, 50)
   const activeLead = queue[queuePos]
+
+  // Load configuration from local storage on mount
+  useEffect(() => {
+    const savedPos = localStorage.getItem("crm_dialer_pos")
+    if (savedPos) {
+      const pos = parseInt(savedPos, 10)
+      if (pos >= 0) setQueuePos(pos)
+    }
+    const savedSort = localStorage.getItem("crm_dialer_sort") as any
+    if (savedSort && ["score", "name", "recent"].includes(savedSort)) {
+      setSortBy(savedSort)
+    }
+  }, [])
+
+  const updateQueuePos = (pos: number) => {
+    setQueuePos(pos)
+    localStorage.setItem("crm_dialer_pos", pos.toString())
+  }
+
+  const updateSortBy = (mode: "score" | "name" | "recent") => {
+    setSortBy(mode)
+    setQueuePos(0)
+    localStorage.setItem("crm_dialer_sort", mode)
+    localStorage.setItem("crm_dialer_pos", "0")
+  }
 
   const [callNotes, setCallNotes] = useState("")
   const [selectedDisposition, setSelectedDisposition] = useState<string | null>(null)
@@ -231,7 +265,7 @@ export default function PowerDialerDashboard() {
     setCallNotes("")
     setSelectedDisposition(null)
     if (queuePos + 1 < queue.length) {
-      setQueuePos(queuePos + 1)
+      updateQueuePos(queuePos + 1)
       setCallState("idle")
     }
   }
@@ -262,6 +296,18 @@ export default function PowerDialerDashboard() {
             </p>
           </div>
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Sort Queue:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => updateSortBy(e.target.value as any)}
+                className="bg-muted/40 hover:bg-muted/70 text-foreground border border-border/50 rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none transition-colors"
+              >
+                <option value="score">Lead Score</option>
+                <option value="name">Alphabetical</option>
+                <option value="recent">Recently Created</option>
+              </select>
+            </div>
             <label className="flex items-center justify-between md:justify-start gap-2.5 cursor-pointer bg-muted/30 px-3 py-2 md:py-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-all select-none">
               <Smartphone className={`w-4 h-4 transition-colors ${routeThroughMobile ? "text-primary" : "text-muted-foreground"}`} />
               <span className="text-xs font-bold text-foreground">Mobile Dialer Mode</span>
@@ -284,12 +330,22 @@ export default function PowerDialerDashboard() {
                 Manage DNC
               </button>
               {callState === "idle" || callState === "wrapup" ? (
-                <button 
-                  onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
-                  className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm min-h-[44px]"
-                >
-                  <Phone className="w-4 h-4" /> {callState === "wrapup" ? "Dial Next Lead" : "Start Power Dialer"}
-                </button>
+                <div className="flex items-center gap-2">
+                  {callState === "idle" && queuePos + 1 < queue.length && (
+                    <button 
+                      onClick={() => updateQueuePos(queuePos + 1)}
+                      className="text-xs font-bold text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted/70 border border-border/50 transition-colors min-h-[44px]"
+                    >
+                      Skip Lead
+                    </button>
+                  )}
+                  <button 
+                    onClick={callState === "wrapup" ? handleNextLead : handleStartDialer}
+                    className="flex flex-1 md:flex-none items-center justify-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm min-h-[44px]"
+                  >
+                    <Phone className="w-4 h-4" /> {callState === "wrapup" ? "Dial Next Lead" : "Start Power Dialer"}
+                  </button>
+                </div>
               ) : (
                 <button 
                   onClick={handleEndCall}
@@ -314,11 +370,23 @@ export default function PowerDialerDashboard() {
             <div className="flex-1 overflow-y-auto p-2">
               <div className="space-y-1">
                 {queue.map((lead: any, i: any) => (
-                  <div key={lead.id} className={`p-3 rounded-xl border flex items-center gap-3 transition-colors ${
-                    i === queuePos ? 'bg-primary/10 border-primary/30' : 
-                    i < queuePos ? 'bg-muted/30 border-transparent opacity-50' : 
-                    'bg-background border-border/50 hover:border-primary/30'
-                  }`}>
+                  <div 
+                    key={lead.id} 
+                    onClick={() => {
+                      if (callState !== "idle" && callState !== "wrapup") {
+                        toast.warning("Cannot switch leads during an active call.")
+                        return
+                      }
+                      updateQueuePos(i)
+                      setCallNotes("")
+                      setSelectedDisposition(null)
+                    }}
+                    className={`p-3 rounded-xl border flex items-center gap-3 transition-colors cursor-pointer ${
+                      i === queuePos ? 'bg-primary/10 border-primary/30' : 
+                      i < queuePos ? 'bg-muted/30 border-transparent opacity-50' : 
+                      'bg-background border-border/50 hover:border-primary/30 hover:bg-muted/30'
+                    }`}
+                  >
                     {i < queuePos ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     ) : i === queuePos ? (
