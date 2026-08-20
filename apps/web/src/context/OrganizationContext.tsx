@@ -54,15 +54,18 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (data) {
-          setOrg(data);
+          const orgData = data.data || data;
+          setOrg(orgData);
 
           // Inject primary color as CSS variable globally
-          const root = document.documentElement;
-          root.style.setProperty("--org-primary", data.primaryColor || "#2563eb");
+          if (typeof document !== "undefined") {
+            const root = document.documentElement;
+            root.style.setProperty("--org-primary", orgData.primaryColor || "#2563eb");
 
-          // Update page title
-          if (data.name) {
-            document.title = data.name;
+            // Update page title
+            if (orgData.name) {
+              document.title = orgData.name;
+            }
           }
         }
       })

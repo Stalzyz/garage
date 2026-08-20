@@ -281,7 +281,7 @@ export default function ClientPortalLogin() {
           )}
 
           <p className="text-xs text-white/30 mt-8 text-center">
-            This portal is for {org.name} clients only.
+            This portal is for {org?.name || "Grekam OS"} clients only.
             <br />If you need access, contact your project manager.
           </p>
         </div>

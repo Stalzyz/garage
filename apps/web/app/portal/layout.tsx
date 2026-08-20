@@ -4,7 +4,12 @@ import { SessionProvider } from "next-auth/react"
 import PortalLayoutClient from "./portal-layout-client"
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
+  let session = null
+  try {
+    session = await auth()
+  } catch (err) {
+    console.warn("Session check in PortalLayout failed gracefully:", err)
+  }
   
   // Authentication check is handled by middleware (auth.config.ts)
   // for all routes under /portal/ (except /portal itself)
