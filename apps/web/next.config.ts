@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ['academy.grekam.in', 'grekam.in', 'www.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
+      allowedOrigins: ['academy.grekam.in', 'grekam.in', 'www.grekam.in', 'garage.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
     },
   },
 

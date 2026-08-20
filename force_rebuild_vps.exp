@@ -6,7 +6,7 @@ expect "assword:"
 send "Photoshop09@\r"
 expect "#"
 
-send "cd /root/grekam-os && git --no-pager log -1 --oneline\r"
+send "cd /root/grekam-os && git --no-pager pull origin main && git --no-pager log -1 --oneline\r"
 expect "#"
 
 send "rm -rf apps/web/.next apps/academy-web/.next\r"
@@ -23,6 +23,9 @@ expect "#"
 send "cp -rf apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true\r"
 expect "#"
 
+send "pnpm --filter=@grekam/api build\r"
+expect "#"
+
 send "pnpm --filter=academy-web build\r"
 expect "#"
 send "cp -rf apps/academy-web/.next/static apps/academy-web/.next/standalone/apps/academy-web/.next/ 2>/dev/null || true\r"
@@ -30,7 +33,7 @@ expect "#"
 send "cp -rf apps/academy-web/public apps/academy-web/.next/standalone/apps/academy-web/ 2>/dev/null || true\r"
 expect "#"
 
-send "pm2 restart grekam-os-api grekam-os-web academy-web\r"
+send "pm2 restart ecosystem.config.js --update-env\r"
 expect "#"
 
 send "pm2 save\r"

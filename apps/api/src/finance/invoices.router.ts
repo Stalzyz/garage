@@ -463,15 +463,16 @@ export default async function invoicesRouter(app: FastifyInstance) {
     const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
     const paymentId = 'pay_mock_' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-    const [updatedInvoice] = await app.prisma.$transaction([
-      app.prisma.invoice.update({
+    const [updatedInvoice] = await app.prisma.$transaction(async (tx) => {
+      const inv = await tx.invoice.update({
         where: { id },
         data: {
           status: 'PAID',
           paidAmount: invoice.totalAmount
         }
-      }),
-      app.prisma.payment.create({
+      });
+
+      await tx.payment.create({
         data: {
           invoiceId: id,
           amount: remainingAmount,
@@ -480,8 +481,20 @@ export default async function invoicesRouter(app: FastifyInstance) {
           notes: 'Mock payment',
           paidAt: new Date(),
         }
-      })
-    ]);
+      });
+
+      const milestone = await tx.billingMilestone.findFirst({
+        where: { invoiceId: id }
+      });
+      if (milestone) {
+        await tx.billingMilestone.update({
+          where: { id: milestone.id },
+          data: { status: 'PAID' }
+        });
+      }
+
+      return [inv] as const;
+    });
 
     try {
       (app as any).broadcast('telemetry-event', {

@@ -7,6 +7,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4000,
+        AUTH_SECRET: 'HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=',
       },
     },
     {

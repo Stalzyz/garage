@@ -102,7 +102,7 @@ export async function buildApp(opts: any = {}): Promise<any> {
 
   await app.register(fastifyStatic, {
     root: path.join(__dirname, '../uploads'),
-    prefix: '/uploads/',
+    prefix: '/api/v1/uploads/',
   });
 
   // Swagger setup
