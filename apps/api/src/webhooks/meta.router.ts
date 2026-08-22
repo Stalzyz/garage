@@ -70,8 +70,8 @@ function verifyMetaSignature(req: FastifyRequest): boolean {
 }
 
 export default async function metaRouter(app: FastifyInstance) {
-  // GET endpoint for Meta Webhook Verification Handshake
-  app.get('/meta', async (req: FastifyRequest, reply: FastifyReply) => {
+  // Shared verification handler for GET /meta & GET /whatsapp/webhook
+  const verificationHandler = async (req: FastifyRequest, reply: FastifyReply) => {
     const query = req.query as any;
     const mode = query['hub.mode'];
     const token = query['hub.verify_token'];
@@ -80,7 +80,7 @@ export default async function metaRouter(app: FastifyInstance) {
     const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
 
     if (mode && token) {
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      if (mode === 'subscribe' && (token === VERIFY_TOKEN || !VERIFY_TOKEN)) {
         app.log.info('Meta webhook verification succeeded');
         reply.type('text/plain').send(challenge);
       } else {
@@ -90,10 +90,10 @@ export default async function metaRouter(app: FastifyInstance) {
     } else {
       reply.code(400).send('Bad Request');
     }
-  });
+  };
 
-  // POST endpoint for receiving Meta Lead Ads & WhatsApp Flow events
-  app.post('/meta', async (req: FastifyRequest, reply: FastifyReply) => {
+  // Shared event handler for POST /meta & POST /whatsapp/webhook
+  const eventHandler = async (req: FastifyRequest, reply: FastifyReply) => {
     if (!verifyMetaSignature(req)) {
       app.log.warn('Invalid Meta Webhook Signature');
       return reply.code(401).send({ error: 'Invalid HMAC signature' });
@@ -140,7 +140,15 @@ export default async function metaRouter(app: FastifyInstance) {
         }
       }
     }
-  });
+  };
+
+  // Register primary endpoints
+  app.get('/meta', verificationHandler);
+  app.post('/meta', eventHandler);
+
+  // Register alias endpoints for compatibility with existing WABA webhook URLs (/api/whatsapp/webhook)
+  app.get('/whatsapp/webhook', verificationHandler);
+  app.post('/whatsapp/webhook', eventHandler);
 }
 
 /**

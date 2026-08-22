@@ -181,6 +181,7 @@ export async function buildApp(opts: any = {}): Promise<any> {
 
   const metaWebhook = (await import('./webhooks/meta.router')).default;
   await app.register(metaWebhook, { prefix: '/api/v1/webhooks' });
+  await app.register(metaWebhook, { prefix: '/api' });
 
   const analyticsModule = (await import('./analytics')).default;
   await app.register(analyticsModule, { prefix: '/api/v1/analytics' });
