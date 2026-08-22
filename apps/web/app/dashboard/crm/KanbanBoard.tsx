@@ -5,7 +5,7 @@ import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor,
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreVertical, Phone, Mail, Calendar, ClipboardList, IndianRupee, GraduationCap, CheckCircle2, XCircle } from 'lucide-react';
+import { MoreVertical, Phone, Mail, Calendar, ClipboardList, IndianRupee, GraduationCap, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
@@ -83,14 +83,29 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
       <div className="flex items-center justify-between mt-4 border-t border-white/5 pt-3">
         <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">{lead.source}</span>
         <div className="flex gap-2">
+          {lead.phone && (
+            <button 
+              onPointerDown={(e) => { 
+                e.stopPropagation(); 
+                const cleanPhone = lead.phone.replace(/\D/g, '');
+                window.open(`https://wa.me/${cleanPhone}`, '_blank');
+              }}
+              title="Send WhatsApp Message"
+              className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-2.5 -m-2.5"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onLogActivity(lead); }}
+            title="Log Activity"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2.5 -m-2.5"
           >
             <ClipboardList className="w-3.5 h-3.5" />
           </button>
           <button 
             onPointerDown={(e) => { e.stopPropagation(); onOpenLead(lead); }}
+            title="View Details"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2.5 -m-2.5"
           >
             <MoreVertical className="w-3.5 h-3.5" />

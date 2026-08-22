@@ -9,6 +9,7 @@ export const EventBus = new GlobalEventBus();
 export const SystemEvents = {
   // CRM
   LEAD_CREATED: 'lead.created',
+  LEAD_CONTACTED: 'lead.contacted',
   LEAD_WON: 'lead.won',
   PROPOSAL_SIGNED: 'proposal.signed',
   

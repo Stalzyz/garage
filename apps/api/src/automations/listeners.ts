@@ -40,6 +40,19 @@ export function registerGlobalListeners() {
     }
   });
 
+  EventBus.on(SystemEvents.LEAD_CONTACTED, async (data) => {
+    console.log('[Autopilot] Caught LEAD_CONTACTED:', data.name);
+    if (data.phone) {
+      await whatsappService.sendTemplateMessage({
+        phone: data.phone,
+        name: data.name || 'Client',
+        event: 'LEAD_CONTACTED',
+        templateName: 'lead_post_call_followup',
+        variables: [data.name || 'there', data.company || data.courseInterest || 'your inquiry'],
+      });
+    }
+  });
+
   EventBus.on(SystemEvents.PROPOSAL_SIGNED, async (data) => {
     console.log('[Autopilot] Caught PROPOSAL_SIGNED:', data);
     const html = await render(React.createElement(WelcomeClientEmail, {

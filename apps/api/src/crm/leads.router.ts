@@ -204,6 +204,9 @@ export default async function leadsRouter(app: FastifyInstance) {
 
     // Check if status changed
     if (body.status && body.status !== originalLead.status) {
+      if (body.status === 'CONTACTED') {
+        EventBus.emit(SystemEvents.LEAD_CONTACTED, lead);
+      }
       if (lead.businessUnit === 'ACADEMY') {
         if (body.status === 'TRIAL') {
           EventBus.emit(SystemEvents.ACADEMY_TRIAL_SCHEDULED, lead);
@@ -272,6 +275,21 @@ export default async function leadsRouter(app: FastifyInstance) {
         userId: req.user?.id || 'system',
       },
     });
+
+    // If logging a phone call, update status to CONTACTED if it was NEW/ENQUIRY and emit LEAD_CONTACTED
+    if (body.type === 'CALL') {
+      const targetLead = await app.prisma.lead.findUnique({ where: { id } });
+      if (targetLead && (targetLead.status === 'NEW' || targetLead.status === 'ENQUIRY')) {
+        const updatedLead = await app.prisma.lead.update({
+          where: { id },
+          data: { status: 'CONTACTED' }
+        });
+        EventBus.emit(SystemEvents.LEAD_CONTACTED, updatedLead);
+      } else if (targetLead) {
+        EventBus.emit(SystemEvents.LEAD_CONTACTED, targetLead);
+      }
+    }
+
     reply.code(201);
     return activity;
   });
