@@ -32,24 +32,29 @@ export default function PowerDialerDashboard() {
       }
     })
     .slice(0, 50)
-  const activeLead = queue[queuePos]
+  const activeLead = queue[queuePos] || queue[0] || null
 
   // Load configuration from local storage on mount
   useEffect(() => {
     const savedPos = localStorage.getItem("crm_dialer_pos")
     if (savedPos) {
       const pos = parseInt(savedPos, 10)
-      if (pos >= 0) setQueuePos(pos)
+      if (pos >= 0 && pos < queue.length) {
+        setQueuePos(pos)
+      } else {
+        setQueuePos(0)
+      }
     }
     const savedSort = localStorage.getItem("crm_dialer_sort") as any
     if (savedSort && ["score", "name", "recent"].includes(savedSort)) {
       setSortBy(savedSort)
     }
-  }, [])
+  }, [queue.length])
 
   const updateQueuePos = (pos: number) => {
-    setQueuePos(pos)
-    localStorage.setItem("crm_dialer_pos", pos.toString())
+    const safePos = pos >= queue.length ? 0 : pos
+    setQueuePos(safePos)
+    localStorage.setItem("crm_dialer_pos", safePos.toString())
   }
 
   const updateSortBy = (mode: "score" | "name" | "recent") => {
