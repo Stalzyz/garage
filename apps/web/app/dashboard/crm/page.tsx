@@ -45,6 +45,7 @@ export default function CRMDashboard() {
   const [activityLead, setActivityLead] = useState<any>(null)
   const [activityType, setActivityType] = useState("CALL")
   const [activityContent, setActivityContent] = useState("")
+  const [selectedWhatsappTemplate, setSelectedWhatsappTemplate] = useState("NONE")
 
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
   const [convertLead, setConvertLead] = useState<any>(null)
@@ -297,6 +298,7 @@ export default function CRMDashboard() {
     setActivityLead(lead)
     setActivityType("CALL")
     setActivityContent("")
+    setSelectedWhatsappTemplate("NONE")
     setIsActivityModalOpen(true)
   }
 
@@ -308,7 +310,8 @@ export default function CRMDashboard() {
         method: "POST",
         body: JSON.stringify({
           type: activityType,
-          content: activityContent
+          content: activityContent,
+          whatsappTemplate: activityType === "CALL" ? selectedWhatsappTemplate : undefined
         })
       })
       toast.success("Activity logged successfully")
@@ -1034,6 +1037,22 @@ export default function CRMDashboard() {
                     <option value="NOTE">General Note</option>
                   </select>
                 </div>
+
+                {activityType === "CALL" && (
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">WhatsApp Follow-Up Template</label>
+                    <select
+                      value={selectedWhatsappTemplate}
+                      onChange={(e) => setSelectedWhatsappTemplate(e.target.value)}
+                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                    >
+                      <option value="NONE">Default Follow-Up (lead_post_call_followup)</option>
+                      <option value="trial_class_invitation">Trial Class Invitation (trial_class_invitation)</option>
+                      <option value="lead_instant_acknowledgement">Course Brochure & Info (lead_instant_acknowledgement)</option>
+                      <option value="SKIP">Skip / Don't Send WhatsApp Message</option>
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <div className="flex items-center justify-between mb-1">

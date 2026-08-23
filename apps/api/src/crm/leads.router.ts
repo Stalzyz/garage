@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
 import { sendTemplatedEmail } from '../services/emailRenderer';
+import { whatsappService } from '../integrations/whatsapp.service';
 import Papa from 'papaparse';
 
 async function notifyAssignedStaff(app: FastifyInstance, assignedToId: string, lead: any) {
@@ -59,6 +60,7 @@ const UpdateLeadSchema = CreateLeadSchema.partial().extend({
 const AddActivitySchema = z.object({
   type: z.enum(['CALL', 'EMAIL', 'WHATSAPP', 'MEETING', 'NOTE']),
   content: z.string().min(1),
+  whatsappTemplate: z.string().optional(),
 });
 
 // Simple lead scoring: budget × 0.4 + source × 0.3 + projectType × 0.3
@@ -276,17 +278,34 @@ export default async function leadsRouter(app: FastifyInstance) {
       },
     });
 
-    // If logging a phone call, update status to CONTACTED if it was NEW/ENQUIRY and emit LEAD_CONTACTED
+    //     // If logging a phone call, update status to CONTACTED if it was NEW/ENQUIRY and emit event
     if (body.type === 'CALL') {
       const targetLead = await app.prisma.lead.findUnique({ where: { id } });
+      let finalLead = targetLead;
       if (targetLead && (targetLead.status === 'NEW' || targetLead.status === 'ENQUIRY')) {
-        const updatedLead = await app.prisma.lead.update({
+        finalLead = await app.prisma.lead.update({
           where: { id },
           data: { status: 'CONTACTED' }
         });
-        EventBus.emit(SystemEvents.LEAD_CONTACTED, updatedLead);
-      } else if (targetLead) {
-        EventBus.emit(SystemEvents.LEAD_CONTACTED, targetLead);
+      }
+      
+      if (finalLead) {
+        if (body.whatsappTemplate && body.whatsappTemplate !== 'NONE') {
+          try {
+            await whatsappService.sendTemplateMessage({
+              phone: finalLead.phone || '',
+              name: finalLead.name || 'Client',
+              event: 'LEAD_CONTACTED',
+              templateName: body.whatsappTemplate,
+              variables: [finalLead.name || 'there', finalLead.company || finalLead.courseInterest || 'your inquiry'],
+            });
+          } catch (err: any) {
+            app.log.error(`Failed to send telecaller selected template ${body.whatsappTemplate}: ${err.message}`);
+          }
+        } else if (body.whatsappTemplate !== 'SKIP') {
+          // If not explicitly set to SKIP, run default autopilot template
+          EventBus.emit(SystemEvents.LEAD_CONTACTED, finalLead);
+        }
       }
     }
 
