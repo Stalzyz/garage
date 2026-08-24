@@ -168,4 +168,70 @@ export function initializeCronJobs() {
       console.error('[Cron] Error generating weekly reports:', err);
     }
   });
+  // 5. 30-Minute Meeting Reminders (Internal & Client)
+  // Runs every minute
+  cron.schedule('* * * * *', async () => {
+    try {
+      const now = new Date();
+      const inThirtyMinutes = new Date(now.getTime() + 31 * 60 * 1000); // look ahead up to 31 mins
+
+      // 5a. Internal Meetings
+      const upcomingInternal = await prisma.internalMeeting.findMany({
+        where: {
+          startTime: { gt: now, lte: inThirtyMinutes },
+          reminderSent: false,
+        },
+        include: { attendees: { include: { employee: { include: { user: true } } } } }
+      });
+
+      for (const meeting of upcomingInternal) {
+        if (meeting.attendees) {
+          for (const attendee of meeting.attendees) {
+            if (attendee.employee?.user?.email) {
+              await sendEmail(attendee.employee.user.email, {
+                subject: `Reminder: ${meeting.title} starts in 30 minutes`,
+                html: `
+                  <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:20px;border-radius:10px;">
+                    <h2 style="color:#3b82f6;">Meeting Reminder</h2>
+                    <p>Your meeting <strong>${meeting.title}</strong> is starting soon.</p>
+                    <p><strong>Time:</strong> ${meeting.startTime.toLocaleString()}</p>
+                    ${meeting.meetLink ? `<p><a href="${meeting.meetLink}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;">Join Google Meet</a></p>` : ''}
+                  </div>
+                `
+              });
+            }
+          }
+        }
+        await prisma.internalMeeting.update({ where: { id: meeting.id }, data: { reminderSent: true } });
+      }
+
+      // 5b. Client Meetings
+      const upcomingClient = await prisma.clientMeeting.findMany({
+        where: {
+          startTime: { gt: now, lte: inThirtyMinutes },
+          reminderSent: false,
+        }
+      });
+
+      for (const meeting of upcomingClient) {
+        if (meeting.attendeeEmail) {
+          await sendEmail(meeting.attendeeEmail, {
+            subject: `Reminder: Your meeting starts in 30 minutes`,
+            html: `
+              <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:20px;border-radius:10px;">
+                <h2 style="color:#3b82f6;">Meeting Reminder</h2>
+                <p>Your scheduled meeting <strong>${meeting.summary}</strong> is starting soon.</p>
+                <p><strong>Time:</strong> ${meeting.startTime.toLocaleString()}</p>
+                ${meeting.meetLink ? `<p><a href="${meeting.meetLink}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;">Join Google Meet</a></p>` : ''}
+              </div>
+            `
+          });
+        }
+        await prisma.clientMeeting.update({ where: { id: meeting.id }, data: { reminderSent: true } });
+      }
+
+    } catch (err) {
+      console.error('[Cron] Error processing meeting reminders:', err);
+    }
+  });
 }

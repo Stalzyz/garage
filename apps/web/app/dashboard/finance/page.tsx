@@ -30,6 +30,19 @@ export default function FinanceDashboard() {
     }
   }, [data])
 
+  const handleExportGST = () => {
+    const csv = `Type,Amount\nTotal Outstanding,${totalOutstanding}\nTotal Overdue,${totalOverdue}\nTotal Paid,${totalPaidThisMonth}`
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `GST_Report_Summary.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const filtered = invoices.filter(i => {
     const matchSearch = search === "" || i.clientName.toLowerCase().includes(search.toLowerCase()) || i.invoiceNumber.toLowerCase().includes(search.toLowerCase())
     const matchUnit = !unitFilter || i.businessUnit === unitFilter
@@ -62,7 +75,9 @@ export default function FinanceDashboard() {
             </div>
           </div>
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <button className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white/5 text-white font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-md min-h-[44px]">
+            <button 
+              onClick={handleExportGST}
+              className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white/5 text-white font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-md min-h-[44px]">
               <Download className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" /> Export GST Report
             </button>
             <Link 

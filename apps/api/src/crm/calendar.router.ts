@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { sendEmail } from '../integrations/email.service';
 
 const CalendarInviteSchema = z.object({
   leadId: z.string(),
@@ -71,6 +72,35 @@ export default async function calendarRouter(app: FastifyInstance) {
           content: `[Google Calendar] Meeting scheduled: ${summary}. Link: ${response.data.htmlLink || 'N/A'}. Meet Link: ${response.data.conferenceData?.entryPoints?.[0]?.uri || 'N/A'}`,
           userId: req.user?.id || 'system',
         }
+      });
+
+      // Track in ClientMeeting for reminders
+      const meetLinkUri = response.data.conferenceData?.entryPoints?.[0]?.uri;
+      
+      await app.prisma.clientMeeting.create({
+        data: {
+          leadId,
+          summary,
+          description,
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+          meetLink: meetLinkUri,
+          attendeeEmail,
+        }
+      });
+
+      // Send confirmation email
+      await sendEmail(attendeeEmail, {
+        subject: `Meeting Confirmed: ${summary}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:20px;border-radius:10px;">
+            <h2 style="color:#3b82f6;">Your meeting is confirmed!</h2>
+            <p><strong>Topic:</strong> ${summary}</p>
+            <p><strong>Time:</strong> ${new Date(startTime).toLocaleString()}</p>
+            ${description ? `<p><strong>Details:</strong> ${description}</p>` : ''}
+            ${meetLinkUri ? `<p><a href="${meetLinkUri}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;">Join Google Meet</a></p>` : ''}
+          </div>
+        `
       });
 
       return {

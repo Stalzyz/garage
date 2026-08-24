@@ -1,0 +1,181 @@
+import { FastifyInstance } from 'fastify';
+import { google } from 'googleapis';
+import { z } from 'zod';
+import { sendEmail } from '../integrations/email.service';
+
+const CreateMeetingSchema = z.object({
+  title: z.string(),
+  description: z.string().optional(),
+  startTime: z.string(),
+  endTime: z.string(),
+  attendeeIds: z.array(z.string()),
+});
+
+export default async function meetingsRouter(app: FastifyInstance) {
+  // GET /api/v1/hr/meetings
+  app.get('/meetings', async (req, reply) => {
+    try {
+      const meetings = await app.prisma.internalMeeting.findMany({
+        where: {
+          OR: [
+            { hostId: req.user?.id },
+            {
+              attendees: {
+                some: {
+                  employee: {
+                    userId: req.user?.id
+                  }
+                }
+              }
+            }
+          ]
+        },
+        include: {
+          host: {
+            select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
+          },
+          attendees: {
+            include: {
+              employee: {
+                include: {
+                  user: {
+                    select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          startTime: 'asc'
+        }
+      });
+      return { success: true, data: meetings };
+    } catch (err: any) {
+      app.log.error(err, 'Failed to fetch internal meetings');
+      return reply.internalServerError('Failed to fetch internal meetings');
+    }
+  });
+
+  // POST /api/v1/hr/meetings
+  app.post('/meetings', async (req, reply) => {
+    const { title, description, startTime, endTime, attendeeIds } = CreateMeetingSchema.parse(req.body);
+    const hostId = req.user?.id;
+
+    if (!hostId) {
+      return reply.unauthorized('User not authenticated');
+    }
+
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+
+    let meetLink = '';
+    
+    // Try scheduling via Google Calendar API if credentials exist
+    if (clientEmail && privateKey) {
+      try {
+        const auth = new google.auth.JWT({
+          email: clientEmail,
+          key: privateKey,
+          scopes: ['https://www.googleapis.com/auth/calendar']
+        });
+
+        const calendar = google.calendar({ version: 'v3', auth });
+
+        // Fetch attendee emails
+        const attendeesData = await app.prisma.employee.findMany({
+          where: { id: { in: attendeeIds } },
+          include: { user: { select: { email: true } } }
+        });
+
+        const emails = attendeesData.map(a => ({ email: a.user.email }));
+
+        const event = {
+          summary: title,
+          description: description || `Internal Meeting: ${title}`,
+          start: { dateTime: startTime, timeZone: 'UTC' },
+          end: { dateTime: endTime, timeZone: 'UTC' },
+          attendees: emails,
+          conferenceData: {
+            createRequest: {
+              requestId: `internal-meet-${Date.now()}`,
+              conferenceSolutionKey: { type: 'hangoutsMeet' }
+            }
+          }
+        };
+
+        const response = await calendar.events.insert({
+          calendarId,
+          requestBody: event,
+          conferenceDataVersion: 1,
+        });
+
+        meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri || '';
+      } catch (calendarError: any) {
+        app.log.error(calendarError, 'Failed to create google calendar event for internal meeting');
+        // Continue creating the meeting in the database even if GMeet fails
+      }
+    }
+
+    try {
+      const meeting = await app.prisma.internalMeeting.create({
+        data: {
+          title,
+          description,
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+          meetLink,
+          hostId,
+          attendees: {
+            create: attendeeIds.map(id => ({ employeeId: id }))
+          }
+        },
+        include: {
+          attendees: {
+            include: { employee: { include: { user: true } } }
+          }
+        }
+      });
+
+      // Send email notifications to attendees
+      if (meeting.attendees && meeting.attendees.length > 0) {
+        for (const attendee of meeting.attendees) {
+          if (attendee.employee?.user?.email) {
+            await sendEmail(attendee.employee.user.email, {
+              subject: `Meeting Scheduled: ${title}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:20px;border-radius:10px;">
+                  <h2 style="color:#3b82f6;">Meeting Scheduled</h2>
+                  <p>You have been invited to an internal meeting: <strong>${title}</strong></p>
+                  <p><strong>Time:</strong> ${new Date(startTime).toLocaleString()}</p>
+                  <p><strong>Description:</strong> ${description || 'No description provided.'}</p>
+                  ${meetLink ? `<p><a href="${meetLink}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;">Join Google Meet</a></p>` : ''}
+                </div>
+              `
+            });
+          }
+        }
+      }
+
+      return { success: true, data: meeting };
+    } catch (dbError: any) {
+      app.log.error(dbError, 'Failed to save meeting to DB');
+      return reply.internalServerError('Failed to save meeting to database');
+    }
+  });
+
+  // DELETE /api/v1/hr/meetings/:id
+  app.delete('/meetings/:id', async (req: any, reply) => {
+    const { id } = req.params;
+    try {
+      await app.prisma.internalMeeting.delete({
+        where: { id }
+      });
+      return { success: true };
+    } catch (error) {
+      app.log.error(error);
+      return reply.internalServerError('Failed to delete meeting');
+    }
+  });
+}

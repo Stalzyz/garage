@@ -19,6 +19,7 @@ const CreateLeadSchema = z.object({
   businessUnit: z.enum(['AGENCY', 'ACADEMY']).optional().default('AGENCY'),
   courseInterest: z.string().optional(),
   batchId: z.string().optional(),
+  ref: z.string().optional(), // Referral code (employeeCode)
 });
 
 function calculateScore(budget?: number, source?: string, projectType?: string, businessUnit?: string): number {
@@ -49,12 +50,25 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     const body = CreateLeadSchema.parse(req.body);
     const score = calculateScore(body.estimatedBudget, body.source, body.projectType, body.businessUnit);
 
+    // Check for referrer
+    let referredById: string | null = null;
+    if (body.ref) {
+      const employee = await app.prisma.employee.findUnique({
+        where: { employeeCode: body.ref }
+      });
+      if (employee) {
+        referredById = employee.id;
+      }
+    }
+
     // 1. Create the lead
+    const { ref, ...leadData } = body;
     const lead = await app.prisma.lead.create({
       data: { 
-        ...body, 
+        ...leadData, 
         score,
-        status: body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW'
+        status: body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW',
+        referredById
       },
     });
 

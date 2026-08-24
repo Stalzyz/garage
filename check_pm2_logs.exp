@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 30
+set script {
+pm2 logs grekam-os-web --lines 50 --raw --no-color
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

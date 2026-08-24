@@ -608,6 +608,7 @@ function ChangePasswordForm() {
         <label className="text-xs font-bold text-white/50 block mb-1">Current Password</label>
         <input 
           type="password" required 
+          autoComplete="current-password"
           value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
           className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50" 
         />
@@ -616,6 +617,7 @@ function ChangePasswordForm() {
         <label className="text-xs font-bold text-white/50 block mb-1">New Password (min 8 chars)</label>
         <input 
           type="password" required minLength={8}
+          autoComplete="new-password"
           value={newPassword} onChange={e => setNewPassword(e.target.value)}
           className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50" 
         />

@@ -6,23 +6,14 @@ import { useCurrency } from "@/hooks/useCurrency"
 export default function PNLPage() {
   const { symbol } = useCurrency()
   // Mock P&L Data
-  const income = [
-    { category: "Web Projects", amount: 85000 },
-    { class: "LMS Subscriptions", amount: 24000 },
-    { class: "Consulting", amount: 15500 }
-  ]
+  const income: any[] = []
   
-  const expenses = [
-    { category: "Payroll", amount: 45000 },
-    { category: "Software Licenses", amount: 8500 },
-    { category: "Cloud Hosting", amount: 4200 },
-    { category: "Marketing Ads", amount: 12000 }
-  ]
+  const expenses: any[] = []
 
   const totalIncome = income.reduce((sum, item) => sum + item.amount, 0)
   const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0)
   const netProfit = totalIncome - totalExpenses
-  const margin = (netProfit / totalIncome) * 100
+  const margin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0
 
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">

@@ -7,8 +7,8 @@ import { toast } from "sonner"
 
 // Mock Data
 const TAX_YEAR = "2024-2025"
-const INCOME = 4650000
-const EXPENSES = 2592000
+const INCOME = 0
+const EXPENSES = 0
 const PROFIT = INCOME - EXPENSES
 
 // Simplified Indian Tax Brackets (Old Regime Mock)
@@ -18,8 +18,8 @@ const CESS = 0.04 // 4% Health & Education Cess
 const BASE_TAX = PROFIT * CORPORATE_TAX_RATE
 const TOTAL_CORP_TAX = BASE_TAX + (BASE_TAX * SURCHARGE) + (BASE_TAX * CESS)
 
-const GST_COLLECTED = 837000 // 18% on 46.5L
-const GST_PAID = 466560 // 18% on 25.9L expenses
+const GST_COLLECTED = 0
+const GST_PAID = 0
 const GST_LIABILITY = GST_COLLECTED - GST_PAID
 
 export default function TaxHubDashboard() {
@@ -31,7 +31,7 @@ export default function TaxHubDashboard() {
     setIsExporting(true)
     setTimeout(() => {
       const csv = `Type,Amount\nGross Income,${INCOME}\nDeductible Expenses,${EXPENSES}\nTaxable Profit,${PROFIT}\nEstimated Tax Liability,${TOTAL_CORP_TAX}\nGST Collected,${GST_COLLECTED}\nITC,${GST_PAID}\nNet GST Liability,${GST_LIABILITY}`
-      const blob = new Blob([csv], { type: 'text/csv' })
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

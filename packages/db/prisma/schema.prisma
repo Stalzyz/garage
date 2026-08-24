@@ -71,6 +71,9 @@ model User {
   // Chat Relations
   chatParticipants ChatParticipant[] @relation("UserChatParticipants")
   chatMessages     ChatMessage[]     @relation("UserChatMessages")
+  
+  // Meeting Relations
+  hostedMeetings   InternalMeeting[] @relation("MeetingHost")
 
   @@map("users")
 }
@@ -301,11 +304,15 @@ model Lead {
   businessUnit    String     @default("AGENCY")
   courseInterest  String?
   batchId         String?
+  referredById    String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
   activities LeadActivity[]
   proposals  Proposal[]
+  clientMeetings ClientMeeting[]
+  commissions Commission[]
+  referredBy Employee? @relation(fields: [referredById], references: [id])
 
   @@index([status])
   @@index([assignedToId])
@@ -784,6 +791,9 @@ model Employee {
   weekOffs        WeekOff[]
   regularizations AttendanceRegularization[]
   unifiedRequests UnifiedRequest[]
+  meetingAttendances InternalMeetingAttendee[]
+  commissions     Commission[]
+  referredLeads   Lead[]
 
   @@map("employees")
 }
@@ -3052,3 +3062,76 @@ model EmailTemplate {
   @@index([category])
 }
 
+// ─────────────────────────────────────────
+// INTERNAL MEETINGS
+// ─────────────────────────────────────────
+
+model InternalMeeting {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  meetLink    String?
+  hostId      String     // User ID of the host
+  reminderSent Boolean   @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  host        User       @relation("MeetingHost", fields: [hostId], references: [id])
+  attendees   InternalMeetingAttendee[]
+
+  @@map("internal_meetings")
+}
+
+model InternalMeetingAttendee {
+  id         String   @id @default(cuid())
+  meetingId  String
+  employeeId String
+
+  meeting    InternalMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  employee   Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, employeeId])
+  @@map("internal_meeting_attendees")
+}
+
+model ClientMeeting {
+  id            String   @id @default(cuid())
+  leadId        String
+  summary       String
+  description   String?
+  startTime     DateTime
+  endTime       DateTime
+  meetLink      String?
+  attendeeEmail String
+  reminderSent  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@map("client_meetings")
+}
+
+// ─────────────────────────────────────────
+// COMMISSIONS
+// ─────────────────────────────────────────
+
+model Commission {
+  id            String   @id @default(cuid())
+  employeeId    String   // The freelancer who referred
+  leadId        String?  // The lead that was converted
+  invoiceId     String?  // The invoice that triggered the commission
+  amount        Float
+  status        String   @default("PENDING") // PENDING, APPROVED, PAID
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  lead          Lead?    @relation(fields: [leadId], references: [id])
+  
+  @@map("commissions")
+}

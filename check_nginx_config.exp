@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 30
+set script {
+cat /etc/nginx/sites-enabled/garage.grekam.in /etc/nginx/sites-enabled/grekam.in 2>/dev/null || cat /etc/nginx/sites-enabled/default
+}
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

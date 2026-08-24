@@ -4,13 +4,7 @@ import { useState } from "react"
 import { Search, Plus, Filter, Paperclip, Receipt, IndianRupee, CheckCircle, Clock, XCircle, MoreHorizontal } from "lucide-react"
 
 // Mock Data
-const EXPENSES = [
-  { id: "EXP-2025-081", employee: "Maya Sharma", category: "Software", amount: "₹4,200", date: "Jul 10, 2025", status: "PENDING", description: "Figma Pro Annual License", receipt: true },
-  { id: "EXP-2025-080", employee: "Ravi Kumar", category: "Travel", amount: "₹12,500", date: "Jul 05, 2025", status: "APPROVED", description: "Flight to Mumbai Client Meeting", receipt: true },
-  { id: "EXP-2025-079", employee: "Priya Desai", category: "Meals", amount: "₹1,850", date: "Jul 02, 2025", status: "REJECTED", description: "Team Lunch - Client Onboarding", receipt: false, reason: "Missing receipt attachment" },
-  { id: "EXP-2025-078", employee: "Karthik N.", category: "Equipment", amount: "₹45,000", date: "Jun 28, 2025", status: "PAID", description: "New Dell UltraSharp Monitor", receipt: true },
-  { id: "EXP-2025-077", employee: "Aisha Rahman", category: "Software", amount: "₹1,200", date: "Jun 25, 2025", status: "PAID", description: "Midjourney Subscription", receipt: true },
-]
+const EXPENSES: any[] = []
 
 export default function ExpensesDashboard() {
   const [expensesList, setExpensesList] = useState(EXPENSES)

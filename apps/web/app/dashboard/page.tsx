@@ -824,6 +824,7 @@ function ClientDashboard() {
 function AdminDashboard({ session }: { session: any }) {
   const { data: overview, isLoading } = useApi<any>("/analytics/overview")
   const { data: revenueData } = useApi<any>("/analytics/revenue?months=8")
+  const { symbol } = useCurrency()
 
   const revenue = overview?.agency?.revenueCollected || 0
   const students = overview?.academy?.totalStudents || 0
@@ -846,7 +847,7 @@ function AdminDashboard({ session }: { session: any }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard 
             title="Total Revenue" 
-            value={isLoading ? "..." : `$${revenue.toLocaleString()}`} 
+            value={isLoading ? "..." : `${symbol}${revenue.toLocaleString()}`} 
             trend="Live Data" 
             icon={<DollarSign className="w-5 h-5" />} 
             color="text-emerald-400"
@@ -892,9 +893,9 @@ function AdminDashboard({ session }: { session: any }) {
             <div className="h-64 flex items-end gap-3 pt-6 border-b border-white/10 relative">
               {/* Y Axis labels */}
               <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-[10px] text-white/30 font-mono py-2">
-                <span>$50k</span>
-                <span>$25k</span>
-                <span>$0</span>
+                <span>{symbol}50k</span>
+                <span>{symbol}25k</span>
+                <span>{symbol}0</span>
               </div>
               
               <div className="flex-1 flex items-end gap-4 pl-12 h-full">
@@ -910,7 +911,7 @@ function AdminDashboard({ session }: { session: any }) {
                       />
                       {/* Tooltip */}
                       <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 px-2 py-1 rounded text-[10px] font-mono whitespace-nowrap transition-opacity">
-                        ${m.revenue.toLocaleString()}
+                        {symbol}{m.revenue.toLocaleString()}
                       </div>
                     </div>
                   )
@@ -930,30 +931,7 @@ function AdminDashboard({ session }: { session: any }) {
               <Activity className="w-5 h-5 text-purple-400" /> Recent Activity
             </h2>
             <div className="space-y-6">
-              <ActivityItem 
-                title="New Proposal Accepted" 
-                desc="Stark Industries approved 'Brand Redesign'" 
-                time="2 hours ago" 
-                color="bg-emerald-500" 
-              />
-              <ActivityItem 
-                title="Support Ticket Opened" 
-                desc="Login issue reported by student" 
-                time="4 hours ago" 
-                color="bg-amber-500" 
-              />
-              <ActivityItem 
-                title="Payroll Processed" 
-                desc="June 2026 salaries dispatched" 
-                time="1 day ago" 
-                color="bg-blue-500" 
-              />
-              <ActivityItem 
-                title="New Course Module" 
-                desc="'Advanced React' published to LMS" 
-                time="2 days ago" 
-                color="bg-purple-500" 
-              />
+              <div className="text-center text-white/30 text-xs py-4">No recent activity logs.</div>
             </div>
           </div>
         </div>

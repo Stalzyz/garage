@@ -1,6 +1,39 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+
+// Helper to generate a commission if the client was referred
+async function processCommission(app: FastifyInstance, invoice: any) {
+  if (!invoice.clientEmail) return;
+
+  // Find the lead associated with this invoice's client email
+  const lead = await app.prisma.lead.findFirst({
+    where: { email: invoice.clientEmail, referredById: { not: null } },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  if (lead && lead.referredById) {
+    // Check if commission already exists for this invoice
+    const existing = await app.prisma.commission.findFirst({
+      where: { invoiceId: invoice.id }
+    });
+
+    if (!existing) {
+      const commissionAmt = invoice.totalAmount * 0.10; // 10% commission rate default
+      await app.prisma.commission.create({
+        data: {
+          employeeId: lead.referredById,
+          leadId: lead.id,
+          invoiceId: invoice.id,
+          amount: commissionAmt,
+          status: 'PENDING',
+          notes: `10% commission from invoice ${invoice.invoiceNumber}`
+        }
+      });
+      app.log.info(`[Commissions] Generated commission of ${commissionAmt} for employee ${lead.referredById}`);
+    }
+  }
+}
 import { generateInvoicePDF } from './pdf.service';
 import { paymentsService } from '../integrations/payments.service';
 import { auditLog } from '../utils/audit';
@@ -450,6 +483,14 @@ export default async function invoicesRouter(app: FastifyInstance) {
       }
     }
 
+    if (updatedInvoice.status === 'PAID') {
+      try {
+        await processCommission(app, updatedInvoice);
+      } catch (err) {
+        app.log.error(err, 'Failed to process commission');
+      }
+    }
+
     return { success: true, payment, invoice: updatedInvoice };
   });
 
@@ -507,6 +548,12 @@ export default async function invoicesRouter(app: FastifyInstance) {
         }
       });
     } catch {}
+
+    try {
+      await processCommission(app, updatedInvoice);
+    } catch (err) {
+      app.log.error(err, 'Failed to process commission on mock-pay');
+    }
 
     return { success: true, invoice: updatedInvoice };
   });

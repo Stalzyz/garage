@@ -20,6 +20,8 @@ import weekoffsRoutes from './weekoffs.router';
 import regularizationRoutes from './regularization.router';
 import rulesRoutes from './rules.router';
 import requestsRoutes from './requests.router';
+import meetingsRoutes from './meetings.router';
+import commissionsRoutes from './commissions.router';
 
 export default async function hrModule(app: FastifyInstance) {
   // app.addHook('preHandler', app.requireAuth);
@@ -45,5 +47,7 @@ export default async function hrModule(app: FastifyInstance) {
   await app.register(regularizationRoutes, { prefix: '/regularization' });
   await app.register(rulesRoutes, { prefix: '/rules' });
   await app.register(requestsRoutes, { prefix: '/requests' });
+  await app.register(meetingsRoutes, { prefix: '/meetings' });
+  await app.register(commissionsRoutes, { prefix: '/commissions' });
 }
 
