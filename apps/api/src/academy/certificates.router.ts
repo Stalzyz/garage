@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import puppeteer from 'puppeteer';
 
 export default async function certificatesRouter(app: FastifyInstance) {
   // GET /api/v1/academy/certificates/templates
@@ -52,35 +51,20 @@ export default async function certificatesRouter(app: FastifyInstance) {
     // Ensure Certificate ID is unique
     const certificateId = `GRK-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // Inject data into HTML
-    let html = template.htmlContent
-      .replace(/{{STUDENT_NAME}}/g, `${student.user.firstName} ${student.user.lastName}`)
-      .replace(/{{COURSE_NAME}}/g, course.name)
-      .replace(/{{ISSUE_DATE}}/g, new Date().toLocaleDateString())
-      .replace(/{{VERIFICATION_CODE}}/g, certificateId)
-      .replace(/{{BACKGROUND_URL}}/g, template.backgroundUrl || '')
-      .replace(/{{WATERMARK_URL}}/g, template.watermarkUrl || '')
-      .replace(/{{EDUCATOR_SIGNATURE_URL}}/g, template.educatorSignatureUrl || '')
-      .replace(/{{ACADEMY_HEAD_SIGNATURE_URL}}/g, template.academyHeadSignatureUrl || '');
-
-    // Launch Puppeteer and generate PDF
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // Generate PDF using Design System
+    const { getBrandConfig } = await import('../utils/brand');
+    const brand = await getBrandConfig(app, 'ACADEMY');
+    
+    // We import this dynamically to avoid huge memory overhead if unused
+    const { generateCertificatePDF } = await import('../finance/pdf.service');
+    
+    const pdfBuffer = await generateCertificatePDF({
+      brand,
+      studentName: `${student.user.firstName} ${student.user.lastName}`,
+      courseName: course.name,
+      certificateId,
+      issuedAt: new Date().toISOString(),
     });
-    const page = await browser.newPage();
-    
-    // Set content and wait for network idle to ensure fonts/images load
-    await page.setContent(html, { waitUntil: 'networkidle0' as any });
-    
-    // Generate PDF buffer
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      landscape: true,
-      printBackground: true
-    });
-    
-    await browser.close();
 
     const pdfUrl = `https://storage.grekam.in/certificates/${certificateId}.pdf`; 
 

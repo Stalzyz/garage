@@ -125,10 +125,13 @@ export default async function proposalsRouter(app: FastifyInstance) {
     
     if (!proposal) return reply.notFound('Proposal not found');
 
-    const org = await app.prisma.organization.findFirst();
     const financeSettings = await app.prisma.financeSettings.findFirst();
 
+    const { getBrandConfig } = await import('../utils/brand');
+    const brand = await getBrandConfig(app, 'AGENCY');
+
     const pdfBuffer = await generateProposalPDF({
+      brand,
       proposal: {
         id: proposal.id,
         title: proposal.title,
@@ -147,22 +150,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
         totalAmount: proposal.totalAmount,
         notes: proposal.notes,
         items: proposal.items,
-      },
-      orgName: org?.name || 'Grekam Visuals',
-      orgAddress: org?.billingAddress,
-      orgLogoUrl: org?.logoUrl,
-      orgEmail: org?.supportEmail,
-      orgPhone: org?.phone,
-      themeColors: {
-        primary: org?.primaryColor,
-        secondary: org?.secondaryColor,
-        accent: org?.accentColor
-      },
-      orgBankName: org?.bankName,
-      orgAccountName: org?.accountName,
-      orgAccountNumber: org?.accountNumber,
-      orgIfscCode: org?.ifscCode,
-      orgSwiftCode: org?.swiftCode
+      }
     });
 
     reply.header('Content-Type', 'application/pdf');
@@ -331,10 +319,13 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     
     // Generate token if it doesn't have one
-    const existing = await app.prisma.proposal.findUnique({ 
-      where: { id }, 
-      include: { lead: true, items: true } 
-    });
+    const [existing, financeSettings] = await Promise.all([
+      app.prisma.proposal.findUnique({ 
+        where: { id }, 
+        include: { lead: true, items: true } 
+      }),
+      app.prisma.financeSettings.findFirst()
+    ]);
     
     if (!existing) return reply.notFound('Proposal not found');
 
@@ -355,18 +346,20 @@ export default async function proposalsRouter(app: FastifyInstance) {
       const portalUrl = process.env.PORTAL_URL || process.env.AUTH_URL || 'https://garage.grekam.in';
       const link = `${portalUrl}/portal/proposals/${token}`;
       
-      const org = await app.prisma.organization.findFirst();
+      const { getBrandConfig } = await import('../utils/brand');
+      const brand = await getBrandConfig(app, 'AGENCY');
 
       const pdfBuffer = await generateProposalPDF({
+        brand,
         proposal: {
           id: existing.id,
           title: existing.title,
-          clientName: existing.lead?.name || 'Client',
-          clientCompany: existing.lead?.company,
-          clientEmail: existing.lead?.email,
-          clientPhone: existing.lead?.phone,
-          status: 'SENT',
-          currency: existing.currency,
+          clientName: existing.lead.name,
+          clientCompany: existing.lead.company,
+          clientEmail: existing.lead.email,
+          clientPhone: existing.lead.phone,
+          status: existing.status,
+          currency: financeSettings?.currencySymbol || existing.currency,
           validUntil: existing.validUntil ? existing.validUntil.toISOString() : null,
           createdAt: existing.createdAt.toISOString(),
           subtotal: existing.subtotal,
@@ -376,22 +369,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
           totalAmount: existing.totalAmount,
           notes: existing.notes,
           items: existing.items,
-        },
-        orgName: org?.name || 'Grekam Visuals',
-        orgAddress: org?.billingAddress,
-        orgLogoUrl: org?.logoUrl,
-        orgEmail: org?.supportEmail,
-        orgPhone: org?.phone,
-        themeColors: {
-          primary: org?.primaryColor,
-          secondary: org?.secondaryColor,
-          accent: org?.accentColor
-        },
-        orgBankName: org?.bankName,
-        orgAccountName: org?.accountName,
-        orgAccountNumber: org?.accountNumber,
-        orgIfscCode: org?.ifscCode,
-        orgSwiftCode: org?.swiftCode
+        }
       });
       
       const htmlBody = `

@@ -148,33 +148,28 @@ export default async function invoicesRouter(app: FastifyInstance) {
   // GET /api/v1/finance/invoices/:id/pdf  — Download as PDF
   app.get('/invoices/:id/pdf', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const [invoice, org, financeSettings] = await Promise.all([
+    const [invoice, financeSettings] = await Promise.all([
       app.prisma.invoice.findUnique({
         where: { id },
         include: { items: { orderBy: { sortOrder: 'asc' } } },
       }),
-      app.prisma.organization.findFirst(),
       app.prisma.financeSettings.findFirst(),
     ]);
 
     if (!invoice) return reply.notFound('Invoice not found');
+    
+    // Dynamically import to avoid circular issues or top-level await issues
+    const { getBrandConfig } = await import('../utils/brand');
+    const brand = await getBrandConfig(app, 'AGENCY');
 
     const pdfBuffer = await generateInvoicePDF({
+      brand,
       invoice: { 
         ...invoice, 
         createdAt: invoice.createdAt.toISOString(), 
         dueDate: invoice.dueDate.toISOString(), 
         paidAmount: invoice.paidAmount,
         currency: financeSettings?.currencySymbol || invoice.currency 
-      },
-      orgName: org?.name || 'Grekam OS',
-      orgAddress: org?.billingAddress,
-      orgLogoUrl: org?.logoUrl,
-      gstNumber: financeSettings?.gstNumber,
-      themeColors: {
-        primary: org?.primaryColor,
-        secondary: org?.secondaryColor,
-        accent: org?.accentColor
       }
     });
 
