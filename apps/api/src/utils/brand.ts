@@ -15,6 +15,13 @@ export interface BrandConfig {
   contactEmail: string | null;
   phone: string | null;
   address: string | null;
+  bankName: string | null;
+  accountName: string | null;
+  accountNumber: string | null;
+  ifscCode: string | null;
+  swiftCode: string | null;
+  bankBranch: string | null;
+  upiId: string | null;
 }
 
 /**
@@ -74,11 +81,29 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
       contactEmail: null,
       phone: null,
       address: null,
+      bankName: null,
+      accountName: null,
+      accountNumber: null,
+      ifscCode: null,
+      swiftCode: null,
+      bankBranch: null,
+      upiId: null,
     };
   }
 
   const rawLogo = type === 'ACADEMY' ? org.academyLogoUrl : org.logoUrl;
   const logoUrl = resolveBrandLogo(rawLogo);
+
+  // Dynamic professional UPI ID based on domain or support email
+  let upiId = null;
+  if (org.website) {
+    const domain = org.website.trim().replace(/https?:\/\/(www\.)?/, '').split('/')[0];
+    if (domain) {
+      upiId = `pay@${domain}`;
+    }
+  } else if (org.supportEmail) {
+    upiId = org.supportEmail.trim();
+  }
 
   return {
     logoUrl,
@@ -91,5 +116,12 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
     contactEmail: org.supportEmail?.trim() || null,
     phone: org.phone?.trim() || null,
     address: org.billingAddress?.trim() || null,
+    bankName: org.bankName?.trim() || null,
+    accountName: org.accountName?.trim() || null,
+    accountNumber: org.accountNumber?.trim() || null,
+    ifscCode: org.ifscCode?.trim() || null,
+    swiftCode: org.swiftCode?.trim() || null,
+    bankBranch: org.bankBranch?.trim() || null,
+    upiId,
   };
 }
