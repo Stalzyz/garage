@@ -1,57 +1,60 @@
 import React from 'react';
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
-import { PDFDocument, baseStyles } from './PDFDocument';
-import { DocHeader, DocFooter } from './components';
+import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
+import { DocHeader, DocRepeatHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
 
 const styles = StyleSheet.create({
-  content: {
-    marginTop: 30,
-    paddingHorizontal: 20,
-  },
   date: {
-    fontSize: 10,
-    color: '#334155',
-    marginBottom: 40,
+    fontSize: 9,
+    color: colors.muted,
+    marginBottom: sp['20'],
   },
   subject: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 24,
-    textDecoration: 'underline',
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     textAlign: 'center',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderTopColor: colors.rule,
+    borderBottomColor: colors.rule,
+    paddingVertical: sp['8'],
+    marginBottom: sp['20'],
   },
   paragraph: {
-    fontSize: 10,
-    color: '#334155',
-    lineHeight: 1.8,
-    marginBottom: 16,
+    fontSize: 9.5,
+    color: colors.body,
+    lineHeight: 1.7,
+    marginBottom: sp['12'],
   },
   bold: {
-    fontWeight: 'bold',
-    color: '#0f172a',
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
   },
-  signatureSection: {
-    marginTop: 60,
+  sigSection: {
+    marginTop: sp['40'],
   },
-  signatureBox: {
-    width: 250,
-  },
-  signatureLine: {
+  sigBlock: { width: 220 },
+  sigSpace: { height: 40 },
+  sigLine: {
     borderBottomWidth: 1,
-    borderBottomColor: '#cbd5e1',
-    marginBottom: 8,
+    borderBottomColor: colors.ruleStrong,
+    marginBottom: sp['6'],
   },
-  signatureName: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-  signatureTitle: {
+  sigName: {
     fontSize: 9,
-    color: '#64748b',
-  }
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    marginBottom: 2,
+  },
+  sigRole: {
+    fontSize: 8,
+    color: colors.muted,
+    textTransform: 'uppercase',
+  },
 });
 
 export interface TemplateExperienceLetterProps {
@@ -63,41 +66,44 @@ export interface TemplateExperienceLetterProps {
   issuedAt: string;
 }
 
-export const TemplateExperienceLetter: React.FC<TemplateExperienceLetterProps> = ({ 
-  brand, employeeName, positionTitle, startDate, endDate, issuedAt
+export const TemplateExperienceLetter: React.FC<TemplateExperienceLetterProps> = ({
+  brand, employeeName, positionTitle, startDate, endDate, issuedAt,
 }) => {
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
   return (
-    <PDFDocument title={`Experience Letter - ${employeeName}`} author={brand.companyName}>
+    <PDFDocument title={`Experience Letter — ${employeeName}`} author={brand.companyName}>
       <Page size="A4" style={baseStyles.page}>
-        <DocHeader brand={brand} title="" />
+        <DocRepeatHeader brand={brand} docType="EXPERIENCE LETTER" />
+        <DocHeader brand={brand} title="EXPERIENCE LETTER" />
 
-        <View style={styles.content}>
-          <Text style={styles.date}>Date: {new Date(issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
-          
-          <Text style={styles.subject}>TO WHOMSOEVER IT MAY CONCERN</Text>
+        <Text style={styles.date}>Date: {fmt(issuedAt)}</Text>
 
-          <Text style={styles.paragraph}>
-            This is to certify that <Text style={styles.bold}>{employeeName}</Text> was employed with <Text style={styles.bold}>{brand.companyName}</Text> in the capacity of <Text style={styles.bold}>{positionTitle}</Text>.
-          </Text>
+        <Text style={styles.subject}>To Whomsoever It May Concern</Text>
 
-          <Text style={styles.paragraph}>
-            Their tenure with us was from <Text style={styles.bold}>{new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text> to <Text style={styles.bold}>{new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>.
-          </Text>
+        <Text style={styles.paragraph}>
+          This is to certify that <Text style={styles.bold}>{employeeName}</Text> was employed with <Text style={styles.bold}>{brand.companyName}</Text> as a <Text style={styles.bold}>{positionTitle}</Text>.
+        </Text>
 
-          <Text style={styles.paragraph}>
-            During their employment, we found them to be a dedicated, hardworking, and reliable professional. They exhibited a high level of commitment to their responsibilities and contributed significantly to the goals of our organization.
-          </Text>
+        <Text style={styles.paragraph}>
+          Their tenure with our organization was from <Text style={styles.bold}>{fmt(startDate)}</Text> to <Text style={styles.bold}>{fmt(endDate)}</Text>.
+        </Text>
 
-          <Text style={styles.paragraph}>
-            We wish them the very best in all their future endeavors.
-          </Text>
+        <Text style={styles.paragraph}>
+          During their employment, <Text style={styles.bold}>{employeeName}</Text> demonstrated high professional standards, dedication, and reliability in executing their duties and responsibilities.
+        </Text>
 
-          <View style={styles.signatureSection} wrap={false}>
-            <View style={styles.signatureBox}>
-              <View style={[styles.signatureLine, { marginTop: 40 }]} />
-              <Text style={styles.signatureName}>For {brand.companyName}</Text>
-              <Text style={styles.signatureTitle}>Human Resources Department</Text>
-            </View>
+        <Text style={styles.paragraph}>
+          We express our appreciation for their contributions and wish them every success in their future endeavors.
+        </Text>
+
+        <View style={styles.sigSection} wrap={false}>
+          <View style={styles.sigBlock}>
+            <View style={styles.sigSpace} />
+            <View style={styles.sigLine} />
+            <Text style={styles.sigName}>For {brand.companyName}</Text>
+            <Text style={styles.sigRole}>Human Resources Department</Text>
           </View>
         </View>
 

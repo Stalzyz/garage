@@ -1,139 +1,122 @@
 import React from 'react';
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
-import { PDFDocument, baseStyles } from './PDFDocument';
-import { DocHeader, DocFooter } from './components';
+import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
+import { DocHeader, DocRepeatHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
 import { cleanDocumentText } from '../../utils/text';
 
+// Helvetica (built-in PDF font) does not have the Rs symbol (₹).
+// Replace it with the ASCII-safe abbreviation.
+const safeCurrency = (c: string) => c === '₹' ? 'Rs.' : c;
+
+const fmt = (amount: number, currency: string) => {
+  const n = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  return `${safeCurrency(currency)} ${n}`;
+};
+
+const statusColor = (status: string): string => {
+  const s = status.toLowerCase();
+  if (s === 'paid') return '#15803d';
+  if (s === 'overdue') return '#b91c1c';
+  if (s === 'cancelled') return '#64748b';
+  return '#b45309';
+};
+
 const styles = StyleSheet.create({
-  billToSection: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 6,
-    padding: 16,
-    marginBottom: 24,
-    marginTop: 10,
+  billToGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: sp['20'],
   },
+  billToLeft: { flex: 1, paddingRight: sp['24'] },
+  billToRight: { alignItems: 'flex-end' },
   billToLabel: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#64748b',
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 6,
+    letterSpacing: 0.8,
+    marginBottom: 3,
   },
-  clientName: {
+  billToName: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 4,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    marginBottom: 3,
   },
-  clientText: {
+  billToMeta: { fontSize: 8.5, color: colors.body, lineHeight: 1.4 },
+  statusText: {
     fontSize: 9,
-    color: '#475569',
-    lineHeight: 1.4,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  table: {
-    width: '100%',
-    marginBottom: 24,
-  },
+
+  // Table
+  table: { width: '100%', marginBottom: sp['16'] },
   tableHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#0f172a',
-    paddingBottom: 8,
-    paddingHorizontal: 8,
-    marginBottom: 6,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderTopColor: colors.ink,
+    borderBottomColor: colors.ink,
+    paddingVertical: 5,
+    marginBottom: 2,
+    backgroundColor: colors.surface,
   },
   tableHeaderCell: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#0f172a',
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    borderBottomColor: colors.rule,
+    paddingVertical: sp['8'],
+    minHeight: 22,
   },
-  tableCell: {
-    fontSize: 9,
-    color: '#334155',
-    lineHeight: 1.4,
-  },
-  colDesc: { flex: 4 },
-  colQty: { flex: 1, textAlign: 'center' },
-  colRate: { flex: 1.5, textAlign: 'right' },
-  colTotal: { flex: 1.5, textAlign: 'right' },
-  summaryBox: {
-    alignSelf: 'flex-end',
-    width: 220,
-    paddingVertical: 8,
-    marginTop: 10,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  summaryLabel: {
-    fontSize: 9,
-    color: '#64748b',
-  },
-  summaryValue: {
-    fontSize: 9,
-    fontWeight: 'medium',
-    color: '#0f172a',
-  },
-  grandTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    marginTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  grandTotalLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-  grandTotalValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  notesSection: {
-    backgroundColor: '#f8fafc',
-    borderLeftWidth: 4,
-    padding: 16,
-    borderRadius: 4,
-    marginTop: 30,
+  tableCell: { fontSize: 9, color: colors.body, lineHeight: 1.4 },
+  colDesc: { flex: 4.5, paddingRight: sp['8'] },
+  colQty: { width: 36, textAlign: 'center' },
+  colRate: { width: 80, textAlign: 'right' },
+  colTotal: { width: 80, textAlign: 'right' },
+
+  // Summary
+  summaryOuter: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: sp['20'] },
+  summaryInner: { width: 220 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
+  summaryLabel: { fontSize: 8.5, color: colors.muted },
+  summaryValue: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: colors.ink },
+  totalRule: { borderTopWidth: 1.5, borderTopColor: colors.ink, marginVertical: 6 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  totalLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: colors.ink },
+  totalValue: { fontSize: 11, fontFamily: 'Helvetica-Bold' },
+
+  // Notes
+  notesBox: {
+    borderLeftWidth: 3,
+    backgroundColor: colors.surface,
+    padding: sp['12'],
+    marginTop: sp['8'],
   },
   notesLabel: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#0f172a',
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 6,
+    letterSpacing: 0.8,
+    marginBottom: 4,
   },
-  notesText: {
-    fontSize: 9,
-    color: '#475569',
-    lineHeight: 1.5,
-  }
+  notesText: { fontSize: 8.5, color: colors.body, lineHeight: 1.6 },
 });
 
 interface InvoiceItem {
   description: string;
   quantity: number;
   unitPrice: number;
-  taxRate?: number;
-  discountRate?: number;
   total: number;
 }
 
@@ -143,6 +126,7 @@ export interface TemplateInvoiceProps {
     invoiceNumber: string;
     clientName: string;
     clientEmail?: string | null;
+    clientAddress?: string | null;
     clientGst?: string | null;
     status: string;
     currency: string;
@@ -159,38 +143,45 @@ export interface TemplateInvoiceProps {
   };
 }
 
-const formatCurrency = (amount: number, currency: string) => {
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-  return `${currency} ${formatted}`;
-};
-
 export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice }) => {
-  const balanceDue = invoice.totalAmount - invoice.paidAmount;
+  const balanceDue = Math.max(0, invoice.totalAmount - invoice.paidAmount);
 
   return (
     <PDFDocument title={`Invoice ${invoice.invoiceNumber}`} author={brand.companyName}>
       <Page size="A4" style={baseStyles.page}>
-        <DocHeader 
-          brand={brand} 
+        {/* Thin repeat header on pages 2+ */}
+        <DocRepeatHeader brand={brand} docType="INVOICE" />
+
+        {/* Full header — inline flow, auto-sizes */}
+        <DocHeader
+          brand={brand}
           title="INVOICE"
           metadata={[
-            { label: 'Invoice No.', value: invoice.invoiceNumber },
-            { label: 'Date', value: new Date(invoice.createdAt).toLocaleDateString() },
-            { label: 'Due Date', value: new Date(invoice.dueDate).toLocaleDateString() },
-            { label: 'Status', value: invoice.status },
+            { label: 'Invoice No', value: invoice.invoiceNumber },
+            { label: 'Date', value: new Date(invoice.createdAt).toLocaleDateString('en-IN') },
+            { label: 'Due Date', value: new Date(invoice.dueDate).toLocaleDateString('en-IN') },
+            { label: 'Status', value: invoice.status.toUpperCase() },
           ]}
         />
 
-        <View style={styles.billToSection}>
-          <Text style={styles.billToLabel}>Bill To</Text>
-          <Text style={styles.clientName}>{invoice.clientName}</Text>
-          {invoice.clientEmail && <Text style={styles.clientText}>{invoice.clientEmail}</Text>}
-          {invoice.clientGst && <Text style={styles.clientText}>GSTIN: {invoice.clientGst}</Text>}
+        {/* Bill To */}
+        <View style={styles.billToGrid}>
+          <View style={styles.billToLeft}>
+            <Text style={styles.billToLabel}>Billed To</Text>
+            <Text style={styles.billToName}>{invoice.clientName}</Text>
+            {invoice.clientEmail && <Text style={styles.billToMeta}>{invoice.clientEmail}</Text>}
+            {invoice.clientAddress && <Text style={styles.billToMeta}>{invoice.clientAddress}</Text>}
+            {invoice.clientGst && <Text style={styles.billToMeta}>GSTIN: {invoice.clientGst}</Text>}
+          </View>
+          <View style={styles.billToRight}>
+            <Text style={styles.billToLabel}>Payment Status</Text>
+            <Text style={[styles.statusText, { color: statusColor(invoice.status) }]}>
+              {invoice.status.toUpperCase()}
+            </Text>
+          </View>
         </View>
 
+        {/* Items table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
@@ -198,64 +189,66 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
             <Text style={[styles.tableHeaderCell, styles.colRate]}>Rate</Text>
             <Text style={[styles.tableHeaderCell, styles.colTotal]}>Amount</Text>
           </View>
-
-          {invoice.items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
+          {invoice.items.map((item, i) => (
+            <View key={i} style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.colDesc]}>{cleanDocumentText(item.description)}</Text>
               <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-              <Text style={[styles.tableCell, styles.colRate]}>{formatCurrency(item.unitPrice, invoice.currency)}</Text>
-              <Text style={[styles.tableCell, styles.colTotal]}>{formatCurrency(item.total, invoice.currency)}</Text>
+              <Text style={[styles.tableCell, styles.colRate]}>{fmt(item.unitPrice, invoice.currency)}</Text>
+              <Text style={[styles.tableCell, styles.colTotal]}>{fmt(item.total, invoice.currency)}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.summaryBox}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(invoice.subtotal, invoice.currency)}</Text>
-          </View>
-          {(invoice.cgst > 0 || invoice.sgst > 0) ? (
-            <>
+        {/* Summary */}
+        <View style={styles.summaryOuter} wrap={false}>
+          <View style={styles.summaryInner}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>{fmt(invoice.subtotal, invoice.currency)}</Text>
+            </View>
+            {invoice.cgst > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>CGST</Text>
-                <Text style={styles.summaryValue}>{formatCurrency(invoice.cgst, invoice.currency)}</Text>
+                <Text style={styles.summaryValue}>{fmt(invoice.cgst, invoice.currency)}</Text>
               </View>
+            )}
+            {invoice.sgst > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>SGST</Text>
-                <Text style={styles.summaryValue}>{formatCurrency(invoice.sgst, invoice.currency)}</Text>
+                <Text style={styles.summaryValue}>{fmt(invoice.sgst, invoice.currency)}</Text>
               </View>
-            </>
-          ) : invoice.igst > 0 ? (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>IGST</Text>
-              <Text style={styles.summaryValue}>{formatCurrency(invoice.igst, invoice.currency)}</Text>
+            )}
+            {invoice.igst > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>IGST</Text>
+                <Text style={styles.summaryValue}>{fmt(invoice.igst, invoice.currency)}</Text>
+              </View>
+            )}
+            <View style={styles.totalRule} />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={[styles.totalValue, { color: brand.primaryColor }]}>
+                {fmt(invoice.totalAmount, invoice.currency)}
+              </Text>
             </View>
-          ) : null}
-          
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Total</Text>
-            <Text style={[styles.grandTotalValue, { color: brand.primaryColor }]}>
-              {formatCurrency(invoice.totalAmount, invoice.currency)}
-            </Text>
+            {invoice.paidAmount > 0 && (
+              <View style={[styles.summaryRow, { marginTop: 4 }]}>
+                <Text style={styles.summaryLabel}>Amount Paid</Text>
+                <Text style={styles.summaryValue}>{fmt(invoice.paidAmount, invoice.currency)}</Text>
+              </View>
+            )}
+            {balanceDue > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { fontFamily: 'Helvetica-Bold', color: colors.ink }]}>Balance Due</Text>
+                <Text style={[styles.summaryValue]}>{fmt(balanceDue, invoice.currency)}</Text>
+              </View>
+            )}
           </View>
-
-          {invoice.paidAmount > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Amount Paid</Text>
-              <Text style={styles.summaryValue}>{formatCurrency(invoice.paidAmount, invoice.currency)}</Text>
-            </View>
-          )}
-          
-          {balanceDue > 0 && (
-            <View style={[styles.summaryRow, { marginTop: 4 }]}>
-              <Text style={[styles.summaryLabel, { fontWeight: 'bold', color: '#0f172a' }]}>Balance Due</Text>
-              <Text style={[styles.summaryValue, { fontWeight: 'bold' }]}>{formatCurrency(balanceDue, invoice.currency)}</Text>
-            </View>
-          )}
         </View>
 
+        {/* Notes */}
         {invoice.notes && (
-          <View style={[styles.notesSection, { borderLeftColor: brand.primaryColor }]}>
+          <View style={[styles.notesBox, { borderLeftColor: brand.primaryColor }]} wrap={false}>
             <Text style={styles.notesLabel}>Notes & Terms</Text>
             <Text style={styles.notesText}>{cleanDocumentText(invoice.notes)}</Text>
           </View>

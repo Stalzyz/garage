@@ -25,31 +25,41 @@ export const EmailLayout = ({ brand, previewText, children }: EmailLayoutProps) 
       {previewText && <Preview>{previewText}</Preview>}
       <Body style={main}>
         <Container style={container}>
+          {/* Brand accent bar */}
+          <div style={{ backgroundColor: brand.primaryColor, height: '4px', borderRadius: '4px 4px 0 0' }} />
+
+          {/* Header */}
           <Section style={header}>
             {brand.logoUrl ? (
-              <Img src={brand.logoUrl} width="150" alt={brand.companyName} />
+              <Img src={brand.logoUrl} width="120" height="40" alt={brand.companyName} style={{ objectFit: 'contain' }} />
             ) : (
-              <Text style={{ ...companyName, color: brand.primaryColor }}>
+              <Text style={{ ...companyNameStyle, color: brand.primaryColor }}>
                 {brand.companyName}
               </Text>
             )}
           </Section>
 
+          {/* Content */}
           <Section style={contentBlock}>
             {children}
           </Section>
 
           <Hr style={hr} />
 
+          {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
               &copy; {new Date().getFullYear()} {brand.companyName}. All rights reserved.
             </Text>
             {brand.address && <Text style={footerText}>{brand.address}</Text>}
             <Text style={footerText}>
-              {brand.website && <a href={brand.website} style={footerLink}>{brand.website}</a>}
-              {brand.website && brand.contactEmail && ' • '}
-              {brand.contactEmail && <a href={`mailto:${brand.contactEmail}`} style={footerLink}>{brand.contactEmail}</a>}
+              {brand.website && (
+                <a href={brand.website} style={footerLink}>{brand.website}</a>
+              )}
+              {brand.website && brand.contactEmail && ' · '}
+              {brand.contactEmail && (
+                <a href={`mailto:${brand.contactEmail}`} style={footerLink}>{brand.contactEmail}</a>
+              )}
             </Text>
           </Section>
         </Container>
@@ -58,21 +68,30 @@ export const EmailLayout = ({ brand, previewText, children }: EmailLayoutProps) 
   );
 };
 
-export const EmailButton = ({ text, href, color = '#2563eb' }: { text: string; href: string; color?: string }) => (
-  <Section style={{ textAlign: 'center' as const, marginTop: '32px', marginBottom: '32px' }}>
+export const EmailButton = ({
+  text,
+  href,
+  color = '#2563eb',
+}: {
+  text: string;
+  href: string;
+  color?: string;
+}) => (
+  <Section style={{ textAlign: 'center' as const, marginTop: '28px', marginBottom: '28px' }}>
     <a
       href={href}
       style={{
         backgroundColor: color,
-        borderRadius: '8px',
-        color: '#fff',
+        borderRadius: '6px',
+        color: '#ffffff',
         display: 'inline-block',
         fontSize: '14px',
         fontWeight: 'bold',
-        lineHeight: '1.5',
-        padding: '12px 24px',
+        lineHeight: '1',
+        padding: '14px 28px',
         textDecoration: 'none',
         textAlign: 'center' as const,
+        letterSpacing: '0.3px',
       }}
     >
       {text}
@@ -80,55 +99,59 @@ export const EmailButton = ({ text, href, color = '#2563eb' }: { text: string; h
   </Section>
 );
 
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+const main: React.CSSProperties = {
+  backgroundColor: '#f0f4f8',
+  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
 };
 
-const container = {
+const container: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '40px 20px',
-  marginBottom: '64px',
-  marginTop: '64px',
+  margin: '40px auto',
   borderRadius: '8px',
-  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
   maxWidth: '600px',
+  overflow: 'hidden',
 };
 
-const header = {
-  marginBottom: '32px',
-  textAlign: 'center' as const,
+const header: React.CSSProperties = {
+  padding: '28px 36px 20px',
+  borderBottom: '1px solid #eef1f5',
 };
 
-const companyName = {
-  fontSize: '24px',
+const companyNameStyle: React.CSSProperties = {
+  fontSize: '18px',
   fontWeight: 'bold',
   margin: '0',
+  letterSpacing: '0.5px',
 };
 
-const contentBlock = {
-  padding: '0 20px',
+const contentBlock: React.CSSProperties = {
+  padding: '32px 36px',
+  color: '#334155',
+  fontSize: '14px',
+  lineHeight: '1.7',
 };
 
-const hr = {
-  borderColor: '#e6ebf1',
-  margin: '40px 0',
+const hr: React.CSSProperties = {
+  borderColor: '#e8edf2',
+  margin: '0 36px',
 };
 
-const footer = {
+const footer: React.CSSProperties = {
   textAlign: 'center' as const,
+  padding: '20px 36px 28px',
 };
 
-const footerText = {
-  color: '#8898aa',
-  fontSize: '12px',
-  lineHeight: '16px',
-  margin: '4px 0',
+const footerText: React.CSSProperties = {
+  color: '#94a3b8',
+  fontSize: '11px',
+  lineHeight: '18px',
+  margin: '3px 0',
 };
 
-const footerLink = {
-  color: '#8898aa',
-  textDecoration: 'underline',
+const footerLink: React.CSSProperties = {
+  color: '#94a3b8',
+  textDecoration: 'none',
 };

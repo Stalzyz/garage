@@ -1,84 +1,125 @@
 import React from 'react';
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
-import { PDFDocument, baseStyles } from './PDFDocument';
-import { DocHeader, DocFooter } from './components';
+import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
+import { DocHeader, DocRepeatHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
 
+const safeCurrency = (c: string) => c === '₹' ? 'Rs.' : c;
+
+const fmt = (amount: number, currency: string) => {
+  const n = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  return `${safeCurrency(currency)} ${n}`;
+};
+
 const styles = StyleSheet.create({
-  employeeBox: {
-    backgroundColor: '#f8fafc',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 30,
-  },
-  row: {
+  // Employee info grid
+  infoGrid: {
     flexDirection: 'row',
-    marginBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.rule,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+    paddingVertical: sp['8'],
+    marginBottom: sp['20'],
   },
-  label: {
-    width: 100,
-    fontSize: 9,
-    color: '#64748b',
+  infoItem: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 7.5,
+    color: colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: 2,
   },
-  value: {
-    flex: 1,
-    fontSize: 10,
-    fontWeight: 'medium',
-    color: '#0f172a',
+  infoValue: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
   },
-  table: {
-    width: '100%',
-    marginBottom: 30,
-  },
+
+  // Table
+  table: { width: '100%', marginBottom: sp['16'] },
   tableHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cbd5e1',
-    paddingBottom: 8,
-    marginBottom: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.ink,
+    paddingBottom: sp['6'],
+    marginBottom: sp['4'],
   },
   tableHeaderCell: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#475569',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: colors.rule,
+    paddingVertical: sp['8'],
+    minHeight: 24,
+    alignItems: 'center',
+  },
+  tableRowAlt: {
+    backgroundColor: colors.surface,
   },
   tableCell: {
-    fontSize: 10,
-    color: '#334155',
+    fontSize: 9,
+    color: colors.body,
+    lineHeight: 1.4,
   },
   colDate: { flex: 1.5 },
   colCategory: { flex: 1.5 },
-  colDesc: { flex: 3 },
-  colAmount: { flex: 1.5, textAlign: 'right' },
-  summaryBox: {
-    alignSelf: 'flex-end',
-    width: 250,
-    padding: 16,
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
+  colDesc: { flex: 4 },
+  colAmount: { flex: 2, textAlign: 'right' },
+
+  // Summary Box
+  summaryOuter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: sp['24'],
   },
-  summaryRow: {
+  summaryInner: { width: 220 },
+  totalRule: { borderTopWidth: 1.5, borderTopColor: colors.ink, marginVertical: sp['6'] },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 2 },
+  totalLabel: { fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: colors.ink },
+  totalValue: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
+
+  // Approval section
+  approvalTitle: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+    marginBottom: sp['16'],
+  },
+  sigRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
   },
-  summaryLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#0f172a',
+  sigBlock: { width: '45%' },
+  sigSpace: { height: 36 },
+  sigLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ruleStrong,
+    marginBottom: sp['6'],
   },
-  summaryValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
+  sigName: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    marginBottom: 2,
+  },
+  sigRole: {
+    fontSize: 8,
+    color: colors.muted,
+    textTransform: 'uppercase',
   },
 });
 
@@ -100,43 +141,42 @@ export interface TemplateExpenseReportProps {
   items: ExpenseItem[];
 }
 
-const formatCurrency = (amount: number, currency: string) => {
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-  return `${currency} ${formatted}`;
-};
-
-export const TemplateExpenseReport: React.FC<TemplateExpenseReportProps> = ({ 
-  brand, employeeName, department, reportId, status, submittedAt, currency, items
+export const TemplateExpenseReport: React.FC<TemplateExpenseReportProps> = ({
+  brand, employeeName, department, reportId, status, submittedAt, currency, items,
 }) => {
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <PDFDocument title={`Expense Report - ${reportId}`} author={brand.companyName}>
+    <PDFDocument title={`Expense Report — ${reportId}`} author={brand.companyName}>
       <Page size="A4" style={baseStyles.page}>
-        <DocHeader 
-          brand={brand} 
-          title="EXPENSE REPORT" 
+        <DocRepeatHeader brand={brand} docType="EXPENSE REPORT" />
+        <DocHeader
+          brand={brand}
+          title="EXPENSE REPORT"
           metadata={[
             { label: 'Report ID', value: reportId },
-            { label: 'Date', value: new Date(submittedAt).toLocaleDateString() },
-            { label: 'Status', value: status },
+            { label: 'Date', value: new Date(submittedAt).toLocaleDateString('en-IN') },
+            { label: 'Status', value: status.toUpperCase() },
           ]}
         />
 
-        <View style={styles.employeeBox}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Employee:</Text>
-            <Text style={styles.value}>{employeeName}</Text>
+        {/* Employee Info Grid */}
+        <View style={styles.infoGrid}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Submitted By</Text>
+            <Text style={styles.infoValue}>{employeeName}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Department:</Text>
-            <Text style={styles.value}>{department}</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Department</Text>
+            <Text style={styles.infoValue}>{department}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Total Items</Text>
+            <Text style={styles.infoValue}>{items.length}</Text>
           </View>
         </View>
 
+        {/* Items Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.colDate]}>Date</Text>
@@ -144,23 +184,47 @@ export const TemplateExpenseReport: React.FC<TemplateExpenseReportProps> = ({
             <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
             <Text style={[styles.tableHeaderCell, styles.colAmount]}>Amount</Text>
           </View>
-
-          {items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.colDate]}>{new Date(item.date).toLocaleDateString()}</Text>
+          {items.map((item, i) => (
+            <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
+              <Text style={[styles.tableCell, styles.colDate]}>
+                {new Date(item.date).toLocaleDateString('en-IN')}
+              </Text>
               <Text style={[styles.tableCell, styles.colCategory]}>{item.category}</Text>
               <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
-              <Text style={[styles.tableCell, styles.colAmount]}>{formatCurrency(item.amount, currency)}</Text>
+              <Text style={[styles.tableCell, styles.colAmount]}>{fmt(item.amount, currency)}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.summaryBox}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Expenses</Text>
-            <Text style={[styles.summaryValue, { color: brand.primaryColor }]}>
-              {formatCurrency(totalAmount, currency)}
-            </Text>
+        {/* Total Summary */}
+        <View style={styles.summaryOuter} wrap={false}>
+          <View style={styles.summaryInner}>
+            <View style={styles.totalRule} />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Expenses</Text>
+              <Text style={[styles.totalValue, { color: brand.primaryColor }]}>
+                {fmt(totalAmount, currency)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Approval Signatures */}
+        <View wrap={false}>
+          <Text style={styles.approvalTitle}>Approval</Text>
+          <View style={styles.sigRow}>
+            <View style={styles.sigBlock}>
+              <View style={styles.sigSpace} />
+              <View style={styles.sigLine} />
+              <Text style={styles.sigName}>{employeeName}</Text>
+              <Text style={styles.sigRole}>Employee Signature</Text>
+            </View>
+            <View style={styles.sigBlock}>
+              <View style={styles.sigSpace} />
+              <View style={styles.sigLine} />
+              <Text style={styles.sigName}>Authorized Manager</Text>
+              <Text style={styles.sigRole}>Manager Approval</Text>
+            </View>
           </View>
         </View>
 

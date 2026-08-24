@@ -1,149 +1,251 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from '@react-pdf/renderer';
-import { BrandConfig } from '../../utils/brand';
-import { baseStyles } from './PDFDocument';
+import { BrandConfig, resolveBrandLogo } from '../../utils/brand';
+import { colors, sp } from './PDFDocument';
 
 const styles = StyleSheet.create({
+  // ─── Full Page-1 Header (inline flow, NOT fixed/absolute) ─────────────────
+  // This renders at the top of the page like normal content.
+  // It sizes itself to whatever content it contains — no clipping, no overflow.
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 40,
+    alignItems: 'flex-end',       // Align both columns to their bottom edges
+    marginBottom: sp['20'],
+    paddingBottom: sp['16'],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
   },
+
+  // Left column: Logo + company details
   headerLeft: {
     flexDirection: 'column',
-    maxWidth: '50%',
+    flex: 1,
+    paddingRight: sp['24'],
   },
+  logo: {
+    width: 110,
+    height: 36,
+    objectFit: 'contain',
+    marginBottom: sp['6'],
+  },
+  companyName: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: 3,
+  },
+  companyMeta: {
+    fontSize: 8,
+    color: colors.muted,
+    lineHeight: 1.5,
+  },
+
+  // Right column: Title stamp + metadata table
   headerRight: {
     flexDirection: 'column',
     alignItems: 'flex-end',
-    maxWidth: '40%',
+    minWidth: 180,
+    maxWidth: 240,
   },
-  logo: {
-    width: 140,
-    height: 50,
-    objectFit: 'contain',
-    marginBottom: 16,
-  },
-  companyName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#0f172a',
-  },
-  companyDetails: {
-    fontSize: 9,
-    color: '#64748b',
-    lineHeight: 1.4,
-  },
+  // Title is a single text — smaller controlled font size guarantees it never wraps.
   documentTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
+    fontSize: 17,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 8,
+    letterSpacing: 0.8,
+    textAlign: 'right',
+    marginBottom: sp['8'],
   },
-  documentMeta: {
+  // Metadata rows: label on left, value on right
+  metaTable: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    width: '100%',
+  },
+  metaRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 4,
+    width: '100%',
+    marginBottom: 2,
   },
   metaLabel: {
-    fontSize: 9,
-    color: '#94a3b8',
+    fontSize: 8,
+    color: colors.muted,
     textTransform: 'uppercase',
-    width: 70,
+    letterSpacing: 0.5,
+    width: 72,
     textAlign: 'right',
     marginRight: 8,
   },
   metaValue: {
-    fontSize: 9,
-    fontWeight: 'medium',
-    color: '#0f172a',
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
     width: 100,
     textAlign: 'right',
   },
-  footer: {
+
+  // ─── Thin repeat header (fixed, appears on pages 2+) ─────────────────────
+  // Small, safe, guaranteed to never collide with body content.
+  repeatHeader: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    top: 16,
+    left: 48,
+    right: 48,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+  },
+  repeatBrand: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  repeatDocType: {
+    fontSize: 8,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
+  // ─── Footer (fixed, absolute bottom) ─────────────────────────────────────
+  footer: {
+    position: 'absolute',
+    bottom: 18,
+    left: 48,
+    right: 48,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 16,
+    borderTopColor: colors.rule,
+    paddingTop: 6,
+  },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   footerText: {
-    fontSize: 8,
-    color: '#94a3b8',
+    fontSize: 7.5,
+    color: colors.faint,
   },
-  table: {
-    width: '100%',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f8fafc',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  tableHeaderCell: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-  },
-  tableCell: {
-    fontSize: 9,
-    color: '#334155',
+  footerDot: {
+    fontSize: 7.5,
+    color: colors.faint,
+    marginHorizontal: 4,
   },
 });
 
-export const DocHeader = ({ brand, title, metadata }: { brand: BrandConfig; title: string; metadata?: Array<{label: string; value: string}> }) => (
-  <View style={styles.header}>
-    <View style={styles.headerLeft}>
-      {brand.logoUrl ? (
-        <Image src={brand.logoUrl} style={styles.logo} />
-      ) : (
-        <Text style={[styles.companyName, { color: brand.primaryColor }]}>{brand.companyName}</Text>
-      )}
-      {brand.address && <Text style={styles.companyDetails}>{brand.address}</Text>}
-      {brand.phone && <Text style={styles.companyDetails}>{brand.phone}</Text>}
-      {brand.contactEmail && <Text style={styles.companyDetails}>{brand.contactEmail}</Text>}
-    </View>
-    <View style={styles.headerRight}>
-      <Text style={[styles.documentTitle, { color: brand.primaryColor }]}>{title}</Text>
-      {metadata?.map((meta, i) => (
-        <View key={i} style={styles.documentMeta}>
-          <Text style={styles.metaLabel}>{meta.label}</Text>
-          <Text style={styles.metaValue}>{meta.value}</Text>
+/**
+ * DocHeader — renders inline at the TOP of a page as flow content.
+ * It auto-sizes to content, so titles and metadata never clip or overlap.
+ * Place this as the first element inside a <Page>.
+ */
+export const DocHeader = ({
+  brand,
+  title,
+  metadata,
+}: {
+  brand: BrandConfig;
+  title: string;
+  metadata?: Array<{ label: string; value: string }>;
+}) => {
+  const resolvedLogo = resolveBrandLogo(brand.logoUrl);
+
+  return (
+    <View style={styles.header}>
+      {/* LEFT: Brand identity */}
+      <View style={styles.headerLeft}>
+        {resolvedLogo ? (
+          <Image src={resolvedLogo} style={styles.logo} />
+        ) : (
+          <Text style={[styles.companyName, { color: brand.primaryColor }]}>
+            {brand.companyName}
+          </Text>
+        )}
+        {brand.address && <Text style={styles.companyMeta}>{brand.address}</Text>}
+        {brand.contactEmail && <Text style={styles.companyMeta}>{brand.contactEmail}</Text>}
+        {brand.phone && <Text style={styles.companyMeta}>{brand.phone}</Text>}
+      </View>
+
+      {/* RIGHT: Document type + metadata */}
+      {title.length > 0 && (
+        <View style={styles.headerRight}>
+          <Text style={styles.documentTitle}>{title}</Text>
+          {metadata && metadata.length > 0 && (
+            <View style={styles.metaTable}>
+              {metadata.map((meta, i) => (
+                <View key={i} style={styles.metaRow}>
+                  <Text style={styles.metaLabel}>{meta.label}</Text>
+                  <Text style={styles.metaValue}>{meta.value}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
-      ))}
+      )}
     </View>
+  );
+};
+
+/**
+ * DocRepeatHeader — a thin fixed header that appears on pages 2+ only.
+ * Use `render={({pageNumber}) => pageNumber > 1 ? <DocRepeatHeader .../> : null}` pattern
+ * by wrapping it with a `<View fixed>` that conditionally shows.
+ * Keep this very small so it never takes much space.
+ */
+export const DocRepeatHeader = ({
+  brand,
+  docType,
+}: {
+  brand: BrandConfig;
+  docType: string;
+}) => (
+  <View style={styles.repeatHeader} fixed>
+    <Text style={styles.repeatBrand}>{brand.companyName}</Text>
+    <Text style={styles.repeatDocType}>{docType}</Text>
   </View>
 );
 
-export const DocFooter = ({ brand, pagination = true }: { brand: BrandConfig; pagination?: boolean }) => (
+/**
+ * DocFooter — fixed footer at the bottom of every page.
+ * Uses position: absolute so it never interacts with flow content.
+ */
+export const DocFooter = ({
+  brand,
+  pagination = true,
+}: {
+  brand: BrandConfig;
+  pagination?: boolean;
+}) => (
   <View style={styles.footer} fixed>
-    <View style={{ flexDirection: 'row' }}>
-      {brand.website && <Text style={[styles.footerText, { marginRight: 16 }]}>{brand.website}</Text>}
-      {brand.contactEmail && <Text style={styles.footerText}>{brand.contactEmail}</Text>}
+    <View style={styles.footerLeft}>
+      <Text style={styles.footerText}>{brand.companyName}</Text>
+      {brand.contactEmail && (
+        <>
+          <Text style={styles.footerDot}>•</Text>
+          <Text style={styles.footerText}>{brand.contactEmail}</Text>
+        </>
+      )}
+      {brand.website && (
+        <>
+          <Text style={styles.footerDot}>•</Text>
+          <Text style={styles.footerText}>{brand.website}</Text>
+        </>
+      )}
     </View>
     {pagination && (
-      <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+      <Text
+        style={styles.footerText}
+        render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+      />
     )}
   </View>
 );

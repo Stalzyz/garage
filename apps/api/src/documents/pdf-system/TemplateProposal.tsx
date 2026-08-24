@@ -1,219 +1,171 @@
 import React from 'react';
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
-import { PDFDocument, baseStyles } from './PDFDocument';
-import { DocHeader, DocFooter } from './components';
+import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
+import { DocHeader, DocRepeatHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
 import { cleanDocumentText } from '../../utils/text';
 
+const safeCurrency = (c: string) => c === '₹' ? 'Rs.' : c;
+
+const fmt = (amount: number, currency: string) => {
+  const n = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  return `${safeCurrency(currency)} ${n}`;
+};
+
 const styles = StyleSheet.create({
+  // Cover Page
   coverPage: {
     flex: 1,
-    padding: 60,
-    backgroundColor: '#f8fafc', // Modern off-white background tint
+    padding: 56,
+    backgroundColor: colors.white,
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
-  coverHeader: {
+  coverTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingBottom: sp['20'],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
   },
-  coverLogoText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+  coverBrand: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
     letterSpacing: 2,
-    color: '#0f172a',
-  },
-  coverTitleContainer: {
-    borderLeftWidth: 6,
-    paddingLeft: 24,
-    marginVertical: 'auto',
-    maxWidth: '85%',
-  },
-  coverTitleLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 4,
     textTransform: 'uppercase',
-    marginBottom: 16,
+  },
+  coverMonth: {
+    fontSize: 9,
+    color: colors.muted,
+  },
+  coverMiddle: {
+    marginVertical: sp['48'],
+    borderLeftWidth: 4,
+    paddingLeft: sp['20'],
+  },
+  coverType: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    marginBottom: sp['8'],
   },
   coverTitle: {
-    fontSize: 34,
-    fontWeight: 'heavy',
-    color: '#0f172a',
-    lineHeight: 1.2,
+    fontSize: 26,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
+    lineHeight: 1.3,
   },
-  coverFooter: {
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 36,
+  coverBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+    paddingTop: sp['20'],
+    borderTopWidth: 1,
+    borderTopColor: colors.rule,
   },
-  coverPreparedLabel: {
-    fontSize: 8,
-    color: '#64748b',
+  coverLabel: {
+    fontSize: 7.5,
+    color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  coverClientName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  coverClientMeta: {
-    fontSize: 10,
-    color: '#475569',
-  },
-  coverDate: {
-    fontSize: 10,
-    color: '#64748b',
     letterSpacing: 1,
+    marginBottom: 3,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginTop: 26,
-    marginBottom: 14,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 6,
-  },
-  preparedForBox: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 6,
-    padding: 16,
-    marginBottom: 24,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  gridItem: {
-    width: '50%',
-    marginBottom: 10,
-  },
-  gridLabel: {
-    fontSize: 8,
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  coverName: {
+    fontSize: 12,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
     marginBottom: 2,
   },
-  gridValue: {
-    fontSize: 10,
-    color: '#0f172a',
-    fontWeight: 'medium',
-  },
-  table: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  tableHeader: {
+  coverMeta: { fontSize: 8.5, color: colors.body },
+
+  // Client info grid
+  clientGrid: {
     flexDirection: 'row',
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#0f172a',
-    paddingBottom: 8,
-    paddingHorizontal: 8,
-    marginBottom: 6,
+    flexWrap: 'wrap',
+    borderWidth: 1,
+    borderColor: colors.rule,
+    padding: sp['12'],
+    marginBottom: sp['20'],
   },
-  tableHeaderCell: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#0f172a',
+  clientItem: { width: '50%', marginBottom: sp['8'] },
+  clientLabel: { fontSize: 7.5, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
+  clientValue: { fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: colors.ink },
+
+  // Section title
+  sectionTitle: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.ink,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+    marginBottom: sp['12'],
+  },
+
+  // Table
+  table: { width: '100%', marginBottom: sp['16'] },
+  tableHeader: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderTopColor: colors.ink,
+    borderBottomColor: colors.ink,
+    paddingVertical: 5,
+    marginBottom: 2,
+    backgroundColor: colors.surface,
+  },
+  tableHeaderCell: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    borderBottomColor: colors.rule,
+    paddingVertical: sp['8'],
+    minHeight: 22,
   },
-  tableCell: {
-    fontSize: 9,
-    color: '#334155',
-    lineHeight: 1.4,
+  tableCell: { fontSize: 9, color: colors.body, lineHeight: 1.4 },
+  colDesc: { flex: 4.5, paddingRight: sp['8'] },
+  colQty: { width: 36, textAlign: 'center' },
+  colRate: { width: 80, textAlign: 'right' },
+  colTotal: { width: 80, textAlign: 'right' },
+
+  // Summary
+  summaryOuter: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: sp['20'] },
+  summaryInner: { width: 220 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
+  summaryLabel: { fontSize: 8.5, color: colors.muted },
+  summaryValue: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: colors.ink },
+  totalRule: { borderTopWidth: 1.5, borderTopColor: colors.ink, marginVertical: 6 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  totalLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: colors.ink },
+  totalValue: { fontSize: 11, fontFamily: 'Helvetica-Bold' },
+
+  // Notes
+  notesBox: {
+    borderLeftWidth: 3,
+    backgroundColor: colors.surface,
+    padding: sp['12'],
+    marginBottom: sp['20'],
   },
-  colDesc: { flex: 4 },
-  colQty: { flex: 1, textAlign: 'center' },
-  colRate: { flex: 1.5, textAlign: 'right' },
-  colTotal: { flex: 1.5, textAlign: 'right' },
-  summaryBox: {
-    alignSelf: 'flex-end',
-    width: 220,
-    paddingVertical: 8,
-    marginTop: 10,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  summaryLabel: {
-    fontSize: 9,
-    color: '#64748b',
-  },
-  summaryValue: {
-    fontSize: 9,
-    fontWeight: 'medium',
-    color: '#0f172a',
-  },
-  grandTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    marginTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  grandTotalLabel: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-  grandTotalValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  notesSection: {
-    backgroundColor: '#f8fafc',
-    borderLeftWidth: 4,
-    padding: 16,
-    borderRadius: 4,
-    marginTop: 8,
-  },
-  notesText: {
-    fontSize: 9,
-    color: '#475569',
-    lineHeight: 1.6,
-  },
-  acceptanceSection: {
-    marginTop: 30,
-  },
-  signatureBox: {
-    width: 210,
-  },
-  signatureLine: {
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#cbd5e1',
-    marginBottom: 8,
-  },
-  signatureLabel: {
-    fontSize: 8,
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  }
+  notesText: { fontSize: 8.5, color: colors.body, lineHeight: 1.6 },
+
+  // Signatures
+  sigSection: { flexDirection: 'row', justifyContent: 'space-between', marginTop: sp['32'] },
+  sigBlock: { width: '45%' },
+  sigSpace: { height: 40 },
+  sigLine: { borderBottomWidth: 1, borderBottomColor: colors.ruleStrong, marginBottom: 5 },
+  sigName: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: colors.ink, marginBottom: 2 },
+  sigRole: { fontSize: 7.5, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
 });
 
 interface ProposalItem {
@@ -246,168 +198,155 @@ export interface TemplateProposalProps {
   };
 }
 
-const formatCurrency = (amount: number, currency: string) => {
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-  return `${currency} ${formatted}`;
-};
+export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => (
+  <PDFDocument title={`Proposal — ${proposal.title}`} author={brand.companyName}>
 
-export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => {
-  return (
-    <PDFDocument title={`Proposal - ${proposal.title}`} author={brand.companyName}>
-      {/* Page 1: Premium Title Page */}
-      <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
-        <View style={styles.coverPage}>
-          <View style={styles.coverHeader}>
-            <Text style={styles.coverLogoText}>
-              {brand.companyName.toUpperCase()}
-            </Text>
-            <Text style={styles.coverDate}>
-              {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </Text>
-          </View>
-
-          <View style={[styles.coverTitleContainer, { borderLeftColor: brand.primaryColor }]}>
-            <Text style={[styles.coverTitleLabel, { color: brand.primaryColor }]}>Project Proposal</Text>
-            <Text style={styles.coverTitle}>{proposal.title}</Text>
-          </View>
-
-          <View style={styles.coverFooter}>
-            <View>
-              <Text style={styles.coverPreparedLabel}>Prepared For</Text>
-              <Text style={styles.coverClientName}>{proposal.clientName}</Text>
-              {proposal.clientCompany && <Text style={styles.coverClientMeta}>{proposal.clientCompany}</Text>}
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.coverPreparedLabel}>Organization</Text>
-              <Text style={[styles.coverClientName, { fontSize: 13 }]}>{brand.companyName}</Text>
-              {brand.contactEmail && <Text style={styles.coverClientMeta}>{brand.contactEmail}</Text>}
-            </View>
-          </View>
-        </View>
-      </Page>
-
-      {/* Page 2: Scope & Investment Table */}
-      <Page size="A4" style={baseStyles.page}>
-        <DocHeader 
-          brand={brand} 
-          title="PROPOSAL"
-          metadata={[
-            { label: 'Date', value: new Date(proposal.createdAt).toLocaleDateString() },
-            { label: 'Valid Until', value: proposal.validUntil ? new Date(proposal.validUntil).toLocaleDateString() : 'N/A' },
-            { label: 'Status', value: proposal.status },
-          ]}
-        />
-
-        <View style={styles.preparedForBox}>
-          <View style={styles.grid}>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>Client Name</Text>
-              <Text style={styles.gridValue}>{proposal.clientName}</Text>
-            </View>
-            {proposal.clientCompany && (
-              <View style={styles.gridItem}>
-                <Text style={styles.gridLabel}>Company</Text>
-                <Text style={styles.gridValue}>{proposal.clientCompany}</Text>
-              </View>
-            )}
-            {proposal.clientEmail && (
-              <View style={styles.gridItem}>
-                <Text style={styles.gridLabel}>Email</Text>
-                <Text style={styles.gridValue}>{proposal.clientEmail}</Text>
-              </View>
-            )}
-            {proposal.clientPhone && (
-              <View style={styles.gridItem}>
-                <Text style={styles.gridLabel}>Phone</Text>
-                <Text style={styles.gridValue}>{proposal.clientPhone}</Text>
-              </View>
-            )}
-          </View>
+    {/* ── Page 1: Cover ──────────────────────────────────────────────────────── */}
+    <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
+      <View style={styles.coverPage}>
+        <View style={styles.coverTopRow}>
+          <Text style={styles.coverBrand}>{brand.companyName}</Text>
+          <Text style={styles.coverMonth}>
+            {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Scope & Investment</Text>
-
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
-            <Text style={[styles.tableHeaderCell, styles.colQty]}>Qty</Text>
-            <Text style={[styles.tableHeaderCell, styles.colRate]}>Rate</Text>
-            <Text style={[styles.tableHeaderCell, styles.colTotal]}>Amount</Text>
-          </View>
-
-          {proposal.items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.colDesc]}>{cleanDocumentText(item.description)}</Text>
-              <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-              <Text style={[styles.tableCell, styles.colRate]}>{formatCurrency(item.unitPrice, proposal.currency)}</Text>
-              <Text style={[styles.tableCell, styles.colTotal]}>{formatCurrency(item.total, proposal.currency)}</Text>
-            </View>
-          ))}
+        <View style={[styles.coverMiddle, { borderLeftColor: brand.primaryColor }]}>
+          <Text style={[styles.coverType, { color: brand.primaryColor }]}>Project Proposal</Text>
+          <Text style={styles.coverTitle}>{proposal.title}</Text>
         </View>
 
-        <View style={styles.summaryBox}>
+        <View style={styles.coverBottomRow}>
+          <View>
+            <Text style={styles.coverLabel}>Prepared For</Text>
+            <Text style={styles.coverName}>{proposal.clientName}</Text>
+            {proposal.clientCompany && <Text style={styles.coverMeta}>{proposal.clientCompany}</Text>}
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.coverLabel}>Submitted By</Text>
+            <Text style={styles.coverName}>{brand.companyName}</Text>
+            {brand.contactEmail && <Text style={styles.coverMeta}>{brand.contactEmail}</Text>}
+          </View>
+        </View>
+      </View>
+    </Page>
+
+    {/* ── Page 2: Scope & Investment ─────────────────────────────────────────── */}
+    <Page size="A4" style={baseStyles.page}>
+      <DocRepeatHeader brand={brand} docType="PROPOSAL" />
+      <DocHeader
+        brand={brand}
+        title="PROPOSAL"
+        metadata={[
+          { label: 'Date', value: new Date(proposal.createdAt).toLocaleDateString('en-IN') },
+          { label: 'Valid Until', value: proposal.validUntil ? new Date(proposal.validUntil).toLocaleDateString('en-IN') : 'N/A' },
+        ]}
+      />
+
+      {/* Client Info */}
+      <View style={styles.clientGrid}>
+        <View style={styles.clientItem}>
+          <Text style={styles.clientLabel}>Client</Text>
+          <Text style={styles.clientValue}>{proposal.clientName}</Text>
+        </View>
+        {proposal.clientCompany && (
+          <View style={styles.clientItem}>
+            <Text style={styles.clientLabel}>Organization</Text>
+            <Text style={styles.clientValue}>{proposal.clientCompany}</Text>
+          </View>
+        )}
+        {proposal.clientEmail && (
+          <View style={styles.clientItem}>
+            <Text style={styles.clientLabel}>Email</Text>
+            <Text style={styles.clientValue}>{proposal.clientEmail}</Text>
+          </View>
+        )}
+        {proposal.clientPhone && (
+          <View style={styles.clientItem}>
+            <Text style={styles.clientLabel}>Phone</Text>
+            <Text style={styles.clientValue}>{proposal.clientPhone}</Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.sectionTitle}>Scope of Work</Text>
+      <View style={styles.table}>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
+          <Text style={[styles.tableHeaderCell, styles.colQty]}>Qty</Text>
+          <Text style={[styles.tableHeaderCell, styles.colRate]}>Rate</Text>
+          <Text style={[styles.tableHeaderCell, styles.colTotal]}>Amount</Text>
+        </View>
+        {proposal.items.map((item, i) => (
+          <View key={i} style={styles.tableRow}>
+            <Text style={[styles.tableCell, styles.colDesc]}>{cleanDocumentText(item.description)}</Text>
+            <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
+            <Text style={[styles.tableCell, styles.colRate]}>{fmt(item.unitPrice, proposal.currency)}</Text>
+            <Text style={[styles.tableCell, styles.colTotal]}>{fmt(item.total, proposal.currency)}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.summaryOuter} wrap={false}>
+        <View style={styles.summaryInner}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(proposal.subtotal, proposal.currency)}</Text>
+            <Text style={styles.summaryValue}>{fmt(proposal.subtotal, proposal.currency)}</Text>
           </View>
           {proposal.tax > 0 && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax {proposal.taxRate ? `(${proposal.taxRate}%)` : ''}</Text>
-              <Text style={styles.summaryValue}>{formatCurrency(proposal.tax, proposal.currency)}</Text>
+              <Text style={styles.summaryLabel}>Tax ({proposal.taxRate || 18}%)</Text>
+              <Text style={styles.summaryValue}>{fmt(proposal.tax, proposal.currency)}</Text>
             </View>
           )}
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Total Investment</Text>
-            <Text style={[styles.grandTotalValue, { color: brand.primaryColor }]}>
-              {formatCurrency(proposal.totalAmount, proposal.currency)}
+          <View style={styles.totalRule} />
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Investment</Text>
+            <Text style={[styles.totalValue, { color: brand.primaryColor }]}>
+              {fmt(proposal.totalAmount, proposal.currency)}
             </Text>
           </View>
         </View>
+      </View>
 
-        <DocFooter brand={brand} />
-      </Page>
+      <DocFooter brand={brand} />
+    </Page>
 
-      {/* Page 3: Terms, Notes & Acceptance Signatures */}
-      <Page size="A4" style={baseStyles.page}>
-        <DocHeader brand={brand} title="PROPOSAL TERMS" />
+    {/* ── Page 3: Terms & Acceptance ─────────────────────────────────────────── */}
+    <Page size="A4" style={baseStyles.page}>
+      <DocRepeatHeader brand={brand} docType="TERMS & ACCEPTANCE" />
+      <DocHeader brand={brand} title="TERMS &amp; ACCEPTANCE" />
 
-        {proposal.notes && (
-          <View style={{ marginBottom: 40 }}>
-            <Text style={styles.sectionTitle}>Terms & Notes</Text>
-            <View style={[styles.notesSection, { borderLeftColor: brand.primaryColor }]}>
-              <Text style={styles.notesText}>{cleanDocumentText(proposal.notes)}</Text>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.acceptanceSection}>
-          <Text style={styles.sectionTitle}>Acceptance & Agreement</Text>
-          <Text style={[styles.notesText, { marginBottom: 40 }]}>By signing below, you agree to the terms, pricing, and scope of work detailed in this project proposal.</Text>
-          
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>For {brand.companyName}</Text>
-              <View style={{ height: 45 }} />
-              <View style={styles.signatureLine} />
-              <Text style={styles.gridValue}>Authorized Representative</Text>
-              <Text style={[styles.signatureLabel, { marginTop: 4 }]}>Date: ____________________</Text>
-            </View>
-            
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>For Client: {proposal.clientName}</Text>
-              <View style={{ height: 45 }} />
-              <View style={styles.signatureLine} />
-              <Text style={styles.gridValue}>Accepted By</Text>
-              <Text style={[styles.signatureLabel, { marginTop: 4 }]}>Date: ____________________</Text>
-            </View>
+      {proposal.notes && (
+        <View style={{ marginBottom: sp['20'] }}>
+          <Text style={styles.sectionTitle}>Terms & Conditions</Text>
+          <View style={[styles.notesBox, { borderLeftColor: brand.primaryColor }]}>
+            <Text style={styles.notesText}>{cleanDocumentText(proposal.notes)}</Text>
           </View>
         </View>
+      )}
 
-        <DocFooter brand={brand} />
-      </Page>
-    </PDFDocument>
-  );
-};
+      <Text style={styles.sectionTitle}>Acceptance of Proposal</Text>
+      <Text style={{ fontSize: 9, color: colors.body, lineHeight: 1.5, marginBottom: sp['16'] }}>
+        By signing below, both parties acknowledge and accept the scope of work, investment schedule, and terms set forth in this proposal.
+      </Text>
+
+      <View style={styles.sigSection} wrap={false}>
+        <View style={styles.sigBlock}>
+          <View style={styles.sigSpace} />
+          <View style={styles.sigLine} />
+          <Text style={styles.sigName}>{brand.companyName}</Text>
+          <Text style={styles.sigRole}>Authorized Representative</Text>
+        </View>
+        <View style={styles.sigBlock}>
+          <View style={styles.sigSpace} />
+          <View style={styles.sigLine} />
+          <Text style={styles.sigName}>{proposal.clientName}</Text>
+          <Text style={styles.sigRole}>Client Acceptance</Text>
+        </View>
+      </View>
+
+      <DocFooter brand={brand} />
+    </Page>
+  </PDFDocument>
+);

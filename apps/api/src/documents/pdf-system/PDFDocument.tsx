@@ -1,49 +1,59 @@
 import React from 'react';
-import { Document, Font, StyleSheet } from '@react-pdf/renderer';
+import { Document, StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register standard fonts — URLs fetched directly from Google Fonts v20
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf', fontWeight: 'normal' },
-    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf', fontWeight: 'medium' },
-    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf', fontWeight: 'bold' },
-    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYMZg.ttf', fontWeight: 'heavy' },
-  ],
-});
+// Register hyphenation callback globally to disable automatic hyphenation across all documents
+Font.registerHyphenationCallback((word) => [word]);
 
+/**
+ * Shared spacing tokens used across all templates (in points).
+ */
+export const sp = {
+  '4': 4,
+  '6': 6,
+  '8': 8,
+  '12': 12,
+  '16': 16,
+  '20': 20,
+  '24': 24,
+  '32': 32,
+  '40': 40,
+  '48': 48,
+};
+
+/**
+ * Shared color tokens — executive neutral palette.
+ */
+export const colors = {
+  ink: '#0f172a',
+  body: '#334155',
+  muted: '#64748b',
+  faint: '#94a3b8',
+  rule: '#e2e8f0',
+  ruleStrong: '#cbd5e1',
+  surface: '#f8fafc',
+  white: '#ffffff',
+};
+
+/**
+ * Standard page style.
+ *
+ * paddingTop: 48 — no fixed header stealing space on every page.
+ *   The DocHeader is flow-based (no position: absolute, no fixed prop).
+ *   It renders inline at the top of whatever page it's placed on.
+ *   On multi-page docs, a thin SmallPageHeader is used for subsequent pages.
+ * paddingBottom: 48 — DocFooter is fixed (safe, never overlaps body content).
+ */
 export const baseStyles = StyleSheet.create({
   page: {
-    fontFamily: 'Inter',
-    backgroundColor: '#ffffff',
-    color: '#0f172a', // Slate 900
+    fontFamily: 'Helvetica',
+    backgroundColor: colors.white,
+    color: colors.ink,
     fontSize: 10,
     lineHeight: 1.5,
-    padding: 40,
+    paddingTop: 48,
+    paddingBottom: 56,
+    paddingHorizontal: 48,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 24,
-  },
-  text: {
-    fontSize: 10,
-    color: '#334155',
-  },
-  muted: {
-    color: '#94a3b8',
-  },
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    marginVertical: 16,
-  }
 });
 
 interface PDFDocumentProps {
@@ -53,16 +63,14 @@ interface PDFDocumentProps {
   subject?: string;
 }
 
-export const PDFDocument: React.FC<PDFDocumentProps> = ({ children, author, title, subject }) => {
-  return (
-    <Document 
-      author={author}
-      title={title}
-      subject={subject}
-      creator="Grekam OS"
-      producer="Grekam Document Engine"
-    >
-      {children}
-    </Document>
-  );
-};
+export const PDFDocument: React.FC<PDFDocumentProps> = ({ children, author, title, subject }) => (
+  <Document
+    author={author}
+    title={title}
+    subject={subject}
+    creator="Grekam OS"
+    producer="Grekam Document Engine"
+  >
+    {children}
+  </Document>
+);
