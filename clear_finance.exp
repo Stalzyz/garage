@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 30
+set script {
+  cd /root/grekam-os/packages/db
+  cat << 'JS' > clear_finance.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+async function run() {
+  await prisma.payment.deleteMany({});
+  await prisma.invoiceItem.deleteMany({});
+  await prisma.billingMilestone.deleteMany({});
+  await prisma.commission.deleteMany({});
+  await prisma.invoice.deleteMany({});
+  console.log('Finance data cleared');
+}
+run().finally(() => prisma.$disconnect());
+JS
+  node clear_finance.js
+  rm clear_finance.js
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

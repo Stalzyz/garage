@@ -11,7 +11,7 @@ import SignatureCanvas from "react-signature-canvas"
 export default function PublicProposalPage() {
   const { token } = useParams()
   const router = useRouter()
-  const { data: proposal, isLoading, mutate } = useApi<any>(`/crm/public/proposals/${token}`)
+  const { data: proposal, isLoading, mutate } = useApi<any>(`/crm/proposals/public/${token}`)
   const org = useOrganization()
   
   const [signatureName, setSignatureName] = useState("")

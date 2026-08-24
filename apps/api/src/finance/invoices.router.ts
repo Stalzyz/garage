@@ -322,7 +322,14 @@ export default async function invoicesRouter(app: FastifyInstance) {
   app.delete('/invoices/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const invoice = await app.prisma.invoice.findUnique({ where: { id }, select: { invoiceNumber: true } });
-    await app.prisma.invoice.delete({ where: { id } });
+    if (!invoice) return reply.notFound('Invoice not found');
+
+    await app.prisma.$transaction([
+      app.prisma.payment.deleteMany({ where: { invoiceId: id } }),
+      app.prisma.commission.deleteMany({ where: { invoiceId: id } }),
+      app.prisma.invoice.delete({ where: { id } })
+    ]);
+
     await auditLog(app.prisma as any, req, 'DELETE', 'Invoice', id, { invoiceNumber: invoice?.invoiceNumber });
     reply.code(204);
   });

@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 120
+set script {
+  cd /var/www/grekam-os || cd /root/grekam-os || cd /root/visuals_pro_web/grekam-os
+  echo "Current directory: $(pwd)"
+  git pull
+  pnpm i
+  cd packages/db && npx prisma generate && npx prisma db push && cd ../..
+  pnpm build:all
+  pm2 restart grekam-os-api grekam-os-web
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
