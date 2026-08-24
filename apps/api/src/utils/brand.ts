@@ -38,13 +38,13 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   return {
     logoUrl,
     companyName: org.name,
-    primaryColor: org.primaryColor || '#000000',
-    secondaryColor: org.secondaryColor || '#333333',
-    accentColor: org.accentColor || '#666666',
+    primaryColor: org.primaryColor || '#2563eb',
+    secondaryColor: org.secondaryColor || '#1e40af',
+    accentColor: org.accentColor || '#10b981',
     fontFamily: 'Inter',
-    website: org.website,
-    contactEmail: org.supportEmail,
-    phone: org.phone,
-    address: org.billingAddress,
+    website: org.website?.trim() || null,
+    contactEmail: org.supportEmail?.trim() || null,
+    phone: org.phone?.trim() || null,
+    address: org.billingAddress?.trim() || null,
   };
 }
