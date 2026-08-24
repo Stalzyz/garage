@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   coverPage: {
     flex: 1,
     padding: 60,
-    backgroundColor: '#fafaf9', // Neutral background tint
+    backgroundColor: '#f8fafc', // Modern off-white background tint
     justifyContent: 'space-between',
   },
   coverHeader: {
@@ -18,42 +18,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coverLogoText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    letterSpacing: 1,
+    letterSpacing: 2,
+    color: '#0f172a',
   },
   coverTitleContainer: {
-    borderLeftWidth: 5,
+    borderLeftWidth: 6,
     paddingLeft: 24,
     marginVertical: 'auto',
+    maxWidth: '85%',
   },
   coverTitleLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
-    letterSpacing: 3,
+    letterSpacing: 4,
     textTransform: 'uppercase',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   coverTitle: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: 'heavy',
     color: '#0f172a',
-    lineHeight: 1.25,
+    lineHeight: 1.2,
   },
   coverFooter: {
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
-    paddingTop: 30,
+    paddingTop: 36,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
   coverPreparedLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   coverClientName: {
     fontSize: 16,
@@ -62,32 +64,33 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   coverClientMeta: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#475569',
   },
   coverDate: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#64748b',
+    letterSpacing: 1,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#0f172a',
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 26,
+    marginBottom: 14,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
     paddingBottom: 6,
   },
   preparedForBox: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 8,
+    borderRadius: 6,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   grid: {
     flexDirection: 'row',
@@ -111,33 +114,34 @@ const styles = StyleSheet.create({
   },
   table: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f8fafc',
     borderBottomWidth: 1.5,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 8,
+    borderBottomColor: '#0f172a',
+    paddingBottom: 8,
     paddingHorizontal: 8,
+    marginBottom: 6,
   },
   tableHeaderCell: {
     fontSize: 8,
     fontWeight: 'bold',
-    color: '#475569',
+    color: '#0f172a',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 8,
   },
   tableCell: {
     fontSize: 9,
     color: '#334155',
+    lineHeight: 1.4,
   },
   colDesc: { flex: 4 },
   colQty: { flex: 1, textAlign: 'center' },
@@ -146,11 +150,7 @@ const styles = StyleSheet.create({
   summaryBox: {
     alignSelf: 'flex-end',
     width: 220,
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 6,
+    paddingVertical: 8,
     marginTop: 10,
   },
   summaryRow: {
@@ -170,13 +170,13 @@ const styles = StyleSheet.create({
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
   },
   grandTotalLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#0f172a',
   },
@@ -185,7 +185,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   notesSection: {
-    marginTop: 10,
+    backgroundColor: '#f8fafc',
+    borderLeftWidth: 4,
+    padding: 16,
+    borderRadius: 4,
+    marginTop: 8,
   },
   notesText: {
     fontSize: 9,
@@ -196,16 +200,19 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   signatureBox: {
-    width: 200,
-    borderTopWidth: 1,
-    borderTopColor: '#cbd5e1',
-    paddingTop: 8,
-    marginTop: 40,
+    width: 210,
+  },
+  signatureLine: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#cbd5e1',
+    marginBottom: 8,
   },
   signatureLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#64748b',
-    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   }
 });
 
@@ -254,7 +261,7 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
       <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
         <View style={styles.coverPage}>
           <View style={styles.coverHeader}>
-            <Text style={[styles.coverLogoText, { color: brand.primaryColor }]}>
+            <Text style={styles.coverLogoText}>
               {brand.companyName.toUpperCase()}
             </Text>
             <Text style={styles.coverDate}>
@@ -263,7 +270,7 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
           </View>
 
           <View style={[styles.coverTitleContainer, { borderLeftColor: brand.primaryColor }]}>
-            <Text style={[styles.coverTitleLabel, { color: brand.secondaryColor }]}>Project Proposal</Text>
+            <Text style={[styles.coverTitleLabel, { color: brand.primaryColor }]}>Project Proposal</Text>
             <Text style={styles.coverTitle}>{proposal.title}</Text>
           </View>
 
@@ -368,9 +375,9 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
         <DocHeader brand={brand} title="PROPOSAL TERMS" />
 
         {proposal.notes && (
-          <View style={{ marginBottom: 30 }}>
+          <View style={{ marginBottom: 40 }}>
             <Text style={styles.sectionTitle}>Terms & Notes</Text>
-            <View style={styles.notesSection}>
+            <View style={[styles.notesSection, { borderLeftColor: brand.primaryColor }]}>
               <Text style={styles.notesText}>{cleanDocumentText(proposal.notes)}</Text>
             </View>
           </View>
@@ -378,21 +385,23 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
 
         <View style={styles.acceptanceSection}>
           <Text style={styles.sectionTitle}>Acceptance & Agreement</Text>
-          <Text style={styles.notesText}>By signing below, you agree to the terms, pricing, and scope of work detailed in this project proposal.</Text>
+          <Text style={[styles.notesText, { marginBottom: 40 }]}>By signing below, you agree to the terms, pricing, and scope of work detailed in this project proposal.</Text>
           
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 40 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLabel}>For {brand.companyName}</Text>
-              <View style={{ height: 30 }} />
+              <View style={{ height: 45 }} />
+              <View style={styles.signatureLine} />
               <Text style={styles.gridValue}>Authorized Representative</Text>
-              <Text style={styles.signatureLabel}>Date: ____________________</Text>
+              <Text style={[styles.signatureLabel, { marginTop: 4 }]}>Date: ____________________</Text>
             </View>
             
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLabel}>For Client: {proposal.clientName}</Text>
-              <View style={{ height: 30 }} />
+              <View style={{ height: 45 }} />
+              <View style={styles.signatureLine} />
               <Text style={styles.gridValue}>Accepted By</Text>
-              <Text style={styles.signatureLabel}>Date: ____________________</Text>
+              <Text style={[styles.signatureLabel, { marginTop: 4 }]}>Date: ____________________</Text>
             </View>
           </View>
         </View>

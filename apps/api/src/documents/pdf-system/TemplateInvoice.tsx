@@ -7,12 +7,12 @@ import { cleanDocumentText } from '../../utils/text';
 
 const styles = StyleSheet.create({
   billToSection: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 8,
+    borderRadius: 6,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     marginTop: 10,
   },
   billToLabel: {
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#64748b',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginBottom: 6,
   },
   clientName: {
@@ -36,33 +36,34 @@ const styles = StyleSheet.create({
   },
   table: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f8fafc',
     borderBottomWidth: 1.5,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 8,
+    borderBottomColor: '#0f172a',
+    paddingBottom: 8,
     paddingHorizontal: 8,
+    marginBottom: 6,
   },
   tableHeaderCell: {
     fontSize: 8,
     fontWeight: 'bold',
-    color: '#475569',
+    color: '#0f172a',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 8,
   },
   tableCell: {
     fontSize: 9,
     color: '#334155',
+    lineHeight: 1.4,
   },
   colDesc: { flex: 4 },
   colQty: { flex: 1, textAlign: 'center' },
@@ -71,11 +72,7 @@ const styles = StyleSheet.create({
   summaryBox: {
     alignSelf: 'flex-end',
     width: 220,
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 6,
+    paddingVertical: 8,
     marginTop: 10,
   },
   summaryRow: {
@@ -95,7 +92,7 @@ const styles = StyleSheet.create({
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
@@ -110,22 +107,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   notesSection: {
-    marginTop: 20,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    borderLeftWidth: 4,
+    padding: 16,
+    borderRadius: 4,
+    marginTop: 30,
   },
   notesLabel: {
     fontSize: 8,
     fontWeight: 'bold',
-    color: '#64748b',
+    color: '#0f172a',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     marginBottom: 6,
   },
   notesText: {
     fontSize: 9,
-    color: '#64748b',
+    color: '#475569',
     lineHeight: 1.5,
   }
 });
@@ -257,7 +255,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
         </View>
 
         {invoice.notes && (
-          <View style={styles.notesSection}>
+          <View style={[styles.notesSection, { borderLeftColor: brand.primaryColor }]}>
             <Text style={styles.notesLabel}>Notes & Terms</Text>
             <Text style={styles.notesText}>{cleanDocumentText(invoice.notes)}</Text>
           </View>
