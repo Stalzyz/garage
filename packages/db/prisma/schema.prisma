@@ -1198,9 +1198,10 @@ model Payment {
 model Expense {
   id          String    @id @default(cuid())
   employeeId  String?
+  title       String
   category    String // TRAVEL | SOFTWARE | OFFICE | PROJECT | OTHER
   amount      Float
-  description String
+  description String?
   receiptUrl  String?
   projectId   String?
   status      String    @default("PENDING") // PENDING | APPROVED | REJECTED | PAID

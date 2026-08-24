@@ -50,17 +50,30 @@ export default function ExpensesPage() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
+      let receiptUrl = ""
+      if (formData.file) {
+        const fileData = new FormData()
+        fileData.append("file", formData.file)
+        const uploadRes = await fetchApi("/storage/upload-local", {
+          method: "POST",
+          body: fileData,
+        }, true) // Set true for FormData to avoid JSON stringify and content-type
+        receiptUrl = uploadRes.downloadUrl || uploadRes.url
+      }
+
       await fetchApi("/finance/expenses", {
         method: "POST",
         body: JSON.stringify({
+          title: formData.title,
           category: formData.category,
           amount: parseFloat(formData.amount),
-          description: formData.description || formData.title,
+          description: formData.description,
+          receiptUrl: receiptUrl || undefined
         })
       })
       toast.success("Expense created successfully")
       setIsAddOpen(false)
-      setFormData({ title: "", category: "OFFICE", amount: "", vendorName: "", description: "" })
+      setFormData({ title: "", category: "OFFICE", amount: "", vendorName: "", description: "", file: null })
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to create expense")
@@ -255,6 +268,16 @@ export default function ExpensesPage() {
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Receipt (Image/PDF)</label>
+              <input 
+                type="file" 
+                accept="image/*,.pdf"
+                onChange={e => setFormData({...formData, file: e.target.files?.[0] || null})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-white file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
+              />
             </div>
 
             <div>

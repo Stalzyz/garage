@@ -4,9 +4,10 @@ import { z } from 'zod';
 const CreateExpenseSchema = z.object({
   employeeId: z.string().optional(),
   projectId: z.string().optional(),
+  title: z.string().min(1),
   category: z.string().min(1), // e.g., TRAVEL, SOFTWARE, OFFICE
   amount: z.number().positive(),
-  description: z.string().min(1),
+  description: z.string().optional(),
   receiptUrl: z.string().url().optional(),
 });
 

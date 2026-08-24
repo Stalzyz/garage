@@ -74,7 +74,7 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
       {/* Group header — toggles open/close AND navigates */}
       <button
         onClick={() => {
-          setOpen(true)
+          setOpen(!open)
           if (item.href) {
             router.push(item.href)
             if (onClose) onClose()
