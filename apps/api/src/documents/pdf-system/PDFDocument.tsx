@@ -5,10 +5,10 @@ import { Document, Font, StyleSheet } from '@react-pdf/renderer';
 Font.register({
   family: 'Inter',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.ttf', fontWeight: 'normal' },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuIqeMZhrib2Bg-4.ttf', fontWeight: 'medium' },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf', fontWeight: 'bold' },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFUYMZhrib2Bg-4.ttf', fontWeight: 'heavy' },
+    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Regular.ttf', fontWeight: 'normal' },
+    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Medium.ttf', fontWeight: 'medium' },
+    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Bold.ttf', fontWeight: 'bold' },
+    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-SemiBold.ttf', fontWeight: 'heavy' },
   ],
 });
 

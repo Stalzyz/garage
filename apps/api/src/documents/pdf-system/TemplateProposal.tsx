@@ -215,8 +215,6 @@ const formatCurrency = (amount: number, currency: string) => {
 export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => {
   return (
     <PDFDocument title={`Proposal - ${proposal.title}`} author={brand.companyName}>
-      
-      {/* Cover Page */}
       <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
         <View style={styles.coverPage}>
           <DocHeader brand={brand} title="" />
@@ -237,7 +235,6 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
         </View>
       </Page>
 
-      {/* Content Page */}
       <Page size="A4" style={baseStyles.page}>
         <DocHeader 
           brand={brand} 
