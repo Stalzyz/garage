@@ -1,14 +1,14 @@
 import React from 'react';
 import { Document, Font, StyleSheet } from '@react-pdf/renderer';
 
-// Register standard fonts
+// Register standard fonts — URLs fetched directly from Google Fonts v20
 Font.register({
   family: 'Inter',
   fonts: [
-    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Regular.ttf', fontWeight: 'normal' },
-    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Medium.ttf', fontWeight: 'medium' },
-    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-Bold.ttf', fontWeight: 'bold' },
-    { src: 'https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-SemiBold.ttf', fontWeight: 'heavy' },
+    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf', fontWeight: 'normal' },
+    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf', fontWeight: 'medium' },
+    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf', fontWeight: 'bold' },
+    { src: 'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYMZg.ttf', fontWeight: 'heavy' },
   ],
 });
 
