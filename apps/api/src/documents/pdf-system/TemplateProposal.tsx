@@ -209,7 +209,11 @@ export interface TemplateProposalProps {
 }
 
 const formatCurrency = (amount: number, currency: string) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+  return `${currency} ${formatted}`;
 };
 
 export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => {
