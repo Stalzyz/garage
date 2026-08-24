@@ -3,64 +3,91 @@ import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { PDFDocument, baseStyles } from './PDFDocument';
 import { DocHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
+import { cleanDocumentText } from '../../utils/text';
 
 const styles = StyleSheet.create({
   coverPage: {
     flex: 1,
-    justifyContent: 'center',
     padding: 60,
+    backgroundColor: '#fafaf9', // Neutral background tint
+    justifyContent: 'space-between',
+  },
+  coverHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  coverLogoText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  coverTitleContainer: {
+    borderLeftWidth: 5,
+    paddingLeft: 24,
+    marginVertical: 'auto',
   },
   coverTitleLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
-    letterSpacing: 2,
+    letterSpacing: 3,
     textTransform: 'uppercase',
-    marginBottom: 20,
-    color: '#94a3b8',
+    marginBottom: 12,
   },
   coverTitle: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'heavy',
     color: '#0f172a',
-    marginBottom: 60,
-    lineHeight: 1.2,
+    lineHeight: 1.25,
   },
-  coverPrepared: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
+  coverFooter: {
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
   coverPreparedLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748b',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginBottom: 8,
   },
   coverClientName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#0f172a',
     marginBottom: 4,
   },
   coverClientMeta: {
-    fontSize: 12,
-    color: '#334155',
+    fontSize: 11,
+    color: '#475569',
+  },
+  coverDate: {
+    fontSize: 11,
+    color: '#64748b',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#0f172a',
-    marginTop: 30,
-    marginBottom: 16,
-    paddingBottom: 8,
+    marginTop: 24,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 6,
   },
   preparedForBox: {
     backgroundColor: '#f8fafc',
-    padding: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     borderRadius: 8,
-    marginBottom: 30,
+    padding: 16,
+    marginBottom: 20,
   },
   grid: {
     flexDirection: 'row',
@@ -68,45 +95,48 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     width: '50%',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   gridLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   gridValue: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#0f172a',
     fontWeight: 'medium',
   },
   table: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   tableHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cbd5e1',
-    paddingBottom: 8,
-    marginBottom: 8,
+    backgroundColor: '#f8fafc',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableHeaderCell: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: 'bold',
     color: '#475569',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
   tableCell: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#334155',
   },
   colDesc: { flex: 4 },
@@ -115,66 +145,67 @@ const styles = StyleSheet.create({
   colTotal: { flex: 1.5, textAlign: 'right' },
   summaryBox: {
     alignSelf: 'flex-end',
-    width: 250,
-    padding: 16,
+    width: 220,
+    padding: 12,
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 6,
+    marginTop: 10,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   summaryLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748b',
   },
   summaryValue: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'medium',
     color: '#0f172a',
   },
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    marginTop: 8,
+    paddingVertical: 8,
+    marginTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#cbd5e1',
+    borderTopColor: '#e2e8f0',
   },
   grandTotalLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#0f172a',
   },
   grandTotalValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   notesSection: {
-    marginTop: 20,
-    paddingTop: 20,
+    marginTop: 10,
   },
   notesText: {
-    fontSize: 10,
-    color: '#334155',
+    fontSize: 9,
+    color: '#475569',
     lineHeight: 1.6,
   },
   acceptanceSection: {
-    marginTop: 60,
+    marginTop: 30,
   },
   signatureBox: {
-    width: 250,
+    width: 200,
     borderTopWidth: 1,
     borderTopColor: '#cbd5e1',
     paddingTop: 8,
-    marginTop: 60,
+    marginTop: 40,
   },
   signatureLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748b',
-    marginBottom: 4,
+    marginBottom: 2,
   }
 });
 
@@ -219,26 +250,39 @@ const formatCurrency = (amount: number, currency: string) => {
 export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => {
   return (
     <PDFDocument title={`Proposal - ${proposal.title}`} author={brand.companyName}>
+      {/* Page 1: Premium Title Page */}
       <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
         <View style={styles.coverPage}>
-          <DocHeader brand={brand} title="" />
-          
-          <View style={{ marginTop: 80 }}>
-            <Text style={[styles.coverTitleLabel, { color: brand.primaryColor }]}>Proposal</Text>
+          <View style={styles.coverHeader}>
+            <Text style={[styles.coverLogoText, { color: brand.primaryColor }]}>
+              {brand.companyName.toUpperCase()}
+            </Text>
+            <Text style={styles.coverDate}>
+              {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </Text>
+          </View>
+
+          <View style={[styles.coverTitleContainer, { borderLeftColor: brand.primaryColor }]}>
+            <Text style={[styles.coverTitleLabel, { color: brand.secondaryColor }]}>Project Proposal</Text>
             <Text style={styles.coverTitle}>{proposal.title}</Text>
           </View>
 
-          <View style={styles.coverPrepared}>
-            <Text style={styles.coverPreparedLabel}>Prepared For</Text>
-            <Text style={styles.coverClientName}>{proposal.clientName}</Text>
-            {proposal.clientCompany && <Text style={styles.coverClientMeta}>{proposal.clientCompany}</Text>}
-            <Text style={[styles.coverClientMeta, { marginTop: 16 }]}>
-              {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </Text>
+          <View style={styles.coverFooter}>
+            <View>
+              <Text style={styles.coverPreparedLabel}>Prepared For</Text>
+              <Text style={styles.coverClientName}>{proposal.clientName}</Text>
+              {proposal.clientCompany && <Text style={styles.coverClientMeta}>{proposal.clientCompany}</Text>}
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.coverPreparedLabel}>Organization</Text>
+              <Text style={[styles.coverClientName, { fontSize: 13 }]}>{brand.companyName}</Text>
+              {brand.contactEmail && <Text style={styles.coverClientMeta}>{brand.contactEmail}</Text>}
+            </View>
           </View>
         </View>
       </Page>
 
+      {/* Page 2: Scope & Investment Table */}
       <Page size="A4" style={baseStyles.page}>
         <DocHeader 
           brand={brand} 
@@ -289,7 +333,7 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
 
           {proposal.items.map((item, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
+              <Text style={[styles.tableCell, styles.colDesc]}>{cleanDocumentText(item.description)}</Text>
               <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
               <Text style={[styles.tableCell, styles.colRate]}>{formatCurrency(item.unitPrice, proposal.currency)}</Text>
               <Text style={[styles.tableCell, styles.colTotal]}>{formatCurrency(item.total, proposal.currency)}</Text>
@@ -316,22 +360,40 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
           </View>
         </View>
 
+        <DocFooter brand={brand} />
+      </Page>
+
+      {/* Page 3: Terms, Notes & Acceptance Signatures */}
+      <Page size="A4" style={baseStyles.page}>
+        <DocHeader brand={brand} title="PROPOSAL TERMS" />
+
         {proposal.notes && (
-          <View wrap={false}>
+          <View style={{ marginBottom: 30 }}>
             <Text style={styles.sectionTitle}>Terms & Notes</Text>
             <View style={styles.notesSection}>
-              <Text style={styles.notesText}>{proposal.notes}</Text>
+              <Text style={styles.notesText}>{cleanDocumentText(proposal.notes)}</Text>
             </View>
           </View>
         )}
 
-        <View style={styles.acceptanceSection} wrap={false}>
-          <Text style={styles.sectionTitle}>Acceptance</Text>
-          <Text style={styles.notesText}>By signing below, you agree to the terms and scope of work outlined in this proposal.</Text>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLabel}>Accepted By</Text>
-            <Text style={[styles.gridValue, { marginBottom: 4 }]}>{proposal.clientName}</Text>
-            <Text style={styles.gridLabel}>Date: ____________________</Text>
+        <View style={styles.acceptanceSection}>
+          <Text style={styles.sectionTitle}>Acceptance & Agreement</Text>
+          <Text style={styles.notesText}>By signing below, you agree to the terms, pricing, and scope of work detailed in this project proposal.</Text>
+          
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 40 }}>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLabel}>For {brand.companyName}</Text>
+              <View style={{ height: 30 }} />
+              <Text style={styles.gridValue}>Authorized Representative</Text>
+              <Text style={styles.signatureLabel}>Date: ____________________</Text>
+            </View>
+            
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLabel}>For Client: {proposal.clientName}</Text>
+              <View style={{ height: 30 }} />
+              <Text style={styles.gridValue}>Accepted By</Text>
+              <Text style={styles.signatureLabel}>Date: ____________________</Text>
+            </View>
           </View>
         </View>
 

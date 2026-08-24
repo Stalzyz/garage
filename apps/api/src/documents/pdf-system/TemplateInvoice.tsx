@@ -3,56 +3,65 @@ import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { PDFDocument, baseStyles } from './PDFDocument';
 import { DocHeader, DocFooter } from './components';
 import { BrandConfig } from '../../utils/brand';
+import { cleanDocumentText } from '../../utils/text';
 
 const styles = StyleSheet.create({
   billToSection: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
     marginTop: 10,
-    marginBottom: 40,
   },
   billToLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: 'bold',
-    color: '#94a3b8',
+    color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   clientName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#0f172a',
     marginBottom: 4,
   },
   clientText: {
-    fontSize: 10,
-    color: '#334155',
+    fontSize: 9,
+    color: '#475569',
     lineHeight: 1.4,
   },
   table: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   tableHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cbd5e1',
-    paddingBottom: 8,
-    marginBottom: 8,
+    backgroundColor: '#f8fafc',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableHeaderCell: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: 'bold',
     color: '#475569',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
   tableCell: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#334155',
   },
   colDesc: { flex: 4 },
@@ -61,56 +70,58 @@ const styles = StyleSheet.create({
   colTotal: { flex: 1.5, textAlign: 'right' },
   summaryBox: {
     alignSelf: 'flex-end',
-    width: 250,
-    padding: 16,
+    width: 220,
+    padding: 12,
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 6,
+    marginTop: 10,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   summaryLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748b',
   },
   summaryValue: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'medium',
     color: '#0f172a',
   },
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    marginTop: 8,
+    paddingVertical: 8,
+    marginTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#cbd5e1',
+    borderTopColor: '#e2e8f0',
   },
   grandTotalLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#0f172a',
   },
   grandTotalValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   notesSection: {
-    marginTop: 40,
-    paddingTop: 20,
+    marginTop: 20,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
   notesLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: 'bold',
-    color: '#94a3b8',
+    color: '#64748b',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 8,
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
   notesText: {
     fontSize: 9,
@@ -192,7 +203,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
 
           {invoice.items.map((item, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
+              <Text style={[styles.tableCell, styles.colDesc]}>{cleanDocumentText(item.description)}</Text>
               <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
               <Text style={[styles.tableCell, styles.colRate]}>{formatCurrency(item.unitPrice, invoice.currency)}</Text>
               <Text style={[styles.tableCell, styles.colTotal]}>{formatCurrency(item.total, invoice.currency)}</Text>
@@ -248,7 +259,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
         {invoice.notes && (
           <View style={styles.notesSection}>
             <Text style={styles.notesLabel}>Notes & Terms</Text>
-            <Text style={styles.notesText}>{invoice.notes}</Text>
+            <Text style={styles.notesText}>{cleanDocumentText(invoice.notes)}</Text>
           </View>
         )}
 
