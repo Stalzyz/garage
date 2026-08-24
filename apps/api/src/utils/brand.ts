@@ -95,7 +95,7 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   const logoUrl = resolveBrandLogo(rawLogo);
 
   // Dynamic professional UPI ID based on domain or support email
-  let upiId = null;
+  let upiId: string | null = null;
   if (org.website) {
     const domain = org.website.trim().replace(/https?:\/\/(www\.)?/, '').split('/')[0];
     if (domain) {
