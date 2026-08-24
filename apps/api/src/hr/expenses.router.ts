@@ -35,7 +35,8 @@ export default async function expensesRoutes(app: FastifyInstance) {
         employeeId: z.string().optional(),
         category: z.string(),
         amount: z.number().positive(),
-        description: z.string().min(1),
+        description: z.string().optional(),
+        title: z.string().optional(),
         receiptUrl: z.string().optional(),
         projectId: z.string().optional()
       })
@@ -47,6 +48,7 @@ export default async function expensesRoutes(app: FastifyInstance) {
         category: req.body.category,
         amount: req.body.amount,
         description: req.body.description,
+        title: req.body.title || req.body.description || 'Expense',
         receiptUrl: req.body.receiptUrl,
         projectId: req.body.projectId,
         status: 'PENDING'
