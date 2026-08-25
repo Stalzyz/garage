@@ -1,45 +1,95 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Upload, Search, UserPlus, Globe, Link, CheckCircle2, Copy, ArrowRight, MoreHorizontal } from "lucide-react"
+import { Zap, Upload, Search, UserPlus, Globe, Link as LinkIcon, CheckCircle2, Copy, ArrowRight, AlertTriangle } from "lucide-react"
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
 export default function AIProspectingDashboard() {
   const [urlInput, setUrlInput] = useState("")
   const [analyzing, setAnalyzing] = useState(false)
   const [prospect, setProspect] = useState<any>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [addedToCrm, setAddedToCrm] = useState(false)
+  const [addingToCrm, setAddingToCrm] = useState(false)
 
-  const handleGenerateIcebreakers = () => {
+  const handleGenerateIcebreakers = async () => {
     if (!urlInput) return
     setAnalyzing(true)
-    
-    // Mock API Call
-    setTimeout(() => {
-      setProspect({
-        name: "David Chen",
-        company: "Peak Performance Inc.",
-        role: "Founder & CEO",
-        industry: "Fitness Tech",
-        location: "Austin, TX",
-        icebreakers: [
-          { type: "Email Subject", text: "Scaling Peak Performance's user base with AI", copied: false },
-          { type: "Cold Call Opener", text: "Hi David, I saw Peak Performance just launched the new smartwatch integration. How are you handling the influx of new user data?", copied: false },
-          { type: "LinkedIn DM", text: "Hey David, huge fan of the new Peak smartwatch app! I noticed you're based in Austin — we actually helped a similar fitness tech startup there increase their trial conversions by 30%. Open to connecting?", copied: false }
-        ]
+    setErrorMsg(null)
+    setAddedToCrm(false)
+
+    try {
+      const res = await fetch(`${API_BASE}/ai/prospect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urlInput }),
       })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to analyze prospect.")
+      }
+
+      setProspect({
+        ...data.prospect,
+        icebreakers: (data.prospect.icebreakers || []).map((ice: any) => ({ ...ice, copied: false }))
+      })
+    } catch (err: any) {
+      console.error("Enrichment Error:", err)
+      setErrorMsg(err.message || "Failed to generate prospect enrichment.")
+    } finally {
       setAnalyzing(false)
-    }, 2500)
+    }
   }
 
   const handleCopy = (index: number) => {
-    // Mock copy
+    if (!prospect || !prospect.icebreakers[index]) return
+    const textToCopy = prospect.icebreakers[index].text
+    navigator.clipboard.writeText(textToCopy)
+
     const newI = [...prospect.icebreakers]
     newI[index].copied = true
     setProspect({ ...prospect, icebreakers: newI })
+
     setTimeout(() => {
       const resetI = [...prospect.icebreakers]
       resetI[index].copied = false
       setProspect({ ...prospect, icebreakers: resetI })
     }, 2000)
+  }
+
+  const handleAddToCrm = async () => {
+    if (!prospect || addingToCrm || addedToCrm) return
+    setAddingToCrm(true)
+
+    try {
+      const nameParts = (prospect.name || "Prospect Lead").split(" ")
+      const firstName = nameParts[0] || "Prospect"
+      const lastName = nameParts.slice(1).join(" ") || "Lead"
+
+      const res = await fetch(`${API_BASE}/crm/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          company: prospect.company || "Unknown Company",
+          status: "NEW",
+          source: "AI Prospecting & Enrichment",
+          notes: `Enriched via AI:\nRole: ${prospect.role}\nIndustry: ${prospect.industry}\nLocation: ${prospect.location}\nBio: ${prospect.bio || ""}`
+        }),
+      })
+
+      if (res.ok) {
+        setAddedToCrm(true)
+      }
+    } catch (err) {
+      console.error("Failed to add to CRM:", err)
+    } finally {
+      setAddingToCrm(false)
+    }
   }
 
   return (
@@ -49,11 +99,8 @@ export default function AIProspectingDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">AI Prospecting & Enrichment</h1>
-            <p className="text-sm text-muted-foreground mt-1">Generate personalized icebreakers and enrich lead data from URLs.</p>
+            <p className="text-sm text-muted-foreground mt-1">Generate real AI personalized icebreakers and enrich target lead data.</p>
           </div>
-          <button className="flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 shadow-sm">
-            <Upload className="w-4 h-4" /> Import CSV List
-          </button>
         </div>
       </div>
 
@@ -71,23 +118,30 @@ export default function AIProspectingDashboard() {
               <input
                 value={urlInput}
                 onChange={e => setUrlInput(e.target.value)}
-                placeholder="Paste LinkedIn URL or Company Website (e.g., peakperformance.com)"
+                placeholder="Paste LinkedIn URL, Company Domain, or Name (e.g. stripe.com or Satya Nadella)"
                 className="w-full bg-background border border-border/50 rounded-xl pl-11 pr-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                 onKeyDown={e => e.key === 'Enter' && handleGenerateIcebreakers()}
               />
             </div>
             <button 
               onClick={handleGenerateIcebreakers}
-              disabled={analyzing || !urlInput}
+              disabled={analyzing || !urlInput.trim()}
               className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {analyzing ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Scraping...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enriching with AI...</>
               ) : (
                 <><Zap className="w-4 h-4" /> Enrich & Generate</>
               )}
             </button>
           </div>
+
+          {errorMsg && (
+            <div className="mt-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
         </div>
 
         {/* Results Section */}
@@ -97,25 +151,33 @@ export default function AIProspectingDashboard() {
             {/* Prospect Profile */}
             <div className="p-6 border-b border-border/50 bg-muted/10 flex flex-col md:flex-row gap-6 items-start md:items-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white text-xl font-black shadow-lg">
-                {prospect.name.split(" ").map((n: string) => n[0]).join("")}
+                {(prospect.name || "P").split(" ").map((n: string) => n[0]).join("")}
               </div>
               
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1">
                   <h2 className="text-2xl font-bold text-foreground">{prospect.name}</h2>
-                  <a href="#" className="text-blue-500 hover:text-blue-400 transition-colors"><Link className="w-5 h-5" /></a>
                 </div>
                 <p className="text-muted-foreground">{prospect.role} @ <span className="font-semibold text-foreground">{prospect.company}</span></p>
+                {prospect.bio && <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{prospect.bio}</p>}
                 
                 <div className="flex gap-4 mt-3 text-xs font-medium">
-                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50"> {prospect.location}</span>
-                  <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50"> {prospect.industry}</span>
+                  {prospect.location && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">📍 {prospect.location}</span>}
+                  {prospect.industry && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">🏢 {prospect.industry}</span>}
                 </div>
               </div>
               
               <div className="flex flex-col gap-2 w-full md:w-auto">
-                <button className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-500/20 transition-all">
-                  <UserPlus className="w-4 h-4" /> Add to CRM
+                <button 
+                  onClick={handleAddToCrm}
+                  disabled={addingToCrm || addedToCrm}
+                  className={`w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+                    addedToCrm 
+                      ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30"
+                      : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20"
+                  }`}
+                >
+                  {addingToCrm ? "Saving..." : addedToCrm ? "✓ Added to CRM" : <><UserPlus className="w-4 h-4" /> Add to CRM</>}
                 </button>
               </div>
             </div>
@@ -123,11 +185,11 @@ export default function AIProspectingDashboard() {
             {/* AI Icebreakers */}
             <div className="p-6">
               <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-primary" /> AI Generated Icebreakers
+                <Zap className="w-5 h-5 text-primary" /> AI Generated Outreach Icebreakers
               </h3>
               
               <div className="grid gap-4">
-                {prospect.icebreakers.map((ice: any, i: number) => (
+                {(prospect.icebreakers || []).map((ice: any, i: number) => (
                   <div key={i} className="group relative bg-background border border-border/50 rounded-xl p-5 hover:border-primary/50 transition-colors">
                     <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-2">
                       {ice.type}
@@ -151,11 +213,8 @@ export default function AIProspectingDashboard() {
             
             <div className="px-6 py-4 bg-primary/5 border-t border-primary/10 flex justify-between items-center">
               <span className="text-xs text-primary font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Analyzed recent company news and LinkedIn activity.
+                <CheckCircle2 className="w-4 h-4" /> Real-time OpenAI intelligence enrichment complete.
               </span>
-              <button className="text-sm font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
-                Generate More <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
 
           </div>

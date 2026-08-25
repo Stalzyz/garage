@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import OpenAI from 'openai';
+import { getOpenAiClient } from '../utils/openai';
 
 const GenerateSchema = z.object({
   prompt: z.string().min(1),
   systemPrompt: z.string().optional(),
-  format: z.enum(["text", "html"]).default("text")
+  format: z.enum(['text', 'html']).default('text'),
 });
 
 export default async function aiGenerateRouter(app: FastifyInstance) {
@@ -13,56 +13,33 @@ export default async function aiGenerateRouter(app: FastifyInstance) {
     const { prompt, systemPrompt, format } = GenerateSchema.parse(req.body);
 
     try {
-      const org = await app.prisma.organization.findFirst();
-      let apiKey = org?.openAiKey;
-      
-      if (!apiKey) {
-        const integrationKey = await app.prisma.integrationKey.findFirst({
-          where: { service: 'OPENAI', keyName: 'OPENAI_API_KEY', isActive: true }
-        });
-        if (integrationKey?.encryptedValue) {
-          const { decrypt } = require('../settings/integrations.router');
-          apiKey = decrypt(integrationKey.encryptedValue);
-        }
-      }
-      
-      if (!apiKey) {
-        apiKey = process.env.OPENAI_API_KEY || '';
-      }
-      
-      if (!apiKey || apiKey === '***ENCRYPTED***') {
-        throw new Error("OpenAI API Key is not configured. Please add it in Settings > Integrations > OpenAI API Key.");
-      }
-
-      const openai = new OpenAI({
-        apiKey,
-      });
+      const openai = await getOpenAiClient(app);
 
       const messages: any[] = [];
       if (systemPrompt) {
-        messages.push({ role: "system", content: systemPrompt });
+        messages.push({ role: 'system', content: systemPrompt });
       }
-      
+
       let finalPrompt = prompt;
       if (format === 'html') {
         finalPrompt = `${prompt}\n\nFormat the response in basic HTML. Use tags like <h2>, <p>, <ul>, <li>, and <strong>. Do not include any introductory conversation, just the raw HTML content itself (no markdown code blocks, no \`\`\`html).`;
       }
 
-      messages.push({ role: "user", content: finalPrompt });
+      messages.push({ role: 'user', content: finalPrompt });
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: 'gpt-4o-mini',
         messages,
       });
 
-      const content = response.choices[0].message.content || '';
+      const content = response.choices[0]?.message?.content || '';
 
       return { content: content.trim() };
     } catch (error) {
-      console.error("AI Generation Error:", error);
-      return reply.code(500).send({ 
-        error: "Failed to generate AI content",
-        details: error instanceof Error ? error.message : "Unknown error"
+      app.log.error({ err: error }, 'AI Generation Error');
+      return reply.code(500).send({
+        error: 'Failed to generate AI content',
+        details: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });

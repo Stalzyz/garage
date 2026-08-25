@@ -1,18 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import OpenAI from 'openai';
-
-let _openai: OpenAI | null = null;
-function getOpenAI() {
-  if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
-  }
-  return _openai;
-}
+import { getOpenAiApiKey, getOpenAiClient } from '../utils/openai';
 
 export default async function aiRouter(app: FastifyInstance) {
   
-  // Existing proposal generator
+  // 1. Generate Proposal Endpoint
   app.post('/generate-proposal', async (request, reply) => {
     try {
       const schema = z.object({
@@ -33,8 +25,10 @@ Return ONLY valid JSON matching this schema:
   "timelineWeeks": 4
 }`;
 
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "dummy_key") {
-        app.log.warn("OPENAI_API_KEY is not set. Returning mock AI proposal.");
+      const apiKey = await getOpenAiApiKey(app);
+
+      if (!apiKey) {
+        app.log.warn("OpenAI API Key is not set. Returning mock AI proposal.");
         await new Promise(resolve => setTimeout(resolve, 1500));
         return {
           success: true,
@@ -53,348 +47,184 @@ Return ONLY valid JSON matching this schema:
         };
       }
 
-      const completion = await getOpenAI().chat.completions.create({
-        model: "gpt-4o",
+      const openai = await getOpenAiClient(app);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Client: ${clientName}\nBrief: ${brief}` }
-        ],
-        response_format: { type: "json_object" }
+        ]
       });
 
-      const aiResponse = completion.choices[0]?.message?.content;
-      if (!aiResponse) throw new Error("No response from AI");
+      const content = completion.choices[0]?.message?.content || '{}';
+      let jsonStr = content.trim();
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
+      }
 
-      const parsedData = JSON.parse(aiResponse);
+      const parsedData = JSON.parse(jsonStr);
 
       return {
         success: true,
         data: parsedData
       };
     } catch (error: any) {
-      app.log.error(error);
-      return reply.status(500).send({ success: false, message: error.message || 'Failed to generate proposal' });
+      app.log.error({ err: error }, "Error generating proposal via AI");
+      return reply.code(500).send({
+        success: false,
+        error: "Failed to generate AI proposal",
+        details: error.message
+      });
     }
   });
 
-  // 1 & 5: Conversational Analytics & Client Self-Service Copilot
+  // 2. Executive Assistant / Copilot Chat Endpoint
   app.post('/assistant', async (request, reply) => {
     try {
-      const bodySchema = z.object({
+      const schema = z.object({
         message: z.string(),
-        role: z.string(),
-        email: z.string()
+        role: z.string().optional().default("Employee"),
+        email: z.string().optional()
       });
 
-      const { message, role, email } = bodySchema.parse(request.body);
+      const { message, role, email } = schema.parse(request.body);
 
-      // Fetch dynamic database context to feed the prompt
-      let contextString = "";
-      if (role === "Client") {
-        // Retrieve client invoice counts & projects
-        const invoices = await app.prisma.invoice.findMany({
-          where: { clientEmail: email },
-          select: { invoiceNumber: true, totalAmount: true, status: true }
-        });
-        
-        contextString = `You are the Client Self-Service Copilot for Grekam OS. 
-The current client is logged in as: ${email}.
-Active client bills/invoices: ${JSON.stringify(invoices)}.
-Please help the client with queries about their project progress, asset downloads, or invoice links. Keep answers brief and professional.`;
-      } else {
-        // Retrieve global metrics for Admins, Managers, and Staff (Conversational Analytics)
-        const [totalLeads, totalStudents, totalProjects, totalRevenue] = await Promise.all([
-          app.prisma.lead.count(),
-          app.prisma.student.count(),
-          app.prisma.project.count(),
-          app.prisma.invoice.aggregate({
-            _sum: { totalAmount: true }
-          })
-        ]);
+      // Fetch dynamic telemetry context from database
+      const totalLeads = await app.prisma.lead.count();
+      const totalInvoices = await app.prisma.invoice.count();
+      const totalRev = await app.prisma.invoice.aggregate({ _sum: { totalAmount: true } });
+      const totalRevVal = totalRev._sum.totalAmount || 0;
+      const totalStudents = await app.prisma.student.count();
+      const totalProjects = await app.prisma.project.count();
 
-        const totalRevVal = totalRevenue._sum.totalAmount || 0;
+      let contextString = `You are the executive AI copilot for Grekam OS (Visuals Pro Agency & Academy).
+You have access to live database metrics:
+- Total CRM Leads: ${totalLeads}
+- Total Generated Invoices: ${totalInvoices}
+- Total Enrolled Students: ${totalStudents}
+- Total Active Projects: ${totalProjects}
+- Total Invoiced Revenue: INR ${totalRevVal.toLocaleString()}
+Answer queries concisely and guide users. User Role: ${role}.`;
 
-        contextString = `You are Grekam AI, the main operational analyst for Grekam OS. 
-Here is the current live system statistics summary:
-- Total Leads in CRM: ${totalLeads}
-- Enrolled Academy Students: ${totalStudents}
-- Active Deliverable Projects: ${totalProjects}
-- Billing Revenue Invoiced: INR ${totalRevVal.toLocaleString()}
-Please answer operational queries briefly and direct reps or managers to the right panels when relevant.`;
-      }
+      const apiKey = await getOpenAiApiKey(app);
 
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "dummy_key") {
-        // Fallback simulator response using real database metrics
-        await new Promise(r => setTimeout(r, 1000));
-        let mockReply = `I am currently operating in offline sandbox mode. Here is what I fetched from the database for you:\n`;
-        if (role === "Client") {
-          mockReply += `You have active bills registered under ${email}. Please check the Finance tab to make payments.`;
-        } else {
-          mockReply += `- Live Revenue: INR ${(await app.prisma.invoice.aggregate({ _sum: { totalAmount: true } }))._sum.totalAmount || 0}\n- Active Projects: ${await app.prisma.project.count()}`;
-        }
+      if (!apiKey) {
+        await new Promise(r => setTimeout(r, 800));
+        let mockReply = `I am operating in offline sandbox mode (OpenAI API key not configured). Live database snapshot:\n`;
+        mockReply += `- Live Revenue: INR ${totalRevVal.toLocaleString()}\n- Active Projects: ${totalProjects}\n- Total Leads: ${totalLeads}`;
         return { success: true, reply: mockReply };
       }
 
-      let response: string | null = null;
+      let responseText: string | null = null;
       try {
-        const completion = await getOpenAI().chat.completions.create({
-          model: "gpt-4o",
+        const openai = await getOpenAiClient(app);
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: contextString },
             { role: "user", content: message }
           ]
         });
-        response = completion.choices[0]?.message?.content;
+        responseText = completion.choices[0]?.message?.content || null;
       } catch (openAiError: any) {
         app.log.warn({ err: openAiError }, "OpenAI API call failed in assistant. Falling back.");
       }
 
-      if (!response) {
-        app.log.warn("Using mock fallback response for assistant");
-        await new Promise(r => setTimeout(r, 1000));
-        let mockReply = `I am currently operating in fallback mode. Here is what I fetched from the database for you:\n`;
-        if (role === "Client") {
-          mockReply += `You have active bills registered under ${email}. Please check the Finance tab to make payments.`;
-        } else {
-          mockReply += `- Live Revenue: INR ${(await app.prisma.invoice.aggregate({ _sum: { totalAmount: true } }))._sum.totalAmount || 0}\n- Active Projects: ${await app.prisma.project.count()}`;
-        }
-        return { success: true, reply: mockReply };
+      if (!responseText) {
+        return {
+          success: true,
+          reply: `Here is a live snapshot from the database:\n- Revenue: INR ${totalRevVal.toLocaleString()}\n- Leads: ${totalLeads}\n- Projects: ${totalProjects}`
+        };
       }
 
       return {
         success: true,
-        reply: response
+        reply: responseText
       };
-    } catch (error: any) {
-      app.log.error(error);
-      return reply.status(500).send({ success: false, message: error.message || 'Failed to process AI assistant query' });
+    } catch (err: any) {
+      app.log.error({ err }, "Error in assistant router");
+      return reply.code(500).send({ success: false, error: err.message });
     }
   });
 
-  // Course Curriculum Generator
+  // 3. Curriculum Generator Endpoint
   app.post('/generate-curriculum', async (request, reply) => {
     try {
-      const bodySchema = z.object({
-        subject: z.string()
+      const schema = z.object({
+        subject: z.string().min(1)
       });
 
-      const { subject } = bodySchema.parse(request.body);
+      const { subject } = schema.parse(request.body);
 
-      const systemPrompt = `You are an LMS curriculum builder. 
-Generate a comprehensive draft syllabus of modules and lessons based on the course subject: '${subject}'.
-Return ONLY a valid JSON object matching this schema:
+      const systemPrompt = `You are a senior LMS Curriculum Architect.
+Given a subject/course topic, generate a structured 2-module curriculum with lessons.
+Return ONLY valid JSON matching this schema:
 {
   "modules": [
     {
-      "id": "module_id_1",
-      "title": "Module Title Here",
+      "id": "m-1",
+      "title": "Module 1 Title",
       "lessons": [
-        { "id": "lesson_id_1", "title": "Lesson Title Here", "type": "video", "duration": "5:30" }
+        { "id": "l-1", "title": "Lesson Title 1", "type": "video", "duration": "10:00" },
+        { "id": "l-2", "title": "Lesson Title 2", "type": "pdf", "duration": "Read" }
       ]
     }
   ]
-}
-Provide exactly 2 modules in the "modules" array, each containing exactly 3 lessons.
-The "type" property for lessons must be one of: "video", "pdf", or "assignment".
-The "duration" property should be appropriate (e.g., "5:30", "Read", or "AI Graded").
-Keep titles concise and matching typical course designs.`;
+}`;
 
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "dummy_key") {
-        app.log.warn("OPENAI_API_KEY is not set. Returning mock curriculum.");
-        await new Promise(r => setTimeout(r, 1200));
+      const apiKey = await getOpenAiApiKey(app);
+
+      if (!apiKey) {
+        app.log.warn("OpenAI API Key is not set. Returning mock curriculum.");
+        await new Promise(r => setTimeout(r, 1000));
         return {
           success: true,
           data: [
             {
               id: "m-ai-1",
-              title: `Module 1: Introduction to ${subject}`,
+              title: `Module 1: Fundamentals of ${subject}`,
               lessons: [
-                { id: "l-ai-1", title: `1. Welcome to ${subject}`, type: "video", duration: "8:00" },
-                { id: "l-ai-2", title: "2. Core Principles & Setup", type: "video", duration: "14:20" },
-                { id: "l-ai-3", title: "3. Beginner Workspace Files", type: "pdf", duration: "Read" }
+                { id: "l-ai-1", title: `1. Introduction to ${subject}`, type: "video", duration: "10:00" },
+                { id: "l-ai-2", title: "2. Principles & Workflow", type: "video", duration: "15:00" },
+                { id: "l-ai-3", title: "3. Reference Guide & Documentation", type: "pdf", duration: "Read" }
               ]
             },
             {
               id: "m-ai-2",
-              title: "Module 2: Practical Exercises & Evaluation",
+              title: `Module 2: Advanced ${subject} & Projects`,
               lessons: [
-                { id: "l-ai-4", title: "1. Advanced Execution & Implementation", type: "video", duration: "18:45" },
-                { id: "l-ai-5", title: "2. Final Quiz & Sandbox Project", type: "pdf", duration: "Read" },
-                { id: "l-ai-6", title: "3. Capstone Assessment Task", type: "assignment", duration: "AI Graded" }
+                { id: "l-ai-4", title: "1. Hands-on Execution & Best Practices", type: "video", duration: "20:00" },
+                { id: "l-ai-5", title: "2. Real-world Assessment Task", type: "assignment", duration: "AI Graded" }
               ]
             }
           ]
         };
       }
 
-      let responseText: string | null = null;
-      try {
-        const completion = await getOpenAI().chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Subject: ${subject}` }
-          ],
-          response_format: { type: "json_object" }
-        });
-        app.log.info({ completion }, "OpenAI raw completion object");
-        responseText = completion.choices[0]?.message?.content;
-      } catch (openAiError: any) {
-        app.log.warn({ err: openAiError }, "OpenAI API call failed in generate-curriculum. Falling back.");
-      }
-
-      let modulesArray: any[] = [];
-      if (responseText) {
-        try {
-          const parsedData = JSON.parse(responseText);
-          app.log.info({ parsedData }, "OpenAI curriculum raw response");
-          
-          if (parsedData && typeof parsedData === 'object') {
-            if (Array.isArray(parsedData.modules)) {
-              modulesArray = parsedData.modules;
-            } else if (Array.isArray(parsedData)) {
-              modulesArray = parsedData;
-            } else {
-              const foundArray = Object.values(parsedData).find(val => 
-                Array.isArray(val) && val.every(item => item && typeof item === 'object' && ('lessons' in item || 'title' in item))
-              );
-              if (foundArray) {
-                modulesArray = foundArray as any[];
-              } else {
-                const anyArray = Object.values(parsedData).find(val => Array.isArray(val));
-                if (anyArray) {
-                  modulesArray = anyArray as any[];
-                }
-              }
-            }
-          }
-          app.log.info({ modulesArray }, "OpenAI curriculum parsed modules");
-        } catch (jsonErr) {
-          app.log.error(jsonErr, "Failed to parse OpenAI curriculum JSON");
-        }
-      }
-
-      if (modulesArray.length > 0) {
-        modulesArray = modulesArray.map((m: any) => {
-          if (!m || typeof m !== 'object') {
-            return { id: Math.random().toString(), title: 'Untitled Module', lessons: [] };
-          }
-          return {
-            id: m.id || Math.random().toString(),
-            title: m.title || 'Untitled Module',
-            lessons: Array.isArray(m.lessons) ? m.lessons.map((l: any) => ({
-              id: l?.id || Math.random().toString(),
-              title: l?.title || 'Untitled Lesson',
-              type: l?.type || 'video',
-              duration: l?.duration || '5:00'
-            })) : []
-          };
-        });
-      }
-
-      // If OpenAI failed, or response was empty/invalid, fall back to mock data
-      if (modulesArray.length === 0) {
-        app.log.warn("Using mock fallback data for curriculum generator");
-        await new Promise(r => setTimeout(r, 1200));
-        modulesArray = [
-          {
-            id: "m-ai-1",
-            title: `Module 1: Introduction to ${subject}`,
-            lessons: [
-              { id: "l-ai-1", title: `1. Welcome to ${subject}`, type: "video", duration: "8:00" },
-              { id: "l-ai-2", title: "2. Core Principles & Setup", type: "video", duration: "14:20" },
-              { id: "l-ai-3", title: "3. Beginner Workspace Files", type: "pdf", duration: "Read" }
-            ]
-          },
-          {
-            id: "m-ai-2",
-            title: "Module 2: Practical Exercises & Evaluation",
-            lessons: [
-              { id: "l-ai-4", title: "1. Advanced Execution & Implementation", type: "video", duration: "18:45" },
-              { id: "l-ai-5", title: "2. Final Quiz & Sandbox Project", type: "pdf", duration: "Read" },
-              { id: "l-ai-6", title: "3. Capstone Assessment Task", type: "assignment", duration: "AI Graded" }
-            ]
-          }
-        ];
-      }
-
-      return {
-        success: true,
-        data: modulesArray
-      };
-    } catch (error: any) {
-      app.log.error(error);
-      return reply.status(500).send({ success: false, message: error.message || 'Failed to generate curriculum' });
-    }
-  });
-
-  // 3: Smart Asset Drive & Vision Search
-  app.post('/search-drive', async (request, reply) => {
-    try {
-      const bodySchema = z.object({
-        query: z.string(),
-        files: z.array(z.object({
-          id: z.string(),
-          name: z.string(),
-          mimeType: z.string()
-        }))
+      const openai = await getOpenAiClient(app);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Subject: ${subject}` }
+        ]
       });
 
-      const { query, files } = bodySchema.parse(request.body);
-
-      const systemPrompt = `You are a semantic search file engine. 
-Given a query and a list of files, select the file objects that match the user's intent.
-For example, if the query is 'ui landing design', match files like 'mockup.png' or 'homepage-v2.jpg'.
-Return ONLY a valid JSON object matching this schema:
-{
-  "matchedIds": ["id1", "id2"]
-}`;
-
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "dummy_key") {
-        // Offline matching simulation (simple string inclusion)
-        const matched = files.filter(f => f.name.toLowerCase().includes(query.toLowerCase())).map(f => f.id);
-        return { success: true, matchedIds: matched };
+      const content = completion.choices[0]?.message?.content || '{}';
+      let jsonStr = content.trim();
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
       }
 
-      let matchedIds: any[] | null = null;
-      try {
-        const completion = await getOpenAI().chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Query: ${query}\nFiles: ${JSON.stringify(files)}` }
-          ],
-          response_format: { type: "json_object" }
-        });
-
-        const resultText = completion.choices[0]?.message?.content;
-        if (resultText) {
-          const parsedMatches = JSON.parse(resultText);
-          if (parsedMatches && Array.isArray(parsedMatches.matchedIds)) {
-            matchedIds = parsedMatches.matchedIds;
-          } else if (Array.isArray(parsedMatches)) {
-            matchedIds = parsedMatches;
-          } else if (parsedMatches && typeof parsedMatches === 'object') {
-            matchedIds = (Object.values(parsedMatches).find(val => Array.isArray(val)) || Object.values(parsedMatches)[0] || []) as any[];
-          }
-        }
-      } catch (openAiError: any) {
-        app.log.warn({ err: openAiError }, "OpenAI API call failed in search-drive. Falling back.");
-      }
-
-      if (!matchedIds) {
-        app.log.warn("Using offline fallback matching for search-drive");
-        matchedIds = files.filter(f => f.name.toLowerCase().includes(query.toLowerCase())).map(f => f.id);
-      }
+      const parsed = JSON.parse(jsonStr);
 
       return {
         success: true,
-        matchedIds
+        data: parsed.modules || parsed
       };
-    } catch (error: any) {
-      app.log.error(error);
-      return reply.status(500).send({ success: false, message: error.message || 'Failed to execute semantic search' });
+    } catch (err: any) {
+      app.log.error({ err }, "Error generating curriculum via AI");
+      return reply.code(500).send({ success: false, error: err.message });
     }
   });
-
 }

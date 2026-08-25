@@ -242,6 +242,8 @@ export async function buildApp(opts: any = {}): Promise<any> {
   await app.register(aiMentorRouter, { prefix: '/api/v1/ai/mentor' });
   const aiGenerateRouter = (await import('./ai/generate.router')).default;
   await app.register(aiGenerateRouter, { prefix: '/api/v1/ai' });
+  const aiProspectRouter = (await import('./ai/prospect.router')).default;
+  await app.register(aiProspectRouter, { prefix: '/api/v1/ai' });
 
   // WebSocket — real-time broadcast hub
   const wsClients = new Set<any>();
