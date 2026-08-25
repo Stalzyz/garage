@@ -17,7 +17,7 @@ export interface ScrapedSiteData {
 }
 
 /**
- * Extracts emails using mailto: links and regex patterns across HTML
+ * Extracts emails using mailto: links and regex patterns across clean visible text & HTML
  */
 function extractEmails(html: string, $: cheerio.CheerioAPI): string[] {
   const emails = new Set<string>();
@@ -31,12 +31,11 @@ function extractEmails(html: string, $: cheerio.CheerioAPI): string[] {
     }
   });
 
-  // 2. Extract via regex across full HTML
+  // 2. Extract via regex across HTML
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
   const matches = html.match(emailRegex) || [];
   for (const match of matches) {
     const clean = match.trim().toLowerCase();
-    // Filter out common false positives like asset filenames or dummy placeholders
     if (
       isValidEmail(clean) &&
       !clean.endsWith('.png') &&
@@ -44,10 +43,12 @@ function extractEmails(html: string, $: cheerio.CheerioAPI): string[] {
       !clean.endsWith('.jpeg') &&
       !clean.endsWith('.svg') &&
       !clean.endsWith('.webp') &&
+      !clean.endsWith('.gif') &&
       !clean.includes('example.com') &&
       !clean.includes('domain.com') &&
       !clean.includes('sentry.io') &&
-      !clean.includes('w3.org')
+      !clean.includes('w3.org') &&
+      !clean.includes('schema.org')
     ) {
       emails.add(clean);
     }
@@ -61,35 +62,79 @@ function isValidEmail(email: string): boolean {
 }
 
 /**
- * Extracts phone numbers from tel: links and regex
+ * Robust, strict phone number extractor.
+ * Prevents false positives from HTML asset IDs, timestamps, image dimensions, and JS chunk hashes.
  */
-function extractPhones(html: string, $: cheerio.CheerioAPI): string[] {
+function extractPhones($: cheerio.CheerioAPI): string[] {
   const phones = new Set<string>();
 
-  // 1. Extract from tel: hrefs
+  // 1. Extract from explicit tel: href links (100% reliable)
   $('a[href^="tel:"]').each((_, el) => {
     const href = $(el).attr('href');
     if (href) {
-      const phone = href.replace(/^tel:/i, '').trim();
-      if (phone.length >= 7) phones.add(phone);
+      const cleanPhone = href.replace(/^tel:/i, '').replace(/[^\d+]/g, '').trim();
+      if (cleanPhone.length >= 8 && cleanPhone.length <= 15) {
+        phones.add(formatPhoneNumber(cleanPhone));
+      }
     }
   });
 
-  // 2. Regex search for international & Indian phone patterns (e.g. +91 9876543210, +1 (555) 000-0000, 1800-123-456)
-  const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
-  const rawMatches = html.match(phoneRegex) || [];
-  for (const match of rawMatches) {
-    const clean = match.trim();
-    const digitsOnly = clean.replace(/\D/g, '');
-    if (digitsOnly.length >= 8 && digitsOnly.length <= 14) {
-      // Avoid matching dates (e.g. 2026-08-25) or timestamps
-      if (!clean.startsWith('202') && !clean.startsWith('199')) {
-        phones.add(clean);
-      }
+  // 2. Extract from visible text nodes ONLY (strip scripts, styles, svgs, codes)
+  const $clean = cheerio.load($.html());
+  $clean('script, style, svg, path, code, pre, noscript, iframe, head, [type="application/ld+json"]').remove();
+  const visibleText = $clean('body').text().replace(/\s+/g, ' ');
+
+  // Pattern A: International formatted numbers with leading + (e.g. +91 98765 43210, +1-800-555-0199)
+  const intlRegex = /\+(?:91|1|44|61|86|971|49|33|81)[-.\s]?\d{2,5}[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
+  const intlMatches = visibleText.match(intlRegex) || [];
+  for (const m of intlMatches) {
+    const digits = m.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 13) {
+      phones.add(m.trim());
+    }
+  }
+
+  // Pattern B: Indian Mobile 10-digit numbers (starting with 6, 7, 8, 9)
+  const indianMobileRegex = /(?:^|[^\d+])([6-9]\d{9})(?:[^\d]|$)/g;
+  let match: RegExpExecArray | null;
+  while ((match = indianMobileRegex.exec(visibleText)) !== null) {
+    const rawNum = match[1];
+    // Verify it's not a common year or timestamp
+    if (rawNum && !rawNum.startsWith('202') && !rawNum.startsWith('199')) {
+      phones.add(`+91 ${rawNum.slice(0, 5)} ${rawNum.slice(5)}`);
+    }
+  }
+
+  // Pattern C: Indian Toll-Free numbers (e.g. 1800 123 4567, 1800-102-1234)
+  const tollFreeRegex = /1800[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
+  const tfMatches = visibleText.match(tollFreeRegex) || [];
+  for (const tf of tfMatches) {
+    phones.add(tf.trim());
+  }
+
+  // Pattern D: Landline with STD Code (e.g. 022 26110773, 080 41234567)
+  const stdLandlineRegex = /(?:^|[^\d])(0\d{2,4}[-.\s]?\d{6,8})(?:[^\d]|$)/g;
+  let stdMatch: RegExpExecArray | null;
+  while ((stdMatch = stdLandlineRegex.exec(visibleText)) !== null) {
+    const rawLandline = stdMatch[1];
+    const digits = rawLandline.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 11) {
+      phones.add(rawLandline.trim());
     }
   }
 
   return Array.from(phones).slice(0, 5);
+}
+
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10 && ['6', '7', '8', '9'].includes(digits[0])) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  }
+  return phone;
 }
 
 /**
@@ -156,9 +201,9 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
 
     let $ = cheerio.load(html);
 
-    // Extract Emails, Phone Numbers, and Social Links BEFORE removing headers/footers
+    // Extract Emails, Phone Numbers, and Social Links
     const emails = extractEmails(html, $);
-    const phones = extractPhones(html, $);
+    const phones = extractPhones($);
     const socialLinks = extractSocials($);
 
     // Extract Title & Meta Description
@@ -193,7 +238,7 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
             const cHtml = await cRes.text();
             const c$ = cheerio.load(cHtml);
             const cEmails = extractEmails(cHtml, c$);
-            const cPhones = extractPhones(cHtml, c$);
+            const cPhones = extractPhones(c$);
             
             cEmails.forEach(e => { if (!emails.includes(e)) emails.push(e); });
             cPhones.forEach(p => { if (!phones.includes(p)) phones.push(p); });
@@ -204,10 +249,10 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
       }
     }
 
-    // Now clean noise elements (scripts, styles, etc.) for AI prompt snippet extraction
+    // Clean noise elements for AI snippet text extraction
     $('script, style, svg, iframe, noscript').remove();
 
-    // Extract H1, H2, H3 Headings
+    // Extract Headings
     const headings: string[] = [];
     $('h1, h2, h3').each((_, el) => {
       const txt = $(el).text().replace(/\s+/g, ' ').trim();
