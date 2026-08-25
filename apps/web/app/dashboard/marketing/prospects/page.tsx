@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Upload, Search, UserPlus, Globe, Link as LinkIcon, CheckCircle2, Copy, ArrowRight, AlertTriangle } from "lucide-react"
+import { Zap, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare } from "lucide-react"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
@@ -60,6 +60,11 @@ export default function AIProspectingDashboard() {
     }, 2000)
   }
 
+  const handleWhatsAppShare = (text: string) => {
+    const encoded = encodeURIComponent(text)
+    window.open(`https://wa.me/?text=${encoded}`, '_blank')
+  }
+
   const handleAddToCrm = async () => {
     if (!prospect || addingToCrm || addedToCrm) return
     setAddingToCrm(true)
@@ -78,7 +83,7 @@ export default function AIProspectingDashboard() {
           company: prospect.company || "Unknown Company",
           status: "NEW",
           source: "AI Prospecting & Enrichment",
-          notes: `Enriched via AI:\nRole: ${prospect.role}\nIndustry: ${prospect.industry}\nLocation: ${prospect.location}\nBio: ${prospect.bio || ""}`
+          notes: `Enriched via Live AI Scraper:\nRole: ${prospect.role}\nIndustry: ${prospect.industry}\nLocation: ${prospect.location}\nBio: ${prospect.bio || ""}`
         }),
       })
 
@@ -98,8 +103,8 @@ export default function AIProspectingDashboard() {
       <div className="flex-none px-6 py-5 border-b border-border/50">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">AI Prospecting & Enrichment</h1>
-            <p className="text-sm text-muted-foreground mt-1">Generate real AI personalized icebreakers and enrich target lead data.</p>
+            <h1 className="text-2xl font-bold text-foreground">AI Prospecting & Live Web Enrichment</h1>
+            <p className="text-sm text-muted-foreground mt-1">Extract live webpage content and generate AI personalized sales outreach icebreakers.</p>
           </div>
         </div>
       </div>
@@ -109,7 +114,7 @@ export default function AIProspectingDashboard() {
         {/* Input Section */}
         <div className="bg-card border border-border/50 rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <Search className="w-5 h-5 text-primary" /> Target a Prospect
+            <Search className="w-5 h-5 text-primary" /> Target a Prospect Website or LinkedIn Profile
           </h2>
           
           <div className="flex flex-col md:flex-row gap-4">
@@ -118,7 +123,7 @@ export default function AIProspectingDashboard() {
               <input
                 value={urlInput}
                 onChange={e => setUrlInput(e.target.value)}
-                placeholder="Paste LinkedIn URL, Company Domain, or Name (e.g. stripe.com or Satya Nadella)"
+                placeholder="Paste Company Domain or URL (e.g. stripe.com, visualspro.in)"
                 className="w-full bg-background border border-border/50 rounded-xl pl-11 pr-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                 onKeyDown={e => e.key === 'Enter' && handleGenerateIcebreakers()}
               />
@@ -129,9 +134,9 @@ export default function AIProspectingDashboard() {
               className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {analyzing ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enriching with AI...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Scraping & Enriching...</>
               ) : (
-                <><Zap className="w-4 h-4" /> Enrich & Generate</>
+                <><Zap className="w-4 h-4" /> Scrape & Enrich</>
               )}
             </button>
           </div>
@@ -157,11 +162,16 @@ export default function AIProspectingDashboard() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1">
                   <h2 className="text-2xl font-bold text-foreground">{prospect.name}</h2>
+                  {prospect.scrapedLive && (
+                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                      ⚡ Live Web Scraped
+                    </span>
+                  )}
                 </div>
                 <p className="text-muted-foreground">{prospect.role} @ <span className="font-semibold text-foreground">{prospect.company}</span></p>
                 {prospect.bio && <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{prospect.bio}</p>}
                 
-                <div className="flex gap-4 mt-3 text-xs font-medium">
+                <div className="flex flex-wrap gap-2 mt-3 text-xs font-medium">
                   {prospect.location && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">📍 {prospect.location}</span>}
                   {prospect.industry && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">🏢 {prospect.industry}</span>}
                 </div>
@@ -191,29 +201,37 @@ export default function AIProspectingDashboard() {
               <div className="grid gap-4">
                 {(prospect.icebreakers || []).map((ice: any, i: number) => (
                   <div key={i} className="group relative bg-background border border-border/50 rounded-xl p-5 hover:border-primary/50 transition-colors">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-2">
-                      {ice.type}
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center justify-between">
+                      <span>{ice.type}</span>
                     </div>
-                    <p className="text-foreground/90 leading-relaxed pr-10">
+                    <p className="text-foreground/90 leading-relaxed pr-24">
                       "{ice.text}"
                     </p>
                     
-                    <button 
-                      onClick={() => handleCopy(i)}
-                      className="absolute top-4 right-4 p-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy to clipboard"
-                    >
-                      {ice.copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                    </button>
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                      <button 
+                        onClick={() => handleWhatsAppShare(ice.text)}
+                        className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors"
+                        title="Share via WhatsApp"
+                      >
+                        <MessageSquareShare className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleCopy(i)}
+                        className="p-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        {ice.copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
-              
             </div>
             
             <div className="px-6 py-4 bg-primary/5 border-t border-primary/10 flex justify-between items-center">
               <span className="text-xs text-primary font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Real-time OpenAI intelligence enrichment complete.
+                <CheckCircle2 className="w-4 h-4" /> {prospect.scrapedLive ? "Live webpage HTML parsed and enriched with OpenAI." : "Enriched using OpenAI knowledge base."}
               </span>
             </div>
 
