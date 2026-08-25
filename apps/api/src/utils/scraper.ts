@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { scrapeInstagramWithPuppeteer } from './instagram-scraper';
+import { scrapeInstagramWithPuppeteer, deepScrapeWebsite, findEmailsInText, findPhonesInText } from './instagram-scraper';
 
 export interface ScrapedSiteData {
   url: string;
@@ -272,14 +272,14 @@ export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedS
 
 /**
  * Native, zero-cost live web scraper.
- * Fetches HTML from a target domain, website URL, or Instagram handle using Cheerio.
+ * Multi-page: scrapes home + contact + about pages for email and phone.
  */
 export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteData | null> {
   try {
     let cleanUrl = urlInput.trim();
     if (!cleanUrl) return null;
 
-    // Check if URL is an Instagram profile
+    // Route Instagram URLs to Instagram scraper
     if (cleanUrl.toLowerCase().includes('instagram.com')) {
       return scrapeInstagramProfile(cleanUrl);
     }
@@ -293,27 +293,24 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const fetchOptions = {
+    const fetchOptions: RequestInit = {
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept':
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webkit,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
       },
       signal: controller.signal,
     };
 
     const response = await fetch(cleanUrl, fetchOptions).finally(() => clearTimeout(timeoutId));
-
     if (!response.ok) return null;
 
-    let html = await response.text();
+    const html = await response.text();
     if (!html || html.length < 50) return null;
 
-    let $ = cheerio.load(html);
+    const $ = cheerio.load(html);
 
     const title =
       $('title').first().text().trim() ||
@@ -327,44 +324,16 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
       $('meta[name="twitter:description"]').attr('content')?.trim() ||
       '';
 
-    const emails = extractEmails(html, $);
-    const phones = extractPhones($, `${title} ${description}`);
     const socialLinks = extractSocials($);
 
-    // If no emails/phones found on home page, try to fetch /contact or /contact-us
-    if (emails.length === 0 && phones.length === 0) {
-      try {
-        const contactLink = $('a[href*="contact"]').first().attr('href');
-        if (contactLink) {
-          let contactUrl = contactLink;
-          if (!contactUrl.startsWith('http')) {
-            const origin = new URL(cleanUrl).origin;
-            contactUrl = contactUrl.startsWith('/') ? `${origin}${contactUrl}` : `${origin}/${contactUrl}`;
-          }
+    // Deep multi-page scrape for emails and phones (home + contact + about + more)
+    const deepResult = await deepScrapeWebsite(cleanUrl);
+    const emails = deepResult?.emails || findEmailsInText(html);
+    const phones = deepResult?.phones || findPhonesInText(`${title} ${description} ${html}`);
 
-          const cController = new AbortController();
-          const cTimeout = setTimeout(() => cController.abort(), 4000);
-          const cRes = await fetch(contactUrl, { ...fetchOptions, signal: cController.signal }).finally(() => clearTimeout(cTimeout));
-          
-          if (cRes.ok) {
-            const cHtml = await cRes.text();
-            const c$ = cheerio.load(cHtml);
-            const cEmails = extractEmails(cHtml, c$);
-            const cPhones = extractPhones(c$);
-            
-            cEmails.forEach(e => { if (!emails.includes(e)) emails.push(e); });
-            cPhones.forEach(p => { if (!phones.includes(p)) phones.push(p); });
-          }
-        }
-      } catch (e) {
-        // Silently skip contact page secondary scrap
-      }
-    }
-
-    // Clean noise elements for AI snippet text extraction
+    // Clean noise elements for AI snippet text
     $('script, style, svg, iframe, noscript').remove();
 
-    // Extract Headings
     const headings: string[] = [];
     $('h1, h2, h3').each((_, el) => {
       const txt = $(el).text().replace(/\s+/g, ' ').trim();
@@ -373,7 +342,6 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
       }
     });
 
-    // Extract Paragraph Text Content
     const bodyParagraphs: string[] = [];
     $('p, article, section').each((_, el) => {
       const pText = $(el).text().replace(/\s+/g, ' ').trim();
