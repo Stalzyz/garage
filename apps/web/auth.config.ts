@@ -9,6 +9,11 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
+      // 1. Root split-screen landing page (/) MUST always be accessible without redirection
+      if (nextUrl.pathname === '/' || nextUrl.pathname === '') {
+        return true;
+      }
+
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
       const isOnPortalProtected = nextUrl.pathname.startsWith('/portal/') && nextUrl.pathname !== '/portal/'
@@ -32,24 +37,21 @@ export const authConfig = {
           }
         }
 
-        // Allow logged in users to access public pages (e.g. /, /contact, /academy) freely
+        // Allow logged in users to access public pages (e.g. /contact, /academy, /verify) freely
         const isProtectedRoute = isOnDashboard || isOnPortalProtected || isOnStudent;
         if (!isProtectedRoute) {
           return true;
         }
 
         if (role === 'CLIENT') {
-          // Clients should only access /portal/* (except student portal and login page /portal)
           if (!isOnClientPortal) {
             return Response.redirect(new URL('/portal/dashboard', nextUrl));
           }
         } else if (role === 'STUDENT') {
-          // Students should only access /portal/student/*
           if (!isOnStudent) {
             return Response.redirect(new URL('/portal/student', nextUrl));
           }
         } else {
-          // Staff/Admin should only access /dashboard/*
           if (!isOnDashboard) {
             return Response.redirect(new URL('/dashboard', nextUrl));
           }
@@ -85,5 +87,5 @@ export const authConfig = {
       return session
     }
   },
-  providers: [], // Add providers with an empty array for now
+  providers: [],
 } satisfies NextAuthConfig
