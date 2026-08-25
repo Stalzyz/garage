@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 300
+set script {
+  apt-get update -y
+  apt-get install -y chromium-browser || apt-get install -y chromium || apt install -y chromium-browser
+  echo "Chromium install done: $(chromium-browser --version || chromium --version || echo 'install check - look manually')"
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

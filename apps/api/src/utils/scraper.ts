@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { scrapeInstagramWithPuppeteer } from './instagram-scraper';
 
 export interface ScrapedSiteData {
   url: string;
@@ -181,24 +182,52 @@ function extractSocials($: cheerio.CheerioAPI): ScrapedSiteData['socialLinks'] {
 }
 
 /**
- * Native Instagram Profile Scraper (Option A - Zero Cost)
+ * Instagram Profile Scraper using Puppeteer headless browser.
+ * Falls back to Cheerio static parse if Puppeteer is unavailable.
  */
 export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedSiteData | null> {
+  let cleanUrl = urlInput.trim();
+  if (!cleanUrl.startsWith('http')) cleanUrl = `https://${cleanUrl}`;
+
+  const matchHandle = cleanUrl.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
+  const handle = matchHandle ? matchHandle[1] : '';
+
+  // 1. Try Puppeteer (renders full JS page, extracts real contact info)
   try {
-    let cleanUrl = urlInput.trim();
-    if (!cleanUrl.startsWith('http')) cleanUrl = `https://${cleanUrl}`;
+    const igData = await scrapeInstagramWithPuppeteer(handle);
+    if (igData) {
+      const snippetText = [
+        `Instagram Profile: @${handle}`,
+        `Full Name: ${igData.fullName}`,
+        `Bio: ${igData.bio}`,
+        igData.externalUrl ? `Website in Bio: ${igData.externalUrl}` : '',
+        igData.followerCount ? `Followers: ${igData.followerCount}` : '',
+      ].filter(Boolean).join('\n');
 
-    const matchHandle = cleanUrl.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
-    const handle = matchHandle ? `@${matchHandle[1]}` : '';
+      return {
+        url: cleanUrl,
+        title: igData.fullName || `Instagram Profile @${handle}`,
+        description: igData.bio,
+        headings: [`@${handle}`, igData.fullName].filter(Boolean),
+        snippetText,
+        emails: igData.emails,
+        phones: igData.phones,
+        socialLinks: { instagram: cleanUrl },
+      };
+    }
+  } catch (puppeteerErr: any) {
+    console.warn(`[Instagram] Puppeteer failed (${puppeteerErr.message}), falling back to static parse`);
+  }
 
+  // 2. Fallback: Cheerio static HTML parse (limited — no JS data)
+  try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const response = await fetch(cleanUrl, {
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
       },
       signal: controller.signal,
@@ -210,7 +239,7 @@ export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedS
     const $ = cheerio.load(html);
 
     const ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || $('title').text().trim() || '';
-    const ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || $('meta[name="description"]').attr('content')?.trim() || '';
+    const ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || '';
 
     let jsonLdBio = '';
     $('script[type="application/ld+json"]').each((_, el) => {
@@ -220,19 +249,17 @@ export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedS
       } catch (e) {}
     });
 
-    const extraMetaText = `${ogTitle} ${ogDesc} ${jsonLdBio}`;
+    const allText = `${ogTitle} ${ogDesc} ${jsonLdBio} ${html}`;
+    const emails = extractEmails(allText, $);
+    const phones = extractPhones($, `${ogTitle} ${ogDesc} ${jsonLdBio}`);
 
-    const emails = extractEmails(`${html} ${extraMetaText}`, $);
-    const phones = extractPhones($, extraMetaText);
-
-    let snippetText = `Instagram Profile: ${handle}\nTitle/Name: ${ogTitle}\nMeta Profile Details: ${ogDesc}`;
-    if (jsonLdBio) snippetText += `\nBio: ${jsonLdBio}`;
+    const snippetText = `Instagram Profile: @${handle}\nTitle/Name: ${ogTitle}\nMeta Profile Details: ${ogDesc}${jsonLdBio ? `\nBio: ${jsonLdBio}` : ''}`;
 
     return {
       url: cleanUrl,
-      title: ogTitle || `Instagram Profile ${handle}`,
+      title: ogTitle || `Instagram @${handle}`,
       description: ogDesc,
-      headings: [handle, ogTitle].filter(Boolean),
+      headings: [`@${handle}`, ogTitle].filter(Boolean),
       snippetText,
       emails,
       phones,
