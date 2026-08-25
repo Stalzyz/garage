@@ -63,9 +63,9 @@ function isValidEmail(email: string): boolean {
 
 /**
  * Robust, strict phone number extractor.
- * Prevents false positives from HTML asset IDs, timestamps, image dimensions, and JS chunk hashes.
+ * Supports tel: links, wa.me WhatsApp links, meta descriptions, and visible text.
  */
-function extractPhones($: cheerio.CheerioAPI): string[] {
+function extractPhones($: cheerio.CheerioAPI, extraText: string = ''): string[] {
   const phones = new Set<string>();
 
   // 1. Extract from explicit tel: href links
@@ -79,10 +79,30 @@ function extractPhones($: cheerio.CheerioAPI): string[] {
     }
   });
 
-  // 2. Extract from visible text nodes ONLY
+  // 2. Extract from WhatsApp links (wa.me/91... or api.whatsapp.com/send?phone=...)
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href')?.trim();
+    if (href) {
+      const waMatch = href.match(/(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\+?\d{10,14})/i);
+      if (waMatch && waMatch[1]) {
+        phones.add(formatPhoneNumber(waMatch[1]));
+      }
+    }
+  });
+
+  // 3. Extract from visible text nodes & extra meta text
   const $clean = cheerio.load($.html());
   $clean('script, style, svg, path, code, pre, noscript, iframe, head, [type="application/ld+json"]').remove();
-  const visibleText = $clean('body').text().replace(/\s+/g, ' ');
+  const visibleText = `${$clean('body').text()} ${extraText}`.replace(/\s+/g, ' ');
+
+  // Also check wa.me / whatsapp links inside extraText string
+  const textWaMatch = visibleText.match(/(?:wa\.me\/|whatsapp\.com\/send\?phone=)(\+?\d{10,14})/gi) || [];
+  for (const tw of textWaMatch) {
+    const digits = tw.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 13) {
+      phones.add(formatPhoneNumber(digits));
+    }
+  }
 
   // Pattern A: International formatted numbers with leading +
   const intlRegex = /\+(?:91|1|44|61|86|971|49|33|81)[-.\s]?\d{2,5}[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
@@ -192,19 +212,21 @@ export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedS
     const ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || $('title').text().trim() || '';
     const ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || $('meta[name="description"]').attr('content')?.trim() || '';
 
-    const emails = extractEmails(html, $);
-    const phones = extractPhones($);
-
-    let snippetText = `Instagram Profile: ${handle}\nTitle/Name: ${ogTitle}\nMeta Profile Details: ${ogDesc}`;
-
+    let jsonLdBio = '';
     $('script[type="application/ld+json"]').each((_, el) => {
       try {
         const json = JSON.parse($(el).html() || '{}');
-        if (json.name) snippetText += `\nFull Name: ${json.name}`;
-        if (json.description) snippetText += `\nBio: ${json.description}`;
-        if (json.url) snippetText += `\nExternal Website in Bio: ${json.url}`;
+        if (json.description) jsonLdBio += ` ${json.description}`;
       } catch (e) {}
     });
+
+    const extraMetaText = `${ogTitle} ${ogDesc} ${jsonLdBio}`;
+
+    const emails = extractEmails(`${html} ${extraMetaText}`, $);
+    const phones = extractPhones($, extraMetaText);
+
+    let snippetText = `Instagram Profile: ${handle}\nTitle/Name: ${ogTitle}\nMeta Profile Details: ${ogDesc}`;
+    if (jsonLdBio) snippetText += `\nBio: ${jsonLdBio}`;
 
     return {
       url: cleanUrl,
@@ -266,12 +288,6 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
 
     let $ = cheerio.load(html);
 
-    // Extract Emails, Phone Numbers, and Social Links
-    const emails = extractEmails(html, $);
-    const phones = extractPhones($);
-    const socialLinks = extractSocials($);
-
-    // Extract Title & Meta Description
     const title =
       $('title').first().text().trim() ||
       $('meta[property="og:title"]').attr('content')?.trim() ||
@@ -283,6 +299,10 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
       $('meta[property="og:description"]').attr('content')?.trim() ||
       $('meta[name="twitter:description"]').attr('content')?.trim() ||
       '';
+
+    const emails = extractEmails(html, $);
+    const phones = extractPhones($, `${title} ${description}`);
+    const socialLinks = extractSocials($);
 
     // If no emails/phones found on home page, try to fetch /contact or /contact-us
     if (emails.length === 0 && phones.length === 0) {
