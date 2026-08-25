@@ -34,7 +34,7 @@ export function findEmailsInText(text: string): string[] {
     'sentry.io', 'schema.org', 'w3.org', 'example.com', 'cdninstagram.com',
     'fbcdn.net', 'facebook.com', 'instagram.com', 'apple.com', 'google.com',
     'yourcompany.com', 'youremail.com', 'email.com', 'support@',
-    'duckduckgo.com', 'bing.com', 'yahoo.com', 'googletagmanager.com',
+    'duckduckgo', 'bing.com', 'yahoo.com', 'googletagmanager.com',
     'noreply', 'no-reply', 'donotreply', 'postmaster', 'mailer-daemon',
     'notification', 'alerts@', 'bounce@', 'unsubscribe',
   ];
@@ -71,6 +71,11 @@ export function findPhonesInText(text: string): string[] {
   let waMatch: RegExpExecArray | null;
   while ((waMatch = waRegex.exec(text)) !== null) {
     const digits = waMatch[1].replace(/\D/g, '');
+    
+    // Discard Unix timestamps (10-digit integers between 1.5B and 2B)
+    const val = parseInt(digits, 10);
+    if (val >= 1500000000 && val <= 2000000000) continue;
+
     if (digits.length === 12 && digits.startsWith('91')) {
       phones.add(`+91 ${digits.slice(2, 7)} ${digits.slice(7)}`);
     } else if (digits.length === 10 && '6789'.includes(digits[0])) {
@@ -85,6 +90,9 @@ export function findPhonesInText(text: string): string[] {
   const intlMatches = text.match(intlRegex) || [];
   for (const m of intlMatches) {
     const digits = m.replace(/\D/g, '');
+    const val = parseInt(digits, 10);
+    if (val >= 1500000000 && val <= 2000000000) continue;
+
     if (digits.length >= 10 && digits.length <= 13) phones.add(m.trim());
   }
 
@@ -93,6 +101,10 @@ export function findPhonesInText(text: string): string[] {
   let mobileMatch: RegExpExecArray | null;
   while ((mobileMatch = mobileRegex.exec(text)) !== null) {
     const num = mobileMatch[1];
+    
+    const val = parseInt(num, 10);
+    if (val >= 1500000000 && val <= 2000000000) continue;
+
     if (!num.startsWith('2024') && !num.startsWith('2025') && !num.startsWith('2026')) {
       if (num.startsWith('1')) {
         // Malaysian format: +60 1X-XXXX XXXX
