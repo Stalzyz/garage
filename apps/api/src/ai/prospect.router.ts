@@ -157,9 +157,43 @@ Do NOT wrap in markdown. Return raw JSON only.
       const rawContent = response.choices[0]?.message?.content || '{}';
       let cleanedJson = rawContent.trim().replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
 
-      const result = JSON.parse(cleanedJson);
+      // Safe JSON parsing — AI sometimes returns prose or malformed JSON
+      let result: any = {};
+      try {
+        result = JSON.parse(cleanedJson);
+      } catch (parseErr) {
+        // Try to extract JSON object from within the response (handle extra text)
+        const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            result = JSON.parse(jsonMatch[0]);
+          } catch {
+            // AI returned completely non-JSON — build minimal result from what we know
+            app.log.warn(`[Prospect] AI returned non-JSON, building minimal result`);
+            result = {
+              name: googleData?.businessName || metaData?.businessName || input,
+              company: googleData?.businessName || metaData?.businessName || input,
+              role: '',
+              industry: metaData?.category || '',
+              location: metaData?.location || '',
+              bio: metaData?.about || scrapedData?.description || googleData?.description || '',
+              icebreakers: [],
+            };
+          }
+        } else {
+          result = {
+            name: googleData?.businessName || metaData?.businessName || input,
+            company: googleData?.businessName || metaData?.businessName || input,
+            role: '',
+            industry: metaData?.category || '',
+            location: metaData?.location || '',
+            bio: metaData?.about || scrapedData?.description || '',
+            icebreakers: [],
+          };
+        }
+      }
 
-      // Enforce: email/phone MUST come from verified scraped data only
+      // Enforce: email/phone MUST come from verified scraped data only (never AI-invented)
       result.scrapedLive = !!(scrapedData || metaData || googleData);
       result.emails = allEmails;
       result.phones = allPhones;

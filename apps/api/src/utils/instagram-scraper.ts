@@ -33,6 +33,9 @@ export function findEmailsInText(text: string): string[] {
     'sentry.io', 'schema.org', 'w3.org', 'example.com', 'cdninstagram.com',
     'fbcdn.net', 'facebook.com', 'instagram.com', 'apple.com', 'google.com',
     'yourcompany.com', 'youremail.com', 'email.com', 'support@',
+    'duckduckgo.com', 'bing.com', 'yahoo.com', 'googletagmanager.com',
+    'noreply', 'no-reply', 'donotreply', 'postmaster', 'mailer-daemon',
+    'notification', 'alerts@', 'bounce@', 'unsubscribe',
   ];
   return [...new Set(
     matches
