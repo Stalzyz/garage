@@ -14,7 +14,7 @@ export default async function aiProspectRouter(app: FastifyInstance) {
     try {
       const openai = await getOpenAiClient(app);
 
-      // 1. Perform live web scraping in background (0-cost)
+      // 1. Perform live web scraping (extracting emails, phone numbers, text)
       app.log.info(`[Prospect Scraper] Scraping target: ${urlInput}`);
       const scrapedData = await scrapeWebsiteText(urlInput);
 
@@ -29,6 +29,8 @@ Response MUST be valid JSON only with this exact structure:
   "role": "Job Title / Executive Role",
   "industry": "Industry / Sector",
   "location": "City, Country or Region",
+  "email": "Primary email address if found, or empty string",
+  "phone": "Primary contact number if found, or empty string",
   "bio": "A concise 2-sentence summary of what the company/person does based on their live website",
   "scrapedLive": true,
   "icebreakers": [
@@ -43,11 +45,13 @@ Do NOT include markdown formatting or extra text outside JSON.
       let userPrompt = `Target Prospect Input: "${urlInput}"\n`;
 
       if (scrapedData) {
-        app.log.info(`[Prospect Scraper] Successfully scraped ${scrapedData.title}`);
+        app.log.info(`[Prospect Scraper] Successfully scraped ${scrapedData.title}. Extracted ${scrapedData.emails.length} emails, ${scrapedData.phones.length} phones.`);
         userPrompt += `\n--- REAL-TIME LIVE SCRAPED WEBPAGE DATA ---
 Site URL: ${scrapedData.url}
 Page Title: ${scrapedData.title}
 Meta Description: ${scrapedData.description}
+Scraped Emails: ${scrapedData.emails.join(', ') || 'None directly in page text'}
+Scraped Phones: ${scrapedData.phones.join(', ') || 'None directly in page text'}
 Key Headings: ${scrapedData.headings.join(' | ')}
 Extracted Text Content:
 ${scrapedData.snippetText}
@@ -77,6 +81,16 @@ Use the above live scraped data to generate 100% accurate, tailored intelligence
 
       const result = JSON.parse(cleanedJson);
       result.scrapedLive = !!scrapedData;
+
+      // Merge exact scraped emails & phone numbers if AI missed them
+      if (scrapedData) {
+        result.emails = Array.from(new Set([...(scrapedData.emails || []), ...(result.email ? [result.email] : [])]));
+        result.phones = Array.from(new Set([...(scrapedData.phones || []), ...(result.phone ? [result.phone] : [])]));
+        result.socials = scrapedData.socialLinks;
+        
+        if (!result.email && result.emails.length > 0) result.email = result.emails[0];
+        if (!result.phone && result.phones.length > 0) result.phone = result.phones[0];
+      }
 
       return reply.send({
         success: true,

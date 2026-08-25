@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare } from "lucide-react"
+import { Zap, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare, Mail, Phone } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
@@ -76,6 +76,8 @@ export default function AIProspectingDashboard() {
         method: "POST",
         body: JSON.stringify({
           name: prospect.name || "Prospect Lead",
+          email: prospect.email || (prospect.emails && prospect.emails[0]) || "",
+          phone: prospect.phone || (prospect.phones && prospect.phones[0]) || "",
           company: prospect.company || "Unknown Company",
           status: "NEW",
           source: "COLD_OUTREACH",
@@ -99,7 +101,7 @@ export default function AIProspectingDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">AI Prospecting & Live Web Enrichment</h1>
-            <p className="text-sm text-muted-foreground mt-1">Extract live webpage content and generate AI personalized sales outreach icebreakers.</p>
+            <p className="text-sm text-muted-foreground mt-1">Extract live webpage content, emails, contact numbers, and generate AI sales icebreakers.</p>
           </div>
         </div>
       </div>
@@ -166,9 +168,36 @@ export default function AIProspectingDashboard() {
                 <p className="text-muted-foreground">{prospect.role} @ <span className="font-semibold text-foreground">{prospect.company}</span></p>
                 {prospect.bio && <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{prospect.bio}</p>}
                 
+                {/* Location, Industry, Scraped Emails & Phones */}
                 <div className="flex flex-wrap gap-2 mt-3 text-xs font-medium">
-                  {prospect.location && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">📍 {prospect.location}</span>}
-                  {prospect.industry && <span className="bg-muted px-2 py-1 rounded text-muted-foreground border border-border/50">🏢 {prospect.industry}</span>}
+                  {prospect.location && <span className="bg-muted px-2.5 py-1 rounded-lg text-muted-foreground border border-border/50">📍 {prospect.location}</span>}
+                  {prospect.industry && <span className="bg-muted px-2.5 py-1 rounded-lg text-muted-foreground border border-border/50">🏢 {prospect.industry}</span>}
+                  
+                  {/* Scraped Emails */}
+                  {prospect.emails && prospect.emails.length > 0 ? (
+                    prospect.emails.map((e: string, idx: number) => (
+                      <a key={idx} href={`mailto:${e}`} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-blue-500/20 transition-colors">
+                        <Mail className="w-3.5 h-3.5" /> {e}
+                      </a>
+                    ))
+                  ) : prospect.email ? (
+                    <a href={`mailto:${prospect.email}`} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5" /> {prospect.email}
+                    </a>
+                  ) : null}
+
+                  {/* Scraped Phones */}
+                  {prospect.phones && prospect.phones.length > 0 ? (
+                    prospect.phones.map((p: string, idx: number) => (
+                      <a key={idx} href={`tel:${p}`} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-emerald-500/20 transition-colors">
+                        <Phone className="w-3.5 h-3.5" /> {p}
+                      </a>
+                    ))
+                  ) : prospect.phone ? (
+                    <a href={`tel:${prospect.phone}`} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5" /> {prospect.phone}
+                    </a>
+                  ) : null}
                 </div>
               </div>
               
@@ -226,7 +255,7 @@ export default function AIProspectingDashboard() {
             
             <div className="px-6 py-4 bg-primary/5 border-t border-primary/10 flex justify-between items-center">
               <span className="text-xs text-primary font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> {prospect.scrapedLive ? "Live webpage HTML parsed and enriched with OpenAI." : "Enriched using OpenAI knowledge base."}
+                <CheckCircle2 className="w-4 h-4" /> {prospect.scrapedLive ? "Live webpage HTML parsed, emails/phones extracted, and enriched with OpenAI." : "Enriched using OpenAI knowledge base."}
               </span>
             </div>
 
