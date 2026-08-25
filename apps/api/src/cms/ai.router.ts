@@ -1,14 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import OpenAI from 'openai';
-
-let _openai: OpenAI | null = null;
-function getOpenAI() {
-  if (!_openai) {
-    if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set');
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return _openai;
-}
+import { getOpenAiClient } from '../utils/openai';
 
 export default async function aiRouter(app: FastifyInstance) {
   // POST /api/v1/cms/ai-generate
@@ -16,8 +7,10 @@ export default async function aiRouter(app: FastifyInstance) {
     const { prompt } = req.body as { prompt: string };
 
     try {
-      const response = await getOpenAI().chat.completions.create({
-        model: "gpt-4o-mini", // Using a fast/cheap model for UI generation
+      const openai = await getOpenAiClient(app);
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -36,8 +29,8 @@ CRITICAL RULES:
             content: prompt
           }
         ],
-        temperature: 0.7, // slightly more creative
-        max_tokens: 3000, // allow longer pages
+        temperature: 0.7,
+        max_tokens: 3000,
       });
 
       let generatedHtml = response.choices[0]?.message?.content || "";
@@ -59,4 +52,3 @@ CRITICAL RULES:
     }
   });
 }
-

@@ -163,13 +163,12 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const { title, items } = req.body as { title: string, items: any[] };
     
     try {
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY || '',
-      });
+      const { getOpenAiClient } = await import('../utils/openai');
+      const openai = await getOpenAiClient(app);
 
       const prompt = `Write a professional executive summary and overview for a business proposal titled "${title}".
       The proposal includes the following line items:
-      ${items.map((i: any) => `- ${i.title || i.name}: ${i.description}`).join('\n')}
+      ${items ? items.map((i: any) => `- ${i.title || i.name || 'Item'}: ${i.description || ''}`).join('\n') : ''}
       
       Format the response in basic HTML. Use tags like <h2>, <p>, <ul>, <li>, and <strong>. Include sections for Overview, Objectives, and Value Proposition.
       Do not include any introductory conversation, just the raw HTML content itself (no markdown code blocks, no \`\`\`html).`;
@@ -179,14 +178,15 @@ export default async function proposalsRouter(app: FastifyInstance) {
         messages: [{ role: "user", content: prompt }],
       });
 
-      const content = response.choices[0].message.content || '';
+      const content = response.choices[0]?.message?.content || '';
 
       return { content: content.trim() };
-    } catch (error) {
-      console.error("AI Generation Error:", error);
-      return { 
-        content: `## Overview\n\nWe are excited to propose the "${title}" project.\n\n## Objectives\n- Deliver high quality results\n- Align with your strategic goals\n\n*(Note: This is a fallback mock because the AI generation failed.)*` 
-      };
+    } catch (error: any) {
+      app.log.error({ err: error }, "AI Proposal Content Generation Error");
+      return reply.code(500).send({
+        error: "Failed to generate AI proposal content",
+        details: error?.message || "OpenAI API Key is not configured."
+      });
     }
   });
 

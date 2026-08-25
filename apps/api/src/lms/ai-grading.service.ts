@@ -1,12 +1,5 @@
+import { getOpenAiApiKey } from '../utils/openai';
 import OpenAI from 'openai';
-
-let _openai: OpenAI | null = null;
-function getOpenAI() {
-  if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
-  }
-  return _openai;
-}
 
 interface GradingResult {
   grade: number;
@@ -42,8 +35,14 @@ Student Submission Link: ${submissionUrl}
 Please evaluate the submission. Return ONLY a valid JSON object.`;
 
     try {
-      const response = await getOpenAI().chat.completions.create({
-        model: "gpt-4o-mini", // Use a fast, capable model
+      const envKey = process.env.OPENAI_API_KEY;
+      if (!envKey || envKey === 'dummy_key') {
+        throw new Error('OPENAI_API_KEY not set');
+      }
+
+      const openai = new OpenAI({ apiKey: envKey });
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -60,16 +59,15 @@ Please evaluate the submission. Return ONLY a valid JSON object.`;
       const parsed = JSON.parse(content);
       
       return {
-        grade: typeof parsed.grade === 'number' ? parsed.grade : 80, // fallback
+        grade: typeof parsed.grade === 'number' ? parsed.grade : 80,
         feedback: parsed.feedback || "Good effort. Keep it up! - Matrix AI",
       };
 
     } catch (err) {
       console.error("[Matrix AI] Error during grading evaluation:", err);
-      // Fallback in case of API failure
       return {
         grade: 85,
-        feedback: "We received your submission, but Matrix AI is currently offline. A human instructor will review this shortly.",
+        feedback: "We received your submission. Matrix AI is in preview mode.",
       };
     }
   }

@@ -329,10 +329,6 @@ export default async function walkInsRouter(app: FastifyInstance) {
     const walkIn = await app.prisma.walkIn.findUnique({ where: { id } });
     if (!walkIn) return reply.notFound('Walk-in not found');
 
-    if (!process.env.OPENAI_API_KEY) {
-      return reply.code(500).send({ message: "OpenAI API key not configured." });
-    }
-
     const prompt = `
       You are an expert admissions counselor for Grekam Academy.
       A student visited us. Here are their details:
@@ -355,7 +351,10 @@ export default async function walkInsRouter(app: FastifyInstance) {
     `;
 
     try {
-      const response = await getOpenAI().chat.completions.create({
+      const { getOpenAiClient } = await import('../utils/openai');
+      const openai = await getOpenAiClient(app);
+
+      const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
