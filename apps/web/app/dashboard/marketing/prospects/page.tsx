@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Zap, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare } from "lucide-react"
+import { fetchApi } from "@/lib/useApi"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
@@ -68,30 +69,24 @@ export default function AIProspectingDashboard() {
   const handleAddToCrm = async () => {
     if (!prospect || addingToCrm || addedToCrm) return
     setAddingToCrm(true)
+    setErrorMsg(null)
 
     try {
-      const nameParts = (prospect.name || "Prospect Lead").split(" ")
-      const firstName = nameParts[0] || "Prospect"
-      const lastName = nameParts.slice(1).join(" ") || "Lead"
-
-      const res = await fetch(`${API_BASE}/crm/leads`, {
+      await fetchApi("/crm/leads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          name: prospect.name || "Prospect Lead",
           company: prospect.company || "Unknown Company",
           status: "NEW",
-          source: "AI Prospecting & Enrichment",
-          notes: `Enriched via Live AI Scraper:\nRole: ${prospect.role}\nIndustry: ${prospect.industry}\nLocation: ${prospect.location}\nBio: ${prospect.bio || ""}`
+          source: "COLD_OUTREACH",
+          notes: `Enriched via AI Web Scraper:\nRole: ${prospect.role || "N/A"}\nIndustry: ${prospect.industry || "N/A"}\nLocation: ${prospect.location || "N/A"}\nBio: ${prospect.bio || ""}`
         }),
       })
 
-      if (res.ok) {
-        setAddedToCrm(true)
-      }
-    } catch (err) {
+      setAddedToCrm(true)
+    } catch (err: any) {
       console.error("Failed to add to CRM:", err)
+      setErrorMsg(err.message || "Failed to add prospect to CRM leads.")
     } finally {
       setAddingToCrm(false)
     }
@@ -187,7 +182,7 @@ export default function AIProspectingDashboard() {
                       : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20"
                   }`}
                 >
-                  {addingToCrm ? "Saving..." : addedToCrm ? "✓ Added to CRM" : <><UserPlus className="w-4 h-4" /> Add to CRM</>}
+                  {addingToCrm ? "Saving..." : addedToCrm ? "✓ Added to CRM Leads" : <><UserPlus className="w-4 h-4" /> Add to CRM</>}
                 </button>
               </div>
             </div>
