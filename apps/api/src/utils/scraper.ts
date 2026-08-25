@@ -68,7 +68,7 @@ function isValidEmail(email: string): boolean {
 function extractPhones($: cheerio.CheerioAPI): string[] {
   const phones = new Set<string>();
 
-  // 1. Extract from explicit tel: href links (100% reliable)
+  // 1. Extract from explicit tel: href links
   $('a[href^="tel:"]').each((_, el) => {
     const href = $(el).attr('href');
     if (href) {
@@ -79,12 +79,12 @@ function extractPhones($: cheerio.CheerioAPI): string[] {
     }
   });
 
-  // 2. Extract from visible text nodes ONLY (strip scripts, styles, svgs, codes)
+  // 2. Extract from visible text nodes ONLY
   const $clean = cheerio.load($.html());
   $clean('script, style, svg, path, code, pre, noscript, iframe, head, [type="application/ld+json"]').remove();
   const visibleText = $clean('body').text().replace(/\s+/g, ' ');
 
-  // Pattern A: International formatted numbers with leading + (e.g. +91 98765 43210, +1-800-555-0199)
+  // Pattern A: International formatted numbers with leading +
   const intlRegex = /\+(?:91|1|44|61|86|971|49|33|81)[-.\s]?\d{2,5}[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
   const intlMatches = visibleText.match(intlRegex) || [];
   for (const m of intlMatches) {
@@ -99,20 +99,19 @@ function extractPhones($: cheerio.CheerioAPI): string[] {
   let match: RegExpExecArray | null;
   while ((match = indianMobileRegex.exec(visibleText)) !== null) {
     const rawNum = match[1];
-    // Verify it's not a common year or timestamp
     if (rawNum && !rawNum.startsWith('202') && !rawNum.startsWith('199')) {
       phones.add(`+91 ${rawNum.slice(0, 5)} ${rawNum.slice(5)}`);
     }
   }
 
-  // Pattern C: Indian Toll-Free numbers (e.g. 1800 123 4567, 1800-102-1234)
+  // Pattern C: Indian Toll-Free numbers (e.g. 1800 123 4567)
   const tollFreeRegex = /1800[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
   const tfMatches = visibleText.match(tollFreeRegex) || [];
   for (const tf of tfMatches) {
     phones.add(tf.trim());
   }
 
-  // Pattern D: Landline with STD Code (e.g. 022 26110773, 080 41234567)
+  // Pattern D: Landline with STD Code
   const stdLandlineRegex = /(?:^|[^\d])(0\d{2,4}[-.\s]?\d{6,8})(?:[^\d]|$)/g;
   let stdMatch: RegExpExecArray | null;
   while ((stdMatch = stdLandlineRegex.exec(visibleText)) !== null) {
@@ -162,13 +161,79 @@ function extractSocials($: cheerio.CheerioAPI): ScrapedSiteData['socialLinks'] {
 }
 
 /**
+ * Native Instagram Profile Scraper (Option A - Zero Cost)
+ */
+export async function scrapeInstagramProfile(urlInput: string): Promise<ScrapedSiteData | null> {
+  try {
+    let cleanUrl = urlInput.trim();
+    if (!cleanUrl.startsWith('http')) cleanUrl = `https://${cleanUrl}`;
+
+    const matchHandle = cleanUrl.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
+    const handle = matchHandle ? `@${matchHandle[1]}` : '';
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const response = await fetch(cleanUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const $ = cheerio.load(html);
+
+    const ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || $('title').text().trim() || '';
+    const ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || $('meta[name="description"]').attr('content')?.trim() || '';
+
+    const emails = extractEmails(html, $);
+    const phones = extractPhones($);
+
+    let snippetText = `Instagram Profile: ${handle}\nTitle/Name: ${ogTitle}\nMeta Profile Details: ${ogDesc}`;
+
+    $('script[type="application/ld+json"]').each((_, el) => {
+      try {
+        const json = JSON.parse($(el).html() || '{}');
+        if (json.name) snippetText += `\nFull Name: ${json.name}`;
+        if (json.description) snippetText += `\nBio: ${json.description}`;
+        if (json.url) snippetText += `\nExternal Website in Bio: ${json.url}`;
+      } catch (e) {}
+    });
+
+    return {
+      url: cleanUrl,
+      title: ogTitle || `Instagram Profile ${handle}`,
+      description: ogDesc,
+      headings: [handle, ogTitle].filter(Boolean),
+      snippetText,
+      emails,
+      phones,
+      socialLinks: { instagram: cleanUrl },
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * Native, zero-cost live web scraper.
- * Fetches HTML from a target domain or website URL, parses metadata, emails, phone numbers, and text using Cheerio.
+ * Fetches HTML from a target domain, website URL, or Instagram handle using Cheerio.
  */
 export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteData | null> {
   try {
     let cleanUrl = urlInput.trim();
     if (!cleanUrl) return null;
+
+    // Check if URL is an Instagram profile
+    if (cleanUrl.toLowerCase().includes('instagram.com')) {
+      return scrapeInstagramProfile(cleanUrl);
+    }
 
     if (!cleanUrl.includes('.') && !cleanUrl.startsWith('http')) {
       return null;
@@ -179,7 +244,7 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
 
     const fetchOptions = {
       headers: {
