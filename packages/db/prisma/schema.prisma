@@ -511,6 +511,7 @@ enum ProjectStatus {
 enum ProjectType {
   BRAND_IDENTITY
   WEBSITE
+  MOBILE_APP
   CAMPAIGN
   MOTION
   FULL_PACKAGE

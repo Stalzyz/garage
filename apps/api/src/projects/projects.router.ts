@@ -5,7 +5,7 @@ import { sendEmail, EmailTemplates } from '../integrations/email.service';
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']).default('WEBSITE'),
+  type: z.enum(['BRAND_IDENTITY', 'WEBSITE', 'MOBILE_APP', 'CAMPAIGN', 'MOTION', 'FULL_PACKAGE', 'CUSTOM']).default('WEBSITE'),
   customTypeName: z.string().optional().nullable(),
   companyId: z.string().optional().nullable(),
   contactId: z.string().optional().nullable(),
