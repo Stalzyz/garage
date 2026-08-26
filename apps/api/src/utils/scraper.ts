@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { scrapeInstagramWithPuppeteer, deepScrapeWebsite, findEmailsInText, findPhonesInText } from './instagram-scraper';
+import { scrapeInstagramWithPuppeteer, deepScrapeWebsite, findEmailsInText, findPhonesInText, fetchPage } from './instagram-scraper';
 
 export interface ScrapedSiteData {
   url: string;
@@ -304,10 +304,21 @@ export async function scrapeWebsiteText(urlInput: string): Promise<ScrapedSiteDa
       signal: controller.signal,
     };
 
-    const response = await fetch(cleanUrl, fetchOptions).finally(() => clearTimeout(timeoutId));
-    if (!response.ok) return null;
+    let html: string | null = null;
+    try {
+      const response = await fetch(cleanUrl, fetchOptions).finally(() => clearTimeout(timeoutId));
+      if (response.ok) {
+        html = await response.text();
+      }
+    } catch (err) {}
 
-    const html = await response.text();
+    // Fallback to Puppeteer Chrome stable rendering if node-fetch is blocked / fails
+    if (!html || html.length < 100) {
+      try {
+        html = await fetchPage(cleanUrl);
+      } catch (err) {}
+    }
+
     if (!html || html.length < 50) return null;
 
     const $ = cheerio.load(html);

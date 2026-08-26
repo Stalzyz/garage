@@ -285,6 +285,13 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
 
     // 1. Load Homepage and resolve redirect origin (e.g. non-www to www)
     let resolvedOrigin = (() => { try { return new URL(baseUrl).origin; } catch { return baseUrl; } })();
+    const pagesToCheck: string[] = [
+      `${resolvedOrigin}/contact`,
+      `${resolvedOrigin}/contact-us`,
+      `${resolvedOrigin}/about`,
+      `${resolvedOrigin}/about-us`,
+    ];
+
     try {
       const page = await browser.newPage();
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
@@ -297,12 +304,36 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
         const finalUrl = page.url();
         try {
           resolvedOrigin = new URL(finalUrl).origin;
+          
+          // Re-update default check paths if origin changed
+          pagesToCheck[0] = `${resolvedOrigin}/contact`;
+          pagesToCheck[1] = `${resolvedOrigin}/contact-us`;
+          pagesToCheck[2] = `${resolvedOrigin}/about`;
+          pagesToCheck[3] = `${resolvedOrigin}/about-us`;
         } catch {}
         
         const html = await page.content();
         if (html) {
           const $ = cheerio.load(html);
           extractContactsFromCheerio($, html, allEmails, allPhones);
+
+          // Dynamically extract contact/about pages listed in the homepage anchor tags
+          $('a[href]').each((_, el) => {
+            try {
+              const href = $(el).attr('href')?.trim();
+              if (href) {
+                const lowerHref = href.toLowerCase();
+                const keywords = ['contact', 'about', 'support', 'help', 'info', 'reach'];
+                if (keywords.some(kw => lowerHref.includes(kw))) {
+                  const absoluteUrl = new URL(href, resolvedOrigin).href;
+                  // Only queue pages on the same domain/origin
+                  if (absoluteUrl.startsWith(resolvedOrigin)) {
+                    pagesToCheck.push(absoluteUrl);
+                  }
+                }
+              }
+            } catch {}
+          });
         }
       }
       await page.close();
@@ -310,15 +341,10 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
       console.warn(`[Scraper] Homepage fetch failed for ${baseUrl}:`, err.message);
     }
 
-    // 2. Load Contact and About pages using resolved origin
-    const pagesToCheck = [
-      `${resolvedOrigin}/contact`,
-      `${resolvedOrigin}/contact-us`,
-      `${resolvedOrigin}/about`,
-      `${resolvedOrigin}/about-us`,
-    ];
+    // 2. Load Contact and About pages using resolved origin (and dynamic pages)
+    const uniquePages = [...new Set(pagesToCheck)];
 
-    for (const pageUrl of pagesToCheck) {
+    for (const pageUrl of uniquePages) {
       try {
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
@@ -398,7 +424,7 @@ function extractContactsFromCheerio($: cheerio.CheerioAPI, html: string, allEmai
  * Launches Chrome Puppeteer headless browser to render JavaScript and bypass blocks.
  * Falls back to native node-fetch if Puppeteer fails.
  */
-async function fetchPage(url: string): Promise<string | null> {
+export async function fetchPage(url: string): Promise<string | null> {
   let browser;
   try {
     browser = await puppeteer.launch({
