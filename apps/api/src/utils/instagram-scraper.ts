@@ -220,6 +220,11 @@ export async function scrapeInstagramWithPuppeteer(handle: string): Promise<Inst
  * Deep multi-page website scraper.
  * Uses Chrome Puppeteer with a rendering wait time to bypass blocks and load dynamic sites (like Linktree & Google Sites).
  */
+/**
+ * Deep multi-page website scraper.
+ * Uses a single Chrome Puppeteer browser instance sequentially to load pages and extract contacts.
+ * Follows redirects on homepage to resolve the correct www/non-www origin before loading contact/about subpages.
+ */
 export async function deepScrapeWebsite(url: string, limitDepth = true): Promise<{ emails: string[]; phones: string[] } | null> {
   let baseUrl = url.trim();
   if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
@@ -264,59 +269,129 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
 
   const allEmails = new Set<string>();
   const allPhones = new Set<string>();
-  const origin = (() => { try { return new URL(baseUrl).origin; } catch { return baseUrl; } })();
-
-  const pagesToCheck = [
-    baseUrl,
-    `${origin}/contact`,
-    `${origin}/about`,
-  ];
-
+  
+  let browser;
   try {
-    const fetchPromises = pagesToCheck.map(pageUrl => fetchPage(pageUrl));
-    const pagesHtml = await Promise.all(fetchPromises);
+    browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome-stable',
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+      ]
+    });
 
-    for (const html of pagesHtml) {
-      if (!html) continue;
-
-      const $ = cheerio.load(html);
-
-      // 1. Mailto and Tel links
-      $('a[href^="mailto:"]').each((_, el) => {
-        const href = $(el).attr('href') || '';
-        const email = href.replace(/^mailto:/i).split('?')[0].trim().toLowerCase();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,6}$/.test(email) && email.length < 80) {
-          allEmails.add(email);
+    // 1. Load Homepage and resolve redirect origin (e.g. non-www to www)
+    let resolvedOrigin = (() => { try { return new URL(baseUrl).origin; } catch { return baseUrl; } })();
+    try {
+      const page = await browser.newPage();
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+      await page.setViewport({ width: 1280, height: 800 });
+      
+      const response = await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+      if (response && response.ok()) {
+        await new Promise(r => setTimeout(r, 2000));
+        
+        const finalUrl = page.url();
+        try {
+          resolvedOrigin = new URL(finalUrl).origin;
+        } catch {}
+        
+        const html = await page.content();
+        if (html) {
+          const $ = cheerio.load(html);
+          extractContactsFromCheerio($, html, allEmails, allPhones);
         }
-      });
-
-      $('a[href^="tel:"]').each((_, el) => {
-        const href = $(el).attr('href') || '';
-        const digits = href.replace(/^tel:/i).replace(/[^\d+]/g, '');
-        if (digits.length >= 10) {
-          allPhones.add(formatPhone(digits));
-        }
-      });
-
-      // 2. WhatsApp links
-      $('a[href]').each((_, el) => {
-        const href = $(el).attr('href') || '';
-        const waMatch = href.match(/wa\.me\/(\+?\d{10,14})/i);
-        if (waMatch) allPhones.add(formatPhone(waMatch[1]));
-      });
-
-      // 3. Text regex extraction
-      $('script, style, svg, iframe, noscript').remove();
-      const text = $('body').text();
-      findEmailsInText(text).forEach(e => allEmails.add(e));
-      findPhonesInText(text).forEach(p => allPhones.add(p));
+      }
+      await page.close();
+    } catch (err) {
+      console.warn(`[Scraper] Homepage fetch failed for ${baseUrl}:`, err.message);
     }
-  } catch (err) {}
+
+    // 2. Load Contact and About pages using resolved origin
+    const pagesToCheck = [
+      `${resolvedOrigin}/contact`,
+      `${resolvedOrigin}/contact-us`,
+      `${resolvedOrigin}/about`,
+      `${resolvedOrigin}/about-us`,
+    ];
+
+    for (const pageUrl of pagesToCheck) {
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+        
+        const response = await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        if (response && response.ok()) {
+          await new Promise(r => setTimeout(r, 2000));
+          const html = await page.content();
+          if (html) {
+            const $ = cheerio.load(html);
+            extractContactsFromCheerio($, html, allEmails, allPhones);
+          }
+        }
+        await page.close();
+      } catch (err) {
+        // Quietly fail subpages, some might not exist
+      }
+    }
+
+  } catch (err) {
+    console.error("[Scraper] Single browser scraping session failed:", err.message);
+  } finally {
+    if (browser) await browser.close();
+  }
+
+  const finalEmails = [...allEmails].slice(0, 5);
+  const finalPhones = [...allPhones].slice(0, 5);
+
+  if (finalEmails.length === 0 && finalPhones.length === 0) return null;
 
   return {
-    emails: [...allEmails].slice(0, 5),
-    phones: [...allPhones].slice(0, 5)
+    emails: finalEmails,
+    phones: finalPhones
   };
+}
+
+function extractContactsFromCheerio($: cheerio.CheerioAPI, html: string, allEmails: Set<string>, allPhones: Set<string>) {
+  // 1. Mailto and Tel links
+  $('a[href^="mailto:"]').each((_, el) => {
+    const href = $(el).attr('href') || '';
+    const email = href.replace(/^mailto:/i, '').split('?')[0].trim().toLowerCase();
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,6}$/.test(email) && email.length < 80) {
+      allEmails.add(email);
+    }
+  });
+
+  $('a[href^="tel:"]').each((_, el) => {
+    const href = $(el).attr('href') || '';
+    const digits = href.replace(/^tel:/i, '').replace(/[^\d+]/g, '');
+    if (digits.length >= 10) {
+      allPhones.add(formatPhone(digits));
+    }
+  });
+
+  // 2. WhatsApp links
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href') || '';
+    const waMatch = href.match(/wa\.me\/(\+?\d{10,14})/i);
+    if (waMatch) {
+      allPhones.add(formatPhone(waMatch[1]));
+    }
+    const apiWaMatch = href.match(/api\.whatsapp\.com\/send\/?\?phone=([^&]+)/i);
+    if (apiWaMatch) {
+      const decoded = decodeURIComponent(apiWaMatch[1]);
+      allPhones.add(formatPhone(decoded));
+    }
+  });
+
+  // 3. Text regex extraction
+  $('script, style, svg, iframe, noscript').remove();
+  const text = $('body').text();
+  findEmailsInText(text).forEach(e => allEmails.add(e));
+  findPhonesInText(text).forEach(p => allPhones.add(p));
 }
 
 /**
