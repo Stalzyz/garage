@@ -652,17 +652,48 @@ export default function SplitReality() {
             </div>
 
             {/* Viewfinder (Inner Cylindrical Display) */}
-            <div className="w-[260px] h-[260px] rounded-full border border-white/5 bg-neutral-950/90 relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-md z-30">
+            <div 
+              className="w-[260px] h-[260px] rounded-full border relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-md z-30 transition-all duration-200"
+              style={{
+                backgroundColor: dialProgress < 0 
+                  ? `rgba(255, 255, 255, ${Math.min(0.98, Math.abs(dialProgress) / 40)})` 
+                  : "rgba(10, 10, 10, 0.9)",
+                borderColor: dialProgress < 0 
+                  ? `rgba(0, 0, 0, ${Math.min(0.12, Math.abs(dialProgress) / 40)})` 
+                  : "rgba(255, 255, 255, 0.05)"
+              }}
+            >
               {/* Corner framing brackets */}
-              <div className="absolute top-6 left-6 w-4 h-4 border-t border-l border-white/10 z-35" />
-              <div className="absolute top-6 right-6 w-4 h-4 border-t border-r border-white/10 z-35" />
-              <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/10 z-35" />
-              <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/10 z-35" />
+              <div 
+                className="absolute top-6 left-6 w-4 h-4 border-t border-l z-35 transition-colors duration-200" 
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+              />
+              <div 
+                className="absolute top-6 right-6 w-4 h-4 border-t border-r z-35 transition-colors duration-200" 
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+              />
+              <div 
+                className="absolute bottom-6 left-6 w-4 h-4 border-b border-l z-35 transition-colors duration-200" 
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+              />
+              <div 
+                className="absolute bottom-6 right-6 w-4 h-4 border-b border-r z-35 transition-colors duration-200" 
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+              />
 
               {/* Central crosshair */}
-              <div className="absolute w-3 h-3 border border-white/5 rounded-full flex items-center justify-center z-35">
-                <div className="w-px h-2 bg-white/10 absolute" />
-                <div className="h-px w-2 bg-white/10 absolute" />
+              <div 
+                className="absolute w-3 h-3 border rounded-full flex items-center justify-center z-35 transition-colors duration-200"
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.05)" }}
+              >
+                <div 
+                  className="w-px h-2 absolute transition-colors duration-200" 
+                  style={{ backgroundColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div 
+                  className="h-px w-2 absolute transition-colors duration-200" 
+                  style={{ backgroundColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.15)" }}
+                />
               </div>
 
               {/* Subject Image (Flower) - blurs out dynamically on rotation */}
@@ -706,7 +737,7 @@ export default function SplitReality() {
                       className="text-center px-4 flex flex-col items-center justify-center"
                       style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
                     >
-                      <span className="text-4xl font-black tracking-[0.15em] text-white leading-none uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
+                      <span className="text-[2.6rem] font-black tracking-[0.05em] text-white leading-none uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
                         AGENCY
                       </span>
                       <div className="text-[8px] font-mono tracking-[0.3em] text-white/60 uppercase mt-2">Grekam Visuals</div>
@@ -719,10 +750,10 @@ export default function SplitReality() {
                       className="text-center px-4 flex flex-col items-center justify-center"
                       style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
                     >
-                      <span className="text-4xl font-black tracking-[0.15em] text-[#2a1a08] leading-none uppercase drop-shadow-[0_4px_12px_rgba(240,232,212,0.8)]" style={{ fontFamily: "Georgia, serif" }}>
+                      <span className="text-[2.6rem] font-black tracking-[0.05em] text-black leading-none uppercase" style={{ fontFamily: "Georgia, serif" }}>
                         ACADEMY
                       </span>
-                      <div className="text-[8px] font-mono tracking-[0.3em] text-[#2a1a08]/60 uppercase mt-2">Master the Craft</div>
+                      <div className="text-[8px] font-mono tracking-[0.3em] text-black/60 uppercase mt-2">Master the Craft</div>
                     </motion.div>
                   )}
                 </AnimatePresence>
