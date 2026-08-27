@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: 'Grekam OS',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Grekam OS Dashboard Preview',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Grekam OS',
     description: 'Operational engine for creative teams.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,

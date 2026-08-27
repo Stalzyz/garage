@@ -1,8 +1,36 @@
+import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 import AgencyClient from "./AgencyClient"
 import { notFound } from "next/navigation"
 
-export const dynamic = 'force-dynamic' // Ensure we always fetch the latest data from the CMS
+export const revalidate = 300 // Cache and revalidate once every 5 minutes or on demand
+
+export const metadata: Metadata = {
+  title: 'Grekam Visuals — Creative Digital Agency',
+  description: 'We build premium digital products, high-end brands, and cinematic video visual effects.',
+  openGraph: {
+    title: 'Grekam Visuals — Creative Agency',
+    description: 'We build premium digital products, high-end brands, and cinematic video visual effects.',
+    url: 'https://agency.grekam.in',
+    siteName: 'Grekam Visuals',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Grekam Visuals Portfolio',
+      }
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Grekam Visuals',
+    description: 'High-end branding & digital product architecture.',
+    images: ['/og-image.png'],
+  },
+}
 
 export default async function AgencyPage() {
   // Fetch the data we seeded in Phase 1

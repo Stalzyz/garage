@@ -5,7 +5,7 @@ import { ArrowLeft, ExternalLink, Briefcase, Award, GraduationCap, Compass } fro
 import { Header } from "../../components/landing/Header"
 import { Footer } from "../../components/landing/Footer"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300 // Cache and revalidate once every 5 minutes
 
 export default async function GalleryPage() {
   let projects: any[] = []

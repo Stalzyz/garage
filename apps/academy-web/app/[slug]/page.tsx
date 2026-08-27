@@ -11,7 +11,7 @@ import { DynamicDomainHero } from "./DynamicDomainHero"
 import { Header } from "../../components/landing/Header"
 import { Footer } from "../../components/landing/Footer"
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // Cache and revalidate once every 5 minutes
 
 function getCodeFromSlug(slug: string): string | undefined {
   switch (slug) {
@@ -138,7 +138,7 @@ export default async function CMSPublicPage({ params }: { params: Promise<{ slug
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 hover:border-indigo-500/50 hover:bg-white/10 transition-all cursor-pointer group relative overflow-hidden">
                     <div className="w-20 h-20 rounded-xl bg-black overflow-hidden shrink-0">
                       {batch.course?.thumbnail ? (
-                        <img src={batch.course.thumbnail} className="w-full h-full object-cover" />
+                        <img src={batch.course.thumbnail} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="w-full h-full bg-white/5 flex items-center justify-center">
                           <MonitorPlay className="w-8 h-8 text-white/20" />

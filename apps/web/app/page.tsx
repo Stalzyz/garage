@@ -750,7 +750,7 @@ export default function SplitReality() {
                       className="text-center px-4 flex flex-col items-center justify-center"
                       style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
                     >
-                      <span className="text-[2.6rem] font-black tracking-[0.05em] text-black leading-none uppercase" style={{ fontFamily: "Georgia, serif" }}>
+                      <span className="text-[2.6rem] font-black tracking-[0.05em] text-black leading-none uppercase" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
                         ACADEMY
                       </span>
                       <div className="text-[8px] font-mono tracking-[0.3em] text-black/60 uppercase mt-2">Master the Craft</div>
@@ -813,7 +813,7 @@ export default function SplitReality() {
 
           <div>
             <motion.div animate={{ filter: isAgency ? "blur(0px)" : "blur(2px)", opacity: isAgency ? 1 : 0.3 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4">
-              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} />
+              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} priority />
               <div className="overflow-hidden mt-4">
                 <motion.h2 className="font-black uppercase leading-none"
                   style={{
@@ -896,7 +896,7 @@ export default function SplitReality() {
           <div className="flex flex-col items-center">
             <motion.div animate={{ filter: (isMobile || isAcademy) ? "none" : "blur(1.5px)", opacity: (isMobile || isAcademy) ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
               <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
-                <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} />
+                <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} priority />
               </div>
               <h2 style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", fontSize: "clamp(2rem, 5vw, 6.5rem)", color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.25)", letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900, transition: "color 0.6s ease" }}>MASTER<br />THE CRAFT.</h2>
               <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", opacity: isAcademy ? 0.7 : 0 }}>↓ start here</div>

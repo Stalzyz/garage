@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     siteName: 'Grekam Academy',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Grekam Academy Course Preview',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Grekam Academy',
     description: 'Learn visual editing, color grading, and motion design.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,

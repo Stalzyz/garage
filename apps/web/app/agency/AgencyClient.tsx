@@ -228,7 +228,7 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
                            {activeCard.projects.map(proj => (
                               <div key={proj.id} data-cursor="VIEW" className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-colors">
                                  <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden">
-                                    <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                  </div>
                                  <div className="p-4 text-left font-bold text-sm md:text-base truncate">{proj.title}</div>
                               </div>
@@ -407,7 +407,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {card.projects.map((proj: any, idx: number) => (
                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} key={proj.id} className="relative aspect-video rounded-xl overflow-hidden group border border-white/10 cursor-pointer">
-                  <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                      <div className="font-bold text-white tracking-widest uppercase text-xs">{proj.title}</div>
                   </div>
@@ -422,7 +422,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
                {cmsData.products.map((prod: any, idx: number) => (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }} key={prod.id || idx} className="w-72 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col group">
                      <div className="aspect-video bg-black/50 overflow-hidden relative">
-                        {prod.image && <img src={prod.image} alt={prod.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                        {prod.image && <img loading="lazy" src={prod.image} alt={prod.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                      </div>
                      <div className="p-5 flex flex-col flex-1">
                         <h3 className="font-bold text-white text-lg mb-2">{prod.title}</h3>
@@ -444,7 +444,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
             <div className="columns-2 md:columns-3 gap-4 space-y-4">
                {cmsData.portfolio.map((item: any, idx: number) => (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }} key={item.id || idx} className="break-inside-avoid relative group rounded-xl overflow-hidden border border-white/10">
-                     {item.image && <img src={item.image} alt={item.title || 'Portfolio Item'} className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />}
+                     {item.image && <img loading="lazy" src={item.image} alt={item.title || 'Portfolio Item'} className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />}
                      {item.title && (
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                            <div className="font-bold text-white text-xs uppercase tracking-widest">{item.title}</div>
@@ -605,7 +605,7 @@ const LayoutEditorial = ({ cards }: any) => {
                      {card.projects.map((proj) => (
                         <div key={proj.id} className="w-full">
                            <div className="w-full aspect-[4/3] bg-[#e8e4de] overflow-hidden mb-4">
-                              <img src={proj.image} alt={proj.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                              <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
                            </div>
                            <div className="text-[10px] font-sans uppercase tracking-widest text-[#2c2a29]">{proj.title}</div>
                         </div>
@@ -670,7 +670,7 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
                      {card.projects.map(proj => (
                         <div key={proj.id} className="w-48 shrink-0 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 p-2">
                            <div className="aspect-video w-full rounded-lg overflow-hidden bg-zinc-200 mb-3">
-                              <img src={proj.image} className="w-full h-full object-cover" />
+                              <img loading="lazy" src={proj.image} className="w-full h-full object-cover" />
                            </div>
                            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-800 text-center">{proj.title}</div>
                         </div>
@@ -736,7 +736,7 @@ const LayoutDigitalGallery = ({ cards }: any) => {
                         <div className="bg-black border-t border-[#333] flex flex-row overflow-x-auto h-0 group-hover:h-32 transition-all duration-700">
                            {card.projects.map(proj => (
                               <div key={proj.id} className="w-32 h-full shrink-0 border-r border-[#333] overflow-hidden relative">
-                                 <img src={proj.image} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity cursor-pointer" />
+                                 <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity cursor-pointer" />
                                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent text-[8px] text-white font-bold uppercase tracking-widest text-center truncate">{proj.title}</div>
                               </div>
                            ))}
@@ -807,7 +807,7 @@ const LayoutNeoBrutalism = ({ cards }: any) => {
                        {card.projects.map((proj, idx) => (
                           <div key={proj.id} className={`bg-white border-[4px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform ${idx % 2 === 0 ? '-rotate-1' : 'rotate-1'} hover:rotate-0 transition-transform`}>
                              <div className="aspect-[4/3] w-full border-[4px] border-black mb-4 overflow-hidden bg-black">
-                                <img src={proj.image} className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0" />
+                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0" />
                              </div>
                              <div className="font-black uppercase text-xl text-center">{proj.title}</div>
                           </div>
@@ -851,7 +851,7 @@ const LayoutPaperCraft = ({ cards }: any) => {
                      <div key={proj.id} className={`p-3 pb-8 bg-white shadow-md border border-[#eee] transform ${idx % 2 === 0 ? 'rotate-2' : '-rotate-2'} hover:rotate-0 hover:scale-110 transition-transform cursor-pointer relative`}>
                         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-[#e6dfa8]/80 shadow-sm transform -rotate-2 z-10" />
                         <div className="aspect-[4/3] w-full bg-gray-100 overflow-hidden mb-3 border border-gray-200">
-                           <img src={proj.image} className="w-full h-full object-cover mix-blend-multiply" />
+                           <img loading="lazy" src={proj.image} className="w-full h-full object-cover mix-blend-multiply" />
                         </div>
                         <div className="font-serif text-center text-xs text-[#2c2c2c] italic">{proj.title}</div>
                      </div>
@@ -924,7 +924,7 @@ const LayoutCinematic = ({ cards }: any) => {
                     <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.4 }} className="flex flex-col gap-6 mr-12 mt-32 h-[70vh] overflow-y-auto custom-scrollbar pr-4">
                        {card.projects.map(proj => (
                           <div key={proj.id} className="w-[400px] aspect-video bg-white/5 border border-white/20 rounded-2xl overflow-hidden relative cursor-pointer group/proj">
-                             <img src={proj.image} className="w-full h-full object-cover opacity-60 group-hover/proj:opacity-100 transition-all duration-700 group-hover/proj:scale-105" />
+                             <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover/proj:opacity-100 transition-all duration-700 group-hover/proj:scale-105" />
                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/proj:opacity-100 bg-black/40 transition-opacity">
                                 <span className="font-bold tracking-widest uppercase text-white border border-white px-6 py-2">{proj.title}</span>
                              </div>
@@ -972,7 +972,7 @@ const LayoutSwissPrecision = ({ cards }: any) => {
                        <div className="grid grid-cols-2 gap-4 mt-auto">
                           {card.projects.map(proj => (
                              <div key={proj.id} className="aspect-square bg-zinc-900 border border-zinc-800 overflow-hidden relative group/img">
-                                <img src={proj.image} className="w-full h-full object-cover grayscale opacity-50 group-hover/img:grayscale-0 group-hover/img:opacity-100 transition-all duration-300" />
+                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover grayscale opacity-50 group-hover/img:grayscale-0 group-hover/img:opacity-100 transition-all duration-300" />
                              </div>
                           ))}
                        </div>
@@ -1079,7 +1079,7 @@ const LayoutCreativeUniverse = ({ cards, playSound }: any) => {
                     <div className="w-full md:w-1/2 flex flex-col gap-4 max-h-[40vh] md:max-h-[300px] overflow-y-auto custom-scrollbar pr-4">
                        {activeCard.projects.map(proj => (
                           <div key={proj.id} className="w-full h-32 shrink-0 bg-white/5 border border-white/10 rounded-xl overflow-hidden relative group cursor-pointer">
-                             <img src={proj.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                             <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
                                 <span className="font-bold tracking-widest uppercase text-white text-[10px] border border-white px-4 py-2">{proj.title}</span>
                              </div>
