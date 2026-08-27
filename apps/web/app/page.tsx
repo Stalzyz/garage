@@ -628,7 +628,7 @@ export default function SplitReality() {
                   }
                 }}
               >
-                <div className="w-4 h-4 rounded-full bg-white/80" />
+                <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-400 via-violet-500 to-amber-400 shadow-[0_0_12px_rgba(139,92,246,0.8)]" />
               </motion.div>
             </div>
 

@@ -79,7 +79,43 @@ export async function buildApp(opts: any = {}): Promise<any> {
 
   // Core Plugins
   await app.register(cors, {
-    origin: [process.env.CORS_ORIGIN || 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: (origin, cb) => {
+      if (!origin) {
+        cb(null, true);
+        return;
+      }
+      
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+      ];
+      
+      if (process.env.CORS_ORIGIN) {
+        const envOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+        allowedOrigins.push(...envOrigins);
+      }
+      
+      try {
+        const url = new URL(origin);
+        const host = url.hostname;
+        
+        const isAllowed = allowedOrigins.includes(origin) || 
+                          host === 'grekam.in' || 
+                          host.endsWith('.grekam.in') || 
+                          host === 'grafty.pro' || 
+                          host.endsWith('.grafty.pro') ||
+                          host === 'localhost' || 
+                          host === '127.0.0.1';
+
+        if (isAllowed) {
+          cb(null, true);
+        } else {
+          cb(new Error("Not allowed by CORS"), false);
+        }
+      } catch (err) {
+        cb(null, false);
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });

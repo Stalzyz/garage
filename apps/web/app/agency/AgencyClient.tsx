@@ -300,6 +300,11 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
   const dragRotate = useMotionValue(0)
 
   useEffect(() => {
+    // Force reset values to 0 on mount/update to guarantee scatter animation fires
+    x.set(0)
+    y.set(0)
+    dragRotate.set(0)
+
     // Staggered shuffle animation when component mounts
     const delay = (zIdx - 20) * 0.04
     animate(x, pos.x, { type: "spring", stiffness: 70, damping: 14, delay })
