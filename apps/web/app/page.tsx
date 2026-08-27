@@ -368,14 +368,6 @@ export default function SplitReality() {
   
 
   useEffect(() => {
-    // Detect mobile/touch device — redirect to portal directly
-    // The interactive split-screen canvas homepage is desktop-only
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768
-    if (isTouchDevice) {
-      router.replace('/portal')
-      return
-    }
-
     setIsClient(true)
     const keyMap: Record<string, "blueprint" | "sketch" | "print"> = { d: "blueprint", s: "sketch", p: "print" }
     const onKey = (e: KeyboardEvent) => {
@@ -487,7 +479,7 @@ export default function SplitReality() {
                 dragElastic={0.8}
                 onDragEnd={(e, info) => {
                   if (info.offset.y < -50 || info.velocity.y < -200) {
-                    navigate('agency', '/agency');
+                    navigate('agency', 'https://agency.grekam.in/');
                   } else if (info.offset.y > 50 || info.velocity.y > 200) {
                     navigate('academy', 'https://academy.grekam.in/');
                   }
@@ -561,7 +553,7 @@ export default function SplitReality() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 mb-24 cursor-pointer" onClick={() => navigate("agency", "/agency")}>
+                  <div className="flex items-center gap-4 mb-24 cursor-pointer" onClick={() => navigate("agency", "https://agency.grekam.in/")}>
                     <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md">
                       Enter Agency
                     </div>
@@ -677,9 +669,23 @@ export default function SplitReality() {
         <AgencyCanvas active={isAgency} mx={mousePos.x} my={mousePos.y} />
         <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(220,210,255,0.05) 0%, transparent 70%)", opacity: isAgency ? 1 : 0.3, transition: "opacity 0.8s ease" }} />
 
+        {/* Split-Text Morphing Typography (Agency Side) */}
+        <div className="absolute top-0 left-0 h-full w-[100vw] pointer-events-none flex items-center justify-center z-[2] select-none overflow-hidden">
+          <span 
+            className="font-black text-[18vw] uppercase leading-none tracking-[0.05em] transition-all duration-700 ease-[0.16,1,0.3,1] select-none"
+            style={{ 
+              fontFamily: "var(--font-barlow, system-ui), sans-serif",
+              letterSpacing: isAgency ? "0.08em" : "0.02em",
+              color: "rgba(255, 255, 255, 0.08)"
+            }}
+          >
+            GREKAM
+          </span>
+        </div>
+
         <button
-          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left"
-          onClick={() => navigate("agency", "/agency")}
+          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left z-10"
+          onClick={() => navigate("agency", "https://agency.grekam.in/")}
           style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
         >
           <div style={{ opacity: isAgency ? 1 : 0.35, transition: "opacity 0.6s ease" }}>
@@ -744,8 +750,23 @@ export default function SplitReality() {
         <AcademyCanvas active={isAcademy} />
         {!isMobile && <SketchAnnotations active={isAcademy} />}
 
+        {/* Split-Text Morphing Typography (Academy Side) */}
+        <div className="absolute top-0 right-0 h-full w-[100vw] pointer-events-none flex items-center justify-center z-[2] select-none overflow-hidden">
+          <span 
+            className="font-black text-[18vw] uppercase leading-none tracking-[0.05em] transition-all duration-700 ease-[0.16,1,0.3,1] select-none"
+            style={{ 
+              fontFamily: "var(--font-serif, Georgia), serif", 
+              filter: "url(#rough-paper)",
+              letterSpacing: isAcademy ? "0.08em" : "0.02em",
+              color: "rgba(42, 26, 8, 0.12)"
+            }}
+          >
+            GREKAM
+          </span>
+        </div>
+
         <button
-          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
+          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left z-10"
           onClick={() => isMobile ? (isAcademy ? navigate("academy", "https://academy.grekam.in/") : handleMobileTouch("academy")) : navigate("academy", "https://academy.grekam.in/")}
           style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
         >

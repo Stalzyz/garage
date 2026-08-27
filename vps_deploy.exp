@@ -6,9 +6,9 @@ set script {
   git pull
   pnpm i
   cd packages/db && npx prisma generate && npx prisma db push && cd ../..
-  pnpm build:all
+  NODE_OPTIONS="--max-old-space-size=4096" pnpm build:all
   pm2 delete grekam-os-web || true
-  pm2 start pnpm --name grekam-os-web -- cwd /root/grekam-os/apps/web -- start
+  export HOST=0.0.0.0 && pm2 start pnpm --name grekam-os-web --cwd /root/grekam-os/apps/web -- start
   pm2 restart grekam-os-api --update-env || true
   pm2 save
 }
