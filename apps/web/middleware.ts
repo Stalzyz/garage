@@ -1,7 +1,15 @@
 import NextAuth from "next-auth"
 import { authConfig } from "./auth.config"
+import { NextResponse } from "next/server"
 
-export default NextAuth(authConfig).auth
+export default NextAuth(authConfig).auth((req) => {
+  const host = req.headers.get("host") || ""
+  const { pathname } = req.nextUrl
+
+  if (host.includes("agency.grekam.in") && pathname === "/") {
+    return NextResponse.rewrite(new URL("/agency", req.url))
+  }
+})
 
 export const config = {
   // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
