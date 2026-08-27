@@ -613,4 +613,65 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     return { success: true, invoice };
   });
+
+  // POST /api/v1/projects/:id/notify-client — Send asset/media file reminder to client
+  app.post('/:id/notify-client', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { reminderType, customMessage } = (request.body || {}) as { reminderType?: string; customMessage?: string };
+
+    const project = await app.prisma.project.findUnique({
+      where: { id },
+      include: {
+        company: {
+          include: {
+            contacts: { take: 1, orderBy: { createdAt: 'asc' } }
+          }
+        }
+      }
+    });
+
+    if (!project) return reply.notFound('Project not found');
+
+    const contact = project.company?.contacts?.[0];
+    const clientEmail = contact?.email;
+    const clientPhone = contact?.phone;
+    const clientName = contact ? `${contact.firstName} ${contact.lastName}`.trim() : (project.company?.name || 'Client');
+
+    const typeLabel = reminderType === 'BRIEF' ? 'Project Brief & Strategy Details' : 'Media Files & Brand Assets';
+    const defaultMsg = `Hi ${clientName}, this is an automated reminder regarding project "${project.name}". We are awaiting your ${typeLabel} to proceed with production. Please upload or send them to us at your earliest convenience.`;
+    const messageToSend = customMessage?.trim() || defaultMsg;
+
+    let emailSent = false;
+    let whatsappSent = false;
+
+    // Send Email Notification
+    if (clientEmail) {
+      try {
+        const html = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #2563eb;">Action Required: Pending Assets for ${project.name}</h2>
+            <p>Dear ${clientName},</p>
+            <p>${messageToSend}</p>
+            <div style="margin: 25px 0;">
+              <a href="${process.env.AUTH_URL || 'https://garage.grekam.in'}/portal" style="background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Open Client Portal & Upload Files</a>
+            </div>
+            <p style="color: #666; font-size: 12px;">Thank you for working with us!</p>
+          </div>
+        `;
+        await sendTemplatedEmail(clientEmail, `Action Required: Pending Details/Assets for ${project.name}`, html);
+        emailSent = true;
+      } catch (err: any) {
+        app.log.warn(`Failed to send client reminder email: ${err.message}`);
+      }
+    }
+
+    return {
+      success: true,
+      message: `Reminder notification processed for ${clientName}`,
+      emailSent,
+      whatsappSent,
+      clientPhone,
+      clientEmail
+    };
+  });
 }

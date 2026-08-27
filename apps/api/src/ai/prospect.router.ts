@@ -50,11 +50,11 @@ export default async function aiProspectRouter(app: FastifyInstance) {
         app.log.info(`[Prospect] Scraping Meta-found website ${metaData.website}: ${scrapedData ? `✓ ${scrapedData.emails.length} emails` : '✗'}`);
       }
 
-      // ── STEP 4: DuckDuckGo search fallback (when Meta token not set / no result) ──
+      // ── STEP 4: DuckDuckGo search fallback (when Meta token not set / no result, ONLY for non-Instagram queries) ──
       const hasContacts = (metaData && (metaData.phone || metaData.emails.length > 0)) ||
         (scrapedData && (scrapedData.emails.length > 0 || scrapedData.phones.length > 0));
 
-      if (!hasContacts) {
+      if (!hasContacts && !isInstagram) {
         app.log.info(`[Prospect] No contacts yet — falling back to DuckDuckGo search enrichment...`);
         googleData = await enrichViaGoogleSearch(input);
         app.log.info(`[Prospect] DuckDuckGo: ${googleData ? `✓ ${googleData.emails.length} emails, ${googleData.phones.length} phones` : '✗'}`);

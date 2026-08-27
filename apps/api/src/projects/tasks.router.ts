@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { sendTemplatedEmail } from '../services/emailRenderer';
 
 const CreateTaskSchema = z.object({
-  projectId: z.string().min(1),
+  projectId: z.string().optional().nullable(),
   title: z.string().min(1),
   description: z.string().optional().nullable(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'BLOCKED']).optional(),
@@ -15,6 +15,15 @@ const CreateTaskSchema = z.object({
 const UpdateTaskSchema = CreateTaskSchema.partial();
 
 export default async function tasksRouter(app: FastifyInstance) {
+  // GET /api/v1/projects/tasks/all — Get all tasks across the company
+  app.get('/tasks/all', async (req, reply) => {
+    const tasks = await app.prisma.task.findMany({
+      include: { project: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return { data: tasks, total: tasks.length };
+  });
+
   // GET /api/v1/projects/:projectId/tasks
   app.get('/:projectId/tasks', async (req, reply) => {
     const { projectId } = req.params as { projectId: string };

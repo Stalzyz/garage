@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical, CreditCard, Trash2 } from "lucide-react"
+import { LayoutList, KanbanSquare, CheckCircle, FileText, Settings, Plus, ChevronLeft, Loader2, GripVertical, CreditCard, Trash2, Send } from "lucide-react"
 import Link from "next/link"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { FinanceTab } from "./FinanceTab"
@@ -176,12 +176,32 @@ export default function ProjectDetailsPage() {
             </div>
             <p className="text-sm text-muted-foreground">Type: {project.type} · Due: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'N/A'} · Client: {project.company?.name || 'Unassigned'}</p>
           </div>
-          <button 
-            onClick={() => setActiveTab("settings")}
-            className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
-          >
-            <Settings className="w-3.5 h-3.5" /> Edit Project Settings
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={async () => {
+                const choice = confirm("Send automated Email & WhatsApp reminder to client for pending Media Files / Assets?");
+                if (!choice) return;
+                try {
+                  const res = await fetchApi<any>(`/projects/${project.id}/notify-client`, {
+                    method: "POST",
+                    body: JSON.stringify({ reminderType: "ASSETS" })
+                  });
+                  toast.success(res.message || "Reminder sent to client successfully!");
+                } catch (err: any) {
+                  toast.error("Failed to send reminder: " + err.message);
+                }
+              }}
+              className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Send className="w-3.5 h-3.5" /> Remind Client (Assets/Media)
+            </button>
+            <button 
+              onClick={() => setActiveTab("settings")}
+              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Settings className="w-3.5 h-3.5" /> Edit Project Settings
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}

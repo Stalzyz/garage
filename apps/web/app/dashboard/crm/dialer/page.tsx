@@ -160,7 +160,20 @@ export default function PowerDialerDashboard() {
   }
 
   const handleStartDialer = async () => {
+    if (!activeLead || !activeLead.phone) {
+      toast.error("Active lead does not have a valid phone number to dial.")
+      return
+    }
+
     setCallState("dialing")
+
+    // Trigger device native tel: dialer / web softphone
+    try {
+      const cleanPhone = activeLead.phone.replace(/[^0-9+]/g, '')
+      window.location.href = `tel:${cleanPhone}`
+    } catch (e) {
+      console.warn("Could not open native dialer URI:", e)
+    }
 
     if (routeThroughMobile) {
       const email = session?.user?.email
@@ -184,7 +197,7 @@ export default function PowerDialerDashboard() {
 
     setTimeout(() => {
       setCallState("connected")
-    }, 3000)
+    }, 2500)
   }
 
   const handleEndCall = () => {
