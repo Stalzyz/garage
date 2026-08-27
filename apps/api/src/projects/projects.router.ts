@@ -658,7 +658,10 @@ export default async function projectsRouter(app: FastifyInstance) {
             <p style="color: #666; font-size: 12px;">Thank you for working with us!</p>
           </div>
         `;
-        await sendTemplatedEmail(clientEmail, `Action Required: Pending Details/Assets for ${project.name}`, html);
+        await sendEmail(clientEmail, {
+          subject: `Action Required: Pending Details/Assets for ${project.name}`,
+          html
+        });
         emailSent = true;
       } catch (err: any) {
         app.log.warn(`Failed to send client reminder email: ${err.message}`);

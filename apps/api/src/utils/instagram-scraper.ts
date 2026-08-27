@@ -337,7 +337,7 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
         }
       }
       await page.close();
-    } catch (err) {
+    } catch (err: any) {
       console.warn(`[Scraper] Homepage fetch failed for ${baseUrl}:`, err.message);
     }
 
@@ -364,7 +364,7 @@ export async function deepScrapeWebsite(url: string, limitDepth = true): Promise
       }
     }
 
-  } catch (err) {
+  } catch (err: any) {
     console.error("[Scraper] Single browser scraping session failed:", err.message);
   } finally {
     if (browser) await browser.close();

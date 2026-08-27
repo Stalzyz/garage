@@ -64,13 +64,11 @@ export default async function tasksRouter(app: FastifyInstance) {
     if (task.assigneeId) {
       (async () => {
         try {
-          const [employee, project] = await Promise.all([
-            app.prisma.employee.findFirst({
-              where: { OR: [{ id: task.assigneeId! }, { userId: task.assigneeId! }] },
-              include: { user: true }
-            }),
-            app.prisma.project.findUnique({ where: { id: task.projectId } })
-          ]);
+          const employee = await app.prisma.employee.findFirst({
+            where: { OR: [{ id: task.assigneeId! }, { userId: task.assigneeId! }] },
+            include: { user: true }
+          });
+          const project = task.projectId ? await app.prisma.project.findUnique({ where: { id: task.projectId } }) : null;
           const staffEmail = employee?.user?.email || (employee as any)?.email;
           const staffName = employee?.user?.firstName || (employee as any)?.firstName || 'Staff';
           if (staffEmail) {

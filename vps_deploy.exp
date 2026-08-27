@@ -1,13 +1,17 @@
 #!/usr/bin/expect -f
-set timeout 120
+set timeout 300
 set script {
-  cd /var/www/grekam-os || cd /root/grekam-os || cd /root/visuals_pro_web/grekam-os
+  cd /root/grekam-os
   echo "Current directory: $(pwd)"
   git pull
   pnpm i
   cd packages/db && npx prisma generate && npx prisma db push && cd ../..
   pnpm build:all
-  pm2 restart grekam-os-api grekam-os-web
+  mkdir -p apps/web/.next/standalone/apps/web/.next/
+  cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
+  cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
+  pm2 restart grekam-os-api grekam-os-web --update-env
+  pm2 save
 }
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
 expect "assword:"
