@@ -633,6 +633,16 @@ export default function SplitReality() {
                   }}
                 />
               ))}
+
+              {/* Circular Bold Text: "ROTATE FOCUS RING" */}
+              <svg viewBox="0 0 100 100" className="absolute w-full h-full pointer-events-none select-none p-[6px]">
+                <path id="textPath" d="M 50,50 m -34,0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0" fill="none" />
+                <text className="fill-white/50 font-black text-[3.8px] tracking-[0.27em] uppercase font-mono">
+                  <textPath href="#textPath" startOffset="50%" textAnchor="middle">
+                    ROTATE FOCUS RING • ROTATE FOCUS RING •
+                  </textPath>
+                </text>
+              </svg>
               
               {/* Colorful Gradient Glow focus indicator dot */}
               <div 
@@ -644,58 +654,79 @@ export default function SplitReality() {
             {/* Viewfinder (Inner Cylindrical Display) */}
             <div className="w-[260px] h-[260px] rounded-full border border-white/5 bg-neutral-950/90 relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-md z-30">
               {/* Corner framing brackets */}
-              <div className="absolute top-6 left-6 w-4 h-4 border-t border-l border-white/10" />
-              <div className="absolute top-6 right-6 w-4 h-4 border-t border-r border-white/10" />
-              <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/10" />
-              <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/10" />
+              <div className="absolute top-6 left-6 w-4 h-4 border-t border-l border-white/10 z-35" />
+              <div className="absolute top-6 right-6 w-4 h-4 border-t border-r border-white/10 z-35" />
+              <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/10 z-35" />
+              <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/10 z-35" />
 
               {/* Central crosshair */}
-              <div className="absolute w-3 h-3 border border-white/5 rounded-full flex items-center justify-center">
+              <div className="absolute w-3 h-3 border border-white/5 rounded-full flex items-center justify-center z-35">
                 <div className="w-px h-2 bg-white/10 absolute" />
                 <div className="h-px w-2 bg-white/10 absolute" />
               </div>
 
-              {/* Viewfinder Content - Enlarged Inside Dial */}
-              <AnimatePresence mode="wait">
-                {Math.abs(dialProgress) <= 15 ? (
-                  <motion.div 
-                    key="neutral"
-                    initial={{ opacity: 0, scale: 0.95 }} 
-                    animate={{ opacity: 1, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    className="text-center space-y-2 px-4"
-                  >
-                    <div className="text-[9px] font-mono tracking-[0.4em] text-white/30 uppercase">DSLR Viewfinder</div>
-                    <div className="text-[11px] font-bold tracking-[0.2em] text-white/80 uppercase animate-pulse">Rotate Focus Ring</div>
-                  </motion.div>
-                ) : dialProgress > 15 ? (
-                  <motion.div 
-                    key="agency"
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
-                    className="text-center px-4 flex flex-col items-center justify-center"
-                    style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
-                  >
-                    <span className="text-4xl font-black tracking-[0.1em] text-white leading-none uppercase" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
-                      AGENCY
-                    </span>
-                    <div className="text-[8px] font-mono tracking-[0.3em] text-white/40 uppercase mt-2">Grekam Visuals</div>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="academy"
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
-                    className="text-center px-4 flex flex-col items-center justify-center"
-                    style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
-                  >
-                    <span className="text-4xl font-black tracking-[0.1em] text-[#2a1a08] leading-none uppercase" style={{ fontFamily: "Georgia, serif" }}>
-                      ACADEMY
-                    </span>
-                    <div className="text-[8px] font-mono tracking-[0.3em] text-[#2a1a08]/50 uppercase mt-2">Master the Craft</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Subject Image (Flower) - blurs out dynamically on rotation */}
+              <div 
+                className="absolute inset-0 transition-all duration-75 ease-out select-none pointer-events-none"
+                style={{
+                  filter: `blur(${Math.min(15, Math.abs(rotation) / 4)}px)`,
+                  opacity: Math.max(0.08, 1 - Math.abs(rotation) / 60),
+                  transform: `scale(${1 - Math.abs(rotation) / 350})`
+                }}
+              >
+                <Image 
+                  src="/flower.png" 
+                  alt="Focus Subject" 
+                  fill 
+                  className="object-cover" 
+                  priority
+                />
+                <div className="absolute inset-0 bg-black/10" />
+              </div>
+
+              {/* Viewfinder Content overlay */}
+              <div className="absolute inset-0 flex items-center justify-center z-32">
+                <AnimatePresence mode="wait">
+                  {Math.abs(dialProgress) <= 15 ? (
+                    <motion.div 
+                      key="neutral"
+                      initial={{ opacity: 0, scale: 0.95 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      className="text-center space-y-1 bg-black/45 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/5"
+                    >
+                      <div className="text-[8px] font-mono tracking-[0.35em] text-white/50 uppercase">Standby Focus</div>
+                      <div className="text-[10px] font-bold tracking-[0.15em] text-white/90 uppercase animate-pulse">Subject Locked</div>
+                    </motion.div>
+                  ) : dialProgress > 15 ? (
+                    <motion.div 
+                      key="agency"
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="text-center px-4 flex flex-col items-center justify-center"
+                      style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
+                    >
+                      <span className="text-4xl font-black tracking-[0.15em] text-white leading-none uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
+                        AGENCY
+                      </span>
+                      <div className="text-[8px] font-mono tracking-[0.3em] text-white/60 uppercase mt-2">Grekam Visuals</div>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      key="academy"
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="text-center px-4 flex flex-col items-center justify-center"
+                      style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
+                    >
+                      <span className="text-4xl font-black tracking-[0.15em] text-[#2a1a08] leading-none uppercase drop-shadow-[0_4px_12px_rgba(240,232,212,0.8)]" style={{ fontFamily: "Georgia, serif" }}>
+                        ACADEMY
+                      </span>
+                      <div className="text-[8px] font-mono tracking-[0.3em] text-[#2a1a08]/60 uppercase mt-2">Master the Craft</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 
