@@ -7,7 +7,7 @@ import {
   ArrowUpRight, Filter, IndianRupee, Globe,
   Search, BookOpen, GraduationCap, Calendar,
   MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
-  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet
+  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet, MessageCircle
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -820,6 +820,18 @@ export default function CRMDashboard() {
                             </td>
                             <td className="p-4 text-right">
                               <div className="flex gap-2 justify-end">
+                                {lead.phone && (
+                                  <button
+                                    onClick={() => {
+                                      const cleanPhone = lead.phone.replace(/\D/g, '');
+                                      window.open(`https://grafty.pro/dashboard/chat?phone=${cleanPhone}`, '_blank');
+                                    }}
+                                    className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-1.5 hover:bg-emerald-500/10 rounded-lg"
+                                    title="Open Grafty WhatsApp Chat"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => handleOpenActivityModal(lead)}
                                   className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"

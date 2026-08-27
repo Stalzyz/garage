@@ -88,9 +88,9 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
               onPointerDown={(e) => { 
                 e.stopPropagation(); 
                 const cleanPhone = lead.phone.replace(/\D/g, '');
-                window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                window.open(`https://grafty.pro/dashboard/chat?phone=${cleanPhone}`, '_blank');
               }}
-              title="Send WhatsApp Message"
+              title="Open Grafty WhatsApp Chat"
               className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-2.5 -m-2.5"
             >
               <MessageCircle className="w-3.5 h-3.5" />
