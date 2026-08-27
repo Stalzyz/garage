@@ -81,6 +81,26 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: '/',
+        has: [
+          {
+            type: 'host',
+            value: 'agency.grekam.in',
+          },
+        ],
+        destination: '/agency',
+      },
+      {
+        source: '/',
+        has: [
+          {
+            type: 'host',
+            value: 'www.agency.grekam.in',
+          },
+        ],
+        destination: '/agency',
+      },
+      {
         source: '/api/v1/:path*',
         destination: `${API_INTERNAL}/:path*`,
       },
