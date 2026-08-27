@@ -112,25 +112,27 @@ export default function EditProposalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.title.trim()) return toast.error("Proposal title is required")
+    if (items.length === 0) return toast.error("Please add at least one line item")
+
     setIsSubmitting(true)
     try {
       const payload: any = {
-        ...formData,
+        title: formData.title.trim(),
         notes: formData.content,
-        tax: Number(tax),
+        taxRate: Number(tax || 0),
         items: items.map(item => ({
-          description: item.name + (item.description ? ` - ${item.description}` : ''),
-          unitPrice: Number(item.unitPrice),
-          quantity: Number(item.quantity),
-          unit: "units"
+          description: (item.name || "Item") + (item.description ? ` - ${item.description}` : ''),
+          unitPrice: Number(item.unitPrice || 0),
+          quantity: Number(item.quantity || 1),
+          unit: "units",
+          discountRate: Number(item.discountRate || 0),
+          taxRate: Number(item.taxRate || 0)
         }))
       };
 
-      delete payload.content;
-      delete payload.status;
-
-      if (!payload.leadId) {
-        delete payload.leadId;
+      if (formData.leadId && formData.leadId.trim() !== "") {
+        payload.leadId = formData.leadId.trim();
       }
 
       await fetchApi(`/crm/proposals/${proposalId}`, {

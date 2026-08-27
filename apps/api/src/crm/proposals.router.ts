@@ -6,29 +6,29 @@ import { generateProposalPDF } from '../finance/pdf.service';
 
 const ProposalItemSchema = z.object({
   description: z.string().min(1),
-  quantity: z.number().positive(),
-  unitPrice: z.number().nonnegative(),
-  unit: z.string().default('units'),
-  discountRate: z.number().nonnegative().optional().default(0),
-  taxRate: z.number().nonnegative().optional().default(0),
+  quantity: z.coerce.number().positive().default(1),
+  unitPrice: z.coerce.number().nonnegative().default(0),
+  unit: z.string().optional().default('units'),
+  discountRate: z.coerce.number().nonnegative().optional().default(0),
+  taxRate: z.coerce.number().nonnegative().optional().default(0),
 });
 
 const CreateProposalSchema = z.object({
-  leadId: z.string().optional(),
-  contactId: z.string().optional(),
+  leadId: z.string().nullable().optional(),
+  contactId: z.string().nullable().optional(),
   title: z.string().min(1),
-  validUntil: z.string().datetime().optional(),
-  currency: z.string().default('INR'),
-  notes: z.string().optional(),
-  taxRate: z.number().nonnegative().optional().default(0),
-  discountRate: z.number().nonnegative().optional().default(0),
+  validUntil: z.string().nullable().optional(),
+  currency: z.string().optional().default('INR'),
+  notes: z.string().nullable().optional(),
+  taxRate: z.coerce.number().nonnegative().optional().default(0),
+  discountRate: z.coerce.number().nonnegative().optional().default(0),
   items: z.array(ProposalItemSchema).min(1),
 });
 
 const UpdateProposalSchema = CreateProposalSchema.partial().extend({
   status: z.enum(['DRAFT', 'SENT', 'VIEWED', 'APPROVED', 'REJECTED', 'EXPIRED']).optional(),
-  signedAt: z.string().datetime().optional(),
-  signatureUrl: z.string().url().optional(),
+  signedAt: z.string().nullable().optional(),
+  signatureUrl: z.string().nullable().optional(),
 });
 
 function calcItemTotal(item: z.infer<typeof ProposalItemSchema>): number {
@@ -200,14 +200,18 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const tax = afterOverallDiscount * ((body.taxRate || 0) / 100);
     const totalAmount = afterOverallDiscount + tax;
 
+    const cleanLeadId = body.leadId && body.leadId.trim() !== "" ? body.leadId.trim() : null;
+    const cleanContactId = body.contactId && body.contactId.trim() !== "" ? body.contactId.trim() : null;
+    const cleanValidUntil = body.validUntil && !isNaN(Date.parse(body.validUntil)) ? new Date(body.validUntil) : null;
+
     const proposal = await app.prisma.proposal.create({
       data: {
-        leadId: body.leadId,
-        contactId: body.contactId,
+        leadId: cleanLeadId,
+        contactId: cleanContactId,
         title: body.title,
-        validUntil: body.validUntil ? new Date(body.validUntil) : undefined,
-        currency: body.currency,
-        notes: body.notes,
+        validUntil: cleanValidUntil,
+        currency: body.currency || "INR",
+        notes: body.notes || null,
         subtotal,
         discountRate: body.discountRate || 0,
         taxRate: body.taxRate || 0,
@@ -218,7 +222,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            unit: item.unit,
+            unit: item.unit || "units",
             discountRate: item.discountRate || 0,
             taxRate: item.taxRate || 0,
             total: calcItemTotal(item),
@@ -236,7 +240,12 @@ export default async function proposalsRouter(app: FastifyInstance) {
   app.patch('/proposals/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = UpdateProposalSchema.parse(req.body);
-    const { items, taxRate, discountRate, ...rest } = body;
+    const { items, taxRate, discountRate, leadId, contactId, validUntil, signedAt, ...rest } = body;
+
+    const cleanLeadId = leadId !== undefined ? (leadId && leadId.trim() !== "" ? leadId.trim() : null) : undefined;
+    const cleanContactId = contactId !== undefined ? (contactId && contactId.trim() !== "" ? contactId.trim() : null) : undefined;
+    const cleanValidUntil = validUntil !== undefined ? (validUntil && !isNaN(Date.parse(validUntil)) ? new Date(validUntil) : null) : undefined;
+    const cleanSignedAt = signedAt !== undefined ? (signedAt && !isNaN(Date.parse(signedAt)) ? new Date(signedAt) : null) : undefined;
 
     let subtotal: number | undefined;
     let totalAmount: number | undefined;
@@ -277,7 +286,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            unit: item.unit,
+            unit: item.unit || "units",
             discountRate: item.discountRate || 0,
             taxRate: item.taxRate || 0,
             total: calcItemTotal(item),
@@ -288,13 +297,15 @@ export default async function proposalsRouter(app: FastifyInstance) {
         where: { id },
         data: {
           ...rest,
+          ...(cleanLeadId !== undefined && { leadId: cleanLeadId }),
+          ...(cleanContactId !== undefined && { contactId: cleanContactId }),
+          ...(cleanValidUntil !== undefined && { validUntil: cleanValidUntil }),
+          ...(cleanSignedAt !== undefined && { signedAt: cleanSignedAt }),
           ...(taxRate !== undefined && { taxRate }),
           ...(discountRate !== undefined && { discountRate }),
           ...(calculatedTax !== undefined && { tax: calculatedTax }),
           ...(subtotal !== undefined && { subtotal }),
           ...(totalAmount !== undefined && { totalAmount }),
-          ...(rest.signedAt && { signedAt: new Date(rest.signedAt) }),
-          ...(rest.validUntil && { validUntil: new Date(rest.validUntil) }),
         },
         include: { items: true },
       });

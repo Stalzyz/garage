@@ -101,27 +101,31 @@ export default function InteractiveProposalBuilder() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.title.trim()) return toast.error("Proposal title is required")
+    if (items.length === 0) return toast.error("Please add at least one line item")
+
     setIsSubmitting(true)
     try {
       const payload: any = {
-        title: formData.title,
+        title: formData.title.trim(),
         notes: formData.content,
-        discountRate: Number(discountRate),
-        taxRate: Number(taxRate),
+        discountRate: Number(discountRate || 0),
+        taxRate: Number(taxRate || 0),
         items: items.map(item => ({
-          description: item.name + (item.description ? ` - ${item.description}` : ''),
-          unitPrice: Number(item.unitPrice),
-          quantity: Number(item.quantity),
+          description: (item.name || "Item") + (item.description ? ` - ${item.description}` : ''),
+          unitPrice: Number(item.unitPrice || 0),
+          quantity: Number(item.quantity || 1),
+          unit: "units",
           discountRate: Number(item.discountRate || 0),
           taxRate: Number(item.taxRate || 0)
         }))
       };
 
-      if (formData.assignToType === "LEAD" && formData.leadId) {
-        payload.leadId = formData.leadId;
+      if (formData.assignToType === "LEAD" && formData.leadId && formData.leadId.trim() !== "") {
+        payload.leadId = formData.leadId.trim();
       }
-      if (formData.assignToType === "CONTACT" && formData.contactId) {
-        payload.contactId = formData.contactId;
+      if (formData.assignToType === "CONTACT" && formData.contactId && formData.contactId.trim() !== "") {
+        payload.contactId = formData.contactId.trim();
       }
 
       await fetchApi("/crm/proposals", {
