@@ -172,6 +172,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const settingsModule = (await import('./settings')).default;
   await app.register(settingsModule, { prefix: '/api/v1/settings' });
 
+  const teamModule = (await import('./team')).default;
+  await app.register(teamModule, { prefix: '/api/v1/team' });
+
   const razorpayWebhook = (await import('./webhooks/razorpay.router')).default;
   const { handleRazorpayWebhook } = await import('./webhooks/razorpay.router');
   await app.register(razorpayWebhook, { prefix: '/api/v1/webhooks' });

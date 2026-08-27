@@ -16,6 +16,7 @@ import {
   HardDrive,
   Globe,
   CheckSquare,
+  Trophy,
 } from "lucide-react"
 
 export type Role = "SUPER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "STUDENT" | "VENDOR" | "INTERN"
@@ -40,6 +41,12 @@ export const navigation: NavItem[] = [
     title: "Staff Tasks",
     href: "/dashboard/tasks",
     icon: CheckSquare,
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
+  },
+  {
+    title: "Team Culture & Wins",
+    href: "/dashboard/team-hub",
+    icon: Trophy,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
 

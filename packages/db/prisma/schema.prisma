@@ -3137,3 +3137,54 @@ model Commission {
   
   @@map("commissions")
 }
+
+// ─────────────────────────────────────────
+// MODULE — Team Culture, Goals & Wins
+// ─────────────────────────────────────────
+
+model TeamGoal {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String   @default("%")
+  startDate    DateTime @default(now())
+  dueDate      DateTime
+  status       String   @default("ON_TRACK") // ON_TRACK | BEHIND | COMPLETED
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("team_goals")
+}
+
+model TeamAnnouncement {
+  id           String   @id @default(cuid())
+  title        String
+  content      String   @db.Text
+  category     String   @default("GENERAL") // URGENT | INFO | CELEBRATION | MILESTONE
+  isPinned     Boolean  @default(false)
+  authorName   String
+  authorAvatar String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("team_announcements")
+}
+
+model TeamAchievement {
+  id            String   @id @default(cuid())
+  authorId      String
+  authorName    String
+  authorRole    String?
+  title         String
+  description   String   @db.Text
+  badge         String   @default("PROJECT_HERO") // PROJECT_HERO | TOP_CLOSER | BUG_HUNTER | INNOVATOR | MILESTONE
+  graffitiTheme String   @default("CYBERPUNK_NEON") // CYBERPUNK_NEON | GOLD_GLOW | FIRE_STORM | RETRO_WAVE
+  reactions     Json     @default("{}")
+  wishes        Json     @default("[]")
+  createdAt     DateTime @default(now())
+
+  @@map("team_achievements")
+}
