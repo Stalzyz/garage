@@ -7,7 +7,7 @@ import {
   ArrowUpRight, Filter, IndianRupee, Globe,
   Search, BookOpen, GraduationCap, Calendar,
   MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
-  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown
+  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -212,6 +212,37 @@ export default function CRMDashboard() {
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete leads')
     }
+  }
+
+  const handleDeleteSingleLead = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete lead "${name}"? This action cannot be undone.`)) return
+    try {
+      await fetchApi(`/crm/leads/${id}`, {
+        method: "DELETE"
+      })
+      toast.success(`Deleted lead: ${name}`)
+      setIsLeadModalOpen(false)
+      mutateLeads()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete lead")
+    }
+  }
+
+  const handleDownloadSampleCsv = () => {
+    const isAgency = activeTab === 'AGENCY'
+    const csvContent = isAgency
+      ? `name,email,phone,company,estimatedBudget,projectType,source,notes\nAcme Corp,contact@acme.com,+919876543210,Acme Industries,150000,WEBSITE,WEBSITE,Looking for a full website redesign\nStark Media,hello@starkmedia.com,+919812345678,Stark Media,300000,BRAND_IDENTITY,REFERRAL,Wants brand identity and logo guidelines`
+      : `name,email,phone,courseInterest,source,notes\nRahul Sharma,rahul@gmail.com,+919876543210,Fullstack Web Development,WEBSITE,Interested in weekend batch\nPriya Patel,priya@gmail.com,+919812345678,UI/UX Design,REFERRAL,Enquired about course fees`
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', isAgency ? 'agency_leads_sample.csv' : 'academy_enquiries_sample.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success("Sample CSV template downloaded!")
   }
 
   // Actions
@@ -594,6 +625,14 @@ export default function CRMDashboard() {
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={handleDownloadSampleCsv}
+              className="flex items-center justify-center gap-1.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 text-[var(--dash-text-primary)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] font-bold tracking-widest uppercase text-[10px] px-4 py-3 rounded-xl hover:scale-105 transition-all"
+              title="Download sample template CSV for importing leads"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Sample CSV
+            </button>
             <label className="cursor-pointer group flex items-center justify-center gap-2 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 text-[var(--dash-text-primary)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all">
               <Plus className="w-4 h-4 text-blue-400" /> Import CSV
               <input
@@ -795,6 +834,13 @@ export default function CRMDashboard() {
                                 >
                                   <MoreVertical className="w-3.5 h-3.5" />
                                 </button>
+                                <button 
+                                  onClick={() => handleDeleteSingleLead(lead.id, lead.name)}
+                                  className="text-red-400/50 hover:text-red-400 transition-colors p-1.5 hover:bg-red-500/10 rounded-lg"
+                                  title="Delete Lead"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -981,20 +1027,31 @@ export default function CRMDashboard() {
                   />
                 </div>
 
-                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3 sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
-                  <button
-                    type="button"
-                    onClick={() => setIsLeadModalOpen(false)}
-                    className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
-                  >
-                    {editingLead ? "Apply Changes" : "Create Node"}
-                  </button>
+                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
+                  {editingLead ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSingleLead(editingLead.id, editingLead.name)}
+                      className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-colors flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete Lead
+                    </button>
+                  ) : <div />}
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsLeadModalOpen(false)}
+                      className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
+                    >
+                      {editingLead ? "Apply Changes" : "Create Node"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </motion.div>
