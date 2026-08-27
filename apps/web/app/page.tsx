@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion"
+import { motion, AnimatePresence, useMotionValue, useSpring, animate } from "framer-motion"
 
 // ─────────────────────────────────────────────
 // Hooks
@@ -363,9 +363,30 @@ export default function SplitReality() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const hasInteracted = useRef(false)
   const isMobile = useMediaQuery("(max-width: 768px)")
+  const dragX = useMotionValue(0)
+  const [dialProgress, setDialProgress] = useState(0)
+  const lastTickRef = useRef(0)
 
-  
-  
+  useEffect(() => {
+    if (!isMobile) return
+    const unsub = dragX.on("change", (latest) => {
+      const mapped = Math.min(100, Math.max(-100, (latest / 110) * 100))
+      setDialProgress(mapped)
+      
+      const currentTick = Math.round(mapped / 15)
+      if (currentTick !== lastTickRef.current) {
+        lastTickRef.current = currentTick
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(10)
+        }
+      }
+    })
+    
+    // Automatically make nav visible on mobile to show header/branding
+    setNavVisible(true)
+    
+    return () => unsub()
+  }, [isMobile, dragX])
 
   useEffect(() => {
     setIsClient(true)
@@ -464,189 +485,157 @@ export default function SplitReality() {
       
       
       {isMobile ? (
-        <div className="relative w-full h-full overflow-hidden bg-[#050505]">
-          <AnimatePresence>
-            {side === null && (
-              <motion.div 
-                key="portal"
-                className="absolute inset-0 flex flex-col items-center justify-center z-50 touch-none"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 2 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                drag="y"
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.8}
-                onDragEnd={(e, info) => {
-                  if (info.offset.y < -50 || info.velocity.y < -200) {
-                    navigate('agency', 'https://agency.grekam.in/');
-                  } else if (info.offset.y > 50 || info.velocity.y > 200) {
-                    navigate('academy', 'https://academy.grekam.in/');
-                  }
-                }}
-              >
-                <div className="absolute top-1/4 text-white/40 font-mono text-xs tracking-widest uppercase animate-pulse flex flex-col items-center gap-2">
-                  <span>Swipe Up</span>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-                  <span className="text-white/60 font-bold mt-1">Agency</span>
-                </div>
-                
-                {/* The Orb */}
+        <div className="relative w-full h-full overflow-hidden bg-[#050505] flex flex-col items-center justify-center">
+          {/* Academy Ruled Paper Background */}
+          <div 
+            className="absolute inset-0 transition-opacity duration-150 ease-out" 
+            style={{ 
+              opacity: dialProgress < 0 ? Math.min(1, Math.abs(dialProgress) / 80) : 0,
+              backgroundColor: "#f0e8d4", 
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)` 
+            }} 
+          />
+
+          {/* Agency Dark Grid Background */}
+          <div 
+            className="absolute inset-0 transition-opacity duration-150 ease-out" 
+            style={{ 
+              opacity: dialProgress > 0 ? Math.min(1, dialProgress / 80) : 0,
+              background: "linear-gradient(145deg, #111114 0%, #161820 40%, #0a0a0a 100%)" 
+            }} 
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-40 transition-opacity duration-150" 
+            style={{ 
+              opacity: dialProgress > 0 ? Math.min(0.4, (dialProgress / 80) * 0.4) : 0,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` 
+            }} 
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none transition-opacity duration-150" 
+            style={{ 
+              opacity: dialProgress > 0 ? Math.min(1, dialProgress / 80) : 0,
+              backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, 
+              backgroundSize: "48px 48px" 
+            }} 
+          />
+
+          {/* Viewfinder Centerpiece (Lens) */}
+          <div className="w-72 h-72 rounded-full border border-white/10 relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-[2px] z-30">
+            {/* Viewfinder Corners */}
+            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-white/20" />
+            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-white/20" />
+            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-white/20" />
+            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-white/20" />
+            
+            {/* Center crosshair */}
+            <div className="absolute w-2 h-2 border border-white/10 rounded-full flex items-center justify-center">
+              <div className="w-px h-1 bg-white/20 absolute" />
+              <div className="h-px w-1 bg-white/20 absolute" />
+            </div>
+
+            {/* Viewfinder contents */}
+            <AnimatePresence mode="wait">
+              {Math.abs(dialProgress) <= 15 ? (
                 <motion.div 
-                  className="w-32 h-32 rounded-full relative"
-                  animate={{ 
-                    boxShadow: [
-                      "0 0 20px 0px rgba(200,210,255,0.2), inset 0 0 20px 0px rgba(255,200,100,0.2)",
-                      "0 0 60px 10px rgba(200,210,255,0.4), inset 0 0 40px 10px rgba(255,200,100,0.4)",
-                      "0 0 20px 0px rgba(200,210,255,0.2), inset 0 0 20px 0px rgba(255,200,100,0.2)"
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  style={{ background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5))" }}
+                  key="neutral"
+                  initial={{ opacity: 0, scale: 0.95 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  className="text-center space-y-3 px-6"
                 >
-                  {/* Orb Core */}
-                  <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-500/10 to-amber-500/10 backdrop-blur-xl" />
+                  <div className="text-[9px] font-mono tracking-[0.4em] text-white/30 uppercase">Focus Viewfinder</div>
+                  <div className="text-[11px] font-bold tracking-[0.2em] text-white/80 uppercase animate-pulse">Drag Dial to Focus</div>
                 </motion.div>
-
-                <div className="absolute bottom-1/4 text-white/40 font-mono text-xs tracking-widest uppercase animate-pulse flex flex-col items-center gap-2">
-                  <span className="text-white/60 font-bold mb-1">Academy</span>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                  <span>Swipe Down</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {side === 'agency' && (
-              <motion.div 
-                key="agency-view"
-                className="absolute inset-0 z-40"
-                initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.1, y: -50 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div className="absolute inset-0 bg-[#0a0a0a]" />
-                <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` }} />
-                <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, backgroundSize: "48px 48px" }} />
-                
-                <div className="absolute inset-0 flex flex-col justify-between p-8 text-left z-10">
-                  <div className="mt-12">
-                    <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
-                    <div className="w-12 h-px bg-white/20" />
-                  </div>
-
-                  <div className="flex flex-col gap-4">
-                    <Image src="/visuals-logo.png" alt="Grekam Visuals" width={220} height={80} className="object-contain" />
-                    <div className="overflow-hidden mt-4">
-                      <h2 className="font-black uppercase leading-none"
-                        style={{
-                          fontFamily: "var(--font-barlow, system-ui), sans-serif",
-                          fontSize: "clamp(2rem, 12vw, 4rem)",
-                          color: "#ffffff",
-                          letterSpacing: "2px",
-                        }}
-                      >
-                        WE BUILD<br />DIGITAL<br />EXPERIENCES
-                      </h2>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-24 cursor-pointer" onClick={() => navigate("agency", "https://agency.grekam.in/")}>
-                    <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md">
-                      Enter Agency
-                    </div>
-                    <div className="text-white/30 text-xs font-mono">→</div>
-                  </div>
-                </div>                <button 
-                  onClick={() => setSide(null)}
-                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-mono text-[10px] uppercase tracking-widest z-[100]"
+              ) : dialProgress > 15 ? (
+                <motion.div 
+                  key="agency"
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  className="text-center px-6 flex flex-col items-center gap-4"
+                  style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
                 >
-                  ← Back to Portal
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {side === 'academy' && (
-              <motion.div 
-                key="academy-view"
-                className="absolute inset-0 z-40"
-                initial={{ opacity: 0, scale: 0.9, y: -50 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.1, y: 50 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <motion.div
-        className="relative overflow-hidden"
-        animate={{ 
-          width: isMobile ? "100%" : (isAcademy ? "58%" : isAgency ? "42%" : "50%"),
-          height: isMobile ? "100%" : "100%"
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          zIndex: isAcademy ? 20 : 10,
-          cursor: `url('/cursor-academy.svg') 0 32, auto`
-        }}
-        onClick={() => handleMobileTouch("academy")}
-      >
-        <div className="absolute inset-0" style={{ backgroundColor: "#f0e8d4", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)` }} />
-        <div className="absolute top-0 left-8 md:left-16 w-px h-full bg-red-300/20 pointer-events-none" />
-        <AcademyCanvas active={isAcademy} />
-        {!isMobile && <SketchAnnotations active={isAcademy} />}
-
-        <button
-          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left"
-          onClick={() => isMobile ? (isAcademy ? navigate("academy", "https://academy.grekam.in/") : handleMobileTouch("academy")) : navigate("academy", "https://academy.grekam.in/")}
-          style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
-        >
-          <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
-            <div className="text-[9px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-2">02 / ACADEMY</div>
-            <svg width="48" height="4" viewBox="0 0 48 4"><path d="M0 2 Q12 1 24 2 Q36 3 48 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
-          </motion.div>
-
-          <div className="flex flex-col items-center">
-            <motion.div animate={{ filter: (isMobile || isAcademy) ? "none" : "blur(1.5px)", opacity: (isMobile || isAcademy) ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
-              <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
-                <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} />
-              </div>
-              <h2 style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", fontSize: "clamp(2rem, 5vw, 6.5rem)", color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.25)", letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900, transition: "color 0.6s ease" }}>MASTER<br />THE CRAFT.</h2>
-              <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", opacity: isAcademy ? 0.7 : 0 }}>↓ start here</div>
-            </motion.div>
-            <AnimatePresence>
-              {isAcademy && (
-                <motion.div key="sketch-elements" className="mt-4 md:mt-6 space-y-2 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
-                  {["Design Thinking", "Creative Direction", "Brand Identity"].map((item, i) => (
-                    <div key={item} className="flex items-center justify-center gap-2" style={{ transform: `rotate(${(i - 1) * 0.5}deg)`, filter: "url(#rough-paper)" }}>
-                      <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 4 Q8 2 16 4" stroke="rgba(80,55,20,0.8)" strokeWidth="1.5" fill="none" /></svg>
-                      <span className="text-[12px] font-mono font-bold text-[#2a1a08]">{item}</span>
-                    </div>
-                  ))}
+                  <Image src="/visuals-logo.png" alt="Grekam Visuals" width={180} height={60} className="object-contain" />
+                  <div className="text-[9px] font-mono tracking-[0.3em] text-white/60 uppercase">WE BUILD DIGITAL EXPERIENCES</div>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="academy"
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  className="text-center px-6 flex flex-col items-center gap-4"
+                  style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
+                >
+                  <Image src="/academy-logo.png" alt="Grekam Academy" width={180} height={60} className="object-contain" style={{ filter: "brightness(0)" }} />
+                  <div className="text-[9px] font-mono tracking-[0.3em] text-[#2a1a08]/70 uppercase font-bold">MASTER THE CRAFT</div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          <motion.div className="mb-4 md:mb-0" animate={{ opacity: isAcademy ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <div className="inline-flex items-center gap-3 px-5 py-3" style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
-              <span className="text-[10px] font-mono font-bold tracking-[0.25em] uppercase text-[#3a2808]">Enter Academy</span>
-              <span className="text-[#8b6a3a]">↗</span>
+          {/* Rotary Focus Dial Interface */}
+          <div className="absolute bottom-20 left-0 right-0 flex flex-col items-center justify-center gap-4 z-40 px-6">
+            <div className="w-full flex items-center justify-between px-8 text-[9px] font-mono tracking-[0.4em] text-white/40 uppercase">
+              <span className={dialProgress < -20 ? "text-[#8b6a3a] font-bold" : ""}>Academy</span>
+              <span className="text-white/10">•</span>
+              <span className={dialProgress > 20 ? "text-white font-bold" : ""}>Agency</span>
             </div>
-          </motion.div>
-        </button>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(242,236,220,0.5)", filter: "grayscale(0.6)", opacity: isAgency ? 0.7 : 0, transition: "opacity 0.7s ease" }} />
-      </motion.div>
-                <button 
-                  onClick={() => setSide(null)}
-                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-black/10 backdrop-blur-xl border border-black/20 text-[#3a2808] font-mono text-[10px] uppercase tracking-widest z-[100]"
-                >
-                  ← Back to Portal
-                </button>
+
+            <div className="w-72 h-12 relative flex items-center justify-center">
+              {/* Scale Ticks */}
+              <div className="absolute inset-x-0 h-[2px] bg-white/10 flex justify-between items-center px-2">
+                {Array.from({ length: 19 }).map((_, i) => {
+                  const isCenter = i === 9
+                  const isMajor = i % 3 === 0
+                  return (
+                    <div 
+                      key={i} 
+                      className="w-[1px] bg-white/20 transition-all duration-150" 
+                      style={{ 
+                        height: isCenter ? '14px' : isMajor ? '10px' : '6px',
+                        opacity: Math.abs(dialProgress / 100) > (Math.abs(i - 9) / 9) ? 0.8 : 0.2
+                      }} 
+                    />
+                  )
+                })}
+              </div>
+
+              {/* Slider Handle */}
+              <motion.div
+                drag="x"
+                dragConstraints={{ left: -110, right: 110 }}
+                dragElastic={0.05}
+                style={{ x: dragX }}
+                className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center cursor-grab active:cursor-grabbing z-50 absolute left-1/2 -ml-5 top-1/2 -mt-5"
+                onDragEnd={() => {
+                  const currentVal = dialProgress
+                  if (Math.abs(currentVal) < 85) {
+                    animate(dragX, 0, { type: "spring", stiffness: 350, damping: 28 })
+                  } else {
+                    if (currentVal >= 85) {
+                      animate(dragX, 110, { duration: 0.2 })
+                      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                        navigator.vibrate([30, 50, 30])
+                      }
+                      setTimeout(() => navigate("agency", "https://agency.grekam.in/"), 300)
+                    } else if (currentVal <= -85) {
+                      animate(dragX, -110, { duration: 0.2 })
+                      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                        navigator.vibrate([30, 50, 30])
+                      }
+                      setTimeout(() => navigate("academy", "https://academy.grekam.in/"), 300)
+                    }
+                  }
+                }}
+              >
+                <div className="w-4 h-4 rounded-full bg-white/80" />
               </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+
+            <div className="text-[8px] font-mono tracking-[0.25em] text-white/30 uppercase mt-1">
+              {Math.abs(dialProgress) > 80 ? "Release to Lock Focus" : "Drag handle left or right"}
+            </div>
+          </div>
         </div>
       ) : (
         <>
