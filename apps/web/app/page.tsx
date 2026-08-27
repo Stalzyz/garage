@@ -363,30 +363,115 @@ export default function SplitReality() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const hasInteracted = useRef(false)
   const isMobile = useMediaQuery("(max-width: 768px)")
-  const dragX = useMotionValue(0)
   const [dialProgress, setDialProgress] = useState(0)
+  const [rotation, setRotation] = useState(0)
+  const dialRef = useRef<HTMLDivElement>(null)
+  const isDraggingDial = useRef(false)
+  const startAngleRef = useRef(0)
+  const startRotationRef = useRef(0)
   const lastTickRef = useRef(0)
+
+  const getAngle = (clientX: number, clientY: number, rect: DOMRect) => {
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const x = clientX - centerX
+    const y = clientY - centerY
+    return Math.atan2(y, x) * (180 / Math.PI)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!dialRef.current) return
+    isDraggingDial.current = true
+    const rect = dialRef.current.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    const angle = getAngle(clientX, clientY, rect)
+    startAngleRef.current = angle
+    startRotationRef.current = rotation
+  }
+
+  const handleTouchMove = useCallback((e: TouchEvent | MouseEvent) => {
+    if (!isDraggingDial.current || !dialRef.current) return
+    const rect = dialRef.current.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    const currentAngle = getAngle(clientX, clientY, rect)
+    
+    let angleDiff = currentAngle - startAngleRef.current
+    if (angleDiff > 180) angleDiff -= 360
+    if (angleDiff < -180) angleDiff += 360
+    
+    const newRotation = Math.max(-85, Math.min(85, startRotationRef.current + angleDiff))
+    setRotation(newRotation)
+    setDialProgress((newRotation / 80) * 100)
+    
+    // Haptic tick feedback on dial rotation
+    const currentTick = Math.round(newRotation / 15)
+    if (currentTick !== lastTickRef.current) {
+      lastTickRef.current = currentTick
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(10)
+      }
+    }
+  }, [rotation])
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDraggingDial.current) return
+    isDraggingDial.current = false
+    
+    const finalProgress = (rotation / 80) * 100
+    if (Math.abs(finalProgress) < 85) {
+      let current = rotation
+      const step = () => {
+        current = current * 0.8
+        if (Math.abs(current) < 0.5) {
+          setRotation(0)
+          setDialProgress(0)
+        } else {
+          setRotation(current)
+          setDialProgress((current / 80) * 100)
+          requestAnimationFrame(step)
+        }
+      }
+      requestAnimationFrame(step)
+    } else {
+      if (finalProgress >= 85) {
+        setRotation(80)
+        setDialProgress(100)
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([30, 50, 30])
+        }
+        setTimeout(() => navigate("agency", "https://agency.grekam.in/"), 300)
+      } else {
+        setRotation(-80)
+        setDialProgress(-100)
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([30, 50, 30])
+        }
+        setTimeout(() => navigate("academy", "https://academy.grekam.in/"), 300)
+      }
+    }
+  }, [rotation])
 
   useEffect(() => {
     if (!isMobile) return
-    const unsub = dragX.on("change", (latest) => {
-      const mapped = Math.min(100, Math.max(-100, (latest / 110) * 100))
-      setDialProgress(mapped)
-      
-      const currentTick = Math.round(mapped / 15)
-      if (currentTick !== lastTickRef.current) {
-        lastTickRef.current = currentTick
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate(10)
-        }
-      }
-    })
+    const onMove = (e: TouchEvent | MouseEvent) => handleTouchMove(e)
+    const onEnd = () => handleTouchEnd()
     
-    // Automatically make nav visible on mobile to show header/branding
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onEnd)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    
     setNavVisible(true)
     
-    return () => unsub()
-  }, [isMobile, dragX])
+    return () => {
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+    }
+  }, [isMobile, handleTouchMove, handleTouchEnd])
 
   useEffect(() => {
     setIsClient(true)
@@ -520,121 +605,103 @@ export default function SplitReality() {
             }} 
           />
 
-          {/* Viewfinder Centerpiece (Lens) */}
-          <div className="w-72 h-72 rounded-full border border-white/10 relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-[2px] z-30">
-            {/* Viewfinder Corners */}
-            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-white/20" />
-            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-white/20" />
-            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-white/20" />
-            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-white/20" />
-            
-            {/* Center crosshair */}
-            <div className="absolute w-2 h-2 border border-white/10 rounded-full flex items-center justify-center">
-              <div className="w-px h-1 bg-white/20 absolute" />
-              <div className="h-px w-1 bg-white/20 absolute" />
-            </div>
-
-            {/* Viewfinder contents */}
-            <AnimatePresence mode="wait">
-              {Math.abs(dialProgress) <= 15 ? (
-                <motion.div 
-                  key="neutral"
-                  initial={{ opacity: 0, scale: 0.95 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
-                  exit={{ opacity: 0, scale: 1.05 }}
-                  className="text-center space-y-3 px-6"
-                >
-                  <div className="text-[9px] font-mono tracking-[0.4em] text-white/30 uppercase">Focus Viewfinder</div>
-                  <div className="text-[11px] font-bold tracking-[0.2em] text-white/80 uppercase animate-pulse">Drag Dial to Focus</div>
-                </motion.div>
-              ) : dialProgress > 15 ? (
-                <motion.div 
-                  key="agency"
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  className="text-center px-6 flex flex-col items-center gap-4"
-                  style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
-                >
-                  <Image src="/visuals-logo.png" alt="Grekam Visuals" width={180} height={60} className="object-contain" />
-                  <div className="text-[9px] font-mono tracking-[0.3em] text-white/60 uppercase">WE BUILD DIGITAL EXPERIENCES</div>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key="academy"
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  className="text-center px-6 flex flex-col items-center gap-4"
-                  style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
-                >
-                  <Image src="/academy-logo.png" alt="Grekam Academy" width={180} height={60} className="object-contain" style={{ filter: "brightness(0)" }} />
-                  <div className="text-[9px] font-mono tracking-[0.3em] text-[#2a1a08]/70 uppercase font-bold">MASTER THE CRAFT</div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* DSLR Meta parameters */}
+          <div className="absolute top-28 text-[9px] font-mono tracking-[0.35em] text-white/30 flex gap-5 uppercase z-40">
+            <span>F / 1.4</span>
+            <span>50MM</span>
+            <span className="text-white/60">AF-S FOCUS</span>
           </div>
 
-          {/* Rotary Focus Dial Interface */}
-          <div className="absolute bottom-20 left-0 right-0 flex flex-col items-center justify-center gap-4 z-40 px-6">
-            <div className="w-full flex items-center justify-between px-8 text-[9px] font-mono tracking-[0.4em] text-white/40 uppercase">
-              <span className={dialProgress < -20 ? "text-[#8b6a3a] font-bold" : ""}>Academy</span>
-              <span className="text-white/10">•</span>
-              <span className={dialProgress > 20 ? "text-white font-bold" : ""}>Agency</span>
+          {/* Center Circular DSLR Dial Structure */}
+          <div className="relative w-80 h-80 flex items-center justify-center z-30">
+            {/* Rotating Focus Grip Ring */}
+            <div 
+              ref={dialRef}
+              onMouseDown={handleTouchStart}
+              onTouchStart={handleTouchStart}
+              style={{ transform: `rotate(${rotation}deg)` }}
+              className="absolute w-80 h-80 rounded-full border-[12px] border-neutral-900 bg-transparent flex items-center justify-center cursor-grab active:cursor-grabbing z-40 select-none shadow-[0_0_30px_rgba(0,0,0,0.5)] touch-none"
+            >
+              <div className="absolute inset-0 rounded-full border border-white/10 pointer-events-none" />
+              {/* Ridges around the DSLR ring */}
+              {Array.from({ length: 36 }).map((_, i) => (
+                <div 
+                  key={i}
+                  className="absolute w-[2px] h-3 bg-white/20"
+                  style={{ 
+                    transform: `rotate(${i * 10}deg) translateY(-144px)` 
+                  }}
+                />
+              ))}
+              
+              {/* Colorful Gradient Glow focus indicator dot */}
+              <div 
+                className="absolute w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-400 via-violet-500 to-amber-400 shadow-[0_0_12px_rgba(139,92,246,0.8)]"
+                style={{ transform: 'translateY(-144px)' }}
+              />
             </div>
 
-            <div className="w-72 h-12 relative flex items-center justify-center">
-              {/* Scale Ticks */}
-              <div className="absolute inset-x-0 h-[2px] bg-white/10 flex justify-between items-center px-2">
-                {Array.from({ length: 19 }).map((_, i) => {
-                  const isCenter = i === 9
-                  const isMajor = i % 3 === 0
-                  return (
-                    <div 
-                      key={i} 
-                      className="w-[1px] bg-white/20 transition-all duration-150" 
-                      style={{ 
-                        height: isCenter ? '14px' : isMajor ? '10px' : '6px',
-                        opacity: Math.abs(dialProgress / 100) > (Math.abs(i - 9) / 9) ? 0.8 : 0.2
-                      }} 
-                    />
-                  )
-                })}
+            {/* Viewfinder (Inner Cylindrical Display) */}
+            <div className="w-[260px] h-[260px] rounded-full border border-white/5 bg-neutral-950/90 relative flex flex-col items-center justify-center overflow-hidden backdrop-blur-md z-30">
+              {/* Corner framing brackets */}
+              <div className="absolute top-6 left-6 w-4 h-4 border-t border-l border-white/10" />
+              <div className="absolute top-6 right-6 w-4 h-4 border-t border-r border-white/10" />
+              <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/10" />
+              <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/10" />
+
+              {/* Central crosshair */}
+              <div className="absolute w-3 h-3 border border-white/5 rounded-full flex items-center justify-center">
+                <div className="w-px h-2 bg-white/10 absolute" />
+                <div className="h-px w-2 bg-white/10 absolute" />
               </div>
 
-              {/* Slider Handle */}
-              <motion.div
-                drag="x"
-                dragConstraints={{ left: -110, right: 110 }}
-                dragElastic={0.05}
-                style={{ x: dragX }}
-                className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center cursor-grab active:cursor-grabbing z-50 absolute left-1/2 -ml-5 top-1/2 -mt-5"
-                onDragEnd={() => {
-                  const currentVal = dialProgress
-                  if (Math.abs(currentVal) < 85) {
-                    animate(dragX, 0, { type: "spring", stiffness: 350, damping: 28 })
-                  } else {
-                    if (currentVal >= 85) {
-                      animate(dragX, 110, { duration: 0.2 })
-                      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                        navigator.vibrate([30, 50, 30])
-                      }
-                      setTimeout(() => navigate("agency", "https://agency.grekam.in/"), 300)
-                    } else if (currentVal <= -85) {
-                      animate(dragX, -110, { duration: 0.2 })
-                      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                        navigator.vibrate([30, 50, 30])
-                      }
-                      setTimeout(() => navigate("academy", "https://academy.grekam.in/"), 300)
-                    }
-                  }
-                }}
-              >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-400 via-violet-500 to-amber-400 shadow-[0_0_12px_rgba(139,92,246,0.8)]" />
-              </motion.div>
+              {/* Viewfinder Content - Enlarged Inside Dial */}
+              <AnimatePresence mode="wait">
+                {Math.abs(dialProgress) <= 15 ? (
+                  <motion.div 
+                    key="neutral"
+                    initial={{ opacity: 0, scale: 0.95 }} 
+                    animate={{ opacity: 1, scale: 1 }} 
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    className="text-center space-y-2 px-4"
+                  >
+                    <div className="text-[9px] font-mono tracking-[0.4em] text-white/30 uppercase">DSLR Viewfinder</div>
+                    <div className="text-[11px] font-bold tracking-[0.2em] text-white/80 uppercase animate-pulse">Rotate Focus Ring</div>
+                  </motion.div>
+                ) : dialProgress > 15 ? (
+                  <motion.div 
+                    key="agency"
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    className="text-center px-4 flex flex-col items-center justify-center"
+                    style={{ filter: `blur(${dialProgress > 15 ? Math.max(0, 10 - ((dialProgress - 15) / 70) * 10) : 10}px)` }}
+                  >
+                    <span className="text-4xl font-black tracking-[0.1em] text-white leading-none uppercase" style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif" }}>
+                      AGENCY
+                    </span>
+                    <div className="text-[8px] font-mono tracking-[0.3em] text-white/40 uppercase mt-2">Grekam Visuals</div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="academy"
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    className="text-center px-4 flex flex-col items-center justify-center"
+                    style={{ filter: `blur(${dialProgress < -15 ? Math.max(0, 10 - ((Math.abs(dialProgress) - 15) / 70) * 10) : 10}px)` }}
+                  >
+                    <span className="text-4xl font-black tracking-[0.1em] text-[#2a1a08] leading-none uppercase" style={{ fontFamily: "Georgia, serif" }}>
+                      ACADEMY
+                    </span>
+                    <div className="text-[8px] font-mono tracking-[0.3em] text-[#2a1a08]/50 uppercase mt-2">Master the Craft</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+          </div>
 
-            <div className="text-[8px] font-mono tracking-[0.25em] text-white/30 uppercase mt-1">
-              {Math.abs(dialProgress) > 80 ? "Release to Lock Focus" : "Drag handle left or right"}
-            </div>
+          {/* Indicator text at the bottom */}
+          <div className="absolute bottom-28 text-[9px] font-mono tracking-[0.25em] text-white/30 uppercase z-40">
+            {Math.abs(dialProgress) > 80 ? "Release focus lock" : "Rotate lens ring left or right"}
           </div>
         </div>
       ) : (
