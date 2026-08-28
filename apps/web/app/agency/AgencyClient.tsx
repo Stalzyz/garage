@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check } from "lucide-react"
+import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
 type ProjectData = { id: string; title: string; image: string }
-type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; }
+type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
 
 const DUMMY_PROJECTS: ProjectData[] = [
   { id: 'p1', title: 'Aura SaaS Platform', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80' },
@@ -20,10 +21,408 @@ const BRANDING_PROJECTS: ProjectData[] = [
   { id: 'b2', title: 'Zephyr Campaign', image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&q=80' },
 ]
 
+// --- PRICING DATA & CALCULATOR ---
+const ADDON_LIST = [
+  { id: "extra_page", label: "Extra Page", price: 2000, description: "Add additional inner pages" },
+  { id: "landing_page", label: "Standard Landing Page", price: 8000, description: "Standalone conversion page" },
+  { id: "adv_landing_page", label: "Advanced Landing Page", price: 20000, description: "Highly interactive landing page" },
+  { id: "logo_design", label: "Logo Design", price: 6000, description: "Custom vector logo design" },
+  { id: "brand_identity", label: "Brand Identity Layout", price: 20000, description: "Full color palette, fonts, assets" },
+  { id: "seo_setup", label: "One-time SEO Setup", price: 10000, description: "Meta tags, sitemap, indexing" },
+  { id: "monthly_seo", label: "Monthly SEO Campaign", price: 15000, description: "Monthly linkbuilding & blogs" },
+  { id: "maintenance", label: "Monthly Maintenance", price: 4999, description: "Security audits, backups, minor updates" },
+  { id: "content_writing", label: "Professional Content Writing", price: 2000, description: "Copywriting per page" },
+  { id: "custom_animation", label: "Custom Animation Setup", price: 12000, description: "Framer motion, WebGL, scroll animations" },
+  { id: "payment_gateway", label: "Payment Gateway Integration", price: 5000, description: "Razorpay, Stripe, PayPal setup" },
+  { id: "whatsapp_integration", label: "Advanced WhatsApp Chatbot", price: 6000, description: "Automated support flow integration" },
+  { id: "api_integration", label: "Third-party API Link", price: 7500, description: "Connect external services" },
+  { id: "revision", label: "Additional Revision Round", price: 2000, description: "Extra design iteration round" },
+  { id: "hosting_setup", label: "Hosting Server Setup", price: 3500, description: "AWS, Vercel, VPS setup" },
+]
+
+const WEBSITE_PACKAGES = [
+  {
+    id: "starter",
+    title: "Starter Website",
+    price: 14999,
+    pages: "5–6 pages",
+    idealFor: "Salons, consultants, freelancers, local businesses, tuition centres",
+    features: [
+      "Custom responsive design",
+      "Home, About, Services, Gallery, Contact",
+      "WhatsApp & contact form integration",
+      "Basic SEO & SSL setup",
+      "Mobile + desktop optimization"
+    ]
+  },
+  {
+    id: "business",
+    title: "Business Website",
+    price: 29999,
+    pages: "8–12 pages",
+    isRecommended: true,
+    idealFor: "Growing businesses wanting strong brand presence & conversions",
+    features: [
+      "Everything in Starter, plus:",
+      "Premium custom UI/UX",
+      "Animations & interactions",
+      "Advanced responsive layout",
+      "Google Maps & Analytics",
+      "CMS for managing content",
+      "2–3 revision rounds"
+    ]
+  },
+  {
+    id: "premium",
+    title: "Premium Website",
+    price: 49999,
+    pages: "12–20 pages",
+    idealFor: "High-end brand websites, schools, agencies, manufacturers, real-estate",
+    features: [
+      "Fully custom UI/UX design",
+      "Advanced custom animations",
+      "Premium typography & visual system",
+      "Custom illustrations & graphics",
+      "Advanced forms & SEO setup",
+      "3–4 revision rounds"
+    ]
+  },
+  {
+    id: "ecommerce",
+    title: "E-commerce Website",
+    price: 59999,
+    pages: "Starting from ₹59,999",
+    idealFor: "Online stores, retail brands, merchant catalog websites",
+    features: [
+      "Product catalog & categories",
+      "Product search & filter system",
+      "Shopping cart & checkout",
+      "Stripe/Razorpay online payments",
+      "Order management panel",
+      "Customer accounts & coupons"
+    ]
+  }
+]
+
+const CUSTOM_APP_TIERS = [
+  {
+    title: "Basic/Medium Web App",
+    range: "₹1,00,000 – ₹3,00,000",
+    description: "Tailored operational dashboards, lightweight SaaS tools, basic customer/booking portals.",
+    examples: ["Booking platforms", "Vendor portals", "Basic CRM/HRM dashboard"]
+  },
+  {
+    title: "Advanced Web App",
+    range: "₹3,00,000 – ₹7,00,000",
+    description: "Complex workflow applications, custom ERPs, advanced HRM modules, complete SaaS portals.",
+    examples: ["Custom HRM/ERP suites", "Advanced SaaS apps", "School management systems"]
+  },
+  {
+    title: "Large-Scale Platform",
+    range: "₹7,00,000+",
+    description: "Enterprise scale software, large multi-tenant platforms, high-security custom systems.",
+    examples: ["Global market software", "Enterprise logistics portals", "API-heavy SaaS engines"]
+  }
+]
+
+const PricingCalculator = () => {
+  const org = useOrganization()
+  const [activeTab, setActiveTab] = useState<'websites' | 'custom' | 'calculator'>('websites')
+  const [selectedBase, setSelectedBase] = useState<string>('business')
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([])
+
+  const currentBasePrice = useMemo(() => {
+    if (selectedBase === 'none') return 0;
+    const pkg = WEBSITE_PACKAGES.find(p => p.id === selectedBase);
+    if (pkg) return pkg.price;
+    if (selectedBase === 'custom_basic') return 100000;
+    if (selectedBase === 'custom_adv') return 300000;
+    if (selectedBase === 'custom_large') return 700000;
+    return 0;
+  }, [selectedBase])
+
+  const totalEstimate = useMemo(() => {
+    let sum = currentBasePrice
+    selectedAddons.forEach(id => {
+      const addon = ADDON_LIST.find(a => a.id === id)
+      if (addon) sum += addon.price
+    })
+    return sum
+  }, [currentBasePrice, selectedAddons])
+
+  const handleAddonToggle = (id: string) => {
+    setSelectedAddons(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    )
+  }
+
+  const baseName = useMemo(() => {
+    if (selectedBase === 'none') return "None";
+    const pkg = WEBSITE_PACKAGES.find(p => p.id === selectedBase);
+    if (pkg) return pkg.title;
+    if (selectedBase === 'custom_basic') return "Custom App (Basic)";
+    if (selectedBase === 'custom_adv') return "Custom App (Advanced)";
+    if (selectedBase === 'custom_large') return "Custom App (Enterprise)";
+    return "";
+  }, [selectedBase])
+
+  const whatsappMessage = useMemo(() => {
+    const addonNames = selectedAddons.map(id => {
+      const a = ADDON_LIST.find(addon => addon.id === id);
+      return a ? `- ${a.label} (₹${a.price.toLocaleString('en-IN')})` : '';
+    }).filter(Boolean).join('\n');
+
+    return `Hi Grekam Visuals,\n\nI just calculated an estimate of ₹${totalEstimate.toLocaleString('en-IN')} on your Quote Builder:\n\n*Base Package:* ${baseName} (₹${currentBasePrice.toLocaleString('en-IN')})\n${addonNames ? `\n*Add-ons Selected:*\n${addonNames}\n` : ''}\nI would love to discuss this project and review our operational requirements. Thanks!`;
+  }, [totalEstimate, baseName, currentBasePrice, selectedAddons])
+
+  const orgPhone = org?.phone || "+919876543210"
+  const cleanPhone = orgPhone.replace(/[^0-9]/g, "")
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`
+
+  return (
+    <div className="w-full flex flex-col items-center">
+      <div className="flex border border-white/10 rounded-full p-1 bg-white/5 w-full max-w-lg mx-auto mb-10 shrink-0">
+        {(['websites', 'custom', 'calculator'] as const).map(tab => (
+           <button
+             key={tab}
+             type="button"
+             onClick={() => setActiveTab(tab)}
+             className={`flex-1 py-2 text-xs md:text-sm font-bold uppercase tracking-widest rounded-full transition-all ${activeTab === tab ? 'bg-white text-black shadow-md' : 'text-white/50 hover:text-white'}`}
+           >
+             {tab === 'websites' ? 'Website Tiers' : tab === 'custom' ? 'Custom Apps' : 'Quote Builder'}
+           </button>
+        ))}
+      </div>
+
+      <div className="w-full">
+        {activeTab === 'websites' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full text-left">
+            {WEBSITE_PACKAGES.map(pkg => (
+              <div key={pkg.id} className={`p-6 rounded-3xl border flex flex-col justify-between transition-all relative ${pkg.isRecommended ? 'border-[#10b981] bg-white/[0.03] shadow-[0_0_30px_rgba(16,185,129,0.15)] ring-1 ring-[#10b981]/50' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+                {pkg.isRecommended && (
+                  <span className="absolute -top-3 right-6 px-3 py-1 bg-[#10b981] text-black text-[9px] font-black uppercase tracking-widest rounded-full">
+                    Most Popular
+                  </span>
+                )}
+                <div>
+                  <h3 className="font-bold text-lg text-white mb-1 uppercase tracking-wider">{pkg.title}</h3>
+                  <div className="text-2xl font-black text-white mb-2">₹{pkg.price.toLocaleString('en-IN')}{pkg.id === 'ecommerce' ? '+' : ''}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-[#10b981] mb-4">{pkg.pages}</div>
+                  <p className="text-xs text-white/50 mb-6 leading-relaxed min-h-[40px]">{pkg.idealFor}</p>
+                  
+                  <ul className="space-y-2 mb-6 border-t border-white/5 pt-4">
+                    {pkg.features.map((feat, i) => (
+                      <li key={i} className="text-xs text-white/70 flex items-start gap-2">
+                        <Check className="w-3.5 h-3.5 text-[#10b981] shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => { setSelectedBase(pkg.id); setActiveTab('calculator'); }}
+                  className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all mt-6 ${pkg.isRecommended ? 'bg-[#10b981] text-black hover:bg-[#0fa06e]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  Select Package
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'custom' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+            {CUSTOM_APP_TIERS.map((tier, i) => (
+              <div key={i} className="p-6 rounded-3xl border border-white/10 bg-white/5 flex flex-col justify-between hover:border-white/20 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#10b981] mb-4">
+                    <Code2 className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-lg text-white mb-1 uppercase tracking-wider">{tier.title}</h3>
+                  <div className="text-xl font-black text-white mb-4">{tier.range}</div>
+                  <p className="text-xs text-white/50 mb-6 leading-relaxed min-h-[50px]">{tier.description}</p>
+                  
+                  <div className="border-t border-white/10 pt-4 mt-4">
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-[#10b981] mb-2">Deliverables Include:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {tier.examples.map((ex, j) => (
+                        <span key={j} className="text-[9px] font-bold px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-white/70">
+                          {ex}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if (i === 0) setSelectedBase('custom_basic');
+                    else if (i === 1) setSelectedBase('custom_adv');
+                    else setSelectedBase('custom_large');
+                    setActiveTab('calculator');
+                  }}
+                  className="w-full py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 text-xs font-bold uppercase tracking-widest transition-all mt-6"
+                >
+                  Inquire Tier
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'calculator' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full text-left items-start">
+            <div className="lg:col-span-8 space-y-6">
+              <div className="p-6 rounded-3xl border border-white/10 bg-white/5">
+                <h3 className="font-bold text-xs uppercase tracking-widest text-[#10b981] mb-4">1. Choose Base Package</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedBase('none')}
+                    className={`p-4 rounded-xl border text-left transition-all ${selectedBase === 'none' ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                  >
+                    <div className="font-bold text-sm text-white">None (Add-ons Only)</div>
+                    <div className="text-xs text-white/50 mt-1">Select if you just need custom tasks or logo designs</div>
+                  </button>
+                  
+                  {WEBSITE_PACKAGES.map(pkg => (
+                    <button 
+                      key={pkg.id}
+                      type="button"
+                      onClick={() => setSelectedBase(pkg.id)}
+                      className={`p-4 rounded-xl border text-left transition-all relative ${selectedBase === pkg.id ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                    >
+                      <div className="font-bold text-sm text-white flex items-center justify-between">
+                        <span>{pkg.title}</span>
+                        {pkg.isRecommended && <span className="text-[8px] font-black uppercase bg-[#10b981] text-black px-1.5 py-0.5 rounded">Popular</span>}
+                      </div>
+                      <div className="text-xs text-[#10b981] mt-1 font-mono">₹{pkg.price.toLocaleString('en-IN')}</div>
+                    </button>
+                  ))}
+
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedBase('custom_basic')}
+                    className={`p-4 rounded-xl border text-left transition-all ${selectedBase === 'custom_basic' ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                  >
+                    <div className="font-bold text-sm text-white">Custom App (Basic)</div>
+                    <div className="text-xs text-[#10b981] mt-1 font-mono">₹1,00,000</div>
+                  </button>
+                  
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedBase('custom_adv')}
+                    className={`p-4 rounded-xl border text-left transition-all ${selectedBase === 'custom_adv' ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                  >
+                    <div className="font-bold text-sm text-white">Custom App (Advanced)</div>
+                    <div className="text-xs text-[#10b981] mt-1 font-mono">₹3,00,000</div>
+                  </button>
+
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedBase('custom_large')}
+                    className={`p-4 rounded-xl border text-left transition-all ${selectedBase === 'custom_large' ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                  >
+                    <div className="font-bold text-sm text-white">Custom App (Enterprise)</div>
+                    <div className="text-xs text-[#10b981] mt-1 font-mono">₹7,00,000</div>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 rounded-3xl border border-white/10 bg-white/5">
+                <h3 className="font-bold text-xs uppercase tracking-widest text-[#10b981] mb-4">2. Select Add-on Services</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  {ADDON_LIST.map(addon => {
+                    const isSelected = selectedAddons.includes(addon.id)
+                    return (
+                      <button 
+                        key={addon.id}
+                        type="button"
+                        onClick={() => handleAddonToggle(addon.id)}
+                        className={`p-4 rounded-xl border text-left transition-all flex items-center justify-between ${isSelected ? 'border-[#10b981] bg-white/5' : 'border-white/5 hover:border-white/10'}`}
+                      >
+                        <div>
+                          <div className="font-bold text-sm text-white">{addon.label}</div>
+                          <div className="text-[10px] text-white/40 mt-1">{addon.description}</div>
+                        </div>
+                        <div className="text-right shrink-0 ml-4">
+                          <div className="text-xs font-mono text-[#10b981] font-bold">+₹{addon.price.toLocaleString('en-IN')}</div>
+                          <div className={`w-4 h-4 rounded mt-2 border flex items-center justify-center ${isSelected ? 'border-[#10b981] bg-[#10b981] text-black' : 'border-white/20 bg-transparent'}`}>
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            <div className="lg:col-span-4 p-6 rounded-3xl border border-white/10 bg-white/5 sticky top-24">
+              <h3 className="font-bold text-xs uppercase tracking-widest text-[#10b981] mb-6">Estimate Summary</h3>
+              
+              <div className="space-y-4 mb-6 border-b border-white/10 pb-6 text-sm">
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/50">Base Package:</span>
+                  <span className="font-bold text-white text-right">{baseName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-white/50">Base Price:</span>
+                  <span className="font-mono text-white">₹{currentBasePrice.toLocaleString('en-IN')}</span>
+                </div>
+                
+                {selectedAddons.length > 0 && (
+                  <div className="pt-3 border-t border-white/5">
+                    <span className="text-white/50 block mb-2 font-bold text-[11px] uppercase tracking-wider">Add-ons Selected:</span>
+                    <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-1">
+                      {selectedAddons.map(id => {
+                        const addon = ADDON_LIST.find(a => a.id === id);
+                        if (!addon) return null;
+                        return (
+                          <div key={id} className="flex justify-between items-center text-xs">
+                            <span className="text-white/70 max-w-[150px] truncate">{addon.label}</span>
+                            <span className="font-mono text-[#10b981]">+₹{addon.price.toLocaleString('en-IN')}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="pt-3 border-t border-white/5 text-[10px] text-white/40 italic leading-relaxed">
+                  * Domain & hosting costs will be billed at actual cost.
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mb-6">
+                <span className="font-bold text-white uppercase tracking-wider text-xs">Estimated Total:</span>
+                <span className="text-2xl font-black text-[#10b981] font-mono">₹{totalEstimate.toLocaleString('en-IN')}</span>
+              </div>
+
+              <a 
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 bg-[#25d366] text-black font-black tracking-widest uppercase text-xs rounded-xl hover:bg-[#20ba59] transition-all flex items-center justify-center gap-2"
+              >
+                Inquire via WhatsApp
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const INITIAL_CARDS: CardData[] = [
   { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures and strategic brand identities that dominate markets.", iconName: "Zap", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
   { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and trust.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: BRANDING_PROJECTS },
   { id: "webdev", category: "Build", title: "Enterprise Commerce", subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce engines capable of handling infinite scale without bottlenecks.", iconName: "Code2", colorHex: "#22d3ee", cta: "Scale Infrastructure", projects: DUMMY_PROJECTS },
+  { id: "pricing", category: "Investment", title: "Pricing & Packages", subtitle: "Clear tiers for websites, e-commerce, custom app development, and interactive add-on price calculations.", iconName: "IndianRupee", colorHex: "#10b981", cta: "Calculate Quote", isPricing: true },
   { id: "crm", category: "Systems", title: "Bespoke CRM Operations", subtitle: "Stop forcing your team into generic software. We develop custom CRM platforms tailored to the exact neuro-pathways of your business operations.", iconName: "Fingerprint", colorHex: "#fbbf24", cta: "Enter CRM Dashboard", isCrm: true },
   { id: "hrm", category: "People", title: "HRM & Talent", subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, and recruitment through our centralized human resource management system.", iconName: "Users", colorHex: "#10b981", cta: "Enter HR Dashboard", isHrm: true },
   { id: "grafty", category: "Proprietary Tech", title: "The Grafty Advantage", subtitle: "Leverage our proprietary WhatsApp Business API integration. Automate your support, scale your outreach, and connect exactly where your customers already live.", iconName: "Rocket", colorHex: "#f43f5e", cta: "Deploy Grafty", projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }] },
@@ -495,7 +894,13 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
          </div>
       )}
 
-      {isActive && (
+      {isActive && card.isPricing && (
+         <div className="mt-8 w-full">
+            <PricingCalculator />
+         </div>
+      )}
+
+      {isActive && !card.isPricing && (
         <div className="mt-auto pt-8 border-t border-white/10 flex flex-col md:flex-row gap-4 mt-8">
           {(card.id === 'contact_form' || card.isContactForm) ? (
              <UniversalContactForm 
@@ -1162,6 +1567,10 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   if (!currentCards.find(c => c.id === 'academy' || c.isAcademy)) {
     const defaultAcademyCard = INITIAL_CARDS.find(c => c.id === 'academy');
     if (defaultAcademyCard) currentCards.push(defaultAcademyCard);
+  }
+  if (!currentCards.find(c => c.id === 'pricing' || c.isPricing)) {
+    const defaultPricingCard = INITIAL_CARDS.find(c => c.id === 'pricing');
+    if (defaultPricingCard) currentCards.push(defaultPricingCard);
   }
 
   const playSound = () => {
