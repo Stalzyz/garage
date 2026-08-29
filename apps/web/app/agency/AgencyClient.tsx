@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
