@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { 
   Activity, Users, DollarSign, TrendingUp, Calendar, AlertCircle, 
   Briefcase, GraduationCap, BookOpen, CheckCircle, Clock, ArrowRight, 
@@ -24,8 +25,24 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 }
 
 export default function DashboardHome() {
-  const { data: session } = useSession()
-  const role = session?.user?.role || "INTERN"
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/auth/login?callbackUrl=/dashboard")
+    }
+  }, [status, router])
+
+  if (status === "loading" || status === "unauthenticated" || !session?.user) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[500px]">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    )
+  }
+
+  const role = session.user.role || "STAFF"
 
   if (role === "STUDENT") {
     return <StudentDashboard />
