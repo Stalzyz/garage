@@ -2,24 +2,29 @@ import React, { useEffect } from "react"
 import { X } from "lucide-react"
 
 interface SlideOverProps {
-  open: boolean
+  open?: boolean
+  isOpen?: boolean
   onClose: () => void
   title: string
   subtitle?: string
+  description?: string
   children: React.ReactNode
 }
 
-export function SlideOver({ open, onClose, title, subtitle, children }: SlideOverProps) {
+export function SlideOver({ open, isOpen, onClose, title, subtitle, description, children }: SlideOverProps) {
+  const isVisible = Boolean(open ?? isOpen ?? false)
+  const subText = subtitle || description
+
   useEffect(() => {
-    if (open) {
+    if (isVisible) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
     return () => { document.body.style.overflow = 'unset' }
-  }, [open])
+  }, [isVisible])
 
-  if (!open) return null
+  if (!isVisible) return null
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-stretch justify-end">
@@ -35,7 +40,7 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0">
           <div>
             <h2 className="text-lg font-bold text-white">{title}</h2>
-            {subtitle && <p className="text-sm text-white/50 mt-1">{subtitle}</p>}
+            {subText && <p className="text-sm text-white/50 mt-1">{subText}</p>}
           </div>
           <button 
             onClick={onClose}

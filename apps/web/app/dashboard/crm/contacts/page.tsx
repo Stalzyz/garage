@@ -812,6 +812,7 @@ export default function ContactsAndCompaniesPage() {
 
       {/* ── MODAL 1: ADD/EDIT CONTACT ── */}
       <SlideOver
+        open={isContactModalOpen}
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
         title={editingContactId ? "Edit Contact Details" : "Add New Contact"}
@@ -984,6 +985,7 @@ export default function ContactsAndCompaniesPage() {
 
       {/* ── MODAL 2: ADD/EDIT COMPANY & GST ── */}
       <SlideOver
+        open={isCompanyModalOpen}
         isOpen={isCompanyModalOpen}
         onClose={() => setIsCompanyModalOpen(false)}
         title={editingCompanyId ? "Edit Company & GST Profile" : "Add B2B Company & GST"}
