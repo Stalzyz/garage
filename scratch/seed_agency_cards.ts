@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "../apps/web/src/lib/prisma"
 
 const AGENCY_CARDS = [
   {
