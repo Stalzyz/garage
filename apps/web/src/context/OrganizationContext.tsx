@@ -52,37 +52,45 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
-    fetch(`${API_BASE}/settings/organization`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
-        if (data) {
-          const orgData = data.data || data;
-          setOrg(orgData);
+    const fetchOrg = () => {
+      fetch(`${API_BASE}/settings/organization`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data) {
+            const orgData = data.data || data;
+            setOrg(orgData);
 
-          // Inject primary color as CSS variable globally
-          if (typeof document !== "undefined") {
-            const root = document.documentElement;
-            root.style.setProperty("--org-primary", orgData.primaryColor || "#2563eb");
+            // Inject primary color as CSS variable globally
+            if (typeof document !== "undefined") {
+              const root = document.documentElement;
+              root.style.setProperty("--org-primary", orgData.primaryColor || "#2563eb");
 
-            // Update page title if set
-            if (orgData.name) {
-              document.title = orgData.name;
-            }
-
-            // Update Agency Favicon dynamically in browser tab
-            if (orgData.faviconUrl) {
-              let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-              if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.getElementsByTagName('head')[0].appendChild(link);
+              // Update page title if set
+              if (orgData.name) {
+                document.title = orgData.name;
               }
-              link.href = orgData.faviconUrl;
+
+              // Update Agency Favicon dynamically in browser tab
+              if (orgData.faviconUrl) {
+                let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+                if (!link) {
+                  link = document.createElement('link');
+                  link.rel = 'icon';
+                  document.getElementsByTagName('head')[0].appendChild(link);
+                }
+                link.href = orgData.faviconUrl;
+              }
             }
           }
-        }
-      })
-      .catch(() => {}); // Silently fail during dev if API is not up
+        })
+        .catch(() => {});
+    };
+
+    fetchOrg();
+
+    const handleUpdate = () => fetchOrg();
+    window.addEventListener("organization-updated", handleUpdate);
+    return () => window.removeEventListener("organization-updated", handleUpdate);
   }, []);
 
   return (

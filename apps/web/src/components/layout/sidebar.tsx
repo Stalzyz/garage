@@ -19,21 +19,41 @@ const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator")
 import { NotificationMenu } from "./NotificationMenu"
 import { TimerWidget } from "./TimerWidget"
 
+function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string; size?: number }) {
+  const [hasError, setHasError] = useState(false)
+  
+  if (url && !hasError) {
+    return (
+      <div 
+        style={{ width: size, height: size }}
+        className="rounded-xl overflow-hidden shrink-0 border border-dash-border-strong bg-white/5 flex items-center justify-center p-0.5"
+      >
+        <img 
+          src={url} 
+          alt={name} 
+          onError={() => setHasError(true)} 
+          className="w-full h-full object-contain" 
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      style={{ width: size, height: size }}
+      className="rounded-xl bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+    >
+      <ShieldCheck className="w-4 h-4 text-blue-400" strokeWidth={2} />
+    </div>
+  )
+}
+
 function OrgHeader() {
   const org = useOrganization()
 
   return (
     <div className="flex h-16 items-center px-6 gap-3 relative z-10">
-      {/* Logo: show custom image if set, fallback to ShieldCheck icon */}
-      {org.logoUrl ? (
-        <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 border border-dash-border-strong">
-          <Image src={org.logoUrl} alt={org.name} width={32} height={32} unoptimized className="object-cover w-full h-full" />
-        </div>
-      ) : (
-        <div className="w-8 h-8 rounded-xl bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <ShieldCheck className="w-4 h-4 text-dash-text-primary/80" strokeWidth={2} />
-        </div>
-      )}
+      <BrandLogo url={org.logoUrl} name={org.name} size={32} />
       <span className="text-lg font-bold tracking-tight">{org.name}</span>
       <div className="ml-auto flex items-center gap-2">
         <TimerWidget />
@@ -237,15 +257,7 @@ export function Sidebar() {
       {/* Mobile Top Header Bar */}
       <div className="print:hidden md:hidden fixed top-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-b border-dash-border-strong z-40 flex items-center justify-between px-5">
         <div className="flex items-center gap-2.5">
-          {org.logoUrl ? (
-            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-dash-border-strong relative">
-              <Image src={org.logoUrl} alt={org.name} fill unoptimized className="object-cover" />
-            </div>
-          ) : (
-            <div className="w-7 h-7 rounded-lg bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-dash-text-primary/80" />
-            </div>
-          )}
+          <BrandLogo url={org.logoUrl} name={org.name} size={28} />
           <span className="text-xs font-bold tracking-wider uppercase text-dash-text-primary/90 truncate max-w-[120px]">{org.name}</span>
         </div>
         <div className="flex items-center gap-2.5">

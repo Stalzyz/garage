@@ -70,8 +70,12 @@ export default function AdCampaignsDashboard() {
                 </div>
                 <h3 className="text-sm font-medium text-muted-foreground">Total Spend (30d)</h3>
               </div>
-              <p className="text-2xl font-bold text-foreground">$6,340.50</p>
-              <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +12% from last month</p>
+              <p className="text-2xl font-bold font-mono text-foreground">
+                ₹{campaigns.reduce((acc: number, c: any) => acc + (c.spend || 0), 0).toLocaleString('en-IN')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                {campaigns.length > 0 ? "Tracked from live ad accounts" : "No active ad spend"}
+              </p>
             </div>
             
             <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
@@ -79,10 +83,14 @@ export default function AdCampaignsDashboard() {
                 <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
                   <Target className="w-4 h-4 text-blue-500" />
                 </div>
-                <h3 className="text-sm font-medium text-muted-foreground">Avg. CPA</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">Active Campaigns</h3>
               </div>
-              <p className="text-2xl font-bold text-foreground">$62.70</p>
-              <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3 rotate-180" /> -5% from last month</p>
+              <p className="text-2xl font-bold font-mono text-foreground">
+                {campaigns.filter((c: any) => c.status === 'ACTIVE').length}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                Out of {campaigns.length} total campaigns
+              </p>
             </div>
             
             <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
@@ -92,8 +100,12 @@ export default function AdCampaignsDashboard() {
                 </div>
                 <h3 className="text-sm font-medium text-muted-foreground">Blended ROAS</h3>
               </div>
-              <p className="text-2xl font-bold text-foreground">3.8x</p>
-              <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +0.4x from last month</p>
+              <p className="text-2xl font-bold font-mono text-foreground">
+                {campaigns.length > 0 ? "0.0x" : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                Return on ad spend
+              </p>
             </div>
 
             <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
@@ -103,8 +115,12 @@ export default function AdCampaignsDashboard() {
                 </div>
                 <h3 className="text-sm font-medium text-muted-foreground">Total Leads</h3>
               </div>
-              <p className="text-2xl font-bold text-foreground">101</p>
-              <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +18% from last month</p>
+              <p className="text-2xl font-bold font-mono text-foreground">
+                {campaigns.reduce((acc: number, c: any) => acc + (c.leadsCount || 0), 0)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                Leads captured from ads
+              </p>
             </div>
           </div>
 

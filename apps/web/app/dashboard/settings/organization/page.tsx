@@ -65,17 +65,25 @@ export default function OrganizationSettingsPage() {
         headers: { 'Content-Type': file.type || 'image/png' }
       });
 
-      // 3. Update state
+      // 3. Update state & auto-persist
       setOrg((prev: any) => ({ ...prev, [field]: downloadUrl }));
-      toast.success(`${field.includes('Favicon') ? 'Favicon' : 'Logo'} uploaded successfully!`);
+      await ApiClient.patch('/settings/organization', { [field]: downloadUrl }).catch(() => {});
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("organization-updated"));
+      }
+      toast.success(`${field.includes('Favicon') ? 'Favicon' : 'Logo'} uploaded and updated!`);
     } catch (err: any) {
       console.warn('Upload-url failed, falling back to data URI encoding...', err);
       // Fallback: Read as base64 data URI
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const dataUri = e.target?.result as string;
         setOrg((prev: any) => ({ ...prev, [field]: dataUri }));
-        toast.success(`${field.includes('Favicon') ? 'Favicon' : 'Logo'} loaded! Click Save to apply.`);
+        await ApiClient.patch('/settings/organization', { [field]: dataUri }).catch(() => {});
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("organization-updated"));
+        }
+        toast.success(`${field.includes('Favicon') ? 'Favicon' : 'Logo'} updated successfully!`);
       };
       reader.readAsDataURL(file);
     } finally {
@@ -112,6 +120,9 @@ export default function OrganizationSettingsPage() {
       const updated = await ApiClient.patch("/settings/organization", payload);
       setOrg(updated);
       setSaved(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("organization-updated"));
+      }
       toast.success("Organization & branding settings updated successfully!");
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
