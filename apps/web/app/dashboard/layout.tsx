@@ -15,14 +15,18 @@ export default async function DashboardLayout({
 }) {
   const session = await auth()
   
-  // TEST BACKDOOR: Always allow access for E2E tests
-  // if (!session?.user) {
-  //   redirect("/auth/login")
-  // }
+  if (!session?.user) {
+    redirect("/auth/login")
+  }
 
   // Restrict CLIENT users to their dedicated portal
   if (session?.user?.role === 'CLIENT') {
     redirect("/portal/dashboard")
+  }
+
+  // Restrict STUDENT users to student portal
+  if (session?.user?.role === 'STUDENT') {
+    redirect("/portal/student")
   }
 
   return (
