@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/app.ts",
-    "build": "tsc",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 tsc",
     "start": "node dist/app.js"
   },
   "keywords": [],
