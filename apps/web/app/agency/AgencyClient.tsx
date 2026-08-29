@@ -88,7 +88,12 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
 
   useEffect(() => {
     setIsLoading(true)
-  }, [project, device, iframeKey, useProxy])
+    // 3.5s soft timeout so slow external third-party scripts don't keep spinner stuck forever
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 3500)
+    return () => clearTimeout(timer)
+  }, [project?.id, project?.url, iframeKey, useProxy])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -2160,6 +2165,27 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       description: proj.description || 'Interactive live web application showcase.'
     })
   }
+
+  // Pre-warm preview proxy cache for all projects in the background
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const timer = setTimeout(() => {
+      const urls: string[] = []
+      currentCards.forEach(c => {
+        if (c.projects) {
+          c.projects.forEach(p => {
+            const u = p.url || (p.title?.startsWith('http') ? p.title : undefined)
+            if (u && !u.startsWith('/') && !urls.includes(u)) urls.push(u)
+          })
+        }
+      })
+      urls.forEach(u => {
+        const full = u.startsWith('http') ? u : `https://${u}`
+        fetch(`/api/preview-proxy?url=${encodeURIComponent(full)}`, { priority: 'low' } as any).catch(() => {})
+      })
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [currentCards])
 
   const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component
 
