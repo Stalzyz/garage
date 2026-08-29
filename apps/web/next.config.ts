@@ -83,13 +83,22 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Security headers applied globally
-        source: '/:path*',
+        // Security headers applied globally (except preview-proxy iframe route)
+        source: '/((?!api/preview-proxy).*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
+        ],
+      },
+      {
+        // Live Preview Proxy — explicitly allow embedding in showcase iframes
+        source: '/api/preview-proxy',
+        headers: [
+          { key: 'Content-Security-Policy', value: "frame-ancestors *" },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
         ],
       },
     ];
