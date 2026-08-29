@@ -7,6 +7,10 @@ export type BrandType = 'AGENCY' | 'ACADEMY';
 export interface BrandConfig {
   logoUrl: string | null;
   companyName: string;
+  tradeName?: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  placeOfSupply?: string | null;
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -68,19 +72,29 @@ export function resolveBrandLogo(logoUrl: string | null): string | null {
 
 export async function getBrandConfig(app: FastifyInstance, type: BrandType): Promise<BrandConfig> {
   const org = await app.prisma.organization.findFirst();
+  const finance = await app.prisma.financeSettings.findFirst();
+
+  const gstin = finance?.gstNumber?.trim() || null;
+  const pan = gstin && gstin.length >= 12 ? gstin.substring(2, 12) : null;
+  const stateCode = gstin && gstin.length >= 2 ? gstin.substring(0, 2) : '33';
+  const placeOfSupply = stateCode === '33' ? 'Tamil Nadu (33)' : `State (${stateCode})`;
 
   if (!org) {
     return {
       logoUrl: null,
-      companyName: 'Visuals Pro',
-      primaryColor: '#0f172a',
+      companyName: type === 'ACADEMY' ? 'Grekam Academy' : 'Grekam Visuals',
+      tradeName: type === 'ACADEMY' ? 'Grekam Academy of Technology & Design' : 'Grekam Visuals & Technologies Pvt Ltd',
+      gstin,
+      pan,
+      placeOfSupply,
+      primaryColor: type === 'ACADEMY' ? '#4f46e5' : '#0f172a',
       secondaryColor: '#2563eb',
       accentColor: '#10b981',
       fontFamily: 'Helvetica',
-      website: null,
-      contactEmail: null,
+      website: type === 'ACADEMY' ? 'https://academy.grekam.in' : 'https://grekam.in',
+      contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : 'contact@grekam.in',
       phone: null,
-      address: null,
+      address: 'Chennai, Tamil Nadu, India',
       bankName: null,
       accountName: null,
       accountNumber: null,
@@ -91,7 +105,7 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
     };
   }
 
-  const rawLogo = type === 'ACADEMY' ? org.academyLogoUrl : org.logoUrl;
+  const rawLogo = type === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl;
   const logoUrl = resolveBrandLogo(rawLogo);
 
   // Dynamic professional UPI ID based on domain or support email
@@ -107,15 +121,19 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
 
   return {
     logoUrl,
-    companyName: org.name || 'Visuals Pro',
-    primaryColor: org.primaryColor || '#0f172a',
+    companyName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals'),
+    tradeName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy of Technology & Design` : `${org.name || 'Grekam'} Visuals & Technologies Pvt Ltd`,
+    gstin,
+    pan,
+    placeOfSupply,
+    primaryColor: type === 'ACADEMY' ? '#4f46e5' : (org.primaryColor || '#0f172a'),
     secondaryColor: org.secondaryColor || '#2563eb',
     accentColor: org.accentColor || '#10b981',
     fontFamily: 'Helvetica',
-    website: org.website?.trim() || null,
-    contactEmail: org.supportEmail?.trim() || null,
+    website: type === 'ACADEMY' ? 'https://academy.grekam.in' : (org.website?.trim() || null),
+    contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : (org.supportEmail?.trim() || null),
     phone: org.phone?.trim() || null,
-    address: org.billingAddress?.trim() || null,
+    address: org.billingAddress?.trim() || 'Chennai, Tamil Nadu, India',
     bankName: org.bankName?.trim() || null,
     accountName: org.accountName?.trim() || null,
     accountNumber: org.accountNumber?.trim() || null,

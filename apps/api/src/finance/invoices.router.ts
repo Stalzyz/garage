@@ -160,12 +160,14 @@ export default async function invoicesRouter(app: FastifyInstance) {
     
     // Dynamically import to avoid circular issues or top-level await issues
     const { getBrandConfig } = await import('../utils/brand');
-    const brand = await getBrandConfig(app, 'AGENCY');
+    const brandType = invoice.businessUnit === 'ACADEMY' ? 'ACADEMY' : 'AGENCY';
+    const brand = await getBrandConfig(app, brandType);
 
     const pdfBuffer = await generateInvoicePDF({
       brand,
       invoice: { 
         ...invoice, 
+        businessUnit: invoice.businessUnit,
         createdAt: invoice.createdAt.toISOString(), 
         dueDate: invoice.dueDate.toISOString(), 
         paidAmount: invoice.paidAmount,

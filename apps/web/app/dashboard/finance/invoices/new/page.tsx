@@ -261,13 +261,88 @@ export default function NewInvoicePage() {
               </div>
             </motion.div>
 
-            {/* Line Items */}
+            {/* Line Items & Presets */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
-              <div className="flex justify-between items-end mb-4 border-b border-white/10 pb-2">
-                <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white/50">Line Items</h2>
+              <div className="flex justify-between items-end mb-3 border-b border-white/10 pb-2">
+                <div>
+                  <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white/50">
+                    {invoice.businessUnit === 'ACADEMY' ? 'Academy Fee Items' : 'Service Line Items'}
+                  </h2>
+                  <p className="text-[10px] text-white/40 mt-0.5">
+                    {invoice.businessUnit === 'ACADEMY' ? 'SAC 9992 — Vocational & Education Services' : 'SAC 9983 — Information Technology & Digital Agency'}
+                  </p>
+                </div>
                 <button onClick={addItem} className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 text-emerald-400 hover:text-emerald-300">
                   <Plus className="w-3.5 h-3.5" /> Add Item
                 </button>
+              </div>
+
+              {/* ⚡ Quick Presets */}
+              <div className="mb-5 flex flex-wrap gap-2 pt-1">
+                <span className="text-[10px] text-white/40 uppercase tracking-widest self-center mr-1">⚡ 1-Click Presets:</span>
+                {invoice.businessUnit === 'ACADEMY' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Fullstack Web & AI Bootcamp Tuition Fee", quantity: 1, unitPrice: 35000, discountRate: 0, taxRate: 18, hsnCode: "999293" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                    >
+                      + Web Bootcamp (₹35k, SAC 999293)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Student Registration & Admission Fee", quantity: 1, unitPrice: 3000, discountRate: 0, taxRate: 18, hsnCode: "999299" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                    >
+                      + Admission Fee (₹3k, SAC 999299)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Student Course Kit & Cloud Lab Access", quantity: 1, unitPrice: 5000, discountRate: 0, taxRate: 18, hsnCode: "999299" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                    >
+                      + Study Kit & Lab (₹5k)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Vocational Certification Course (GST-Exempt)", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 0, hsnCode: "999293" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium"
+                    >
+                      + Exempt Course (0% GST)
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Next.js Web Application & API Engine", quantity: 1, unitPrice: 45000, discountRate: 0, taxRate: 18, hsnCode: "998314" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 transition-all font-medium"
+                    >
+                      + Web & API (₹45k, SAC 998314)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "UI/UX Prototyping & Brand Design System", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 18, hsnCode: "998313" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 transition-all font-medium"
+                    >
+                      + UI/UX & Brand (₹25k, SAC 998313)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "WhatsApp Cloud API & Bot Automation (Grafty)", quantity: 1, unitPrice: 15000, discountRate: 0, taxRate: 18, hsnCode: "998413" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium"
+                    >
+                      + WhatsApp Automation (₹15k, SAC 998413)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItems([...items, { id: Date.now(), description: "Monthly Website Maintenance & Cloud Ops", quantity: 1, unitPrice: 8000, discountRate: 0, taxRate: 18, hsnCode: "998315" }])}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all font-medium"
+                    >
+                      + Cloud Maintenance (₹8k, SAC 998315)
+                    </button>
+                  </>
+                )}
               </div>
               
               <div className="space-y-4">
