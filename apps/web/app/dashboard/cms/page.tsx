@@ -83,6 +83,39 @@ export default function CMSDashboard() {
         </div>
       )}
 
+      {/* Featured Agency Editor Banner */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-purple-900/90 to-indigo-950/90 rounded-2xl border border-purple-500/30 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0 shadow-[0_0_20px_rgba(168,85,247,0.25)]">
+            <Globe className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold">Agency Visual Editor</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">10 THEMES ACTIVE</span>
+            </div>
+            <p className="text-sm text-purple-200/70 max-w-xl">
+              Customize the interactive agency homepage, live device iframe showcases, services, and engagement models.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <Link
+            href="/agency"
+            target="_blank"
+            className="flex-1 md:flex-none px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all text-center border border-white/15"
+          >
+            Preview Site ↗
+          </Link>
+          <Link 
+            href="/dashboard/cms/agency-editor"
+            className="flex-1 md:flex-none px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center justify-center gap-1.5"
+          >
+            Launch Visual Editor <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="flex justify-center p-12"><div className="animate-pulse w-8 h-8 rounded-full border-4 border-slate-200 border-t-[#49ABC9]" /></div>
       ) : (
@@ -113,16 +146,16 @@ export default function CMSDashboard() {
                 </div>
                 <div className="flex gap-2">
                   <Link 
-                    href={`/dashboard/cms/${page.slug}`}
+                    href={page.slug === 'agency' ? '/dashboard/cms/agency-editor' : `/dashboard/cms/${page.slug}`}
                     className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-200 transition-colors flex justify-center text-center shadow-sm"
                   >
-                    Data Editor
+                    {page.slug === 'agency' ? 'Visual Editor' : 'Data Editor'}
                   </Link>
                   <Link 
-                    href={`/dashboard/builder/${page.id}`}
+                    href={page.slug === 'agency' ? '/dashboard/cms/agency-editor' : `/dashboard/builder/${page.id}`}
                     className="flex-1 px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 shadow-sm group-hover:scale-[1.02]"
                   >
-                    Pro Builder <ArrowRight className="w-3 h-3" />
+                    {page.slug === 'agency' ? 'Open Editor' : 'Pro Builder'} <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               </div>

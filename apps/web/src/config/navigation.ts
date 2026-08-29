@@ -148,6 +148,7 @@ export const navigation: NavItem[] = [
     resource: "CMS",
     roles: ["SUPER_ADMIN", "MANAGER"],
     children: [
+      { title: "Agency Visual Editor", href: "/dashboard/cms/agency-editor" },
       { title: "Pages Builder",  href: "/dashboard/cms" },
       { title: "Hiring Partners",href: "/dashboard/cms/placements" },
       { title: "Student Portfolios", href: "/dashboard/cms/portfolio" },
