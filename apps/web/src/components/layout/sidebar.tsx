@@ -27,7 +27,7 @@ function OrgHeader() {
       {/* Logo: show custom image if set, fallback to ShieldCheck icon */}
       {org.logoUrl ? (
         <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 border border-dash-border-strong">
-          <Image src={org.logoUrl} alt={org.name} width={32} height={32} className="object-cover w-full h-full" />
+          <Image src={org.logoUrl} alt={org.name} width={32} height={32} unoptimized className="object-cover w-full h-full" />
         </div>
       ) : (
         <div className="w-8 h-8 rounded-xl bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
@@ -239,7 +239,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2.5">
           {org.logoUrl ? (
             <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-dash-border-strong relative">
-              <Image src={org.logoUrl} alt={org.name} fill className="object-cover" />
+              <Image src={org.logoUrl} alt={org.name} fill unoptimized className="object-cover" />
             </div>
           ) : (
             <div className="w-7 h-7 rounded-lg bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0">
