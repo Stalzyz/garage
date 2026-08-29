@@ -487,14 +487,30 @@ export default function CMSPageEditor() {
                           )}
 
                           {isPortfolioSection && (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image Title (Optional)</label>
-                                <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 font-bold" placeholder="e.g. Modern UI Design" />
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Project Title</label>
+                                <input type="text" value={card.title || ''} onChange={e => updateCard(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 font-bold" placeholder="e.g. Aura SaaS Platform" />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image URL</label>
+                                <label className="block text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Live Website URL (Iframe Preview)</label>
+                                <input type="url" value={card.link || card.url || ''} onChange={e => { updateCard(idx, 'link', e.target.value); updateCard(idx, 'url', e.target.value); }} className="w-full border border-emerald-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-emerald-50/30 outline-none focus:border-emerald-500 font-mono text-xs" placeholder="https://example.com" />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category / Client Industry</label>
+                                <input type="text" value={card.category || ''} onChange={e => updateCard(idx, 'category', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="e.g. Enterprise SaaS, E-Commerce" />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tech Stack (comma separated)</label>
+                                <input type="text" value={Array.isArray(card.tags || card.techStack) ? (card.tags || card.techStack).join(', ') : (card.tags || card.techStack || '')} onChange={e => { const arr = e.target.value.split(',').map(s => s.trim()).filter(Boolean); updateCard(idx, 'tags', arr); updateCard(idx, 'techStack', arr); }} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500" placeholder="Next.js, TailwindCSS, TypeScript" />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image / Screenshot URL</label>
                                 <MediaPicker value={card.image || ''} onChange={(url) => updateCard(idx, 'image', url)} placeholder="https://..." />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Short Description</label>
+                                <textarea value={card.description || ''} onChange={e => updateCard(idx, 'description', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white outline-none focus:border-blue-500 min-h-[60px]" placeholder="Brief summary of the live website/project..." />
                               </div>
                             </div>
                           )}

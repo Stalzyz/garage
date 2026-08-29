@@ -28,6 +28,23 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Dashboard & Portal pages — NEVER cache HTML/data to prevent stale chunk errors on deployment
+        source: '/dashboard/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
+        source: '/dashboard',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
         // Portal pages — NEVER cache HTML to prevent stale chunk errors on deployment
         source: '/portal/:path*',
         headers: [

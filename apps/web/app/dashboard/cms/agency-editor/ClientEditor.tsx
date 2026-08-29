@@ -5,7 +5,15 @@ import { Plus, GripVertical, Settings2, Image as ImageIcon, Trash2, Save, AlertC
 import { toast } from "sonner"
 import { saveAgencyData } from "./actions"
 
-type ProjectData = { id: string; title: string; image: string }
+type ProjectData = { 
+  id: string; 
+  title: string; 
+  image: string; 
+  url?: string; 
+  category?: string; 
+  techStack?: string[]; 
+  description?: string; 
+}
 type CardData = { id: string; category: string; title: string; subtitle: string; iconName?: string; colorHex: string; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; }
 
 export default function ClientEditor({ initialJson }: { initialJson: string }) {
@@ -66,7 +74,14 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
   const addProject = (cardIndex: number) => {
     const newCards = [...cards]
     if (!newCards[cardIndex].projects) newCards[cardIndex].projects = []
-    newCards[cardIndex].projects!.push({ id: `p-${Date.now()}`, title: 'New Project', image: '' })
+    newCards[cardIndex].projects!.push({ 
+      id: `p-${Date.now()}`, 
+      title: 'New Showcase Project', 
+      image: '', 
+      url: 'https://', 
+      category: 'Web Experience', 
+      techStack: ['Next.js', 'TailwindCSS'] 
+    })
     setCards(newCards)
   }
 
@@ -181,46 +196,95 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
                 </div>
                 
                 {card.projects && card.projects.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {card.projects.map((proj, pIdx) => (
-                      <div key={proj.id} className="flex gap-3 bg-black/50 p-3 rounded-xl border border-white/5 items-center">
-                        {proj.image ? (
-                          <img src={proj.image} alt="" className="w-12 h-12 rounded object-cover shrink-0 bg-white/10" />
-                        ) : (
-                          <div className="w-12 h-12 rounded bg-white/10 shrink-0 flex items-center justify-center text-white/30"><ImageIcon className="w-5 h-5"/></div>
-                        )}
-                        <div className="flex-1 space-y-2">
-                          <input value={proj.title} onChange={e => updateProject(idx, pIdx, { title: e.target.value })} className="w-full bg-transparent border-b border-white/10 px-1 py-1 text-sm focus:border-purple-500 outline-none" placeholder="Project Title" />
-                          <div className="flex gap-2">
-                            <input value={proj.image} onChange={e => updateProject(idx, pIdx, { image: e.target.value })} className="w-full bg-transparent border-b border-white/10 px-1 py-1 text-xs text-white/50 focus:border-purple-500 outline-none" placeholder="Image URL (https://...)" />
-                            <label className="cursor-pointer shrink-0 text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded flex items-center justify-center transition-colors">
-                              Upload
+                      <div key={proj.id} className="bg-black/60 p-4 rounded-xl border border-white/10 space-y-3">
+                        <div className="flex gap-3 items-start">
+                          {proj.image ? (
+                            <img src={proj.image} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0 bg-white/10 border border-white/10" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-lg bg-white/10 shrink-0 flex items-center justify-center text-white/30 border border-white/10"><ImageIcon className="w-6 h-6"/></div>
+                          )}
+                          <div className="flex-1 space-y-2">
+                            <div className="flex gap-2">
                               <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  try {
-                                    const res = await fetch("/api/v1/storage/upload-url", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ filename: file.name, contentType: file.type, prefix: "cms/agency" }),
-                                    });
-                                    if (!res.ok) throw new Error("Upload URL failed");
-                                    const { uploadUrl, downloadUrl } = await res.json();
-                                    await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-                                    updateProject(idx, pIdx, { image: downloadUrl });
-                                  } catch (err) {
-                                    alert("Upload failed.");
-                                  }
-                                }}
+                                value={proj.title} 
+                                onChange={e => updateProject(idx, pIdx, { title: e.target.value })} 
+                                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-sm font-semibold focus:border-purple-500 outline-none text-white" 
+                                placeholder="Project / Website Title (e.g. Aura SaaS)" 
                               />
-                            </label>
+                              <button onClick={() => removeProject(idx, pIdx)} className="p-2 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete Project">
+                                <Trash2 className="w-4 h-4"/>
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <input 
+                                value={proj.url || ''} 
+                                onChange={e => updateProject(idx, pIdx, { url: e.target.value })} 
+                                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-emerald-400 focus:border-emerald-500 outline-none font-mono" 
+                                placeholder="Live Website URL for Iframe Preview (e.g. https://myclient.com)" 
+                              />
+                            </div>
                           </div>
                         </div>
-                        <button onClick={() => removeProject(idx, pIdx)} className="p-2 text-white/30 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4"/></button>
+
+                        {/* Additional project metadata */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                          <div>
+                            <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Category / Tag</label>
+                            <input 
+                              value={proj.category || ''} 
+                              onChange={e => updateProject(idx, pIdx, { category: e.target.value })} 
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white/80 focus:border-purple-500 outline-none" 
+                              placeholder="e.g. Enterprise SaaS, E-Commerce" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Tech Stack (comma separated)</label>
+                            <input 
+                              value={Array.isArray(proj.techStack) ? proj.techStack.join(', ') : (proj.techStack || '')} 
+                              onChange={e => updateProject(idx, pIdx, { techStack: e.target.value.split(',').map(s => s.trim()).filter(Boolean) as any })} 
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white/80 focus:border-purple-500 outline-none" 
+                              placeholder="e.g. Next.js, TailwindCSS, Framer Motion" 
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Thumbnail Image (URL or Upload)</label>
+                            <div className="flex gap-2">
+                              <input 
+                                value={proj.image} 
+                                onChange={e => updateProject(idx, pIdx, { image: e.target.value })} 
+                                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white/60 focus:border-purple-500 outline-none" 
+                                placeholder="Image URL (https://...)" 
+                              />
+                              <label className="cursor-pointer shrink-0 text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg flex items-center justify-center transition-colors">
+                                Upload File
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  className="hidden" 
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const res = await fetch("/api/v1/storage/upload-url", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ filename: file.name, contentType: file.type, prefix: "cms/agency" }),
+                                      });
+                                      if (!res.ok) throw new Error("Upload URL failed");
+                                      const { uploadUrl, downloadUrl } = await res.json();
+                                      await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+                                      updateProject(idx, pIdx, { image: downloadUrl });
+                                    } catch (err) {
+                                      alert("Upload failed.");
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

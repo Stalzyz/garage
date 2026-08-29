@@ -3,23 +3,420 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
-type ProjectData = { id: string; title: string; image: string }
+type ProjectData = { 
+  id: string; 
+  title: string; 
+  image: string; 
+  url?: string; 
+  category?: string; 
+  techStack?: string[]; 
+  description?: string; 
+}
 type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
 
 const DUMMY_PROJECTS: ProjectData[] = [
-  { id: 'p1', title: 'Aura SaaS Platform', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80' },
-  { id: 'p2', title: 'Lumina Dashboard', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80' },
-  { id: 'p3', title: 'Nexus Mobile App', image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80' },
+  { 
+    id: 'p1', 
+    title: 'Aura SaaS Platform', 
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    url: 'https://grekam.in',
+    category: 'Enterprise SaaS',
+    techStack: ['Next.js 15', 'TypeScript', 'TailwindCSS', 'Framer Motion'],
+    description: 'High-converting interactive digital experience and platform ecosystem.'
+  },
+  { 
+    id: 'p2', 
+    title: 'Lumina Dashboard & Academy', 
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+    url: 'https://academy.grekam.in',
+    category: 'EdTech & Learning',
+    techStack: ['React', 'Node.js', 'PostgreSQL', 'Stripe'],
+    description: 'Next-generation learning portal for design and software engineers.'
+  },
+  { 
+    id: 'p3', 
+    title: 'Nexus Client Portal & Garage', 
+    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80',
+    url: 'https://garage.grekam.in/portal',
+    category: 'Operations & CRM',
+    techStack: ['Next.js', 'Prisma', 'Tailwind', 'Realtime Sync'],
+    description: 'Unified client workflow management and enterprise invoice tracking.'
+  },
 ]
 
 const BRANDING_PROJECTS: ProjectData[] = [
-  { id: 'b1', title: 'Vanguard Identity', image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80' },
-  { id: 'b2', title: 'Zephyr Campaign', image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&q=80' },
+  { 
+    id: 'b1', 
+    title: 'Vanguard Identity', 
+    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80',
+    url: 'https://grekam.in',
+    category: 'Brand Strategy',
+    techStack: ['Visual Identity', 'Typography', '3D Design'],
+    description: 'Comprehensive luxury brand identity and digital design guideline system.'
+  },
+  { 
+    id: 'b2', 
+    title: 'Zephyr Campaign', 
+    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&q=80',
+    url: 'https://academy.grekam.in',
+    category: 'Visual Design',
+    techStack: ['Motion Graphics', 'UI/UX', 'Campaign Assets'],
+    description: 'Multi-channel digital marketing assets and high-conversion creative system.'
+  },
 ]
+
+// --- DEVICE PREVIEW MODAL ---
+type DeviceType = 'desktop' | 'tablet' | 'mobile'
+
+interface DevicePreviewModalProps {
+  project: ProjectData | null
+  onClose: () => void
+}
+
+const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClose }) => {
+  const [device, setDevice] = useState<DeviceType>('desktop')
+  const [isLoading, setIsLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+  const [iframeKey, setIframeKey] = useState(0)
+  const [useProxy, setUseProxy] = useState(true)
+  const [scale, setScale] = useState<number>(1)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    setIsLoading(true)
+  }, [project, device, iframeKey, useProxy])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === '1') setDevice('desktop')
+      if (e.key === '2') setDevice('tablet')
+      if (e.key === '3') setDevice('mobile')
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  if (!project) return null
+
+  const rawUrl = project.url || 'https://grekam.in'
+  const isRelative = rawUrl.startsWith('/')
+  const fullUrl = isRelative ? rawUrl : (rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`)
+  
+  // Cross-origin sites usually block direct iframes via X-Frame-Options; proxy solves this
+  const iframeSrc = isRelative 
+    ? fullUrl 
+    : (useProxy ? `/api/preview-proxy?url=${encodeURIComponent(fullUrl)}` : fullUrl)
+    
+  const displayUrl = fullUrl.replace(/^https?:\/\//, '')
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(fullUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleReload = () => {
+    setIsLoading(true)
+    setIframeKey(prev => prev + 1)
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[1002] bg-black/90 backdrop-blur-2xl flex flex-col items-center justify-between p-2 md:p-5 overflow-hidden select-none pointer-events-auto"
+        onClick={onClose}
+      >
+        {/* Top Control Bar */}
+        <motion.div 
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          onClick={e => e.stopPropagation()}
+          className="w-full max-w-6xl flex items-center justify-between gap-3 py-2 px-3 md:px-5 rounded-2xl bg-[#141417]/95 border border-white/10 backdrop-blur-2xl shadow-2xl z-20 shrink-0 mb-2"
+        >
+          {/* Left: Project Meta */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 text-emerald-400">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs md:text-sm font-bold text-white tracking-wide truncate">{project.title}</h4>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE DEMO
+                </span>
+              </div>
+              <p className="text-[10px] text-white/40 truncate hidden md:block">{project.category || 'Client Showcase Website'}</p>
+            </div>
+          </div>
+
+          {/* Center: Device Switcher */}
+          <div className="flex items-center p-1 bg-black/70 border border-white/10 rounded-xl">
+            <button
+              onClick={() => { setDevice('desktop'); setScale(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider uppercase transition-all ${
+                device === 'desktop' ? 'bg-white text-black shadow-lg font-bold' : 'text-white/50 hover:text-white'
+              }`}
+              title="Desktop View (MacBook Pro Chassis) - Press 1"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Desktop</span>
+            </button>
+            <button
+              onClick={() => { setDevice('tablet'); setScale(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider uppercase transition-all ${
+                device === 'tablet' ? 'bg-white text-black shadow-lg font-bold' : 'text-white/50 hover:text-white'
+              }`}
+              title="Tablet View (iPad Chassis) - Press 2"
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tablet</span>
+            </button>
+            <button
+              onClick={() => { setDevice('mobile'); setScale(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider uppercase transition-all ${
+                device === 'mobile' ? 'bg-white text-black shadow-lg font-bold' : 'text-white/50 hover:text-white'
+              }`}
+              title="Mobile View (iPhone 16 Pro Chassis) - Press 3"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Mobile</span>
+            </button>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Proxy / Direct toggle */}
+            {!isRelative && (
+              <button
+                onClick={() => setUseProxy(!useProxy)}
+                className={`hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono transition-colors border ${
+                  useProxy ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 'bg-white/5 text-white/50 border-white/10'
+                }`}
+                title={useProxy ? 'Proxy Bypass Active (Overcoming X-Frame restrictions)' : 'Direct Mode Active'}
+              >
+                {useProxy ? 'Proxy: ON' : 'Direct'}
+              </button>
+            )}
+
+            <a
+              href={fullUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors hidden sm:flex items-center gap-1.5 text-xs font-medium"
+              title="Open website in new tab"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Open Live</span>
+            </a>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl bg-white/10 hover:bg-rose-500/20 hover:border-rose-500/30 text-white/80 hover:text-rose-300 border border-white/10 transition-all group"
+              title="Close Preview (Esc)"
+            >
+              <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Center: Device Chassis Viewport Container */}
+        <div 
+          onClick={e => e.stopPropagation()}
+          className="flex-1 w-full flex items-center justify-center min-h-0 relative overflow-hidden py-1"
+        >
+          {/* DESKTOP FRAME (MacBook Pro Styling) */}
+          {device === 'desktop' && (
+            <motion.div 
+              key="desktop"
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-6xl h-full flex flex-col rounded-2xl md:rounded-3xl border border-white/15 bg-[#121215] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95)] overflow-hidden"
+            >
+              {/* Browser Window Header */}
+              <div className="h-10 md:h-11 px-4 bg-[#18181b] border-b border-white/10 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2 w-20">
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] cursor-pointer hover:opacity-80" onClick={onClose} title="Close window" />
+                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]" />
+                  <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]" />
+                </div>
+
+                {/* Simulated URL Bar */}
+                <div className="flex-1 max-w-lg mx-auto flex items-center justify-between px-3 py-1 bg-black/60 border border-white/10 rounded-full text-xs text-white/60">
+                  <div className="flex items-center gap-2 truncate">
+                    <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span className="font-mono text-[11px] text-white/80 truncate">https://{displayUrl}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={handleReload} className="hover:text-white transition-colors p-1" title="Reload Frame">
+                      <RotateCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button onClick={handleCopyUrl} className="hover:text-white transition-colors p-1" title="Copy URL">
+                      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-20 flex justify-end items-center gap-2">
+                  <span className="text-[10px] font-mono text-white/30 tracking-widest hidden md:inline">1920 × 1080</span>
+                </div>
+              </div>
+
+              {/* Iframe Screen */}
+              <div className="flex-1 w-full h-full relative bg-[#09090b] overflow-hidden">
+                {isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10">
+                    <div className="w-10 h-10 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />
+                    <p className="text-xs font-mono uppercase tracking-widest text-white/40 animate-pulse">Connecting to live environment...</p>
+                  </div>
+                )}
+                <iframe
+                  key={iframeKey}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  onLoad={() => setIsLoading(false)}
+                  className="w-full h-full border-0"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  title={project.title}
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* TABLET (iPad Pro) FRAME */}
+          {device === 'tablet' && (
+            <motion.div 
+              key="tablet"
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="w-[768px] max-w-[95%] h-full flex flex-col rounded-[36px] p-3 md:p-4 bg-[#1f1f23] border-[3px] border-[#38383f] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10"
+            >
+              {/* Tablet Top Bezel & Camera */}
+              <div className="w-full flex items-center justify-center py-1 shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-black border border-white/20" />
+              </div>
+
+              {/* Screen Area */}
+              <div className="flex-1 w-full rounded-[24px] overflow-hidden relative bg-[#09090b] border border-black/50">
+                {isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10">
+                    <div className="w-10 h-10 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />
+                    <p className="text-xs font-mono uppercase tracking-widest text-white/40 animate-pulse">Loading Tablet View (1024 × 768)...</p>
+                  </div>
+                )}
+                <iframe
+                  key={iframeKey}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  onLoad={() => setIsLoading(false)}
+                  className="w-full h-full border-0"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  title={project.title}
+                />
+              </div>
+
+              {/* Tablet Bottom Home Indicator */}
+              <div className="w-full flex items-center justify-center py-2 shrink-0">
+                <div className="w-32 h-1 bg-white/20 rounded-full" />
+              </div>
+            </motion.div>
+          )}
+
+          {/* MOBILE (iPhone 16 Pro) FRAME */}
+          {device === 'mobile' && (
+            <motion.div 
+              key="mobile"
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="w-[390px] max-w-[92%] h-full max-h-[844px] flex flex-col rounded-[50px] p-3 bg-[#18181b] border-[4px] border-[#2e2e33] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/15 relative"
+            >
+              {/* Screen Area */}
+              <div className="flex-1 w-full rounded-[40px] overflow-hidden relative bg-[#09090b] flex flex-col">
+                {/* Dynamic Island Header */}
+                <div className="absolute top-2 left-0 right-0 z-20 flex justify-center pointer-events-none">
+                  <div className="w-28 h-6 bg-black rounded-full flex items-center justify-between px-2.5 border border-white/10 shadow-lg">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#111] border border-blue-500/40" />
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                </div>
+
+                {isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10 px-4 text-center">
+                    <div className="w-8 h-8 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-3" />
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-white/40 animate-pulse">Loading iPhone View (390 × 844)...</p>
+                  </div>
+                )}
+
+                <iframe
+                  key={iframeKey}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  onLoad={() => setIsLoading(false)}
+                  className="w-full h-full border-0 pt-7 pb-4"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  title={project.title}
+                />
+
+                {/* iPhone Bottom Home Gesture Bar */}
+                <div className="absolute bottom-1.5 left-0 right-0 z-20 flex justify-center pointer-events-none">
+                  <div className="w-32 h-1 bg-white/40 rounded-full" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Bottom Footer Info Pill */}
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          onClick={e => e.stopPropagation()}
+          className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-[#141417]/90 border border-white/10 text-xs text-white/60 shrink-0 mt-2 shadow-xl"
+        >
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="font-bold text-white text-[11px] uppercase tracking-wider">Tech Stack:</span>
+            {(project.techStack || ['Next.js', 'TailwindCSS', 'TypeScript', 'Framer Motion']).map((tech, i) => (
+              <span key={i} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] text-white/80 font-mono">
+                {tech}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px]">
+            <span className="text-white/40 hidden md:inline">
+              Shortcuts: <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white font-mono">1</kbd> Desktop <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white font-mono">2</kbd> Tablet <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white font-mono">3</kbd> Mobile <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[9px] text-white font-mono">ESC</kbd>
+            </span>
+            <button 
+              onClick={() => {
+                onClose()
+                const pricingCard = document.getElementById('card-pricing')
+                if (pricingCard) pricingCard.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-wider text-[10px] flex items-center gap-1 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20"
+            >
+              Get a Website Like This →
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
 
 // --- PRICING DATA & CALCULATOR ---
 const ADDON_LIST = [
@@ -577,7 +974,7 @@ const UniversalContactForm = ({
 }
 
 // --- 01. CREATIVE OS ---
-const LayoutCreativeOS = ({ cards, playSound }: any) => {
+const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
   const [isMobile, setIsMobile] = useState(false)
@@ -625,11 +1022,29 @@ const LayoutCreativeOS = ({ cards, playSound }: any) => {
                         <div className="text-left text-xs uppercase tracking-widest text-white/30 mb-4">Featured Projects</div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
                            {activeCard.projects.map(proj => (
-                              <div key={proj.id} data-cursor="VIEW" className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-colors">
-                                 <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden">
-                                    <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                              <div 
+                                key={proj.id} 
+                                data-cursor="VIEW" 
+                                onClick={() => onPreviewProject?.(proj)}
+                                className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 hover:border-emerald-500/50 transition-all shadow-lg"
+                              >
+                                 <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden relative flex items-center justify-center">
+                                    {proj.image ? (
+                                      <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    ) : (
+                                      <div className="flex flex-col items-center justify-center text-white/40">
+                                        <Globe className="w-8 h-8 mb-2 text-emerald-400 opacity-60" />
+                                        <span className="text-xs font-mono text-white/70 font-bold px-2 truncate max-w-full">{proj.title || 'Live Showcase'}</span>
+                                      </div>
+                                    )}
+                                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded text-[9px] font-mono text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                      <Eye className="w-2.5 h-2.5" /> Live Preview
+                                    </div>
                                  </div>
-                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate">{proj.title}</div>
+                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between">
+                                   <span>{proj.title}</span>
+                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform">→</span>
+                                 </div>
                               </div>
                            ))}
                         </div>
@@ -757,7 +1172,7 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
   )
 }
 
-const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
+const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [hasOpenedCard, setHasOpenedCard] = useState(false)
@@ -776,39 +1191,64 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
   }, [cards.length, isMobile])
 
   const renderCardContent = (card: CardData, isActive: boolean, isRectangle: boolean, isSmallSquare: boolean, isDesktopShrunk: boolean = false) => (
-    <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col' : (isRectangle ? 'flex-1 flex-row items-center gap-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center' : 'flex-1 flex-col')))}`}>
-      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-6 md:mb-8 pr-12">{card.category}</div>}
+    <div className={`flex w-full h-full relative ${isActive ? 'flex-1 flex-col p-6 md:p-12 overflow-y-auto custom-scrollbar' : (isRectangle ? 'flex-1 flex-row items-center gap-3 p-3' : (isSmallSquare ? 'items-center justify-center' : (isDesktopShrunk ? 'flex-col items-center justify-center text-center p-3' : 'flex-1 flex-col p-6 md:p-8 justify-between')))}`}>
+      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && (
+        <div className="text-[10px] md:text-xs tracking-widest text-white/40 uppercase mb-4 md:mb-6 pr-12 font-mono flex items-center justify-between">
+          <span>{card.category}</span>
+        </div>
+      )}
       
-      <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-start items-center mb-6 md:mb-8'))}`}>
-         <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}</div>
-         
-         {isActive && (
-           <button 
-             onClick={(e) => { e.stopPropagation(); playSound(); setActiveId(null); }} 
-             className="z-[120] hover:opacity-70 transition-opacity p-2 -mr-2"
-             style={{ color: card.colorHex }}
-           >
-             <X className="w-6 h-6 md:w-8 md:h-8" />
-           </button>
-         )}
+      <div className={`relative w-full ${isSmallSquare ? 'h-full flex items-center justify-center' : (isDesktopShrunk ? 'flex justify-center mb-4' : (isActive ? 'flex justify-between items-center mb-6' : 'flex justify-between items-center mb-4 md:mb-6'))}`}>
+        <div className={`${isSmallSquare ? 'w-full h-full flex items-center justify-center' : `rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${isRectangle ? 'w-12 h-12' : (isDesktopShrunk ? 'w-16 h-16' : 'w-16 h-16 md:w-20 md:h-20')}`}`} style={{ color: card.colorHex }}>
+          {renderIcon(card.iconName, card.icon, isSmallSquare ? "w-6 h-6 md:w-12 md:h-12" : (isRectangle ? "w-5 h-5" : undefined))}
+        </div>
+        
+        {isActive && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); playSound(); setActiveId(null); }} 
+            className="z-[120] hover:opacity-70 transition-opacity p-2 -mr-2 text-white/70 hover:text-white"
+            style={{ color: card.colorHex }}
+          >
+            <X className="w-6 h-6 md:w-8 md:h-8" />
+          </button>
+        )}
       </div>
-      
-      {(!isSmallSquare) && (
-        <h2
-          style={{ fontFamily: 'var(--font-inter, Inter, system-ui), sans-serif' }}
-          className={`font-bold text-white ${isActive ? 'text-3xl md:text-5xl mb-2' : (isRectangle ? 'text-[11px] leading-tight text-left' : (isDesktopShrunk ? 'text-[11px] leading-tight text-center' : 'text-2xl mb-2'))}`}
+
+      {(!isSmallSquare || isActive) && (
+        <h2 
+          className={`font-bold text-white ${isActive ? 'text-3xl md:text-5xl mb-3' : (isRectangle ? 'text-[11px] leading-tight text-left' : (isDesktopShrunk ? 'text-[11px] leading-tight text-center' : 'text-2xl mb-2'))}`}
         >{card.title}</h2>
       )}
       
-      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-8 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
+      {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-6 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
       
-      {isActive && card.projects && (
+      {isActive && (card.projects || (card.isPortfolio && cmsData?.portfolio)) && (
          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {card.projects.map((proj: any, idx: number) => (
-               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} key={proj.id} className="relative aspect-video rounded-xl overflow-hidden group border border-white/10 cursor-pointer">
-                  <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                     <div className="font-bold text-white tracking-widest uppercase text-xs">{proj.title}</div>
+            {(card.projects || cmsData?.portfolio || []).map((proj: any, idx: number) => (
+               <motion.div 
+                 initial={{ opacity: 0, y: 20 }} 
+                 animate={{ opacity: 1, y: 0 }} 
+                 transition={{ delay: idx * 0.1 }} 
+                 key={proj.id || idx} 
+                 onClick={(e) => {
+                   e.stopPropagation()
+                   onPreviewProject?.(proj)
+                 }}
+                 className="relative aspect-video rounded-xl overflow-hidden group border border-white/10 cursor-pointer shadow-lg hover:border-emerald-500/50 transition-all bg-black/40"
+               >
+                  {proj.image ? (
+                    <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-white/40 p-4 text-center">
+                      <Globe className="w-8 h-8 mb-2 text-emerald-400 opacity-60" />
+                      <span className="text-xs font-mono text-white/70 font-bold truncate max-w-full px-2">{proj.title || 'Live Website'}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex items-end justify-between p-4">
+                     <div className="font-bold text-white tracking-widest uppercase text-xs truncate mr-2">{proj.title}</div>
+                     <div className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-md text-[10px] text-white font-mono font-bold flex items-center gap-1.5 shrink-0 group-hover:bg-emerald-500 group-hover:text-black transition-colors">
+                       <Eye className="w-3 h-3" /> Live Demo
+                     </div>
                   </div>
                </motion.div>
             ))}
@@ -819,36 +1259,36 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
          <div className="mt-8 w-full">
             <div className="flex gap-4 overflow-x-auto pb-6 custom-scrollbar snap-x">
                {cmsData.products.map((prod: any, idx: number) => (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }} key={prod.id || idx} className="w-72 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col group">
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: idx * 0.1 }} 
+                    key={prod.id || idx} 
+                    onClick={() => {
+                      onPreviewProject?.({
+                        id: prod.id || `prod-${idx}`,
+                        title: prod.title,
+                        image: prod.image,
+                        url: prod.link || 'https://grekam.in',
+                        category: 'Platform Product',
+                        techStack: ['SaaS', 'Fullstack', 'Automation']
+                      })
+                    }}
+                    className="w-72 shrink-0 snap-start bg-white/5 border border-white/10 hover:border-emerald-500/50 rounded-2xl overflow-hidden flex flex-col group cursor-pointer transition-colors"
+                  >
                      <div className="aspect-video bg-black/50 overflow-hidden relative">
                         {prod.image && <img loading="lazy" src={prod.image} alt={prod.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded text-[9px] font-mono text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <Eye className="w-2.5 h-2.5" /> Preview
+                        </div>
                      </div>
                      <div className="p-5 flex flex-col flex-1">
                         <h3 className="font-bold text-white text-lg mb-2">{prod.title}</h3>
                         <p className="text-white/50 text-sm mb-4 line-clamp-2 flex-1">{prod.description}</p>
-                        {prod.link && (
-                           <a href={prod.link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-widest text-[#f43f5e] hover:text-white transition-colors mt-auto inline-block">
-                              View Demo &rarr;
-                           </a>
-                        )}
-                     </div>
-                  </motion.div>
-               ))}
-            </div>
-         </div>
-      )}
-
-      {isActive && card.isPortfolio && cmsData?.portfolio && (
-         <div className="mt-8 w-full max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
-            <div className="columns-2 md:columns-3 gap-4 space-y-4">
-               {cmsData.portfolio.map((item: any, idx: number) => (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }} key={item.id || idx} className="break-inside-avoid relative group rounded-xl overflow-hidden border border-white/10">
-                     {item.image && <img loading="lazy" src={item.image} alt={item.title || 'Portfolio Item'} className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />}
-                     {item.title && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                           <div className="font-bold text-white text-xs uppercase tracking-widest">{item.title}</div>
+                        <div className="text-xs font-bold uppercase tracking-widest text-emerald-400 group-hover:text-white transition-colors mt-auto flex items-center gap-1">
+                           Test Live Site &rarr;
                         </div>
-                     )}
+                     </div>
                   </motion.div>
                ))}
             </div>
@@ -985,7 +1425,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData }: any) => {
 
 
 // --- 03. EDITORIAL MAGAZINE ---
-const LayoutEditorial = ({ cards }: any) => {
+const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
   return (
     <div data-lenis-prevent className="h-[100dvh] w-full bg-[#f4f0ea] text-[#2c2a29] font-serif overflow-y-auto pb-32">
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-24 md:py-32 flex flex-col gap-32 md:gap-40">
@@ -1007,12 +1447,29 @@ const LayoutEditorial = ({ cards }: any) => {
                
                {card.projects && (
                   <div className="flex flex-col gap-8 w-full">
-                     {card.projects.map((proj) => (
-                        <div key={proj.id} className="w-full">
-                           <div className="w-full aspect-[4/3] bg-[#e8e4de] overflow-hidden mb-4">
-                              <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                     {card.projects.map((proj: any) => (
+                        <div 
+                          key={proj.id} 
+                          onClick={() => onPreviewProject?.(proj)}
+                          className="w-full group cursor-pointer"
+                        >
+                           <div className="w-full aspect-[4/3] bg-[#e8e4de] overflow-hidden mb-4 relative flex items-center justify-center">
+                              {proj.image ? (
+                                <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center p-4 text-center">
+                                  <Globe className="w-8 h-8 mb-2 text-[#2c2a29]/40" />
+                                  <span className="text-xs font-mono text-[#2c2a29]/70 font-bold">{proj.title || 'Live Website'}</span>
+                                </div>
+                              )}
+                              <div className="absolute bottom-2 right-2 px-2.5 py-1 bg-black/80 text-white font-mono text-[9px] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                 <Eye className="w-2.5 h-2.5 text-emerald-400" /> Live Demo
+                              </div>
                            </div>
-                           <div className="text-[10px] font-sans uppercase tracking-widest text-[#2c2a29]">{proj.title}</div>
+                           <div className="text-[10px] font-sans uppercase tracking-widest text-[#2c2a29] flex items-center justify-between font-bold">
+                              <span>{proj.title}</span>
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-700">Preview ↗</span>
+                           </div>
                         </div>
                      ))}
                   </div>
@@ -1044,7 +1501,7 @@ const LayoutEditorial = ({ cards }: any) => {
 }
 
 // --- 04. INFINITE CANVAS ---
-const LayoutInfiniteCanvas = ({ cards }: any) => {
+const LayoutInfiniteCanvas = ({ cards, onPreviewProject }: any) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="h-[100dvh] w-full bg-zinc-100 overflow-hidden relative cursor-grab active:cursor-grabbing font-sans">
@@ -1072,12 +1529,25 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
                
                {card.projects && (
                   <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar mb-6">
-                     {card.projects.map(proj => (
-                        <div key={proj.id} className="w-48 shrink-0 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 p-2">
-                           <div className="aspect-video w-full rounded-lg overflow-hidden bg-zinc-200 mb-3">
-                              <img loading="lazy" src={proj.image} className="w-full h-full object-cover" />
+                     {card.projects.map((proj: any) => (
+                        <div 
+                          key={proj.id} 
+                          onClick={() => onPreviewProject?.(proj)}
+                          className="w-48 shrink-0 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 p-2 cursor-pointer hover:border-emerald-500/50 hover:shadow-md transition-all group"
+                        >
+                           <div className="aspect-video w-full rounded-lg overflow-hidden bg-zinc-200 mb-3 relative flex items-center justify-center">
+                              {proj.image ? (
+                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center text-zinc-400 p-2 text-center">
+                                  <Globe className="w-6 h-6 mb-1 text-zinc-500" />
+                                </div>
+                              )}
+                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 text-white rounded text-[8px] font-mono flex items-center gap-0.5">
+                                <Eye className="w-2 h-2 text-emerald-400" /> Preview
+                              </div>
                            </div>
-                           <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-800 text-center">{proj.title}</div>
+                           <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-800 text-center truncate">{proj.title}</div>
                         </div>
                      ))}
                   </div>
@@ -1107,7 +1577,7 @@ const LayoutInfiniteCanvas = ({ cards }: any) => {
 }
 
 // --- 05. DIGITAL GALLERY ---
-const LayoutDigitalGallery = ({ cards }: any) => {
+const LayoutDigitalGallery = ({ cards, onPreviewProject }: any) => {
   return (
     <div className="h-[100dvh] w-full bg-[#0a0a0a] overflow-x-auto overflow-y-hidden flex items-center px-12 md:px-32 custom-scrollbar font-sans">
        <div className="flex gap-16 md:gap-32 pr-16 md:pr-32 items-center h-full py-24">
@@ -1139,9 +1609,16 @@ const LayoutDigitalGallery = ({ cards }: any) => {
                      </div>
                      {card.projects && (
                         <div className="bg-black border-t border-[#333] flex flex-row overflow-x-auto h-0 group-hover:h-32 transition-all duration-700">
-                           {card.projects.map(proj => (
-                              <div key={proj.id} className="w-32 h-full shrink-0 border-r border-[#333] overflow-hidden relative">
-                                 <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity cursor-pointer" />
+                           {card.projects.map((proj: any) => (
+                              <div 
+                                key={proj.id} 
+                                onClick={() => onPreviewProject?.(proj)}
+                                className="w-32 h-full shrink-0 border-r border-[#333] overflow-hidden relative cursor-pointer group/item"
+                              >
+                                 <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-50 group-hover/item:opacity-100 group-hover/item:scale-110 transition-all duration-300" />
+                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/item:opacity-100 flex items-center justify-center transition-opacity">
+                                    <Eye className="w-4 h-4 text-emerald-400" />
+                                 </div>
                                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent text-[8px] text-white font-bold uppercase tracking-widest text-center truncate">{proj.title}</div>
                               </div>
                            ))}
@@ -1168,7 +1645,7 @@ const LayoutDigitalGallery = ({ cards }: any) => {
 }
 
 // --- 06. NEO BRUTALISM 2.0 ---
-const LayoutNeoBrutalism = ({ cards }: any) => {
+const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
   return (
     <div data-lenis-prevent className="h-[100dvh] w-full bg-[#FF90E8] font-sans text-black overflow-y-auto border-[8px] md:border-[16px] border-black pb-32">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-20">
@@ -1209,10 +1686,24 @@ const LayoutNeoBrutalism = ({ cards }: any) => {
 
                  {card.projects && (
                     <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 pt-12 border-t-[4px] border-black">
-                       {card.projects.map((proj, idx) => (
-                          <div key={proj.id} className={`bg-white border-[4px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform ${idx % 2 === 0 ? '-rotate-1' : 'rotate-1'} hover:rotate-0 transition-transform`}>
-                             <div className="aspect-[4/3] w-full border-[4px] border-black mb-4 overflow-hidden bg-black">
-                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0" />
+                       {card.projects.map((proj: any, idx: number) => (
+                          <div 
+                            key={proj.id} 
+                            onClick={() => onPreviewProject?.(proj)}
+                            className={`bg-white border-[4px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform ${idx % 2 === 0 ? '-rotate-1' : 'rotate-1'} hover:rotate-0 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer group`}
+                          >
+                             <div className="aspect-[4/3] w-full border-[4px] border-black mb-4 overflow-hidden bg-black relative flex items-center justify-center">
+                                {proj.image ? (
+                                  <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center p-4 text-center bg-white w-full h-full">
+                                    <Globe className="w-8 h-8 mb-2 text-black" />
+                                    <span className="text-xs font-mono font-bold">{proj.title || 'Live Website'}</span>
+                                  </div>
+                                )}
+                                <div className="absolute top-2 right-2 bg-[#FFC900] border-[2px] border-black px-2 py-0.5 text-[9px] font-black uppercase flex items-center gap-1">
+                                   <Eye className="w-2.5 h-2.5" /> LIVE
+                                </div>
                              </div>
                              <div className="font-black uppercase text-xl text-center">{proj.title}</div>
                           </div>
@@ -1229,7 +1720,7 @@ const LayoutNeoBrutalism = ({ cards }: any) => {
 }
 
 // --- 07. PAPER CRAFT STUDIO ---
-const LayoutPaperCraft = ({ cards }: any) => {
+const LayoutPaperCraft = ({ cards, onPreviewProject }: any) => {
   return (
     <div data-lenis-prevent className="h-[100dvh] w-full bg-[#fdfbf7] overflow-y-auto font-sans text-[#4a4a4a] relative pb-32">
       <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png')] opacity-10 mix-blend-multiply pointer-events-none" />
@@ -1252,11 +1743,18 @@ const LayoutPaperCraft = ({ cards }: any) => {
             
             {card.projects && (
                <div className="flex flex-col gap-6 mb-8 mt-4 pt-8 border-t border-dashed border-[#e0dcd3]">
-                  {card.projects.map((proj, idx) => (
-                     <div key={proj.id} className={`p-3 pb-8 bg-white shadow-md border border-[#eee] transform ${idx % 2 === 0 ? 'rotate-2' : '-rotate-2'} hover:rotate-0 hover:scale-110 transition-transform cursor-pointer relative`}>
+                  {card.projects.map((proj: any, idx: number) => (
+                     <div 
+                        key={proj.id} 
+                        onClick={() => onPreviewProject?.(proj)}
+                        className={`p-3 pb-8 bg-white shadow-md border border-[#eee] transform ${idx % 2 === 0 ? 'rotate-2' : '-rotate-2'} hover:rotate-0 hover:scale-105 transition-transform cursor-pointer relative group`}
+                     >
                         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-[#e6dfa8]/80 shadow-sm transform -rotate-2 z-10" />
-                        <div className="aspect-[4/3] w-full bg-gray-100 overflow-hidden mb-3 border border-gray-200">
-                           <img loading="lazy" src={proj.image} className="w-full h-full object-cover mix-blend-multiply" />
+                        <div className="aspect-[4/3] w-full bg-gray-100 overflow-hidden mb-3 border border-gray-200 relative">
+                           <img loading="lazy" src={proj.image} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-300" />
+                           <div className="absolute bottom-2 right-2 bg-black/80 text-white rounded px-2 py-0.5 text-[8px] font-serif flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Eye className="w-2 h-2 text-emerald-400" /> View Live
+                           </div>
                         </div>
                         <div className="font-serif text-center text-xs text-[#2c2c2c] italic">{proj.title}</div>
                      </div>
@@ -1283,7 +1781,7 @@ const LayoutPaperCraft = ({ cards }: any) => {
 }
 
 // --- 08. CINEMATIC STORYTELLING ---
-const LayoutCinematic = ({ cards }: any) => {
+const LayoutCinematic = ({ cards, onPreviewProject }: any) => {
   return (
     <div data-lenis-prevent className="h-[100dvh] w-full bg-black text-white overflow-y-auto snap-y snap-mandatory scroll-smooth font-sans">
        <div className="h-[100dvh] w-full snap-start snap-always flex flex-col items-center justify-center relative p-6 text-center">
@@ -1322,16 +1820,42 @@ const LayoutCinematic = ({ cards }: any) => {
                        {card.cta} <Zap className="w-4 h-4" />
                     </button>
                  )}
+
+                 {card.projects && card.projects.length > 0 && (
+                    <div className="mt-8 flex gap-3 flex-wrap">
+                       {card.projects.map((proj: any) => (
+                          <button 
+                             key={proj.id} 
+                             onClick={() => onPreviewProject?.(proj)}
+                             className="px-4 py-2 bg-white/10 hover:bg-emerald-500 hover:text-black border border-white/20 backdrop-blur-md rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2 transition-all hover:scale-105"
+                          >
+                             <Eye className="w-3 h-3" /> {proj.title}
+                          </button>
+                       ))}
+                    </div>
+                 )}
               </motion.div>
               
               <div className="hidden md:flex w-1/2 h-full items-center justify-end">
                  {card.projects ? (
                     <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.4 }} className="flex flex-col gap-6 mr-12 mt-32 h-[70vh] overflow-y-auto custom-scrollbar pr-4">
-                       {card.projects.map(proj => (
-                          <div key={proj.id} className="w-[400px] aspect-video bg-white/5 border border-white/20 rounded-2xl overflow-hidden relative cursor-pointer group/proj">
-                             <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover/proj:opacity-100 transition-all duration-700 group-hover/proj:scale-105" />
-                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/proj:opacity-100 bg-black/40 transition-opacity">
-                                <span className="font-bold tracking-widest uppercase text-white border border-white px-6 py-2">{proj.title}</span>
+                       {card.projects.map((proj: any) => (
+                          <div 
+                            key={proj.id} 
+                            onClick={() => onPreviewProject?.(proj)}
+                            className="w-[400px] aspect-video bg-white/5 border border-white/20 rounded-2xl overflow-hidden relative cursor-pointer group/proj hover:border-emerald-500/50 transition-all shadow-xl"
+                          >
+                             {proj.image ? (
+                               <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover/proj:opacity-100 transition-all duration-700 group-hover/proj:scale-105" />
+                             ) : (
+                               <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-zinc-900/80">
+                                 <Globe className="w-10 h-10 mb-2 text-emerald-400 opacity-70" />
+                                 <span className="text-sm font-mono text-white/70 font-bold">{proj.title || 'Live Showcase'}</span>
+                               </div>
+                             )}
+                             <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover/proj:opacity-100 bg-black/50 transition-opacity">
+                                <span className="font-bold tracking-widest uppercase text-white border border-white px-6 py-2 mb-2">{proj.title}</span>
+                                <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1"><Eye className="w-3 h-3" /> Live Showcase</span>
                              </div>
                           </div>
                        ))}
@@ -1350,7 +1874,7 @@ const LayoutCinematic = ({ cards }: any) => {
 }
 
 // --- 09. SWISS PRECISION ---
-const LayoutSwissPrecision = ({ cards }: any) => {
+const LayoutSwissPrecision = ({ cards, onPreviewProject }: any) => {
   return (
     <div data-lenis-prevent className="h-[100dvh] w-full bg-white text-black font-sans overflow-y-auto pb-32 md:pb-0">
       <div className="border-b border-black p-8 md:p-16 mt-16 md:mt-0 text-center md:text-left flex flex-col md:flex-row justify-between md:items-end gap-8">
@@ -1375,9 +1899,20 @@ const LayoutSwissPrecision = ({ cards }: any) => {
                     <div className="absolute inset-0 bg-black text-white p-8 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 flex flex-col justify-between">
                        <div className="text-[10px] uppercase tracking-widest opacity-50">Selected Works</div>
                        <div className="grid grid-cols-2 gap-4 mt-auto">
-                          {card.projects.map(proj => (
-                             <div key={proj.id} className="aspect-square bg-zinc-900 border border-zinc-800 overflow-hidden relative group/img">
-                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover grayscale opacity-50 group-hover/img:grayscale-0 group-hover/img:opacity-100 transition-all duration-300" />
+                          {card.projects.map((proj: any) => (
+                             <div 
+                                key={proj.id} 
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onPreviewProject?.(proj)
+                                }}
+                                className="aspect-square bg-zinc-900 border border-zinc-800 overflow-hidden relative group/img cursor-pointer"
+                             >
+                                <img loading="lazy" src={proj.image} className="w-full h-full object-cover grayscale opacity-50 group-hover/img:grayscale-0 group-hover/img:opacity-100 group-hover/img:scale-105 transition-all duration-300" />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center p-2 text-center transition-opacity">
+                                   <span className="text-[9px] font-mono font-bold uppercase text-white mb-1">{proj.title}</span>
+                                   <span className="text-[8px] font-mono text-emerald-400 flex items-center gap-1"><Eye className="w-2.5 h-2.5" /> Preview</span>
+                                </div>
                              </div>
                           ))}
                        </div>
@@ -1404,7 +1939,7 @@ const LayoutSwissPrecision = ({ cards }: any) => {
 }
 
 // --- 10. CREATIVE UNIVERSE ---
-const LayoutCreativeUniverse = ({ cards, playSound }: any) => {
+const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   
@@ -1482,11 +2017,16 @@ const LayoutCreativeUniverse = ({ cards, playSound }: any) => {
 
                  {activeCard.projects && (
                     <div className="w-full md:w-1/2 flex flex-col gap-4 max-h-[40vh] md:max-h-[300px] overflow-y-auto custom-scrollbar pr-4">
-                       {activeCard.projects.map(proj => (
-                          <div key={proj.id} className="w-full h-32 shrink-0 bg-white/5 border border-white/10 rounded-xl overflow-hidden relative group cursor-pointer">
-                             <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
-                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
-                                <span className="font-bold tracking-widest uppercase text-white text-[10px] border border-white px-4 py-2">{proj.title}</span>
+                       {activeCard.projects.map((proj: any) => (
+                          <div 
+                            key={proj.id} 
+                            onClick={() => onPreviewProject?.(proj)}
+                            className="w-full h-32 shrink-0 bg-white/5 border border-white/10 rounded-xl overflow-hidden relative group cursor-pointer hover:border-emerald-500/50 transition-all shadow-lg"
+                          >
+                             <img loading="lazy" src={proj.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
+                             <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
+                                <span className="font-bold tracking-widest uppercase text-white text-[10px] border border-white px-4 py-1.5 mb-1">{proj.title}</span>
+                                <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-1"><Eye className="w-2.5 h-2.5" /> Launch Showcase</span>
                              </div>
                           </div>
                        ))}
@@ -1521,7 +2061,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [cards, setCards] = useState<CardData[]>(initialCards)
   const [activeLayout, setActiveLayout] = useState<LayoutId>('cards')
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
-  const [activeProject, setActiveProject] = useState<any>(null)
+  const [activeProject, setActiveProject] = useState<ProjectData | null>(null)
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
@@ -1546,7 +2086,14 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   
   // Dynamic CMS Portfolio Integration: If we have CMS portfolio, replace the DUMMY_PROJECTS
   if (cmsData?.portfolio && cmsData.portfolio.length > 0) {
-    const portfolioProjects = cmsData.portfolio.map((p: any) => ({ id: p.id, title: p.title, image: p.image }))
+    const portfolioProjects = cmsData.portfolio.map((p: any) => ({ 
+      id: p.id, 
+      title: p.title, 
+      image: p.image,
+      url: p.link || p.url || 'https://grekam.in',
+      category: p.category || 'Featured Work',
+      techStack: p.tags || ['Next.js', 'TailwindCSS', 'TypeScript']
+    }))
     currentCards = currentCards.map(c => {
       if (c.id === 'branding' || c.id === 'webdev') {
         return { ...c, projects: portfolioProjects.slice(0, 3) }
@@ -1586,6 +2133,34 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
     } catch(e) {}
   }
 
+  const handlePreviewProject = (proj: any) => {
+    if (!proj) return
+    let rawUrl = proj.url || proj.link
+    // Auto-detect if title is a URL (e.g. 'https://www.raaghas.in' or 'grafty.pro')
+    if (!rawUrl && proj.title && (proj.title.startsWith('http://') || proj.title.startsWith('https://') || proj.title.includes('.'))) {
+      rawUrl = proj.title.startsWith('http') ? proj.title : `https://${proj.title}`
+    }
+    if (!rawUrl) rawUrl = 'https://grekam.in'
+
+    let cleanTitle = proj.title || 'Live Website'
+    if (cleanTitle.startsWith('http://') || cleanTitle.startsWith('https://')) {
+      try {
+        const parsed = new URL(cleanTitle)
+        cleanTitle = parsed.hostname.replace(/^www\./, '')
+      } catch(e) {}
+    }
+
+    setActiveProject({
+      id: proj.id || `p-${Date.now()}`,
+      title: cleanTitle,
+      image: proj.image || '',
+      url: rawUrl,
+      category: proj.category || 'Client Website',
+      techStack: Array.isArray(proj.techStack) ? proj.techStack : (proj.tags || ['Next.js', 'TailwindCSS', 'TypeScript']),
+      description: proj.description || 'Interactive live web application showcase.'
+    })
+  }
+
   const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component
 
   const isLightMode = ['editorial', 'canvas', 'bento', 'organic', 'minimal', 'paper', 'swiss'].includes(activeLayout)
@@ -1595,8 +2170,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
   return (
     <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
-      {/* Removed CustomCursor to improve performance */}
-      
+      {/* Header */}
       <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
         
         {/* Logo / Brand */}
@@ -1659,7 +2233,14 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
       <div className="w-full h-full relative z-0 overflow-y-auto custom-scrollbar">
         {/* Render the Active Theme Layout */}
-        {ActiveComponent && <ActiveComponent cards={currentCards} playSound={playSound} cmsData={cmsData} />}
+        {ActiveComponent && (
+          <ActiveComponent 
+            cards={currentCards} 
+            playSound={playSound} 
+            cmsData={cmsData} 
+            onPreviewProject={handlePreviewProject}
+          />
+        )}
         
         {/* Render all custom HTML sections (faq, contact, etc.) below the theme */}
         {cmsData && Object.entries(cmsData).map(([key, sectionContent]: [string, any]) => {
@@ -1673,6 +2254,12 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
           return null;
         })}
       </div>
+
+      {/* Multi-Device Live Showcase Frame Modal */}
+      <DevicePreviewModal 
+        project={activeProject} 
+        onClose={() => setActiveProject(null)} 
+      />
 
       {/* Floating Strategy Call Widget */}
       <div className="hidden md:block fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[1000] pointer-events-auto">
