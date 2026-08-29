@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
@@ -2183,49 +2183,70 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         <nav className="pointer-events-auto hidden md:flex items-center gap-6">
           {[
             { label: 'Home', href: '/' },
-            { label: 'Academy', href: '/academy' },
+            { label: 'Academy', href: 'https://academy.grekam.in', external: true },
             { label: 'Contact', href: '/contact' },
             { label: 'Login', href: '/auth/login' },
-          ].map(({ label, href }) => (
-            <a key={label} href={href} className={`text-[10px] font-bold tracking-widest uppercase transition-all hover:opacity-100 opacity-60
-              ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}>
+          ].map(({ label, href, external }) => (
+            <a 
+              key={label} 
+              href={href} 
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+              className={`text-[10px] font-bold tracking-widest uppercase transition-all hover:opacity-100 opacity-60 flex items-center gap-1
+              ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}
+            >
               {label}
+              {external && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
             </a>
           ))}
         </nav>
 
-        {/* Right: Choose Concept Dropdown */}
-        <div className="relative pointer-events-auto">
-           <button 
-             onClick={() => {
-                setShowMenu(!showMenu)
-                if(!audioCtx) setAudioCtx(new (window.AudioContext || (window as any).webkitAudioContext)())
-             }} 
-             className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full border text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-md
-               bg-gradient-to-r from-[#218558] to-[#0E4E7E] text-white border-none hover:opacity-90 shadow-[0_0_20px_rgba(33,133,88,0.3)]`}
+        {/* Right Actions: Academy Button + Choose Concept Dropdown */}
+        <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
+           {/* Academy Pill Button */}
+           <a 
+             href="https://academy.grekam.in" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)] group"
            >
-             CHOOSE THEME <ChevronDown className="w-3 h-3" />
-           </button>
-           
-           {showMenu && (
-             <div className={`absolute top-full right-0 mt-2 md:mt-4 p-2 min-w-[200px] md:min-w-[240px] flex flex-col gap-1 shadow-2xl overflow-y-auto max-h-[60vh] custom-scrollbar
-               ${isBrutal ? 'bg-white border-[4px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : 
-                 isLightMode ? 'bg-white/95 backdrop-blur-xl border border-black/10 rounded-2xl' : 'bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl'}`}
+             <GraduationCap className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+             <span className="hidden sm:inline">Academy</span>
+             <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+           </a>
+
+           <div className="relative">
+             <button 
+               onClick={() => {
+                  setShowMenu(!showMenu)
+                  if(!audioCtx) setAudioCtx(new (window.AudioContext || (window as any).webkitAudioContext)())
+               }} 
+               className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full border text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-md
+                 bg-gradient-to-r from-[#218558] to-[#0E4E7E] text-white border-none hover:opacity-90 shadow-[0_0_20px_rgba(33,133,88,0.3)]`}
              >
-               {LAYOUTS.map((layout) => (
-                 <button 
-                   key={layout.id}
-                   onClick={() => { setActiveLayout(layout.id); setShowMenu(false); playSound(); }}
-                   className={`text-left px-3 md:px-4 py-2 md:py-3 text-[10px] md:text-sm font-bold transition-all uppercase tracking-wider
-                     ${isBrutal ? 'text-black border-b-[2px] border-black last:border-0 hover:bg-[#FFC900]' : 
-                       isLightMode ? 'text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-xl' : 'text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl'}
-                     ${activeLayout === layout.id ? (isLightMode && !isBrutal ? 'bg-zinc-100 text-black' : !isBrutal ? 'bg-zinc-800 text-white' : 'bg-[#FF90E8]') : ''}`}
-                 >
-                   {layout.name}
-                 </button>
-               ))}
-             </div>
-           )}
+               CHOOSE THEME <ChevronDown className="w-3 h-3" />
+             </button>
+             
+             {showMenu && (
+               <div className={`absolute top-full right-0 mt-2 md:mt-4 p-2 min-w-[200px] md:min-w-[240px] flex flex-col gap-1 shadow-2xl overflow-y-auto max-h-[60vh] custom-scrollbar
+                 ${isBrutal ? 'bg-white border-[4px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : 
+                   isLightMode ? 'bg-white/95 backdrop-blur-xl border border-black/10 rounded-2xl' : 'bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl'}`}
+               >
+                 {LAYOUTS.map((layout) => (
+                   <button 
+                     key={layout.id}
+                     onClick={() => { setActiveLayout(layout.id); setShowMenu(false); playSound(); }}
+                     className={`text-left px-3 md:px-4 py-2 md:py-3 text-[10px] md:text-sm font-bold transition-all uppercase tracking-wider
+                       ${isBrutal ? 'text-black border-b-[2px] border-black last:border-0 hover:bg-[#FFC900]' : 
+                         isLightMode ? 'text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-xl' : 'text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl'}
+                       ${activeLayout === layout.id ? (isLightMode && !isBrutal ? 'bg-zinc-100 text-black' : !isBrutal ? 'bg-zinc-800 text-white' : 'bg-[#FF90E8]') : ''}`}
+                   >
+                     {layout.name}
+                   </button>
+                 ))}
+               </div>
+             )}
+           </div>
         </div>
 
       </header>
