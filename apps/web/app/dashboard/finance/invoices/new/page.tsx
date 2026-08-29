@@ -24,13 +24,17 @@ export default function NewInvoicePage() {
   
   const [invoice, setInvoice] = useState({
     invoiceNumber: `INV-${new Date().getTime().toString().slice(-6)}`,
-    clientName: "",
+    companyName: "",
+    contactName: "",
     clientEmail: "",
+    clientPhone: "",
+    clientAddress: "",
     clientGst: "",
     businessUnit: "AGENCY",
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     currency: "INR",
     discountRate: 0,
+    notes: "",
   });
 
   const [items, setItems] = useState([
@@ -68,19 +72,28 @@ export default function NewInvoicePage() {
   const [showPreview, setShowPreview] = useState(false)
 
   const handleSave = async () => {
-    if (!invoice.clientName) return alert("Client name is required");
+    if (!invoice.companyName && !invoice.contactName) {
+      return alert("Please enter either a Company Name or Contact Person Name");
+    }
     if (items.some(i => !i.description)) return alert("All items must have a description");
     
     setIsSubmitting(true);
     try {
+      const finalClientName = invoice.companyName 
+        ? (invoice.contactName ? `${invoice.companyName} (Attn: ${invoice.contactName})` : invoice.companyName)
+        : (invoice.contactName || "Valued Client");
+
       const res = await fetchApi<any>("/finance/invoices", {
         method: "POST",
         body: JSON.stringify({
-          ...invoice,
+          invoiceNumber: invoice.invoiceNumber,
+          clientName: finalClientName,
           clientEmail: invoice.clientEmail.trim() || undefined,
           clientGst: invoice.clientGst.trim() || undefined,
+          businessUnit: invoice.businessUnit,
           discountRate: Number(invoice.discountRate || 0),
           dueDate: new Date(invoice.dueDate).toISOString(),
+          notes: invoice.notes || (invoice.clientPhone ? `Contact Phone: ${invoice.clientPhone}` : undefined),
           items: items.map(i => ({
             description: i.description,
             quantity: Number(i.quantity),
@@ -106,8 +119,10 @@ export default function NewInvoicePage() {
       if (lead) {
         setInvoice(prev => ({
           ...prev,
-          clientName: lead.company || lead.name,
+          companyName: lead.company || "",
+          contactName: lead.name || "",
           clientEmail: lead.email || prev.clientEmail,
+          clientPhone: lead.phone || prev.clientPhone,
         }))
       }
     } else if (assignType === "CONTACT") {
@@ -115,8 +130,10 @@ export default function NewInvoicePage() {
       if (contact) {
         setInvoice(prev => ({
           ...prev,
-          clientName: contact.company?.name || `${contact.firstName} ${contact.lastName}`,
+          companyName: contact.company?.name || "",
+          contactName: `${contact.firstName} ${contact.lastName}`.trim(),
           clientEmail: contact.email || prev.clientEmail,
+          clientPhone: contact.phone || contact.whatsapp || prev.clientPhone,
         }))
       }
     }
@@ -229,34 +246,78 @@ export default function NewInvoicePage() {
                 </div>
               )}
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Client / Company Name *</label>
-                  <input 
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="E.g. RedBrick Realty"
-                    value={invoice.clientName}
-                    onChange={e => setInvoice({...invoice, clientName: e.target.value})}
-                  />
+              <div className="space-y-4">
+                {/* 🏢 Company Particulars */}
+                <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400 font-mono uppercase tracking-wider">
+                    <span>🏢 Company / Organization (Legal Entity)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Company Legal Name</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 placeholder:text-white/20"
+                        placeholder="e.g. Raaghas Retail Pvt Ltd"
+                        value={invoice.companyName}
+                        onChange={e => setInvoice({...invoice, companyName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Company GSTIN</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-blue-500 placeholder:text-white/20"
+                        placeholder="33AAAAA0000A1Z5"
+                        value={invoice.clientGst}
+                        onChange={e => setInvoice({...invoice, clientGst: e.target.value})}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Registered Billing Address</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 placeholder:text-white/20"
+                        placeholder="No. 42 Anna Salai, Chennai, Tamil Nadu – 600002"
+                        value={invoice.clientAddress}
+                        onChange={e => setInvoice({...invoice, clientAddress: e.target.value})}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Client Email</label>
-                  <input 
-                    type="email"
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="billing@example.com"
-                    value={invoice.clientEmail}
-                    onChange={e => setInvoice({...invoice, clientEmail: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Client GSTIN</label>
-                  <input 
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500"
-                    placeholder="29XXXXXXXXXXXXX"
-                    value={invoice.clientGst}
-                    onChange={e => setInvoice({...invoice, clientGst: e.target.value})}
-                  />
+
+                {/* 👤 Contact Person Particulars */}
+                <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 font-mono uppercase tracking-wider">
+                    <span>👤 Contact Person (Attention To / SPOC)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Contact Name</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        placeholder="e.g. Stalin Kumar"
+                        value={invoice.contactName}
+                        onChange={e => setInvoice({...invoice, contactName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Direct Email</label>
+                      <input 
+                        type="email"
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        placeholder="stalin@raaghas.com"
+                        value={invoice.clientEmail}
+                        onChange={e => setInvoice({...invoice, clientEmail: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Direct Phone / WhatsApp</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        placeholder="+91 98400 12345"
+                        value={invoice.clientPhone}
+                        onChange={e => setInvoice({...invoice, clientPhone: e.target.value})}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
