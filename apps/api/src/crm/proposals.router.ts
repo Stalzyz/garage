@@ -158,29 +158,119 @@ export default async function proposalsRouter(app: FastifyInstance) {
     return reply.send(pdfBuffer);
   });
 
-  // POST /api/v1/crm/proposals/generate — AI generate proposal content
+  // POST /api/v1/crm/proposals/generate — AI Proposal Architect with Website Audit & Scope Engine
   app.post('/proposals/generate', async (req, reply) => {
-    const { title, items } = req.body as { title: string, items: any[] };
+    const { 
+      title, 
+      websiteUrl, 
+      industry, 
+      clientName, 
+      scopeGoal, 
+      budgetTier = 'growth', 
+      items 
+    } = req.body as { 
+      title?: string; 
+      websiteUrl?: string; 
+      industry?: string; 
+      clientName?: string; 
+      scopeGoal?: string; 
+      budgetTier?: string; 
+      items?: any[]; 
+    };
     
     try {
       const { getOpenAiClient } = await import('../utils/openai');
       const openai = await getOpenAiClient(app);
 
-      const prompt = `Write a professional executive summary and overview for a business proposal titled "${title}".
-      The proposal includes the following line items:
-      ${items ? items.map((i: any) => `- ${i.title || i.name || 'Item'}: ${i.description || ''}`).join('\n') : ''}
-      
-      Format the response in basic HTML. Use tags like <h2>, <p>, <ul>, <li>, and <strong>. Include sections for Overview, Objectives, and Value Proposition.
-      Do not include any introductory conversation, just the raw HTML content itself (no markdown code blocks, no \`\`\`html).`;
+      // 1. Scrape basic website metadata if websiteUrl provided
+      let websiteContext = "";
+      if (websiteUrl && websiteUrl.trim()) {
+        try {
+          const rawUrl = websiteUrl.startsWith('http') ? websiteUrl.trim() : `https://${websiteUrl.trim()}`;
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3500);
+          const siteRes = await fetch(rawUrl, {
+            signal: controller.signal,
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 GrekamAuditor/1.0"
+            }
+          });
+          clearTimeout(timeout);
+          if (siteRes.ok) {
+            const html = await siteRes.text();
+            const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+            const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
+                              html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+            const siteTitle = titleMatch ? titleMatch[1].trim() : "";
+            const siteDesc = descMatch ? descMatch[1].trim() : "";
+            websiteContext = `Target Website: ${rawUrl}\nSite Title: ${siteTitle}\nSite Description: ${siteDesc}`;
+          }
+        } catch (e: any) {
+          websiteContext = `Target Website: ${websiteUrl} (Live scrape timed out; generate based on provided brief)`;
+        }
+      }
+
+      const systemPrompt = `You are the Lead Digital Solutions Architect & Sales Director at "Grekam Agency" (part of Grekam Visuals & Grekam OS).
+Grekam is an elite engineering agency known for:
+- Bespoke High-Performance Web Platforms (Next.js 16, Turbopack, TailwindCSS, Headless Architecture)
+- AI & CRM Automation Suites (Custom WhatsApp Bots via Grafty AI, Automated Lead Pipelines, ERP Sync)
+- Ultra-Fast E-Commerce Infrastructure (Razorpay/Stripe, Sub-800ms page transitions, Luxury UI/UX)
+- Notable Live Case Studies: Raaghas Luxury E-Commerce (raaghas.in), Grafty WhatsApp AI Engine (grafty.pro), Grekam FM Studio (fm.grekam.in).
+
+Your goal: Craft a compelling, technical, high-converting enterprise proposal that diagnoses the client's current pain points, proposes a multi-phase architectural roadmap, and delivers realistic milestone line items with Indian Rupee (INR) pricing.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "title": "Descriptive, high-impact proposal title",
+  "content": "Professional HTML markup containing: <h2>1. Executive Summary & Problem Diagnosis</h2>, <h2>2. Architectural Solution & Scope</h2>, <h2>3. Deliverables & Milestones</h2>, <h2>4. Expected ROI & Technical SLAs</h2>. (Use <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em> tags. Do not use markdown backticks in content)",
+  "items": [
+    {
+      "name": "Phase 1: Milestone Name",
+      "description": "Clear explanation of deliverables in this milestone",
+      "quantity": 1,
+      "unitPrice": 25000,
+      "discountRate": 0,
+      "taxRate": 18,
+      "total": 29500
+    }
+  ],
+  "timelineWeeks": 3,
+  "keyMetrics": ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
+}`;
+
+      const userPrompt = `Generate an architectural proposal brief for:
+Client / Company Name: ${clientName || 'Valued Client'}
+Industry / Niche: ${industry || 'Digital Technology & Commerce'}
+Proposal Focus / Title: ${title || 'Fullstack Digital Ecosystem Overhaul'}
+Specific Client Goals / Pain Points: ${scopeGoal || 'Rebuild outdated infrastructure, automate lead pipelines, improve conversion speed, and scale digital sales.'}
+Budget Tier: ${budgetTier} (Startup: ₹35,000 - ₹60,000 total | Growth: ₹65,000 - ₹1,40,000 total | Enterprise: ₹1,50,000+ total)
+${websiteContext ? `\nClient Website Context:\n${websiteContext}` : ''}
+${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}` : ''}`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.7,
       });
 
-      const content = response.choices[0]?.message?.content || '';
+      const rawJson = response.choices[0]?.message?.content || '{}';
+      const parsed = JSON.parse(rawJson);
 
-      return { content: content.trim() };
+      return {
+        title: parsed.title || title || "Digital Platform Proposal",
+        content: parsed.content || "",
+        items: Array.isArray(parsed.items) && parsed.items.length > 0 ? parsed.items : [
+          { name: "Phase 1: Architecture & Precision UI/UX Design", description: "Figma design system, user journeys, DB schema", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 18, total: 29500 },
+          { name: "Phase 2: Next.js & Fullstack Platform Engineering", description: "API microservices, payment & CRM integration", quantity: 1, unitPrice: 45000, discountRate: 0, taxRate: 18, total: 53100 },
+          { name: "Phase 3: Production Rollout, Cloudflare CDN & SLA", description: "Performance optimization, SEO audit, 30-day warranty", quantity: 1, unitPrice: 15000, discountRate: 0, taxRate: 18, total: 17700 }
+        ],
+        timelineWeeks: parsed.timelineWeeks || 3,
+        keyMetrics: parsed.keyMetrics || ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
+      };
     } catch (error: any) {
       app.log.error({ err: error }, "AI Proposal Content Generation Error");
       return reply.code(500).send({
