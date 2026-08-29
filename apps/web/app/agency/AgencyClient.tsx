@@ -982,6 +982,30 @@ const UniversalContactForm = ({
 }
 
 // --- 01. CREATIVE OS ---
+const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
+  card: CardData
+  mouseX: any
+  isMobile: boolean
+  playSound: () => void
+  onClick: () => void
+}) => {
+  const ref = useRef<HTMLButtonElement>(null)
+  const distance = useTransform(mouseX, (val: number) => val - (ref.current?.getBoundingClientRect().x ?? 0) - 32)
+  const widthSync = useTransform(distance, [-150, 0, 150], [isMobile ? 48 : 64, isMobile ? 60 : 100, isMobile ? 48 : 64])
+  const width = useSpring(widthSync, { mass: 0.1, stiffness: 200, damping: 15 })
+
+  return (
+    <motion.button 
+      ref={ref} 
+      style={{ width, height: width }} 
+      onClick={() => { playSound(); onClick(); }} 
+      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8"
+    >
+      {renderIcon(card.iconName, card.icon)}
+    </motion.button>
+  )
+}
+
 const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
@@ -999,17 +1023,16 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
 
       <div className="absolute bottom-6 md:bottom-10 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
          <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-20 md:h-24 items-center gap-3 md:gap-6 px-4 md:px-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
-           {cards.map((card: CardData) => {
-             const ref = useRef<HTMLButtonElement>(null)
-             const distance = useTransform(mouseX, (val) => val - (ref.current?.getBoundingClientRect().x ?? 0) - 32)
-             const widthSync = useTransform(distance, [-150, 0, 150], [isMobile ? 48 : 64, isMobile ? 60 : 100, isMobile ? 48 : 64])
-             const width = useSpring(widthSync, { mass: 0.1, stiffness: 200, damping: 15 })
-             return (
-               <motion.button key={card.id} ref={ref} style={{ width, height: width }} onClick={() => { playSound(); setActiveCard(card); }} className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8">
-                 {renderIcon(card.iconName, card.icon)}
-               </motion.button>
-             )
-           })}
+           {cards.map((card: CardData) => (
+             <DockItem 
+               key={card.id} 
+               card={card} 
+               mouseX={mouseX} 
+               isMobile={isMobile} 
+               playSound={playSound} 
+               onClick={() => setActiveCard(card)} 
+             />
+           ))}
          </motion.div>
       </div>
       <AnimatePresence>
