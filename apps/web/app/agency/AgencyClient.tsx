@@ -2064,12 +2064,25 @@ const LAYOUTS: { id: LayoutId, name: string, component: any }[] = [
 export default function AgencyClient({ initialCards }: { initialCards: CardData[] }) {
   const [activeCard, setActiveCard] = useState<CardData>(initialCards[0] || {} as CardData)
   const [cards, setCards] = useState<CardData[]>(initialCards)
-  const [activeLayout, setActiveLayout] = useState<LayoutId>('cards')
+  const [activeLayout, setActiveLayout] = useState<LayoutId>('os')
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [activeProject, setActiveProject] = useState<ProjectData | null>(null)
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const themeParam = params.get('theme') as LayoutId | null
+      const savedTheme = localStorage.getItem('grekam_agency_theme') as LayoutId | null
+      if (themeParam && LAYOUTS.some(l => l.id === themeParam)) {
+        setActiveLayout(themeParam)
+      } else if (savedTheme && LAYOUTS.some(l => l.id === savedTheme)) {
+        setActiveLayout(savedTheme)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     fetch('/api/v1/cms/pages/agency')
@@ -2261,7 +2274,12 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
                  {LAYOUTS.map((layout) => (
                    <button 
                      key={layout.id}
-                     onClick={() => { setActiveLayout(layout.id); setShowMenu(false); playSound(); }}
+                     onClick={() => { 
+                       setActiveLayout(layout.id); 
+                       if (typeof window !== 'undefined') localStorage.setItem('grekam_agency_theme', layout.id);
+                       setShowMenu(false); 
+                       playSound(); 
+                     }}
                      className={`text-left px-3 md:px-4 py-2 md:py-3 text-[10px] md:text-sm font-bold transition-all uppercase tracking-wider
                        ${isBrutal ? 'text-black border-b-[2px] border-black last:border-0 hover:bg-[#FFC900]' : 
                          isLightMode ? 'text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-xl' : 'text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl'}
