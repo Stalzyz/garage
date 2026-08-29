@@ -2,11 +2,20 @@
 
 import { useState } from "react";
 import { ApiClient } from "@/lib/api";
-import { Shield, QrCode, Key, CheckCircle, Loader2, Copy, AlertTriangle } from "lucide-react";
+import { Shield, QrCode, Key, CheckCircle, Loader2, Copy, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 type Step = "idle" | "setup" | "verify" | "done";
 
-export default function TwoFASettingsPage() {
+export default function SecuritySettingsPage() {
+  // Password State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // 2FA State
   const [step, setStep] = useState<Step>("idle");
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
@@ -14,6 +23,26 @@ export default function TwoFASettingsPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword) return toast.error("Please enter your current password");
+    if (newPassword.length < 8) return toast.error("New password must be at least 8 characters");
+    if (newPassword !== confirmPassword) return toast.error("New passwords do not match");
+
+    setPasswordLoading(true);
+    try {
+      await ApiClient.post("/auth/password", { currentPassword, newPassword });
+      toast.success("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   const handleSetup = async () => {
     setLoading(true);
@@ -46,12 +75,83 @@ export default function TwoFASettingsPage() {
   };
 
   return (
-    <div className="p-8 max-w-xl">
-      <div className="mb-8">
+    <div className="p-8 max-w-2xl space-y-10">
+      <div>
         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-          <Shield className="w-7 h-7 text-emerald-400" /> Two-Factor Authentication
+          <Shield className="w-7 h-7 text-blue-400" /> Security & Access
         </h1>
-        <p className="text-[#a1a1aa] mt-2">Add an extra layer of security to your account using an authenticator app.</p>
+        <p className="text-[#a1a1aa] mt-2">Manage your admin credentials, passwords, and two-factor authentication.</p>
+      </div>
+
+      {/* CHANGE PASSWORD CARD */}
+      <div className="bg-[#111] border border-[#222] rounded-2xl p-6 space-y-6">
+        <div className="flex items-start gap-4 border-b border-white/5 pb-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 text-blue-400">
+            <Lock className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-base">Change Admin Password</h3>
+            <p className="text-xs text-[#888] mt-0.5">Ensure your account uses a strong, random password with at least 8 characters.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-white/60 block mb-1.5">Current Password</label>
+            <div className="relative">
+              <input
+                type={showPasswords ? "text" : "password"}
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-white/60 block mb-1.5">New Password</label>
+              <input
+                type={showPasswords ? "text" : "password"}
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="Min 8 characters"
+                className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-white/60 block mb-1.5">Confirm New Password</label>
+              <input
+                type={showPasswords ? "text" : "password"}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Repeat new password"
+                className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="button"
+              onClick={() => setShowPasswords(!showPasswords)}
+              className="text-xs text-white/40 hover:text-white flex items-center gap-1.5 transition-colors"
+            >
+              {showPasswords ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {showPasswords ? "Hide Passwords" : "Show Passwords"}
+            </button>
+
+            <button
+              type="submit"
+              disabled={passwordLoading || !currentPassword || !newPassword}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
+            >
+              {passwordLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
+              {passwordLoading ? "Updating..." : "Update Password"}
+            </button>
+          </div>
+        </form>
       </div>
 
       {step === "idle" && (
