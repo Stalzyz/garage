@@ -193,7 +193,7 @@ export default function CMSPageEditor() {
   }
 
   // Visual Builder Helpers
-  const updateCard = (index: number, field: string, value: string) => {
+  const updateCard = (index: number, field: string, value: any) => {
     const newContent = [...content];
     newContent[index] = { ...newContent[index], [field]: value };
     setContent(newContent);
