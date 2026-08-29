@@ -3,103 +3,8 @@ import { z } from 'zod';
 
 export default async function subscriptionsRouter(app: FastifyInstance) {
 
-  // Seed function for mock subscriptions if empty
-  async function seedSubscriptionsIfEmpty() {
-    const count = await app.prisma.subscription.count();
-    if (count > 0) return;
-
-    // Check if we have companies
-    let companies = await app.prisma.company.findMany();
-    if (companies.length === 0) {
-      companies = await Promise.all([
-        app.prisma.company.create({ data: { name: 'Techflow SaaS', industry: 'Software', size: '10-50' } }),
-        app.prisma.company.create({ data: { name: 'Fitburst Gym', industry: 'Fitness', size: '1-10' } }),
-        app.prisma.company.create({ data: { name: 'RedBrick Realty', industry: 'Real Estate', size: '11-50' } }),
-        app.prisma.company.create({ data: { name: 'Apex Consulting', industry: 'Consulting', size: '51-200' } }),
-        app.prisma.company.create({ data: { name: 'Zephyr Labs', industry: 'Healthcare', size: '10-50' } }),
-      ]);
-    }
-
-    const techflow = companies.find(c => c.name === 'Techflow SaaS') || companies[0];
-    const fitburst = companies.find(c => c.name === 'Fitburst Gym') || companies[0];
-    const redbrick = companies.find(c => c.name === 'RedBrick Realty') || companies[0];
-    const apex = companies.find(c => c.name === 'Apex Consulting') || companies[0];
-    const zephyr = companies.find(c => c.name === 'Zephyr Labs') || companies[0];
-
-    const today = new Date();
-    
-    const mockSubscriptions = [
-      {
-        id: 'SUB-001',
-        companyId: techflow.id,
-        productName: 'Grafty Pro',
-        planName: 'Agency',
-        mrr: 12999.0,
-        status: 'active',
-        nextBilling: new Date(today.getTime() + 20 * 24 * 60 * 60 * 1000), // 20 days later
-        usage: '4/unlimited workspaces'
-      },
-      {
-        id: 'SUB-002',
-        companyId: techflow.id,
-        productName: 'Send Grafty',
-        planName: 'Scale',
-        mrr: 4999.0,
-        status: 'active',
-        nextBilling: new Date(today.getTime() + 20 * 24 * 60 * 60 * 1000),
-        usage: '142k/200k emails'
-      },
-      {
-        id: 'SUB-003',
-        companyId: fitburst.id,
-        productName: 'WaaS',
-        planName: 'Starter Site',
-        mrr: 7999.0,
-        status: 'active',
-        nextBilling: new Date(today.getTime() + 17 * 24 * 60 * 60 * 1000),
-        usage: 'Included'
-      },
-      {
-        id: 'SUB-004',
-        companyId: redbrick.id,
-        productName: 'Send Grafty',
-        planName: 'Growth',
-        mrr: 1999.0,
-        status: 'paused',
-        nextBilling: new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000),
-        usage: '0/50k emails'
-      },
-      {
-        id: 'SUB-005',
-        companyId: apex.id,
-        productName: 'Brand Retainer',
-        planName: 'Standard',
-        mrr: 27999.0,
-        status: 'at_risk',
-        nextBilling: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000),
-        usage: '18/20 hours'
-      },
-      {
-        id: 'SUB-006',
-        companyId: zephyr.id,
-        productName: 'Grafty Pro',
-        planName: 'Pro',
-        mrr: 4999.0,
-        status: 'churned',
-        nextBilling: new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000),
-        usage: 'Inactive'
-      }
-    ];
-
-    for (const sub of mockSubscriptions) {
-      await app.prisma.subscription.create({ data: sub });
-    }
-  }
-
   // GET /api/v1/finance/subscriptions
   app.get('/', async (req, reply) => {
-    await seedSubscriptionsIfEmpty();
-
     const subscriptions = await app.prisma.subscription.findMany({
       include: {
         company: {
@@ -255,5 +160,15 @@ export default async function subscriptionsRouter(app: FastifyInstance) {
     });
 
     return updated;
+  });
+
+  // DELETE /api/v1/finance/subscriptions/:id
+  app.delete('/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const sub = await app.prisma.subscription.findUnique({ where: { id } });
+    if (!sub) return reply.notFound('Subscription not found');
+
+    await app.prisma.subscription.delete({ where: { id } });
+    return { success: true, message: 'Subscription deleted successfully' };
   });
 }

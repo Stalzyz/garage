@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Plus, Filter, TrendingUp, TrendingDown, Users, DollarSign, Activity, AlertCircle, Play, Pause, XCircle, Loader2 } from "lucide-react"
+import { Search, Plus, Filter, TrendingUp, TrendingDown, Users, DollarSign, Activity, AlertCircle, Play, Pause, XCircle, Loader2, Trash2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -52,6 +52,23 @@ export default function SubscriptionsDashboard() {
       await mutate()
     } catch (err) {
       console.error("Error resuming subscription:", err)
+    } finally {
+      setActionLoadingId(null)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this subscription?")) return
+    setActionLoadingId(id)
+    try {
+      await fetchApi(`/finance/subscriptions/${id}`, {
+        method: "DELETE"
+      })
+      if (editingSub?.id === id) setEditingSub(null)
+      await mutate()
+    } catch (err) {
+      console.error("Error deleting subscription:", err)
+      alert("Failed to delete subscription")
     } finally {
       setActionLoadingId(null)
     }
@@ -308,6 +325,13 @@ export default function SubscriptionsDashboard() {
                             <button onClick={() => setEditingSub(sub)} className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 hover:border-white/20 transition-colors">
                               Manage
                             </button>
+                            <button 
+                              onClick={() => handleDelete(sub.id)}
+                              className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/20 transition-all"
+                              title="Delete Subscription"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -393,6 +417,13 @@ export default function SubscriptionsDashboard() {
                       <button onClick={() => setEditingSub(sub)} className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-wider bg-white/5 text-white rounded-lg border border-white/10">
                         Manage
                       </button>
+                      <button 
+                        onClick={() => handleDelete(sub.id)}
+                        className="p-1.5 text-white/30 hover:text-red-400 rounded-lg border border-white/10"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -427,56 +458,60 @@ export default function SubscriptionsDashboard() {
             
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Select Company</label>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Client Company *</label>
                 <select
                   required
                   value={selectedCompanyId}
                   onChange={e => setSelectedCompanyId(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/30"
                 >
-                  <option value="" disabled className="bg-[#090d16] text-white/30">Choose a company...</option>
-                  {companiesData?.data?.map(c => (
-                    <option key={c.id} value={c.id} className="bg-[#090d16] text-white">
-                      {c.name}
-                    </option>
+                  <option value="" disabled className="bg-[#090d16]">Select a company</option>
+                  {(companiesData?.data || []).map((c: any) => (
+                    <option key={c.id} value={c.id} className="bg-[#090d16]">{c.name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Product Name</label>
-                <input
-                  type="text"
+                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Product / Service *</label>
+                <select
                   required
-                  placeholder="e.g. Grafty Pro"
                   value={productName}
                   onChange={e => setProductName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-white/30"
-                />
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-white/30"
+                >
+                  <option value="" disabled className="bg-[#090d16]">Select product</option>
+                  <option value="Grafty Pro" className="bg-[#090d16]">Grafty Pro</option>
+                  <option value="Send Grafty" className="bg-[#090d16]">Send Grafty</option>
+                  <option value="WaaS" className="bg-[#090d16]">WaaS (Website Retainer)</option>
+                  <option value="Brand Retainer" className="bg-[#090d16]">Brand Retainer</option>
+                  <option value="Custom Engineering" className="bg-[#090d16]">Custom Engineering</option>
+                </select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Plan Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Enterprise Retainer"
-                  value={planName}
-                  onChange={e => setPlanName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-white/30"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">MRR (INR)</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="e.g. 15000"
-                  value={mrr}
-                  onChange={e => setMrr(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-white/30"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Plan Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Starter, Pro, Agency"
+                    value={planName}
+                    onChange={e => setPlanName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-white/40 block">Monthly Recurring (INR) *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 12999"
+                    value={mrr}
+                    onChange={e => setMrr(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-white/30"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -579,11 +614,18 @@ export default function SubscriptionsDashboard() {
                 </select>
               </div>
 
-              <div className="pt-4 border-t border-white/5">
+              <div className="pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => handleDelete(editingSub.id)}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-red-500/10 border border-red-500/20 text-red-400 font-bold tracking-widest uppercase text-[10px] py-3.5 rounded-xl hover:bg-red-500/20 transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                </button>
                 <button 
                   type="submit" 
                   disabled={isSubmitting} 
-                  className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] py-4 rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50"
+                  className="flex-[2] flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] py-3.5 rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
                 </button>
