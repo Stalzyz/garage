@@ -291,7 +291,8 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                   src={iframeSrc}
                   onLoad={() => setIsLoading(false)}
                   className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   title={project.title}
                 />
               </div>
@@ -327,7 +328,8 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                   src={iframeSrc}
                   onLoad={() => setIsLoading(false)}
                   className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   title={project.title}
                 />
               </div>
@@ -372,7 +374,8 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                   src={iframeSrc}
                   onLoad={() => setIsLoading(false)}
                   className="w-full h-full border-0 pt-7 pb-4"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   title={project.title}
                 />
 
@@ -979,7 +982,7 @@ const UniversalContactForm = ({
 }
 
 // --- 01. CREATIVE OS ---
-const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
+const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
   const [isMobile, setIsMobile] = useState(false)
@@ -1022,13 +1025,16 @@ const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
                   <h1 className="text-3xl md:text-5xl font-bold mb-4">{activeCard.title}</h1>
                   <p className="text-lg md:text-xl text-white/50 max-w-2xl mb-8 md:mb-12 shrink-0">{activeCard.subtitle}</p>
                   
-                  {activeCard.projects && activeCard.projects.length > 0 && (
+                  {/* Projects / Products Grid */}
+                  {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
                      <div className="w-full mt-auto">
-                        <div className="text-left text-xs uppercase tracking-widest text-white/30 mb-4">Featured Projects</div>
+                        <div className="text-left text-xs uppercase tracking-widest text-white/30 mb-4">
+                          {activeCard.isProducts ? 'Proprietary Software' : 'Featured Client Platforms'}
+                        </div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
-                           {activeCard.projects.map(proj => (
+                           {(activeCard.projects || (activeCard.isPortfolio ? cmsData?.portfolio : null) || (activeCard.isProducts ? cmsData?.products : null) || []).map((proj: any, pIdx: number) => (
                               <div 
-                                key={proj.id} 
+                                key={proj.id || pIdx} 
                                 data-cursor="VIEW" 
                                 onClick={() => onPreviewProject?.(proj)}
                                 className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 hover:border-emerald-500/50 transition-all shadow-lg"
@@ -1047,8 +1053,11 @@ const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
                                     </div>
                                  </div>
                                  <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between">
-                                   <span>{proj.title}</span>
-                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform">→</span>
+                                   <div className="truncate mr-2">
+                                     <div className="truncate">{proj.title}</div>
+                                     {proj.category && <div className="text-[10px] text-white/40 font-normal truncate">{proj.category}</div>}
+                                   </div>
+                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                                  </div>
                               </div>
                            ))}
@@ -1056,6 +1065,41 @@ const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
                      </div>
                   )}
 
+                  {/* Pricing Tiers */}
+                  {activeCard.isPricing && (
+                    <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 text-left mt-auto">
+                      {[
+                        { title: 'MVP Sprint', price: '₹45,000', period: 'one-time', features: ['High-Converting Next.js App', 'Interactive UI/UX & Motion', 'Payment & Analytics Setup', '2-Week Turnaround'] },
+                        { title: 'Growth Engine', price: '₹85,000', period: 'monthly', popular: true, features: ['Fullstack Web + API Suite', 'Automated CRM & Lead Sync', 'Custom Microservices', 'Dedicated Tech Partner'] },
+                        { title: 'Enterprise Bespoke', price: 'Custom', period: 'engagement', features: ['Architectural SLA & Audits', 'Private Cloud / On-Prem Deploy', 'AI Model Fine-Tuning', '24/7 Priority Support'] }
+                      ].map((tier, tIdx) => (
+                        <div key={tIdx} className={`p-5 rounded-2xl border flex flex-col justify-between ${tier.popular ? 'bg-gradient-to-b from-purple-900/30 to-indigo-950/40 border-purple-500/40 shadow-lg' : 'bg-white/5 border-white/10'}`}>
+                          <div>
+                            <div className="text-xs uppercase tracking-widest text-emerald-400 font-mono mb-1">{tier.title}</div>
+                            <div className="text-2xl font-black mb-3">{tier.price} <span className="text-xs text-white/40 font-normal">/ {tier.period}</span></div>
+                            <ul className="space-y-2 mb-4 text-xs text-white/70">
+                              {tier.features.map((f, fi) => (
+                                <li key={fi} className="flex items-center gap-2">
+                                  <span className="text-emerald-400">✓</span> {f}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
+                              if (contactSection) setActiveCard(contactSection)
+                            }}
+                            className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                          >
+                            Get Started
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Contact Form */}
                   {activeCard.id === 'contact_form' && (
                      <div className="w-full max-w-2xl text-left mt-auto">
                         <UniversalContactForm 
@@ -1066,7 +1110,7 @@ const LayoutCreativeOS = ({ cards, playSound, onPreviewProject }: any) => {
                      </div>
                   )}
                   
-                  {!activeCard.projects && activeCard.id !== 'contact_form' && (
+                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && (
                      <button onClick={() => {
                         if (activeCard.isAcademy) window.location.href = '/academy';
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
