@@ -334,13 +334,27 @@ model LeadActivity {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  website   String?
-  industry  String?
-  size      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  tradeName       String?
+  legalName       String?
+  gstin           String?
+  pan             String?
+  placeOfSupply   String?
+  stateCode       String?
+  gstType         String?  @default("REGULAR") // REGULAR | COMPOSITION | SEZ | OVERSEAS | UNREGISTERED
+  billingAddress  String?
+  shippingAddress String?
+  city            String?
+  state           String?
+  pinCode         String?
+  country         String?  @default("India")
+  rcmApplicable   Boolean  @default(false)
+  website         String?
+  industry        String?
+  size            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   contacts      Contact[]
   projects      Project[]
@@ -367,18 +381,25 @@ model Subscription {
 }
 
 model Contact {
-  id        String      @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String?
-  phone     String?
-  whatsapp  String?
-  companyId String?
-  tier      ClientTier?
-  isPrimary Boolean     @default(false)
-  tags      String[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  whatsapp        String?
+  pan             String?
+  billingAddress  String?
+  city            String?
+  state           String?
+  stateCode       String?
+  pinCode         String?
+  country         String?     @default("India")
+  companyId       String?
+  tier            ClientTier?
+  isPrimary       Boolean     @default(false)
+  tags            String[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   company           Company?           @relation(fields: [companyId], references: [id])
   clientProfile     ClientProfile?
@@ -2871,16 +2892,22 @@ model Goal {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  categoryId  String   // grafty-pro, send-grafty, etc
-  name        String
-  price       Float
-  billing     String   // monthly, yearly, once, retainer
-  description String?
-  features    String[] // Prisma supports scalar lists in PostgreSQL
-  isPopular   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  categoryId      String   // grafty-pro, send-grafty, web-waas, academy, digital-services, etc
+  name            String
+  price           Float
+  billing         String   // monthly, yearly, once, retainer
+  description     String?
+  features        String[] // Prisma supports scalar lists in PostgreSQL
+  isPopular       Boolean  @default(false)
+  sacCode         String?  @default("998314") // 6-digit SAC or HSN Code
+  hsnCode         String?
+  gstRate         Float    @default(18.0)     // 0, 5, 12, 18, 28
+  uom             String   @default("OTH")    // OTH, MOS, HRS, NOS, SES
+  isTaxInclusive  Boolean  @default(false)
+  exemptionReason String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("products")
 }

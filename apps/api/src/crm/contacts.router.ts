@@ -4,23 +4,85 @@ import { EmailService } from '../automations/email.service';
 import bcrypt from 'bcryptjs';
 import Papa from 'papaparse';
 
+export const GST_STATE_CODES: Record<string, string> = {
+  '01': 'Jammu and Kashmir',
+  '02': 'Himachal Pradesh',
+  '03': 'Punjab',
+  '04': 'Chandigarh',
+  '05': 'Uttarakhand',
+  '06': 'Haryana',
+  '07': 'Delhi',
+  '08': 'Rajasthan',
+  '09': 'Uttar Pradesh',
+  '10': 'Bihar',
+  '11': 'Sikkim',
+  '12': 'Arunachal Pradesh',
+  '13': 'Nagaland',
+  '14': 'Manipur',
+  '15': 'Mizoram',
+  '16': 'Tripura',
+  '17': 'Meghalaya',
+  '18': 'Assam',
+  '19': 'West Bengal',
+  '20': 'Jharkhand',
+  '21': 'Odisha',
+  '22': 'Chhattisgarh',
+  '23': 'Madhya Pradesh',
+  '24': 'Gujarat',
+  '26': 'Dadra & Nagar Haveli and Daman & Diu',
+  '27': 'Maharashtra',
+  '29': 'Karnataka',
+  '30': 'Goa',
+  '31': 'Lakshadweep',
+  '32': 'Kerala',
+  '33': 'Tamil Nadu',
+  '34': 'Puducherry',
+  '35': 'Andaman and Nicobar Islands',
+  '36': 'Telangana',
+  '37': 'Andhra Pradesh',
+  '38': 'Ladakh',
+  '97': 'Other Territory',
+  '99': 'Centre Jurisdiction / Overseas',
+};
+
 const CreateCompanySchema = z.object({
   name: z.string().min(1),
-  website: z.string().url().optional(),
-  industry: z.string().optional(),
-  size: z.enum(['1-10', '11-50', '51-200', '201-500', '500+']).optional(),
+  tradeName: z.string().optional().nullable(),
+  legalName: z.string().optional().nullable(),
+  gstin: z.string().optional().nullable(),
+  pan: z.string().optional().nullable(),
+  placeOfSupply: z.string().optional().nullable(),
+  stateCode: z.string().optional().nullable(),
+  gstType: z.enum(['REGULAR', 'COMPOSITION', 'SEZ', 'OVERSEAS', 'UNREGISTERED']).optional().default('REGULAR'),
+  billingAddress: z.string().optional().nullable(),
+  shippingAddress: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  pinCode: z.string().optional().nullable(),
+  country: z.string().optional().default('India'),
+  rcmApplicable: z.boolean().optional().default(false),
+  website: z.string().url().optional().nullable().or(z.literal('')),
+  industry: z.string().optional().nullable(),
+  size: z.enum(['1-10', '11-50', '51-200', '201-500', '500+']).optional().nullable(),
 });
 
 const CreateContactSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  whatsapp: z.string().optional(),
-  companyId: z.string().optional(),
-  newCompanyName: z.string().optional(),
-  tier: z.enum(['GOLD', 'SILVER', 'BRONZE']).optional(),
-  isPrimary: z.boolean().optional(),
+  email: z.string().email().optional().nullable().or(z.literal('')),
+  phone: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
+  pan: z.string().optional().nullable(),
+  billingAddress: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  stateCode: z.string().optional().nullable(),
+  pinCode: z.string().optional().nullable(),
+  country: z.string().optional().default('India'),
+  companyId: z.string().optional().nullable(),
+  newCompanyName: z.string().optional().nullable(),
+  tier: z.enum(['GOLD', 'SILVER', 'BRONZE']).optional().nullable(),
+  isPrimary: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional(),
 });
 
@@ -195,7 +257,23 @@ export default async function contactsRouter(app: FastifyInstance) {
   // POST /api/v1/crm/companies
   app.post('/companies', async (req, reply) => {
     const body = CreateCompanySchema.parse(req.body);
-    const company = await app.prisma.company.create({ data: body });
+    const data: any = { ...body };
+
+    if (data.gstin && data.gstin.trim()) {
+      data.gstin = data.gstin.trim().toUpperCase();
+      if (!data.pan && data.gstin.length >= 12) {
+        data.pan = data.gstin.substring(2, 12);
+      }
+      if (!data.stateCode && data.gstin.length >= 2) {
+        data.stateCode = data.gstin.substring(0, 2);
+      }
+      if (data.stateCode && GST_STATE_CODES[data.stateCode]) {
+        if (!data.state) data.state = GST_STATE_CODES[data.stateCode];
+        if (!data.placeOfSupply) data.placeOfSupply = `${GST_STATE_CODES[data.stateCode]} (${data.stateCode})`;
+      }
+    }
+
+    const company = await app.prisma.company.create({ data });
     reply.code(201);
     return company;
   });
@@ -204,7 +282,23 @@ export default async function contactsRouter(app: FastifyInstance) {
   app.patch('/companies/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const body = CreateCompanySchema.partial().parse(req.body);
-    const company = await app.prisma.company.update({ where: { id }, data: body });
+    const data: any = { ...body };
+
+    if (data.gstin && data.gstin.trim()) {
+      data.gstin = data.gstin.trim().toUpperCase();
+      if (!data.pan && data.gstin.length >= 12) {
+        data.pan = data.gstin.substring(2, 12);
+      }
+      if (!data.stateCode && data.gstin.length >= 2) {
+        data.stateCode = data.gstin.substring(0, 2);
+      }
+      if (data.stateCode && GST_STATE_CODES[data.stateCode]) {
+        if (!data.state) data.state = GST_STATE_CODES[data.stateCode];
+        if (!data.placeOfSupply) data.placeOfSupply = `${GST_STATE_CODES[data.stateCode]} (${data.stateCode})`;
+      }
+    }
+
+    const company = await app.prisma.company.update({ where: { id }, data });
     return company;
   });
 
