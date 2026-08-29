@@ -6,6 +6,7 @@ export type BrandType = 'AGENCY' | 'ACADEMY';
 
 export interface BrandConfig {
   logoUrl: string | null;
+  faviconUrl?: string | null;
   companyName: string;
   tradeName?: string | null;
   gstin?: string | null;
@@ -107,6 +108,7 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
 
   const rawLogo = type === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl;
   const logoUrl = resolveBrandLogo(rawLogo);
+  const rawFavicon = type === 'ACADEMY' ? (org.academyFaviconUrl || org.faviconUrl) : org.faviconUrl;
 
   // Dynamic professional UPI ID based on domain or support email
   let upiId: string | null = null;
@@ -121,6 +123,7 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
 
   return {
     logoUrl,
+    faviconUrl: rawFavicon || null,
     companyName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals'),
     tradeName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy of Technology & Design` : `${org.name || 'Grekam'} Visuals & Technologies Pvt Ltd`,
     gstin,

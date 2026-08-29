@@ -1,8 +1,8 @@
 import React from 'react';
-import { Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer';
 import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
 import { DocHeader, DocRepeatHeader, DocFooter } from './components';
-import { BrandConfig } from '../../utils/brand';
+import { BrandConfig, resolveBrandLogo } from '../../utils/brand';
 import { cleanDocumentText } from '../../utils/text';
 
 const safeCurrency = (c: string) => c === '₹' ? 'Rs.' : c;
@@ -198,14 +198,21 @@ export interface TemplateProposalProps {
   };
 }
 
-export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => (
+export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, proposal }) => {
+  const resolvedLogo = resolveBrandLogo(brand.logoUrl);
+
+  return (
   <PDFDocument title={`Proposal — ${proposal.title}`} author={brand.companyName}>
 
     {/* ── Page 1: Cover ──────────────────────────────────────────────────────── */}
     <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
       <View style={styles.coverPage}>
         <View style={styles.coverTopRow}>
-          <Text style={styles.coverBrand}>{brand.companyName}</Text>
+          {resolvedLogo ? (
+            <Image src={resolvedLogo} style={{ width: 140, height: 42, objectFit: 'contain' }} />
+          ) : (
+            <Text style={styles.coverBrand}>{brand.companyName}</Text>
+          )}
           <Text style={styles.coverMonth}>
             {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </Text>
@@ -349,4 +356,6 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
       <DocFooter brand={brand} />
     </Page>
   </PDFDocument>
-);
+  );
+};
+

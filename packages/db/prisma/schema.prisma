@@ -168,10 +168,11 @@ model Organization {
   name String @default("My Agency OS")
 
   // Whitelabel Branding
-  logoUrl         String? // URL to Cloudflare R2
-  academyLogoUrl  String? // Separate logo for academy/student documents
-  faviconUrl      String?
-  primaryColor    String  @default("#2563eb") // Default Blue
+  logoUrl           String? // Agency landscape logo (Invoices, Proposals, HR)
+  faviconUrl        String? // Agency square favicon (Browser tab, Garage OS)
+  academyLogoUrl    String? // Academy landscape logo (Fee Receipts, Certificates, LMS)
+  academyFaviconUrl String? // Academy square favicon (Browser tab, Academy Web)
+  primaryColor      String  @default("#2563eb") // Default Blue
   secondaryColor  String  @default("#1e40af")
   accentColor     String  @default("#10b981")
   darkModeDefault Boolean @default(true)

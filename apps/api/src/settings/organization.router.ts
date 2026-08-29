@@ -4,8 +4,9 @@ import { z } from 'zod';
 const UpdateOrganizationSchema = z.object({
   name: z.string().optional(),
   logoUrl: z.string().optional().or(z.literal('')),
-  academyLogoUrl: z.string().optional().or(z.literal('')),
   faviconUrl: z.string().optional().or(z.literal('')),
+  academyLogoUrl: z.string().optional().or(z.literal('')),
+  academyFaviconUrl: z.string().optional().or(z.literal('')),
   primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
   secondaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
   accentColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),

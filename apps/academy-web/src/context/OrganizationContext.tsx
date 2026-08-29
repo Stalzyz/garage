@@ -8,6 +8,7 @@ export interface Organization {
   logoUrl?: string | null;
   academyLogoUrl?: string | null;
   faviconUrl?: string | null;
+  academyFaviconUrl?: string | null;
   primaryColor: string;
   darkModeDefault: boolean;
   supportEmail?: string | null;
@@ -18,11 +19,12 @@ export interface Organization {
 
 const defaultOrg: Organization = {
   id: "",
-  name: "Grekam OS",
+  name: "Grekam Academy",
   logoUrl: null,
   academyLogoUrl: null,
   faviconUrl: null,
-  primaryColor: "#2563eb",
+  academyFaviconUrl: null,
+  primaryColor: "#4f46e5",
   darkModeDefault: true,
   supportEmail: null,
   billingAddress: null,
@@ -46,15 +48,30 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (data) {
-          setOrg(data);
+          const orgData = data.data || data;
+          setOrg(orgData);
 
           // Inject primary color as CSS variable globally
-          const root = document.documentElement;
-          root.style.setProperty("--org-primary", data.primaryColor || "#2563eb");
+          if (typeof document !== "undefined") {
+            const root = document.documentElement;
+            root.style.setProperty("--org-primary", orgData.primaryColor || "#4f46e5");
 
-          // Update page title
-          if (data.name) {
-            document.title = data.name;
+            // Update page title
+            if (orgData.name) {
+              document.title = `${orgData.name} Academy`;
+            }
+
+            // Update Academy Favicon dynamically in browser tab
+            const activeFavicon = orgData.academyFaviconUrl || orgData.faviconUrl;
+            if (activeFavicon) {
+              let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+              if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.getElementsByTagName('head')[0].appendChild(link);
+              }
+              link.href = activeFavicon;
+            }
           }
         }
       })

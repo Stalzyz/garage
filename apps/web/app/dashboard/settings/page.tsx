@@ -1,70 +1,102 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Settings, Shield, Palette, Building, Bell, Save, Image as ImageIcon, CheckCircle2, DollarSign, Plug, Loader2, Upload, Mail } from "lucide-react"
+import { 
+  Settings, 
+  Shield, 
+  Palette, 
+  Building, 
+  Bell, 
+  Save, 
+  Image as ImageIcon, 
+  CheckCircle2, 
+  DollarSign, 
+  Plug, 
+  Loader2, 
+  Upload, 
+  Mail, 
+  Globe, 
+  GraduationCap, 
+  Building2, 
+  Trash2, 
+  Sparkles 
+} from "lucide-react"
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
+import { ApiClient } from "@/lib/api"
 
 export default function SystemSettingsPage() {
   const [activeTab, setActiveTab] = useState('branding')
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null)
   const [academyLogoPreview, setAcademyLogoPreview] = useState<string | null>(null)
+  const [academyFaviconPreview, setAcademyFaviconPreview] = useState<string | null>(null)
   const [logoUploading, setLogoUploading] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('Grekam Visuals')
   const [phone, setPhone] = useState('')
   const [website, setWebsite] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
   const [billingAddress, setBillingAddress] = useState('')
+
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const faviconInputRef = useRef<HTMLInputElement>(null)
   const academyFileInputRef = useRef<HTMLInputElement>(null)
+  const academyFaviconInputRef = useRef<HTMLInputElement>(null)
   const org = useOrganization()
 
   // Pre-populate from live org data when context loads
   useEffect(() => {
     if (org.name) setWorkspaceName(org.name)
     if (org.logoUrl && !logoPreview) setLogoPreview(org.logoUrl)
+    if (org.faviconUrl && !faviconPreview) setFaviconPreview(org.faviconUrl)
     if (org.academyLogoUrl && !academyLogoPreview) setAcademyLogoPreview(org.academyLogoUrl)
+    if (org.academyFaviconUrl && !academyFaviconPreview) setAcademyFaviconPreview(org.academyFaviconUrl)
     if (org.phone) setPhone(org.phone)
     if (org.website) setWebsite(org.website)
     if (org.supportEmail) setSupportEmail(org.supportEmail)
     if (org.billingAddress) setBillingAddress(org.billingAddress)
   }, [org])
 
-  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFileUpload = async (file: File, setter: (val: string) => void) => {
+    try {
+      const { uploadUrl, downloadUrl } = await ApiClient.post('/storage/upload-url', {
+        filename: file.name,
+        contentType: file.type || 'image/png',
+        prefix: 'branding'
+      });
 
-    // Show live preview immediately
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      setLogoPreview(ev.target?.result as string)
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type || 'image/png' }
+      });
+
+      setter(downloadUrl);
+      toast.success('Asset uploaded successfully!');
+    } catch (err) {
+      // Base64 fallback
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setter(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    reader.readAsDataURL(file)
-  }
-
-  const handleAcademyLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      setAcademyLogoPreview(ev.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
+  };
 
   const handleSave = async () => {
     try {
       setLogoUploading(true)
-      const body: Record<string, string> = { 
+      const body: Record<string, string | null> = { 
         name: workspaceName,
         phone,
         website,
         supportEmail,
-        billingAddress
+        billingAddress,
+        logoUrl: logoPreview || null,
+        faviconUrl: faviconPreview || null,
+        academyLogoUrl: academyLogoPreview || null,
+        academyFaviconUrl: academyFaviconPreview || null,
       }
-      if (logoPreview) body.logoUrl = logoPreview
-      if (academyLogoPreview) body.academyLogoUrl = academyLogoPreview
 
       const res = await fetch('/api/v1/settings/organization', {
         method: 'PATCH',
@@ -73,7 +105,7 @@ export default function SystemSettingsPage() {
       })
 
       if (!res.ok) throw new Error('Failed to save')
-      toast.success('Settings saved successfully!')
+      toast.success('Settings and brand assets saved successfully!')
     } catch (err) {
       toast.error('Failed to save settings.')
     } finally {
@@ -151,129 +183,230 @@ export default function SystemSettingsPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed relative">
           <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
           
-          <div className="relative z-10 max-w-3xl space-y-8">
+          <div className="relative z-10 max-w-4xl space-y-8">
             
             {activeTab === 'branding' && (
               <>
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-                  <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                    <Palette className="w-5 h-5 text-blue-400" /> Workspace Branding
-                  </h2>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-sm font-bold text-white/70 block mb-2">Workspace Name</label>
-                      <input 
-                        type="text" 
-                        value={workspaceName}
-                        onChange={e => setWorkspaceName(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50"
+                {/* 1. Digital Agency Card */}
+                <div className="bg-[#0b0f19] border border-blue-500/20 rounded-3xl p-7 space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-white">Digital Agency Brand (Grekam Visuals)</h2>
+                        <p className="text-xs text-white/50">Landscape logo for invoices/proposals & 1:1 square favicon for garage.grekam.in</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-mono font-bold uppercase rounded-lg">
+                      Agency
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Agency Landscape Logo */}
+                    <div className="space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold font-mono uppercase tracking-wider text-white/80 flex items-center gap-2">
+                          <ImageIcon className="w-3.5 h-3.5 text-blue-400" /> Agency Logo (Landscape)
+                        </label>
+                        <span className="text-[9px] font-mono text-white/40">~3:1 / 4:1</span>
+                      </div>
+                      <div className="w-full h-24 rounded-xl border border-white/10 bg-[#06080e] p-2 flex items-center justify-center">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Agency Logo" className="max-h-full max-w-full object-contain" />
+                        ) : (
+                          <span className="text-white/30 text-xs font-mono">No Logo</span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold text-xs rounded-xl transition-all"
+                        >
+                          <Upload className="w-3 h-3" /> Upload Logo
+                        </button>
+                        {logoPreview && (
+                          <button
+                            type="button"
+                            onClick={() => setLogoPreview(null)}
+                            className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-xl"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setLogoPreview);
+                        }}
                       />
                     </div>
-                    
-                    <div>
-                      <label className="text-sm font-bold text-white/70 block mb-3">Workspace Logo</label>
-                      <div className="flex items-start gap-6">
-                        {/* Preview */}
-                        <div className="w-24 h-24 rounded-2xl border-2 border-white/10 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-blue-600 to-purple-600 shrink-0">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-white font-black text-3xl">G</span>
-                          )}
-                        </div>
 
-                        {/* Drop Zone */}
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={e => {
-                            e.preventDefault()
-                            const file = e.dataTransfer.files?.[0]
-                            if (file && file.type.startsWith('image/')) {
-                              const reader = new FileReader()
-                              reader.onload = ev => setLogoPreview(ev.target?.result as string)
-                              reader.readAsDataURL(file)
-                            }
-                          }}
-                          className="flex-1 border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
-                        >
-                          <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-blue-500/10 flex items-center justify-center transition-colors">
-                            <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-400 transition-colors" />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-semibold text-white">
-                              {logoPreview ? ' Logo selected — click to change' : 'Click or drag & drop your logo'}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
-                          </div>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleLogoChange}
-                          />
+                    {/* Agency Square Favicon */}
+                    <div className="space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold font-mono uppercase tracking-wider text-white/80 flex items-center gap-2">
+                          <Globe className="w-3.5 h-3.5 text-blue-400" /> Agency Favicon (Square)
+                        </label>
+                        <span className="text-[9px] font-mono text-white/40">1:1 Square</span>
+                      </div>
+                      <div className="w-full h-24 rounded-xl border border-white/10 bg-[#06080e] p-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] font-mono text-white/70">
+                          {faviconPreview ? <img src={faviconPreview} className="w-3.5 h-3.5 object-contain" /> : <Globe className="w-3.5 h-3.5 text-white/40" />}
+                          <span>Grekam OS</span>
+                        </div>
+                        <div className="w-8 h-8 rounded border border-white/10 flex items-center justify-center">
+                          {faviconPreview ? <img src={faviconPreview} className="w-full h-full object-contain p-0.5" /> : <span className="text-[9px] font-mono text-white/30">1:1</span>}
                         </div>
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-bold text-white/70 block mb-3">Academy Logo (Optional)</label>
-                      <div className="flex items-start gap-6">
-                        {/* Preview */}
-                        <div className="w-24 h-24 rounded-2xl border-2 border-white/10 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-rose-600 to-orange-600 shrink-0">
-                          {academyLogoPreview ? (
-                            <img src={academyLogoPreview} alt="Academy Logo Preview" className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-white font-black text-3xl">A</span>
-                          )}
-                        </div>
-
-                        {/* Drop Zone */}
-                        <div
-                          onClick={() => academyFileInputRef.current?.click()}
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={e => {
-                            e.preventDefault()
-                            const file = e.dataTransfer.files?.[0]
-                            if (file && file.type.startsWith('image/')) {
-                              const reader = new FileReader()
-                              reader.onload = ev => setAcademyLogoPreview(ev.target?.result as string)
-                              reader.readAsDataURL(file)
-                            }
-                          }}
-                          className="flex-1 border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group"
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => faviconInputRef.current?.click()}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold text-xs rounded-xl transition-all"
                         >
-                          <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
-                            <Upload className="w-5 h-5 text-slate-400 group-hover:text-orange-400 transition-colors" />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-semibold text-white">
-                              {academyLogoPreview ? ' Academy logo selected' : 'Click or drag & drop academy logo'}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG up to 2MB</p>
-                          </div>
-                          <input
-                            ref={academyFileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleAcademyLogoChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-bold text-white/70 block mb-3">Primary Brand Color</label>
-                      <div className="flex items-center gap-4">
-                        {['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-red-500', 'bg-amber-500'].map((color, i) => (
-                          <button key={i} className={`w-8 h-8 rounded-full ${color} flex items-center justify-center ring-2 ring-transparent hover:ring-white transition-all`}>
-                            {i === 0 && <CheckCircle2 className="w-4 h-4 text-white drop-shadow-md" />}
+                          <Upload className="w-3 h-3" /> Upload Favicon
+                        </button>
+                        {faviconPreview && (
+                          <button
+                            type="button"
+                            onClick={() => setFaviconPreview(null)}
+                            className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-xl"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        ))}
+                        )}
                       </div>
+                      <input
+                        ref={faviconInputRef}
+                        type="file"
+                        accept="image/*, .ico"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setFaviconPreview);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Academy Card */}
+                <div className="bg-[#0f0e1a] border border-indigo-500/20 rounded-3xl p-7 space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-white">Academy Brand (Grekam Academy)</h2>
+                        <p className="text-xs text-white/50">Landscape logo for fee receipts/certificates & 1:1 square favicon for academy.grekam.in</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-mono font-bold uppercase rounded-lg">
+                      Academy
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Academy Landscape Logo */}
+                    <div className="space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold font-mono uppercase tracking-wider text-white/80 flex items-center gap-2">
+                          <ImageIcon className="w-3.5 h-3.5 text-indigo-400" /> Academy Logo (Landscape)
+                        </label>
+                        <span className="text-[9px] font-mono text-white/40">~3:1 / 4:1</span>
+                      </div>
+                      <div className="w-full h-24 rounded-xl border border-white/10 bg-[#06080e] p-2 flex items-center justify-center">
+                        {academyLogoPreview ? (
+                          <img src={academyLogoPreview} alt="Academy Logo" className="max-h-full max-w-full object-contain" />
+                        ) : (
+                          <span className="text-white/30 text-xs font-mono">No Academy Logo</span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => academyFileInputRef.current?.click()}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-bold text-xs rounded-xl transition-all"
+                        >
+                          <Upload className="w-3 h-3" /> Upload Logo
+                        </button>
+                        {academyLogoPreview && (
+                          <button
+                            type="button"
+                            onClick={() => setAcademyLogoPreview(null)}
+                            className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-xl"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        ref={academyFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setAcademyLogoPreview);
+                        }}
+                      />
+                    </div>
+
+                    {/* Academy Square Favicon */}
+                    <div className="space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold font-mono uppercase tracking-wider text-white/80 flex items-center gap-2">
+                          <Globe className="w-3.5 h-3.5 text-indigo-400" /> Academy Favicon (Square)
+                        </label>
+                        <span className="text-[9px] font-mono text-white/40">1:1 Square</span>
+                      </div>
+                      <div className="w-full h-24 rounded-xl border border-white/10 bg-[#06080e] p-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] font-mono text-white/70">
+                          {academyFaviconPreview ? <img src={academyFaviconPreview} className="w-3.5 h-3.5 object-contain" /> : <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />}
+                          <span>Grekam Academy</span>
+                        </div>
+                        <div className="w-8 h-8 rounded border border-white/10 flex items-center justify-center">
+                          {academyFaviconPreview ? <img src={academyFaviconPreview} className="w-full h-full object-contain p-0.5" /> : <span className="text-[9px] font-mono text-white/30">1:1</span>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => academyFaviconInputRef.current?.click()}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-bold text-xs rounded-xl transition-all"
+                        >
+                          <Upload className="w-3 h-3" /> Upload Favicon
+                        </button>
+                        {academyFaviconPreview && (
+                          <button
+                            type="button"
+                            onClick={() => setAcademyFaviconPreview(null)}
+                            className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-xl"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        ref={academyFaviconInputRef}
+                        type="file"
+                        accept="image/*, .ico"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setAcademyFaviconPreview);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -288,19 +421,19 @@ export default function SystemSettingsPage() {
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2 md:col-span-1">
                     <label className="text-sm font-bold text-white/70 block mb-2">Phone Number</label>
-                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98400 12345" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
                   </div>
                   <div className="col-span-2 md:col-span-1">
                     <label className="text-sm font-bold text-white/70 block mb-2">Website URL</label>
-                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://grekam.com" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://grekam.in" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
                   </div>
                   <div className="col-span-2 md:col-span-1">
                     <label className="text-sm font-bold text-white/70 block mb-2">Support / Contact Email</label>
-                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="hello@grekam.com" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
+                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="contact@grekam.in" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" />
                   </div>
                   <div className="col-span-2 md:col-span-1">
                     <label className="text-sm font-bold text-white/70 block mb-2">Billing & Official Address</label>
-                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="123 Creative Street, Tech Park..." className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 resize-none" />
+                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 resize-none" />
                   </div>
                 </div>
               </div>
