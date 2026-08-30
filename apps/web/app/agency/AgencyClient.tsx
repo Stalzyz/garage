@@ -1042,6 +1042,102 @@ const UniversalContactForm = ({
       </button>
     </form>
   )
+}// --- SHOWCASE IMAGE WITH SELF-HEALING FALLBACK ---
+const ShowcaseImage = ({ src, alt, title }: { src?: string; alt?: string; title?: string }) => {
+  const [hasError, setHasError] = useState(false)
+
+  if (!src || hasError) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-900 via-[#101322] to-zinc-950 p-4 text-center relative overflow-hidden group/thumb">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.18),transparent_70%)]" />
+        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2 text-cyan-400 group-hover/thumb:scale-110 group-hover/thumb:border-cyan-400/40 transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+          <Globe className="w-6 h-6 animate-pulse" />
+        </div>
+        <span className="text-xs font-mono font-bold text-white/90 truncate max-w-full relative z-10 px-2">{title || 'Live Application'}</span>
+        <span className="text-[9px] font-mono text-cyan-400/80 uppercase tracking-widest mt-1">Ready to Preview</span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      loading="lazy"
+      src={src}
+      alt={alt || title || 'Showcase'}
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      onError={() => setHasError(true)}
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+    />
+  )
+}
+
+// --- FLOATING CINEMA BOKEH PARTICLES ---
+function AgencyCinemaParticles() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const raf = useRef<number>(0)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const resize = () => {
+      if (!canvas) return
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const dots: { x: number; y: number; vx: number; vy: number; size: number; alpha: number; color: string }[] = []
+    const colors = ['rgba(6,182,212,', 'rgba(139,92,246,', 'rgba(59,130,246,', 'rgba(255,255,255,']
+    for (let i = 0; i < 40; i++) {
+      dots.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: 1.2 + Math.random() * 2.8,
+        alpha: 0.15 + Math.random() * 0.45,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      })
+    }
+
+    const draw = () => {
+      const W = canvas.width
+      const H = canvas.height
+      ctx.clearRect(0, 0, W, H)
+
+      dots.forEach(d => {
+        d.x += d.vx
+        d.y += d.vy
+        if (d.x < 0) d.x = W
+        if (d.x > W) d.x = 0
+        if (d.y < 0) d.y = H
+        if (d.y > H) d.y = 0
+
+        ctx.beginPath()
+        ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2)
+        ctx.fillStyle = d.color + d.alpha + ')'
+        ctx.shadowColor = d.color + '0.8)'
+        ctx.shadowBlur = d.size * 2
+        ctx.fill()
+        ctx.shadowBlur = 0
+      })
+
+      raf.current = requestAnimationFrame(draw)
+    }
+
+    raf.current = requestAnimationFrame(draw)
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
 }
 
 // --- 01. CREATIVE OS ---
@@ -1062,7 +1158,7 @@ const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
       ref={ref} 
       style={{ width, height: width }} 
       onClick={() => { playSound(); onClick(); }} 
-      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8"
+      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
     >
       {renderIcon(card.iconName, card.icon)}
     </motion.button>
@@ -1077,10 +1173,12 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
   
   return (
     <div className="h-[100dvh] w-full bg-zinc-950 overflow-hidden relative font-sans text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#3b0764,transparent_50%),radial-gradient(ellipse_at_bottom,#064e3b,transparent_50%)] opacity-40 blur-3xl" />
+      {/* Dynamic Background Particles & Gradients */}
+      <AgencyCinemaParticles />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#3b0764,transparent_50%),radial-gradient(ellipse_at_bottom,#064e3b,transparent_50%)] opacity-40 blur-3xl pointer-events-none" />
       
       <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10 w-full px-6 transition-opacity duration-500 ${activeCard ? 'opacity-0' : 'opacity-100'}`}>
-        <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight">Do you have the courage to <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">stand out?</span></h1>
+        <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">Do you have the courage to <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 animate-pulse">stand out?</span></h1>
         <p className="text-xl md:text-3xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed">Or will you settle for another template? We don't build standard websites. We engineer bespoke digital experiences.</p>
       </div>
 
@@ -1101,20 +1199,31 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
       <AnimatePresence>
          {activeCard && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none p-4 md:p-12 mb-24 md:mb-32">
-              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/80 backdrop-blur-3xl border border-white/10 rounded-[2rem] flex flex-col overflow-hidden shadow-2xl">
+              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/85 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
                 <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
                   <div className="text-[10px] md:text-xs uppercase tracking-widest text-white/50">{activeCard.category}</div>
-                  <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20"><X className="w-4 h-4" /></button>
+                  <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="flex-1 p-6 md:p-12 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
-                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 md:mb-8 shrink-0" style={{ color: activeCard.colorHex }}>{renderIcon(activeCard.iconName, activeCard.icon)}</div>
-                  <h1 className="text-3xl md:text-5xl font-bold mb-4">{activeCard.title}</h1>
-                  <p className="text-lg md:text-xl text-white/50 max-w-2xl mb-8 md:mb-12 shrink-0">{activeCard.subtitle}</p>
+                  {/* Glowing Icon Frame */}
+                  <div className="relative mb-6 md:mb-8 shrink-0">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                      className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500 to-indigo-500 opacity-30 blur-md" 
+                    />
+                    <div className="relative w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-black/80 border border-white/15 flex items-center justify-center shadow-xl" style={{ color: activeCard.colorHex }}>
+                      {renderIcon(activeCard.iconName, activeCard.icon)}
+                    </div>
+                  </div>
+                  <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{activeCard.title}</h1>
+                  <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-8 md:mb-12 shrink-0">{activeCard.subtitle}</p>
                   
                   {/* Projects / Products Grid */}
                   {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
                      <div className="w-full mt-auto">
-                        <div className="text-left text-xs uppercase tracking-widest text-white/30 mb-4">
+                        <div className="text-left text-xs uppercase tracking-widest text-cyan-400/70 font-mono mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                           {activeCard.isProducts ? 'Proprietary Software' : 'Featured Client Platforms'}
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
@@ -1123,27 +1232,21 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                                 key={proj.id || pIdx} 
                                 data-cursor="VIEW" 
                                 onClick={() => onPreviewProject?.(proj)}
-                                className="w-64 md:w-80 shrink-0 snap-start bg-white/5 border border-white/10 rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 hover:border-emerald-500/50 transition-all shadow-lg"
+                                className="w-64 md:w-80 shrink-0 snap-start bg-gradient-to-b from-white/10 to-white/5 border border-white/15 hover:border-cyan-400/60 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 shadow-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:-translate-y-1"
                               >
                                  <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden relative flex items-center justify-center">
-                                    {proj.image ? (
-                                      <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    ) : (
-                                      <div className="flex flex-col items-center justify-center text-white/40">
-                                        <Globe className="w-8 h-8 mb-2 text-emerald-400 opacity-60" />
-                                        <span className="text-xs font-mono text-white/70 font-bold px-2 truncate max-w-full">{proj.title || 'Live Showcase'}</span>
-                                      </div>
-                                    )}
-                                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded text-[9px] font-mono text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                                      <Eye className="w-2.5 h-2.5" /> Live Preview
+                                    <ShowcaseImage src={proj.image} alt={proj.title} title={proj.title} />
+                                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-lg text-[9px] font-mono font-bold text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 shadow-lg group-hover:bg-cyan-500 group-hover:text-black transition-colors">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping group-hover:hidden" />
+                                      <Eye className="w-3 h-3" /> Live Preview
                                     </div>
                                  </div>
-                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between">
+                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between bg-zinc-950/60">
                                    <div className="truncate mr-2">
-                                     <div className="truncate">{proj.title}</div>
-                                     {proj.category && <div className="text-[10px] text-white/40 font-normal truncate">{proj.category}</div>}
+                                     <div className="truncate text-white group-hover:text-cyan-300 transition-colors">{proj.title}</div>
+                                     {proj.category && <div className="text-[10px] text-white/40 font-mono truncate">{proj.category}</div>}
                                    </div>
-                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
+                                   <span className="text-xs text-cyan-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                                  </div>
                               </div>
                            ))}
@@ -1371,15 +1474,8 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
                  }}
                  className="relative aspect-video rounded-xl overflow-hidden group border border-white/10 cursor-pointer shadow-lg hover:border-emerald-500/50 transition-all bg-black/40"
                >
-                  {proj.image ? (
-                    <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-white/40 p-4 text-center">
-                      <Globe className="w-8 h-8 mb-2 text-emerald-400 opacity-60" />
-                      <span className="text-xs font-mono text-white/70 font-bold truncate max-w-full px-2">{proj.title || 'Live Website'}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex items-end justify-between p-4">
+                  <ShowcaseImage src={proj.image} alt={proj.title} title={proj.title} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex items-end justify-between p-4 pointer-events-none">
                      <div className="font-bold text-white tracking-widest uppercase text-xs truncate mr-2">{proj.title}</div>
                      <div className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-md text-[10px] text-white font-mono font-bold flex items-center gap-1.5 shrink-0 group-hover:bg-emerald-500 group-hover:text-black transition-colors">
                        <Eye className="w-3 h-3" /> Live Demo
@@ -1412,7 +1508,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
                     className="w-72 shrink-0 snap-start bg-white/5 border border-white/10 hover:border-emerald-500/50 rounded-2xl overflow-hidden flex flex-col group cursor-pointer transition-colors"
                   >
                      <div className="aspect-video bg-black/50 overflow-hidden relative">
-                        {prod.image && <img loading="lazy" src={prod.image} alt={prod.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                        <ShowcaseImage src={prod.image} alt={prod.title} title={prod.title} />
                         <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded text-[9px] font-mono text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                           <Eye className="w-2.5 h-2.5" /> Preview
                         </div>
