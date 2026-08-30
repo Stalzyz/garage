@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
     maxWidth: 200,
     maxHeight: 52,
     objectFit: 'contain',
+    objectPosition: 'left',
     marginBottom: sp['8'],
   },
   companyName: {

@@ -218,7 +218,7 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
 
         <View>
           {resolvedLogo ? (
-            <Image src={resolvedLogo} style={{ maxWidth: 220, maxHeight: 60, objectFit: 'contain', marginBottom: sp['20'] }} />
+            <Image src={resolvedLogo} style={{ maxWidth: 220, maxHeight: 60, objectFit: 'contain', objectPosition: 'left', marginBottom: sp['20'] }} />
           ) : (
             <Text style={[styles.coverBrand, { marginBottom: sp['20'] }]}>{brand.companyName}</Text>
           )}
