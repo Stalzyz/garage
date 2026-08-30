@@ -80,6 +80,7 @@ interface DevicePreviewModalProps {
 const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClose }) => {
   const [device, setDevice] = useState<DeviceType>('desktop')
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [copied, setCopied] = useState(false)
   const [iframeKey, setIframeKey] = useState(0)
   const [useProxy, setUseProxy] = useState(true)
@@ -88,10 +89,11 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
 
   useEffect(() => {
     setIsLoading(true)
-    // 3.5s soft timeout so slow external third-party scripts don't keep spinner stuck forever
+    setHasError(false)
+    // 2.5s soft timeout so external heavy scripts never leave spinner hung
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 3500)
+    }, 2500)
     return () => clearTimeout(timer)
   }, [project?.id, project?.url, iframeKey, useProxy])
 
@@ -127,6 +129,7 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
 
   const handleReload = () => {
     setIsLoading(true)
+    setHasError(false)
     setIframeKey(prev => prev + 1)
   }
 
@@ -285,16 +288,36 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                     <p className="text-xs font-mono uppercase tracking-widest text-white/40 animate-pulse">Connecting to live environment...</p>
                   </div>
                 )}
-                <iframe
-                  key={iframeKey}
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  onLoad={() => setIsLoading(false)}
-                  className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  title={project.title}
-                />
+                {hasError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10 p-6 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+                      <Globe className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-bold text-white mb-2">Live Application Gateway</h4>
+                    <p className="text-xs text-white/50 max-w-sm mb-5">This client application is ready for direct browser testing.</p>
+                    <a
+                      href={fullUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-lg flex items-center gap-2"
+                    >
+                      <span>Open Live Website</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                ) : (
+                  <iframe
+                    key={iframeKey}
+                    ref={iframeRef}
+                    src={iframeSrc}
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => { setHasError(true); setIsLoading(false); }}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    title={project.title}
+                  />
+                )}
               </div>
             </motion.div>
           )}
@@ -322,16 +345,36 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                     <p className="text-xs font-mono uppercase tracking-widest text-white/40 animate-pulse">Loading Tablet View (1024 × 768)...</p>
                   </div>
                 )}
-                <iframe
-                  key={iframeKey}
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  onLoad={() => setIsLoading(false)}
-                  className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  title={project.title}
-                />
+                {hasError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10 p-6 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+                      <Globe className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-bold text-white mb-2">Live Application Gateway</h4>
+                    <p className="text-xs text-white/50 max-w-sm mb-5">This client application is ready for direct browser testing.</p>
+                    <a
+                      href={fullUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-lg flex items-center gap-2"
+                    >
+                      <span>Open Live Website</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                ) : (
+                  <iframe
+                    key={iframeKey}
+                    ref={iframeRef}
+                    src={iframeSrc}
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => { setHasError(true); setIsLoading(false); }}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    title={project.title}
+                  />
+                )}
               </div>
 
               {/* Tablet Bottom Home Indicator */}
@@ -368,16 +411,36 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
                   </div>
                 )}
 
-                <iframe
-                  key={iframeKey}
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  onLoad={() => setIsLoading(false)}
-                  className="w-full h-full border-0 pt-7 pb-4"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  title={project.title}
-                />
+                {hasError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-10 p-6 text-center">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-xs font-bold text-white mb-1.5">Live Application Gateway</h4>
+                    <p className="text-[11px] text-white/50 max-w-[240px] mb-4">Ready for mobile browser viewing.</p>
+                    <a
+                      href={fullUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-lg flex items-center gap-1.5"
+                    >
+                      <span>Open Website</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                ) : (
+                  <iframe
+                    key={iframeKey}
+                    ref={iframeRef}
+                    src={iframeSrc}
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => { setHasError(true); setIsLoading(false); }}
+                    className="w-full h-full border-0 pt-7 pb-4"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    title={project.title}
+                  />
+                )}
 
                 {/* iPhone Bottom Home Gesture Bar */}
                 <div className="absolute bottom-1.5 left-0 right-0 z-20 flex justify-center pointer-events-none">

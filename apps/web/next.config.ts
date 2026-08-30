@@ -66,10 +66,11 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Static assets — aggressive long-term caching
+        // Static assets — aggressive long-term caching with cross-origin access
         source: '/_next/static/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
         ],
       },
       {
@@ -77,13 +78,15 @@ const nextConfig: NextConfig = {
         source: '/public/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=3600' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
         ],
       },
       {
-        // Fonts — long-lived cache
+        // Fonts — long-lived cache with cross-origin access
         source: '/_next/static/media/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
         ],
       },
       {
