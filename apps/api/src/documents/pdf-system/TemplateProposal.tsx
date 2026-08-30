@@ -210,20 +210,22 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
     {/* ── Page 1: Cover ──────────────────────────────────────────────────────── */}
     <Page size="A4" style={{ ...baseStyles.page, padding: 0 }}>
       <View style={styles.coverPage}>
-        <View style={styles.coverTopRow}>
-          {resolvedLogo ? (
-            <Image src={resolvedLogo} style={{ maxWidth: 220, maxHeight: 60, objectFit: 'contain' }} />
-          ) : (
-            <Text style={styles.coverBrand}>{brand.companyName}</Text>
-          )}
+        <View style={[styles.coverTopRow, { justifyContent: 'flex-end' }]}>
           <Text style={styles.coverMonth}>
             {new Date(proposal.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </Text>
         </View>
 
-        <View style={[styles.coverMiddle, { borderLeftColor: brand.primaryColor }]}>
-          <Text style={[styles.coverType, { color: brand.primaryColor }]}>Project Proposal</Text>
-          <Text style={styles.coverTitle}>{proposal.title}</Text>
+        <View>
+          {resolvedLogo ? (
+            <Image src={resolvedLogo} style={{ maxWidth: 220, maxHeight: 60, objectFit: 'contain', marginBottom: sp['20'] }} />
+          ) : (
+            <Text style={[styles.coverBrand, { marginBottom: sp['20'] }]}>{brand.companyName}</Text>
+          )}
+          <View style={[styles.coverMiddle, { borderLeftColor: brand.primaryColor, marginVertical: 0 }]}>
+            <Text style={[styles.coverType, { color: brand.primaryColor }]}>Project Proposal</Text>
+            <Text style={styles.coverTitle}>{proposal.title}</Text>
+          </View>
         </View>
 
         <View style={styles.coverBottomRow}>
