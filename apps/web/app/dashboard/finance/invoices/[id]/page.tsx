@@ -10,15 +10,24 @@ import { useState } from "react"
 import { useCurrency } from "@/hooks/useCurrency"
 import { Modal } from "@/components/ui/modal"
 
-function OrgAvatar({ size = 48 }: { size?: number }) {
+function OrgAvatar() {
   const org = useOrganization()
   const initial = (org.name ?? 'G').charAt(0).toUpperCase()
   if (org.logoUrl) return (
-    <img src={org.logoUrl} alt={org.name} style={{ width: size, height: size }} className="rounded-xl object-contain mb-4" />
+    <img 
+      src={org.logoUrl} 
+      alt={org.name} 
+      className="max-h-16 max-w-[220px] w-auto h-auto object-contain object-left rounded-xl mb-4"
+      onError={(e) => {
+        (e.currentTarget as HTMLElement).style.display = 'none';
+        const fallback = (e.currentTarget.parentElement?.querySelector('.logo-fallback') as HTMLElement);
+        if (fallback) fallback.style.display = 'flex';
+      }}
+    />
   )
   return (
-    <div style={{ width: size, height: size }} className="rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/20 mb-4">
-      <span style={{ fontSize: Math.round(size * 0.4) }}>{initial}</span>
+    <div className="h-14 px-4 min-w-[56px] rounded-xl bg-[#49abc9]/20 border border-[#49abc9]/30 text-[#49abc9] font-black text-xl flex items-center justify-center mb-4 logo-fallback">
+      <span>{initial}</span>
     </div>
   )
 }

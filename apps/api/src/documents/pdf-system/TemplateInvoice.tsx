@@ -28,10 +28,10 @@ const styles = StyleSheet.create({
     maxWidth: '55%',
   },
   logo: {
-    width: 130,
-    height: 42,
+    maxWidth: 200,
+    maxHeight: 55,
     objectFit: 'contain',
-    marginBottom: sp['4'],
+    marginBottom: sp['6'],
   },
   companyName: {
     fontSize: 14,

@@ -179,12 +179,12 @@ export default function ProposalDetailPage() {
           {/* Header */}
           <div className="flex justify-between items-start mb-12 border-b border-border/40 pb-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-4 mb-4">
                 {org.logoUrl ? (
                   <img 
                     src={org.logoUrl} 
                     alt={org.name} 
-                    className="w-12 h-12 object-contain rounded-xl"
+                    className="max-h-16 max-w-[220px] w-auto h-auto object-contain object-left"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = 'none';
                       const parent = e.currentTarget.parentElement;
@@ -195,7 +195,7 @@ export default function ProposalDetailPage() {
                     }}
                   />
                 ) : null}
-                <div className={`w-12 h-12 bg-[#49abc9]/20 border border-[#49abc9]/30 rounded-xl items-center justify-center text-[#49abc9] font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
+                <div className={`h-14 px-4 min-w-[56px] bg-[#49abc9]/20 border border-[#49abc9]/30 rounded-xl items-center justify-center text-[#49abc9] font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
                   {org.name ? org.name.charAt(0) : 'G'}
                 </div>
               </div>

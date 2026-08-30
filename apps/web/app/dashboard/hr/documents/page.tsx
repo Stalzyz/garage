@@ -232,9 +232,18 @@ export default function DocumentsPage() {
                         )
                       ) : (
                         org.logoUrl ? (
-                          <img src={org.logoUrl} alt={org.name} className="w-16 h-16 object-contain" />
+                          <img 
+                            src={org.logoUrl} 
+                            alt={org.name} 
+                            className="max-h-16 max-w-[220px] w-auto h-auto object-contain object-left" 
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = 'none';
+                              const fallback = (e.currentTarget.parentElement?.querySelector('.logo-fallback') as HTMLElement);
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
                         ) : (
-                          <div className="w-16 h-16 bg-[#49abc9] text-white font-black text-2xl flex items-center justify-center rounded-xl">
+                          <div className="h-14 px-4 min-w-[56px] bg-[#49abc9] text-white font-black text-2xl flex items-center justify-center rounded-xl logo-fallback">
                             {org.name.charAt(0).toUpperCase()}
                           </div>
                         )

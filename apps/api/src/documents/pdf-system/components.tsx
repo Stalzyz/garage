@@ -24,10 +24,10 @@ const styles = StyleSheet.create({
     paddingRight: sp['24'],
   },
   logo: {
-    width: 110,
-    height: 36,
+    maxWidth: 200,
+    maxHeight: 52,
     objectFit: 'contain',
-    marginBottom: sp['6'],
+    marginBottom: sp['8'],
   },
   companyName: {
     fontSize: 12,

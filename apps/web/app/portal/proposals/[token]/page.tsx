@@ -83,10 +83,21 @@ export default function PublicProposalPage() {
               <h1 className="text-3xl md:text-5xl font-black tracking-tight">{proposal.title}</h1>
             </div>
             <div className="text-right">
-              {org.logoUrl
-                ? <img src={org.logoUrl} alt={org.name} className="h-10 w-auto object-contain ml-auto mb-1" />
-                : <div className="w-10 h-10 bg-[#49abc9] rounded-xl ml-auto mb-1 flex items-center justify-center text-white font-black text-lg">{org.name.charAt(0)}</div>
-              }
+              {org.logoUrl ? (
+                <img 
+                  src={org.logoUrl} 
+                  alt={org.name} 
+                  className="max-h-16 max-w-[220px] w-auto h-auto object-contain ml-auto mb-2"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = 'none';
+                    const fallback = (e.currentTarget.parentElement?.querySelector('.logo-fallback') as HTMLElement);
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`h-12 px-3.5 min-w-[48px] bg-[#49abc9] rounded-xl ml-auto mb-2 items-center justify-center text-white font-black text-lg logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
+                {org.name ? org.name.charAt(0) : 'G'}
+              </div>
               <p className="font-bold text-sm">{org.name}</p>
               {org.supportEmail && <p className="text-xs text-slate-500">{org.supportEmail}</p>}
               {org.phone && <p className="text-xs text-slate-500">{org.phone}</p>}

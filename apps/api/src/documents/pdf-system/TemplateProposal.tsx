@@ -212,7 +212,7 @@ export const TemplateProposal: React.FC<TemplateProposalProps> = ({ brand, propo
       <View style={styles.coverPage}>
         <View style={styles.coverTopRow}>
           {resolvedLogo ? (
-            <Image src={resolvedLogo} style={{ width: 140, height: 42, objectFit: 'contain' }} />
+            <Image src={resolvedLogo} style={{ maxWidth: 220, maxHeight: 60, objectFit: 'contain' }} />
           ) : (
             <Text style={styles.coverBrand}>{brand.companyName}</Text>
           )}
