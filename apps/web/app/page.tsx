@@ -351,6 +351,226 @@ function ElasticBoundary({ side, mousePos, windowSize }: { side: "agency" | "aca
 }
 
 // ─────────────────────────────────────────────
+// Mobile Cinema Particles (Bokeh & Optical Dust)
+// ─────────────────────────────────────────────
+function MobileCinemaParticles({ dialProgress }: { dialProgress: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const raf = useRef<number>(0)
+
+  interface Particle {
+    angle: number
+    radius: number
+    size: number
+    speed: number
+    alpha: number
+    pulseSpeed: number
+    pulsePhase: number
+  }
+  const particles = useRef<Particle[]>([])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const resize = () => {
+      if (!canvas) return
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+    }
+    resize()
+    window.addEventListener("resize", resize)
+
+    // Generate 45 circular orbital bokeh particles
+    const list: Particle[] = []
+    for (let i = 0; i < 45; i++) {
+      list.push({
+        angle: Math.random() * Math.PI * 2,
+        radius: 80 + Math.random() * 170,
+        size: 1.2 + Math.random() * 3.6,
+        speed: (0.003 + Math.random() * 0.006) * (Math.random() > 0.5 ? 1 : -1),
+        alpha: 0.2 + Math.random() * 0.5,
+        pulseSpeed: 0.02 + Math.random() * 0.04,
+        pulsePhase: Math.random() * Math.PI * 2,
+      })
+    }
+    particles.current = list
+
+    const draw = () => {
+      const W = canvas.width
+      const H = canvas.height
+      const cx = W / 2
+      const cy = H / 2
+      ctx.clearRect(0, 0, W, H)
+
+      // Speed increases with user dial rotation
+      const extraSpeed = (dialProgress / 100) * 0.03
+
+      particles.current.forEach((p) => {
+        p.angle += p.speed + extraSpeed
+        p.pulsePhase += p.pulseSpeed
+        const currentAlpha = p.alpha * (0.6 + 0.4 * Math.sin(p.pulsePhase))
+
+        const x = cx + Math.cos(p.angle) * p.radius
+        const y = cy + Math.sin(p.angle) * (p.radius * 0.92)
+
+        ctx.beginPath()
+        ctx.arc(x, y, p.size, 0, Math.PI * 2)
+
+        if (dialProgress < -10) {
+          // Academy: Warm gold/amber glowing dust
+          const blend = Math.min(1, Math.abs(dialProgress) / 70)
+          ctx.fillStyle = `rgba(245, 158, 11, ${currentAlpha * (0.8 + blend * 0.6)})`
+          ctx.shadowColor = "rgba(217, 119, 6, 0.9)"
+          ctx.shadowBlur = p.size * 3.5
+        } else if (dialProgress > 10) {
+          // Agency: Electric cyan/violet photons
+          const blend = Math.min(1, dialProgress / 70)
+          ctx.fillStyle = `rgba(6, 182, 212, ${currentAlpha * (0.8 + blend * 0.6)})`
+          ctx.shadowColor = "rgba(139, 92, 246, 0.9)"
+          ctx.shadowBlur = p.size * 3.5
+        } else {
+          // Neutral: Luminescent silver-white optical bokeh
+          ctx.fillStyle = `rgba(220, 235, 255, ${currentAlpha * 0.65})`
+          ctx.shadowColor = "rgba(255, 255, 255, 0.5)"
+          ctx.shadowBlur = p.size * 2
+        }
+
+        ctx.fill()
+        ctx.shadowBlur = 0
+      })
+
+      raf.current = requestAnimationFrame(draw)
+    }
+
+    raf.current = requestAnimationFrame(draw)
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current)
+      window.removeEventListener("resize", resize)
+    }
+  }, [dialProgress])
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-20" />
+}
+
+// ─────────────────────────────────────────────
+// Optical Aperture Breathing Halo Glow
+// ─────────────────────────────────────────────
+function OpticalApertureHalo({ dialProgress }: { dialProgress: number }) {
+  const isAgency = dialProgress > 15
+  const isAcademy = dialProgress < -15
+
+  return (
+    <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-15">
+      {/* Outer Breathing Radial Glow */}
+      <motion.div
+        animate={{
+          scale: [0.94, 1.06, 0.94],
+          opacity: isAgency || isAcademy ? [0.65, 0.95, 0.65] : [0.3, 0.5, 0.3],
+        }}
+        transition={{
+          duration: 3.2,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          width: "390px",
+          height: "390px",
+          borderRadius: "50%",
+          filter: "blur(40px)",
+          background: isAgency
+            ? "radial-gradient(circle, rgba(6,182,212,0.4) 0%, rgba(99,102,241,0.25) 50%, transparent 70%)"
+            : isAcademy
+            ? "radial-gradient(circle, rgba(245,158,11,0.45) 0%, rgba(217,119,6,0.25) 50%, transparent 70%)"
+            : "radial-gradient(circle, rgba(147,197,253,0.18) 0%, rgba(139,92,246,0.1) 50%, transparent 70%)",
+          transition: "background 0.3s ease",
+        }}
+      />
+
+      {/* Inner Concentric Laser Rim Glow */}
+      <motion.div
+        animate={{
+          rotate: [0, 360],
+          scale: [0.98, 1.02, 0.98],
+        }}
+        transition={{
+          rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+          scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+        }}
+        style={{
+          width: "310px",
+          height: "310px",
+          borderRadius: "50%",
+          border: isAgency
+            ? "1px solid rgba(6,182,212,0.4)"
+            : isAcademy
+            ? "1px solid rgba(245,158,11,0.45)"
+            : "1px solid rgba(255,255,255,0.08)",
+          boxShadow: isAgency
+            ? "0 0 25px rgba(6,182,212,0.35), inset 0 0 15px rgba(139,92,246,0.2)"
+            : isAcademy
+            ? "0 0 25px rgba(245,158,11,0.4), inset 0 0 15px rgba(217,119,6,0.25)"
+            : "0 0 15px rgba(255,255,255,0.05)",
+          transition: "all 0.3s ease",
+        }}
+      />
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Anamorphic Optical Laser Flare Streak
+// ─────────────────────────────────────────────
+function AnamorphicLaserStreak({ dialProgress }: { dialProgress: number }) {
+  const isVisible = Math.abs(dialProgress) > 35
+  const isAgency = dialProgress > 0
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          exit={{ opacity: 0, scaleX: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="absolute inset-0 pointer-events-none flex items-center justify-center z-45 overflow-hidden"
+        >
+          {/* Razor-thin horizontal beam */}
+          <div
+            className="w-[120vw] h-[1.5px] relative"
+            style={{
+              background: isAgency
+                ? "linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.8) 25%, #ffffff 50%, rgba(139,92,246,0.8) 75%, transparent 100%)"
+                : "linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.85) 25%, #ffffff 50%, rgba(217,119,6,0.85) 75%, transparent 100%)",
+              boxShadow: isAgency
+                ? "0 0 16px 2px rgba(6,182,212,0.9), 0 0 30px 4px rgba(139,92,246,0.6)"
+                : "0 0 16px 2px rgba(245,158,11,0.9), 0 0 30px 4px rgba(217,119,6,0.6)",
+            }}
+          />
+
+          {/* Central chromatic glint flash */}
+          <motion.div
+            animate={{
+              scale: [0.8, 1.3, 0.8],
+              opacity: [0.7, 1, 0.7],
+            }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute w-6 h-6 rounded-full"
+            style={{
+              background: isAgency
+                ? "radial-gradient(circle, #ffffff 0%, rgba(6,182,212,0.9) 40%, transparent 70%)"
+                : "radial-gradient(circle, #ffffff 0%, rgba(245,158,11,0.9) 40%, transparent 70%)",
+              filter: "blur(1px)",
+            }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// ─────────────────────────────────────────────
 // MAIN LANDING
 // ─────────────────────────────────────────────
 export default function SplitReality() {
@@ -365,11 +585,26 @@ export default function SplitReality() {
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [dialProgress, setDialProgress] = useState(0)
   const [rotation, setRotation] = useState(0)
+  const [idleAngle, setIdleAngle] = useState(0)
   const dialRef = useRef<HTMLDivElement>(null)
   const isDraggingDial = useRef(false)
   const startAngleRef = useRef(0)
   const startRotationRef = useRef(0)
   const lastTickRef = useRef(0)
+
+  // Subtle continuous auto-gliding micro-rotation when idle
+  useEffect(() => {
+    if (!isMobile) return
+    let rafId: number
+    const tick = () => {
+      if (!isDraggingDial.current && Math.abs(dialProgress) < 1) {
+        setIdleAngle((prev) => (prev + 0.16) % 360)
+      }
+      rafId = requestAnimationFrame(tick)
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [isMobile, dialProgress])
 
   const getAngle = (clientX: number, clientY: number, rect: DOMRect) => {
     const centerX = rect.left + rect.width / 2
@@ -605,22 +840,48 @@ export default function SplitReality() {
             }} 
           />
 
-          {/* DSLR Meta parameters */}
-          <div className="absolute top-28 text-[9px] font-mono tracking-[0.35em] text-white/30 flex gap-5 uppercase z-40">
-            <span>F / 1.4</span>
+          {/* Floating Cinema Bokeh Particles */}
+          <MobileCinemaParticles dialProgress={dialProgress} />
+
+          {/* Optical Aperture Breathing Halo Glow */}
+          <OpticalApertureHalo dialProgress={dialProgress} />
+
+          {/* Anamorphic Laser Flare Streak on Lock */}
+          <AnamorphicLaserStreak dialProgress={dialProgress} />
+
+          {/* DSLR Meta parameters with Live HUD Status */}
+          <div className="absolute top-24 text-[9px] font-mono tracking-[0.35em] text-white/40 flex items-center gap-4 uppercase z-40">
+            <span className="px-2 py-0.5 rounded border border-white/10 bg-white/5 font-bold transition-all">
+              {dialProgress > 15 ? "F / 1.2" : dialProgress < -15 ? "F / 2.8" : "F / 1.4"}
+            </span>
             <span>50MM</span>
-            <span className="text-white/60">AF-S FOCUS</span>
+            <span className={`font-bold flex items-center gap-1.5 transition-colors duration-200 ${
+              dialProgress > 15 
+                ? "text-cyan-400" 
+                : dialProgress < -15 
+                ? "text-amber-400" 
+                : "text-white/70"
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                dialProgress > 15 ? "bg-cyan-400 animate-ping" : dialProgress < -15 ? "bg-amber-400 animate-ping" : "bg-emerald-400"
+              }`} />
+              {dialProgress > 50 
+                ? "AGENCY LOCKING" 
+                : dialProgress < -50 
+                ? "ACADEMY LOCKING" 
+                : "AF-S FOCUS"}
+            </span>
           </div>
 
           {/* Center Circular DSLR Dial Structure */}
           <div className="relative w-80 h-80 flex items-center justify-center z-30">
-            {/* Rotating Focus Grip Ring */}
+            {/* Rotating Focus Grip Ring with Idle Micro-Rotation */}
             <div 
               ref={dialRef}
               onMouseDown={handleTouchStart}
               onTouchStart={handleTouchStart}
-              style={{ transform: `rotate(${rotation}deg)` }}
-              className="absolute w-80 h-80 rounded-full border-[12px] border-neutral-900 bg-transparent flex items-center justify-center cursor-grab active:cursor-grabbing z-40 select-none shadow-[0_0_30px_rgba(0,0,0,0.5)] touch-none"
+              style={{ transform: `rotate(${rotation !== 0 ? rotation : idleAngle}deg)` }}
+              className="absolute w-80 h-80 rounded-full border-[12px] border-neutral-900 bg-transparent flex items-center justify-center cursor-grab active:cursor-grabbing z-40 select-none shadow-[0_0_35px_rgba(0,0,0,0.65)] touch-none"
             >
               <div className="absolute inset-0 rounded-full border border-white/10 pointer-events-none" />
               {/* Ridges around the DSLR ring */}
@@ -637,7 +898,7 @@ export default function SplitReality() {
               {/* Circular Bold Text: "ROTATE FOCUS RING" */}
               <svg viewBox="0 0 100 100" className="absolute w-full h-full pointer-events-none select-none p-[6px]">
                 <path id="textPath" d="M 50,50 m -34,0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0" fill="none" />
-                <text className="fill-white/50 font-black text-[3.8px] tracking-[0.27em] uppercase font-mono">
+                <text className="fill-white/60 font-black text-[3.8px] tracking-[0.27em] uppercase font-mono">
                   <textPath href="#textPath" startOffset="50%" textAnchor="middle">
                     ROTATE FOCUS RING • ROTATE FOCUS RING •
                   </textPath>
@@ -646,7 +907,7 @@ export default function SplitReality() {
               
               {/* Colorful Gradient Glow focus indicator dot */}
               <div 
-                className="absolute w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-400 via-violet-500 to-amber-400 shadow-[0_0_12px_rgba(139,92,246,0.8)]"
+                className="absolute w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-400 via-violet-500 to-amber-400 shadow-[0_0_14px_rgba(139,92,246,0.9)]"
                 style={{ transform: 'translateY(-144px)' }}
               />
             </div>
@@ -663,28 +924,40 @@ export default function SplitReality() {
                   : "rgba(255, 255, 255, 0.05)"
               }}
             >
-              {/* Corner framing brackets */}
+              {/* Corner framing brackets with autofocus contraction */}
               <div 
-                className="absolute top-6 left-6 w-4 h-4 border-t border-l z-35 transition-colors duration-200" 
-                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+                className="absolute top-6 left-6 w-4 h-4 border-t border-l z-35 transition-all duration-200" 
+                style={{ 
+                  borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)",
+                  transform: `translate(${Math.min(3, Math.abs(dialProgress) / 25)}px, ${Math.min(3, Math.abs(dialProgress) / 25)}px)`
+                }}
               />
               <div 
-                className="absolute top-6 right-6 w-4 h-4 border-t border-r z-35 transition-colors duration-200" 
-                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+                className="absolute top-6 right-6 w-4 h-4 border-t border-r z-35 transition-all duration-200" 
+                style={{ 
+                  borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)",
+                  transform: `translate(-${Math.min(3, Math.abs(dialProgress) / 25)}px, ${Math.min(3, Math.abs(dialProgress) / 25)}px)`
+                }}
               />
               <div 
-                className="absolute bottom-6 left-6 w-4 h-4 border-b border-l z-35 transition-colors duration-200" 
-                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+                className="absolute bottom-6 left-6 w-4 h-4 border-b border-l z-35 transition-all duration-200" 
+                style={{ 
+                  borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)",
+                  transform: `translate(${Math.min(3, Math.abs(dialProgress) / 25)}px, -${Math.min(3, Math.abs(dialProgress) / 25)}px)`
+                }}
               />
               <div 
-                className="absolute bottom-6 right-6 w-4 h-4 border-b border-r z-35 transition-colors duration-200" 
-                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)" }}
+                className="absolute bottom-6 right-6 w-4 h-4 border-b border-r z-35 transition-all duration-200" 
+                style={{ 
+                  borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.15)",
+                  transform: `translate(-${Math.min(3, Math.abs(dialProgress) / 25)}px, -${Math.min(3, Math.abs(dialProgress) / 25)}px)`
+                }}
               />
 
-              {/* Central crosshair */}
+              {/* Central crosshair with optical glow */}
               <div 
-                className="absolute w-3 h-3 border rounded-full flex items-center justify-center z-35 transition-colors duration-200"
-                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.05)" }}
+                className="absolute w-3 h-3 border rounded-full flex items-center justify-center z-35 transition-all duration-200"
+                style={{ borderColor: dialProgress < 0 ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.08)" }}
               >
                 <div 
                   className="w-px h-2 absolute transition-colors duration-200" 
