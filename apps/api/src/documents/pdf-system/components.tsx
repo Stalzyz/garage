@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
   // Left column: Logo + company details
   headerLeft: {
     flexDirection: 'column',
+    alignItems: 'flex-start',
     flex: 1,
     paddingRight: sp['24'],
   },
@@ -28,6 +29,7 @@ const styles = StyleSheet.create({
     maxHeight: 52,
     objectFit: 'contain',
     objectPosition: 'left',
+    alignSelf: 'flex-start',
     marginBottom: sp['8'],
   },
   companyName: {
