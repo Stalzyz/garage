@@ -497,7 +497,7 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
       });
       
       const htmlBody = `
-        <h2>Hello ${existing.lead.name},</h2>
+        <h2>Hello ${clientName},</h2>
         <p>A new proposal (<strong>${proposal.title}</strong>) has been prepared for you.</p>
         <p>You can view and approve the proposal using the secure link below. We have also attached a PDF copy for your convenience.</p>
         <br/>
@@ -506,7 +506,7 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
         <p style="color:#666;font-size:12px;">Powered by Grekam Visuals</p>
       `;
 
-      await sendEmail(existing.lead.email, {
+      await sendEmail(clientEmail, {
         subject: `New Proposal: ${proposal.title}`,
         html: htmlBody,
         attachments: [{
