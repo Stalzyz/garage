@@ -20,15 +20,15 @@ export interface Organization {
 const defaultOrg: Organization = {
   id: "",
   name: "Grekam Academy",
-  logoUrl: null,
-  academyLogoUrl: null,
-  faviconUrl: null,
-  academyFaviconUrl: null,
+  logoUrl: "/visuals-logo.png",
+  academyLogoUrl: "/academy-logo.png",
+  faviconUrl: "/favicon.ico",
+  academyFaviconUrl: "/favicon.ico",
   primaryColor: "#4f46e5",
   darkModeDefault: true,
-  supportEmail: null,
-  billingAddress: null,
-  website: null,
+  supportEmail: "academy@grekam.in",
+  billingAddress: "Coimbatore, Tamil Nadu, India",
+  website: "https://academy.grekam.in",
   phone: null,
 };
 
@@ -50,12 +50,20 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         .then((data) => {
           if (data) {
             const orgData = data.data || data;
-            setOrg(orgData);
+            const finalOrg: Organization = {
+              ...defaultOrg,
+              ...orgData,
+              logoUrl: orgData.logoUrl || "/visuals-logo.png",
+              academyLogoUrl: orgData.academyLogoUrl || "/academy-logo.png",
+              faviconUrl: orgData.faviconUrl || "/favicon.ico",
+              primaryColor: orgData.primaryColor || "#4f46e5",
+            };
+            setOrg(finalOrg);
 
             // Inject primary color as CSS variable globally
             if (typeof document !== "undefined") {
               const root = document.documentElement;
-              root.style.setProperty("--org-primary", orgData.primaryColor || "#4f46e5");
+              root.style.setProperty("--org-primary", finalOrg.primaryColor || "#4f46e5");
 
               // Update page title
               if (orgData.name) {

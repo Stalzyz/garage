@@ -34,14 +34,33 @@ export default async function organizationRouter(app: FastifyInstance) {
     if (!org) {
       org = await app.prisma.organization.create({
         data: {
-          name: "Grekam OS",
-          primaryColor: "#2563eb",
+          name: "Grekam Visuals",
+          logoUrl: "/visuals-logo.png",
+          academyLogoUrl: "/academy-logo.png",
+          faviconUrl: "/favicon.ico",
+          academyFaviconUrl: "/favicon.ico",
+          primaryColor: "#2DA16D",
+          secondaryColor: "#E1992D",
+          accentColor: "#49abc9",
           darkModeDefault: true,
+          supportEmail: "greeksacademy@gmail.com",
+          billingAddress: "Coimbatore, Tamil Nadu, India",
+          website: "https://grekam.in",
         }
       });
     }
 
-    return org;
+    return {
+      ...org,
+      name: org.name || "Grekam Visuals",
+      logoUrl: org.logoUrl || "/visuals-logo.png",
+      academyLogoUrl: org.academyLogoUrl || "/academy-logo.png",
+      faviconUrl: org.faviconUrl || "/favicon.ico",
+      academyFaviconUrl: org.academyFaviconUrl || "/favicon.ico",
+      primaryColor: org.primaryColor || "#2DA16D",
+      secondaryColor: org.secondaryColor || "#E1992D",
+      accentColor: org.accentColor || "#49abc9",
+    };
   });
 
   // PATCH /api/v1/settings/organization — Update the global organization branding

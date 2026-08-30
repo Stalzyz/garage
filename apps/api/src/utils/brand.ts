@@ -34,44 +34,42 @@ export interface BrandConfig {
 
 /**
  * Resolves a brand logo URL to a format safe for @react-pdf/renderer.
- * Resolves relative /uploads/ paths to absolute local disk paths if found,
- * or validates http/https URLs. If file does not exist, returns null to avoid ENOENT errors.
+ * Resolves relative /uploads/ and /public/ paths to absolute local disk paths if found,
+ * or validates http/https URLs.
  */
-export function resolveBrandLogo(logoUrl: string | null): string | null {
-  if (!logoUrl || typeof logoUrl !== 'string') return null;
-  const cleanUrl = logoUrl.trim();
-  if (!cleanUrl) return null;
+export function resolveBrandLogo(logoUrl: string | null, fallbackFilename: string = 'visuals-logo.png'): string | null {
+  const targetUrl = (logoUrl && typeof logoUrl === 'string' && logoUrl.trim()) ? logoUrl.trim() : fallbackFilename;
 
-  // 1. If it's a relative URL or upload path like /uploads/abc or uploads/abc or /api/v1/uploads/abc
-  if (cleanUrl.includes('/uploads/')) {
-    const filename = cleanUrl.split('/uploads/').pop()?.trim();
-    if (filename) {
-      // Try root workspace uploads folder
-      const rootUploadsPath = path.join(process.cwd(), 'uploads', filename);
-      if (fs.existsSync(rootUploadsPath)) return rootUploadsPath;
+  // 1. Check local files in standard folders (public, uploads, apps/web/public)
+  const filename = targetUrl.replace(/^\/+/, '').split('/').pop()?.trim() || fallbackFilename;
+  const candidatePaths = [
+    path.join(process.cwd(), 'apps/web/public', filename),
+    path.join(process.cwd(), 'public', filename),
+    path.join(process.cwd(), 'uploads', filename),
+    path.join(__dirname, '../../../../apps/web/public', filename),
+    path.join(__dirname, '../../../apps/web/public', filename),
+    path.join(__dirname, '../../../web/public', filename),
+    path.join(__dirname, '../../public', filename),
+    path.join(__dirname, '../../uploads', filename),
+  ];
 
-      // Try apps/api/uploads folder
-      const apiUploadsPath = path.join(__dirname, '../../uploads', filename);
-      if (fs.existsSync(apiUploadsPath)) return apiUploadsPath;
-
-      // Try public/uploads folder
-      const publicUploadsPath = path.join(process.cwd(), 'public/uploads', filename);
-      if (fs.existsSync(publicUploadsPath)) return publicUploadsPath;
+  for (const candidate of candidatePaths) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
     }
   }
 
   // 2. If it's an absolute local disk path
-  if (cleanUrl.startsWith('/') && !cleanUrl.startsWith('http')) {
-    if (fs.existsSync(cleanUrl)) return cleanUrl;
-    return null; // Return null so @react-pdf doesn't throw ENOENT!
+  if (targetUrl.startsWith('/') && !targetUrl.startsWith('http')) {
+    if (fs.existsSync(targetUrl)) return targetUrl;
   }
 
   // 3. If it's a valid remote HTTP/HTTPS URL or base64 data URI
-  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image/')) {
-    return cleanUrl;
+  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://') || targetUrl.startsWith('data:image/')) {
+    return targetUrl;
   }
 
-  return null;
+  return targetUrl;
 }
 
 export async function getBrandConfig(app: FastifyInstance, type: BrandType): Promise<BrandConfig> {
@@ -87,17 +85,23 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   const VISUALS_ORANGE = '#E1992D';
   const AGENCY_TEAL = '#49abc9';
 
+  const defaultLogo = type === 'ACADEMY' ? 'academy-logo.png' : 'visuals-logo.png';
+  const rawLogo = type === 'ACADEMY' ? (org?.academyLogoUrl || org?.logoUrl || '/academy-logo.png') : (org?.logoUrl || '/visuals-logo.png');
+  const logoUrl = resolveBrandLogo(rawLogo, defaultLogo);
+  const rawFavicon = type === 'ACADEMY' ? (org?.academyFaviconUrl || org?.faviconUrl || '/favicon.ico') : (org?.faviconUrl || '/favicon.ico');
+
   if (!org) {
     return {
-      logoUrl: null,
+      logoUrl,
+      faviconUrl: rawFavicon,
       companyName: type === 'ACADEMY' ? 'Grekam Academy' : 'Grekam Visuals',
       tradeName: type === 'ACADEMY' ? 'Grekam Academy of Technology & Design' : 'Grekam Visuals & Technologies Pvt Ltd',
       gstin,
       pan,
       placeOfSupply,
-      primaryColor: type === 'ACADEMY' ? '#4f46e5' : AGENCY_TEAL,
-      secondaryColor: GREKAM_GREEN,
-      accentColor: VISUALS_ORANGE,
+      primaryColor: type === 'ACADEMY' ? '#4f46e5' : GREKAM_GREEN,
+      secondaryColor: VISUALS_ORANGE,
+      accentColor: AGENCY_TEAL,
       grekamGreen: GREKAM_GREEN,
       visualsOrange: VISUALS_ORANGE,
       agencyTeal: AGENCY_TEAL,
@@ -116,10 +120,6 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
     };
   }
 
-  const rawLogo = type === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl;
-  const logoUrl = resolveBrandLogo(rawLogo);
-  const rawFavicon = type === 'ACADEMY' ? (org.academyFaviconUrl || org.faviconUrl) : org.faviconUrl;
-
   // Dynamic professional UPI ID based on domain or support email
   let upiId: string | null = null;
   if (org.website) {
@@ -133,21 +133,21 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
 
   return {
     logoUrl,
-    faviconUrl: rawFavicon || null,
+    faviconUrl: rawFavicon,
     companyName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals'),
     tradeName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy of Technology & Design` : `${org.name || 'Grekam'} Visuals & Technologies Pvt Ltd`,
     gstin,
     pan,
     placeOfSupply,
-    primaryColor: type === 'ACADEMY' ? '#4f46e5' : AGENCY_TEAL,
-    secondaryColor: GREKAM_GREEN,
-    accentColor: VISUALS_ORANGE,
+    primaryColor: type === 'ACADEMY' ? '#4f46e5' : (org.primaryColor || GREKAM_GREEN),
+    secondaryColor: org.secondaryColor || VISUALS_ORANGE,
+    accentColor: org.accentColor || AGENCY_TEAL,
     grekamGreen: GREKAM_GREEN,
     visualsOrange: VISUALS_ORANGE,
     agencyTeal: AGENCY_TEAL,
     fontFamily: 'Helvetica',
-    website: type === 'ACADEMY' ? 'https://academy.grekam.in' : (org.website?.trim() || null),
-    contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : (org.supportEmail?.trim() || null),
+    website: type === 'ACADEMY' ? 'https://academy.grekam.in' : (org.website?.trim() || 'https://grekam.in'),
+    contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : (org.supportEmail?.trim() || 'contact@grekam.in'),
     phone: org.phone?.trim() || null,
     address: org.billingAddress?.trim() || 'Coimbatore, Tamil Nadu, India',
     bankName: org.bankName?.trim() || null,

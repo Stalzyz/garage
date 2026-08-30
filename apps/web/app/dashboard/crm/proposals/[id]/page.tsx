@@ -195,7 +195,7 @@ export default function ProposalDetailPage() {
                     }}
                   />
                 ) : null}
-                <div className={`h-14 px-4 min-w-[56px] bg-[#49abc9]/20 border border-[#49abc9]/30 rounded-xl items-center justify-center text-[#49abc9] font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
+                <div className={`h-14 px-4 min-w-[56px] bg-[#2DA16D]/20 border border-[#2DA16D]/30 rounded-xl items-center justify-center text-[#2DA16D] font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
                   {org.name ? org.name.charAt(0) : 'G'}
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function ProposalDetailPage() {
               {org.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
             </div>
             <div className="text-right">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md bg-[#49abc9]/10 text-[#49abc9] border border-[#49abc9]/20 mb-2">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md bg-[#2DA16D]/10 text-[#2DA16D] border border-[#2DA16D]/20 mb-2">
                 Agency Proposal
               </span>
               <p className="text-xl font-bold text-foreground">{proposal.title}</p>
@@ -220,8 +220,8 @@ export default function ProposalDetailPage() {
           </div>
 
           {/* Prepared For */}
-          <div className="mb-10 bg-[#49abc9]/5 border-l-4 border-[#49abc9] p-5 rounded-r-2xl">
-            <h3 className="text-xs font-bold text-[#49abc9] uppercase tracking-widest mb-2">Prepared For</h3>
+          <div className="mb-10 bg-[#2DA16D]/5 border-l-4 border-[#2DA16D] p-5 rounded-r-2xl">
+            <h3 className="text-xs font-bold text-[#2DA16D] uppercase tracking-widest mb-2">Prepared For</h3>
             <p className="text-lg font-bold text-foreground">
               {proposal.contact 
                 ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
@@ -248,7 +248,7 @@ export default function ProposalDetailPage() {
           <div className="border border-border/40 rounded-xl overflow-hidden mb-8">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#49abc9] text-white">
+                <tr className="bg-[#2DA16D] text-white">
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider w-[50%]">Service / Description</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Qty</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Rate</th>
@@ -280,7 +280,7 @@ export default function ProposalDetailPage() {
             const displaySubtotal = (proposal.subtotal && Number(proposal.subtotal) > 0) ? Number(proposal.subtotal) : (rawSubtotal > 0 ? rawSubtotal : Number(proposal.totalAmount || 0));
             return (
               <div className="flex justify-end border-t border-border/60 pt-6 mb-10">
-                <div className="w-80 space-y-3 bg-[#49abc9]/5 p-5 rounded-2xl border border-[#49abc9]/20">
+                <div className="w-80 space-y-3 bg-[#2DA16D]/5 p-5 rounded-2xl border border-[#2DA16D]/20">
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subtotal</span>
                     <span className="font-mono text-foreground font-bold">{symbol}{displaySubtotal.toLocaleString()}</span>
@@ -294,10 +294,10 @@ export default function ProposalDetailPage() {
                   {(proposal.tax > 0) && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tax ({proposal.taxRate || 18}%)</span>
-                      <span className="text-[#49abc9] font-mono font-bold">{symbol}{Number(proposal.tax).toLocaleString()}</span>
+                      <span className="text-foreground font-mono font-bold">{symbol}{Number(proposal.tax).toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center text-lg font-bold border-t border-[#49abc9]/20 pt-3 mt-3">
+                  <div className="flex justify-between items-center text-lg font-bold border-t border-[#2DA16D]/20 pt-3 mt-3">
                     <span className="text-foreground text-sm uppercase tracking-wider">Total Value ({proposal.currency || 'INR'})</span>
                     <span className="text-[#2DA16D] font-mono font-black text-2xl">{symbol}{Number(proposal.totalAmount || displaySubtotal).toLocaleString()}</span>
                   </div>

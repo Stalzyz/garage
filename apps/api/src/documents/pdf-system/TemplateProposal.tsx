@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   coverMiddle: {
     marginVertical: sp['48'],
     borderLeftWidth: 4,
-    borderLeftColor: colors.teal,
+    borderLeftColor: colors.green,
     paddingLeft: sp['20'],
   },
   coverType: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 3,
     textTransform: 'uppercase',
-    color: colors.teal,
+    color: colors.green,
     marginBottom: sp['8'],
   },
   coverTitle: {
@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     borderWidth: 1,
-    borderColor: colors.teal,
+    borderColor: colors.green,
     borderRadius: 4,
-    backgroundColor: '#f0f9fc',
+    backgroundColor: '#f0fdf4',
     padding: sp['12'],
     marginBottom: sp['20'],
   },
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: colors.teal,
+    color: colors.green,
     textTransform: 'uppercase',
     letterSpacing: 1,
     paddingBottom: 4,
     borderBottomWidth: 1.5,
-    borderBottomColor: colors.teal,
+    borderBottomColor: colors.green,
     marginBottom: sp['12'],
   },
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   table: { width: '100%', marginBottom: sp['16'], borderWidth: 1, borderColor: colors.rule, borderRadius: 4, overflow: 'hidden' },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: colors.teal,
+    backgroundColor: colors.green,
     paddingVertical: 6,
     paddingHorizontal: 6,
     marginBottom: 0,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   // Notes
   notesBox: {
     borderLeftWidth: 3,
-    borderLeftColor: colors.teal,
+    borderLeftColor: colors.green,
     backgroundColor: colors.surface,
     padding: sp['12'],
     marginBottom: sp['20'],

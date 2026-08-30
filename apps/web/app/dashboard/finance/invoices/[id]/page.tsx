@@ -196,7 +196,7 @@ export default function InvoiceBuilderPage() {
 
           <div className="border border-white/10 rounded-xl overflow-hidden mb-8">
             <table className="w-full text-sm text-left">
-              <thead className="bg-[#49abc9] text-xs uppercase text-white">
+              <thead className="bg-[#2DA16D] text-xs uppercase text-white">
                 <tr>
                   <th className="px-4 py-3 font-bold">Description</th>
                   <th className="px-4 py-3 font-bold text-right">Qty</th>
@@ -222,7 +222,7 @@ export default function InvoiceBuilderPage() {
           </div>
 
           <div className="flex justify-end mb-12">
-            <div className="w-80 space-y-3 bg-[#49abc9]/5 p-5 rounded-2xl border border-[#49abc9]/20">
+            <div className="w-80 space-y-3 bg-[#2DA16D]/5 p-5 rounded-2xl border border-[#2DA16D]/20">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Subtotal</span>
                 <span className="text-white font-mono">{symbol}{invoice.subtotal?.toLocaleString()}</span>
@@ -251,15 +251,15 @@ export default function InvoiceBuilderPage() {
                   <span className="text-white font-mono">{symbol}{invoice.igst?.toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center border-t border-[#49abc9]/20 pt-3">
-                <span className="font-bold uppercase tracking-widest text-xs text-[#49abc9]">Total Invoice Value</span>
+              <div className="flex justify-between items-center border-t border-[#2DA16D]/20 pt-3">
+                <span className="font-bold uppercase tracking-widest text-xs text-[#2DA16D]">Total Invoice Value</span>
                 <span className="text-xl font-bold text-white font-mono">{symbol}{invoice.totalAmount?.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-[#2DA16D]">
                 <span className="text-sm font-medium">Total Paid</span>
                 <span className="font-mono font-bold">{symbol}{invoice.paidAmount?.toLocaleString() || '0'}</span>
               </div>
-              <div className="flex justify-between items-center border-t border-[#49abc9]/20 pt-3">
+              <div className="flex justify-between items-center border-t border-[#2DA16D]/20 pt-3">
                 <span className="font-bold uppercase tracking-widest text-xs text-[#E1992D]">Balance Due</span>
                 <span className="text-2xl font-black text-[#E1992D] font-mono">{symbol}{(invoice.totalAmount - (invoice.paidAmount || 0))?.toLocaleString()}</span>
               </div>
