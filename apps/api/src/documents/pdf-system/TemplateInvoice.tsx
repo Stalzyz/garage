@@ -498,7 +498,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Status:</Text>
-              <Text style={[styles.metaValue, { color: invoice.status === 'PAID' ? '#059669' : '#dc2626' }]}>
+              <Text style={[styles.metaValue, { color: invoice.status === 'PAID' ? (brand.grekamGreen || '#2DA16D') : (brand.visualsOrange || '#E1992D') }]}>
                 {invoice.status.replace(/_/g, ' ')}
               </Text>
             </View>
@@ -511,7 +511,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
 
         {/* ─── 3. GST LINE ITEMS TABLE ─────────────────────────────────────── */}
         <View style={styles.table}>
-          <View style={styles.tableHeader}>
+          <View style={[styles.tableHeader, { backgroundColor: primaryThemeColor }]}>
             <Text style={[styles.tableHeaderCell, styles.colNum]}>#</Text>
             <Text style={[styles.tableHeaderCell, styles.colDesc]}>
               {isAcademy ? 'Fee Particulars & Curriculum' : 'Service Description'}
@@ -544,7 +544,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
             {/* Bank & UPI Information */}
             {brand.bankName && brand.accountNumber && (
               <View style={styles.boxContainer}>
-                <Text style={styles.boxHeading}>Bank & UPI Payment Details</Text>
+                <Text style={[styles.boxHeading, { color: primaryThemeColor }]}>Bank &amp; UPI Payment Details</Text>
                 <View style={styles.boxRow}>
                   <Text style={styles.boxLabel}>Bank Name:</Text>
                   <Text style={styles.boxValue}>{brand.bankName}</Text>
@@ -576,7 +576,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
 
             {/* Terms & Conditions Block */}
             <View>
-              <Text style={styles.termsHeading}>Terms & Conditions</Text>
+              <Text style={[styles.termsHeading, { color: primaryThemeColor }]}>Terms &amp; Conditions</Text>
               {isAcademy ? (
                 <>
                   <Text style={styles.termsText}>• Fees once paid are non-refundable and non-transferable under any circumstances.</Text>
@@ -614,7 +614,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
             {invoice.discountRate && invoice.discountRate > 0 ? (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount ({invoice.discountRate}%)</Text>
-                <Text style={[styles.summaryValue, { color: '#059669' }]}>
+                <Text style={[styles.summaryValue, { color: brand.grekamGreen || '#2DA16D' }]}>
                   -{fmt(invoice.subtotal * (invoice.discountRate / 100), invoice.currency)}
                 </Text>
               </View>
@@ -650,14 +650,14 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice
             {invoice.paidAmount > 0 && (
               <View style={[styles.summaryRow, { marginTop: 4 }]}>
                 <Text style={styles.summaryLabel}>Paid to Date:</Text>
-                <Text style={[styles.summaryValue, { color: '#059669' }]}>{fmt(invoice.paidAmount, invoice.currency)}</Text>
+                <Text style={[styles.summaryValue, { color: brand.grekamGreen || '#2DA16D' }]}>{fmt(invoice.paidAmount, invoice.currency)}</Text>
               </View>
             )}
 
             {balanceDue > 0 && (
               <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 2 }]}>
-                <Text style={[styles.summaryLabel, { fontFamily: 'Helvetica-Bold', color: '#dc2626' }]}>Balance Due:</Text>
-                <Text style={[styles.summaryValue, { color: '#dc2626' }]}>{fmt(balanceDue, invoice.currency)}</Text>
+                <Text style={[styles.summaryLabel, { fontFamily: 'Helvetica-Bold', color: brand.visualsOrange || '#E1992D' }]}>Balance Due:</Text>
+                <Text style={[styles.summaryValue, { color: brand.visualsOrange || '#E1992D' }]}>{fmt(balanceDue, invoice.currency)}</Text>
               </View>
             )}
 

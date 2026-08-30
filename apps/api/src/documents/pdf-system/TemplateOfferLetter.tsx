@@ -27,7 +27,13 @@ const styles = StyleSheet.create({
   subject: {
     fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
+    color: colors.teal,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    backgroundColor: '#f0f9fc',
+    padding: sp['8'],
+    borderLeftWidth: 3,
+    borderLeftColor: colors.teal,
     marginBottom: sp['16'],
   },
   paragraph: {
@@ -43,15 +49,18 @@ const styles = StyleSheet.create({
 
   // Detail grid
   detailGrid: {
-    borderTopWidth: 1,
-    borderTopColor: colors.rule,
+    borderTopWidth: 1.5,
+    borderTopColor: colors.teal,
     marginVertical: sp['16'],
+    backgroundColor: colors.surface,
+    borderRadius: 4,
   },
   detailRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: colors.rule,
     paddingVertical: sp['8'],
+    paddingHorizontal: sp['8'],
   },
   detailLabel: {
     width: 140,
@@ -76,8 +85,8 @@ const styles = StyleSheet.create({
   sigBlock: { width: '45%' },
   sigSpace: { height: 40 },
   sigLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.ruleStrong,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.teal,
     marginBottom: sp['6'],
   },
   sigName: {

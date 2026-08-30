@@ -32,6 +32,9 @@ export const colors = {
   ruleStrong: '#cbd5e1',
   surface: '#f8fafc',
   white: '#ffffff',
+  teal: '#49abc9',
+  green: '#2DA16D',
+  orange: '#E1992D',
 };
 
 /**

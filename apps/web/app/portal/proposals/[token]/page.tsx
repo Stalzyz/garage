@@ -77,15 +77,15 @@ export default function PublicProposalPage() {
         <div className="bg-white text-black rounded-3xl shadow-2xl overflow-hidden print:shadow-none print:bg-white print:text-black">
           
           {/* Header */}
-          <div className="p-10 border-b border-black/10 flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-50">
+          <div className="p-10 border-b border-black/10 flex flex-col md:flex-row md:items-end justify-between gap-6 bg-[#49abc9]/5">
             <div>
-              <h3 className="font-bold tracking-widest uppercase text-blue-600 text-xs mb-2">Proposal / Statement of Work</h3>
+              <span className="inline-block font-bold tracking-widest uppercase text-[#49abc9] text-xs px-2.5 py-1 rounded bg-[#49abc9]/10 border border-[#49abc9]/20 mb-2">Agency Proposal / Statement of Work</span>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight">{proposal.title}</h1>
             </div>
             <div className="text-right">
               {org.logoUrl
                 ? <img src={org.logoUrl} alt={org.name} className="h-10 w-auto object-contain ml-auto mb-1" />
-                : <div className="w-10 h-10 bg-primary rounded-xl ml-auto mb-1 flex items-center justify-center text-white font-black text-lg">{org.name.charAt(0)}</div>
+                : <div className="w-10 h-10 bg-[#49abc9] rounded-xl ml-auto mb-1 flex items-center justify-center text-white font-black text-lg">{org.name.charAt(0)}</div>
               }
               <p className="font-bold text-sm">{org.name}</p>
               {org.supportEmail && <p className="text-xs text-slate-500">{org.supportEmail}</p>}
@@ -95,8 +95,8 @@ export default function PublicProposalPage() {
           </div>
 
           {/* Client Info */}
-          <div className="p-10 border-b border-black/10">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Prepared For</h4>
+          <div className="p-10 border-b border-black/10 border-l-4 border-l-[#49abc9]">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-[#49abc9] mb-3">Prepared For</h4>
             <p className="font-bold text-lg">
               {proposal.contact 
                 ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
@@ -123,10 +123,10 @@ export default function PublicProposalPage() {
 
           {/* Line Items */}
           <div className="p-10 border-b border-black/10">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Investment</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-[#49abc9] mb-6">Investment Details</h4>
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b-2 border-black/10 text-xs font-bold uppercase tracking-widest">
+                <tr className="border-b-2 border-[#49abc9] text-xs font-bold uppercase tracking-widest text-[#49abc9]">
                   <th className="pb-3">Description</th>
                   <th className="pb-3 text-right">Qty</th>
                   <th className="pb-3 text-right">Unit Price</th>
@@ -137,16 +137,16 @@ export default function PublicProposalPage() {
                 {proposal.items?.map((item: any) => (
                   <tr key={item.id}>
                     <td className="py-4 text-sm font-medium">{item.description}</td>
-                    <td className="py-4 text-sm text-right text-slate-600">{item.quantity}</td>
-                    <td className="py-4 text-sm text-right text-slate-600">${item.unitPrice.toLocaleString()}</td>
-                    <td className="py-4 text-sm text-right font-bold">${item.total.toLocaleString()}</td>
+                    <td className="py-4 text-sm text-right text-slate-600 font-mono">{item.quantity}</td>
+                    <td className="py-4 text-sm text-right text-slate-600 font-mono">₹{item.unitPrice.toLocaleString()}</td>
+                    <td className="py-4 text-sm text-right font-bold font-mono">₹{item.total.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
                   <td colSpan={3} className="py-6 text-right font-bold text-lg">Total Investment:</td>
-                  <td className="py-6 text-right font-black text-2xl text-blue-600">${proposal.totalAmount?.toLocaleString()}</td>
+                  <td className="py-6 text-right font-black text-2xl text-[#2DA16D] font-mono">₹{proposal.totalAmount?.toLocaleString()}</td>
                 </tr>
               </tfoot>
             </table>

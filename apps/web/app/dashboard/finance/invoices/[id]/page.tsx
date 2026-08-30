@@ -185,66 +185,74 @@ export default function InvoiceBuilderPage() {
             {invoice.clientGst && <p className="text-slate-400 text-sm mt-1">GSTIN: {invoice.clientGst}</p>}
           </div>
 
-          <table className="w-full text-sm text-left mb-8">
-            <thead className="bg-white/5 text-xs uppercase text-slate-400 border-b border-white/10">
-              <tr>
-                <th className="px-4 py-3 font-bold">Description</th>
-                <th className="px-4 py-3 font-bold text-right">Qty</th>
-                <th className="px-4 py-3 font-bold text-right">Rate</th>
-                <th className="px-4 py-3 font-bold text-right">Disc %</th>
-                <th className="px-4 py-3 font-bold text-right">Tax %</th>
-                <th className="px-4 py-3 font-bold text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {invoice.items?.map((item: any, i: number) => (
-                <tr key={i}>
-                  <td className="px-4 py-4 text-white font-medium">{item.description}</td>
-                  <td className="px-4 py-4 text-right text-slate-400">{item.quantity}</td>
-                  <td className="px-4 py-4 text-right text-slate-400">{symbol}{item.unitPrice?.toLocaleString()}</td>
-                  <td className="px-4 py-4 text-right text-slate-400">{item.discountRate}%</td>
-                  <td className="px-4 py-4 text-right text-slate-400">{item.taxRate}%</td>
-                  <td className="px-4 py-4 text-right font-bold text-white">{symbol}{item.total?.toLocaleString()}</td>
+          <div className="border border-white/10 rounded-xl overflow-hidden mb-8">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-[#49abc9] text-xs uppercase text-white">
+                <tr>
+                  <th className="px-4 py-3 font-bold">Description</th>
+                  <th className="px-4 py-3 font-bold text-right">Qty</th>
+                  <th className="px-4 py-3 font-bold text-right">Rate</th>
+                  <th className="px-4 py-3 font-bold text-right">Disc %</th>
+                  <th className="px-4 py-3 font-bold text-right">Tax %</th>
+                  <th className="px-4 py-3 font-bold text-right">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {invoice.items?.map((item: any, i: number) => (
+                  <tr key={i} className="hover:bg-white/2 transition-colors">
+                    <td className="px-4 py-4 text-white font-medium">{item.description}</td>
+                    <td className="px-4 py-4 text-right text-slate-400">{item.quantity}</td>
+                    <td className="px-4 py-4 text-right text-slate-400 font-mono">{symbol}{item.unitPrice?.toLocaleString()}</td>
+                    <td className="px-4 py-4 text-right text-[#E1992D] font-mono">{item.discountRate}%</td>
+                    <td className="px-4 py-4 text-right text-slate-400 font-mono">{item.taxRate}%</td>
+                    <td className="px-4 py-4 text-right font-bold text-white font-mono">{symbol}{item.total?.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="flex justify-end mb-12">
-            <div className="w-64 space-y-3">
+            <div className="w-80 space-y-3 bg-[#49abc9]/5 p-5 rounded-2xl border border-[#49abc9]/20">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Subtotal</span>
-                <span className="text-white">{symbol}{invoice.subtotal?.toLocaleString()}</span>
+                <span className="text-white font-mono">{symbol}{invoice.subtotal?.toLocaleString()}</span>
               </div>
               {invoice.discountRate > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Overall Discount ({invoice.discountRate}%)</span>
-                  <span className="text-red-400">-{symbol}{(invoice.subtotal * (invoice.discountRate / 100))?.toLocaleString()}</span>
+                  <span className="text-[#E1992D] font-mono font-bold">-{symbol}{(invoice.subtotal * (invoice.discountRate / 100))?.toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">CGST</span>
-                <span className="text-white">{symbol}{invoice.cgst?.toLocaleString()}</span>
+              {invoice.cgst > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">CGST (9%)</span>
+                  <span className="text-white font-mono">{symbol}{invoice.cgst?.toLocaleString()}</span>
+                </div>
+              )}
+              {invoice.sgst > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">SGST (9%)</span>
+                  <span className="text-white font-mono">{symbol}{invoice.sgst?.toLocaleString()}</span>
+                </div>
+              )}
+              {invoice.igst > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">IGST (18%)</span>
+                  <span className="text-white font-mono">{symbol}{invoice.igst?.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center border-t border-[#49abc9]/20 pt-3">
+                <span className="font-bold uppercase tracking-widest text-xs text-[#49abc9]">Total Invoice Value</span>
+                <span className="text-xl font-bold text-white font-mono">{symbol}{invoice.totalAmount?.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">SGST</span>
-                <span className="text-white">{symbol}{invoice.sgst?.toLocaleString()}</span>
+              <div className="flex justify-between items-center text-[#2DA16D]">
+                <span className="text-sm font-medium">Total Paid</span>
+                <span className="font-mono font-bold">{symbol}{invoice.paidAmount?.toLocaleString() || '0'}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">IGST</span>
-                <span className="text-white">{symbol}{invoice.igst?.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center border-t border-white/10 pt-3">
-                <span className="font-bold uppercase tracking-widest text-sm text-blue-400">Total</span>
-                <span className="text-xl font-bold text-white">{symbol}{invoice.totalAmount?.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center text-emerald-400">
-                <span className="text-sm">Total Paid</span>
-                <span className="font-mono">{symbol}{invoice.paidAmount?.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center border-t border-white/10 pt-3">
-                <span className="font-bold uppercase tracking-widest text-sm text-red-400">Amount Due</span>
-                <span className="text-2xl font-black text-white">{symbol}{(invoice.totalAmount - (invoice.paidAmount || 0))?.toLocaleString()}</span>
+              <div className="flex justify-between items-center border-t border-[#49abc9]/20 pt-3">
+                <span className="font-bold uppercase tracking-widest text-xs text-[#E1992D]">Balance Due</span>
+                <span className="text-2xl font-black text-[#E1992D] font-mono">{symbol}{(invoice.totalAmount - (invoice.paidAmount || 0))?.toLocaleString()}</span>
               </div>
             </div>
           </div>

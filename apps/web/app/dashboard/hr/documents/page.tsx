@@ -234,14 +234,14 @@ export default function DocumentsPage() {
                         org.logoUrl ? (
                           <img src={org.logoUrl} alt={org.name} className="w-16 h-16 object-contain" />
                         ) : (
-                          <div className="w-16 h-16 bg-blue-600 text-white font-black text-2xl flex items-center justify-center rounded-xl">
+                          <div className="w-16 h-16 bg-[#49abc9] text-white font-black text-2xl flex items-center justify-center rounded-xl">
                             {org.name.charAt(0).toUpperCase()}
                           </div>
                         )
                       )}
                       <div>
-                        <h1 className="text-2xl font-black tracking-tighter uppercase">{org.name}</h1>
-                        <p className="text-xs text-gray-500 font-mono mt-1 whitespace-pre-wrap">{org.billingAddress ?? '123 Tech Lane, NY 10001'}</p>
+                        <h1 className="text-2xl font-black tracking-tighter uppercase text-slate-900">{org.name}</h1>
+                        <p className="text-xs text-gray-500 font-mono mt-1 whitespace-pre-wrap">{org.billingAddress ?? 'Coimbatore, Tamil Nadu, India'}</p>
                         {(org.website || org.phone) && (
                           <p className="text-xs text-gray-400 font-mono mt-1">
                             {org.website && <span>{org.website}</span>}
@@ -252,6 +252,7 @@ export default function DocumentsPage() {
                       </div>
                     </div>
                     <div className="text-right text-xs text-gray-500 font-mono">
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#49abc9]/10 text-[#49abc9] border border-[#49abc9]/20 mb-1">Official Document</span><br/>
                       Date: {format(new Date(), 'dd MMM yyyy')}<br/>
                       Ref: GRK-{selectedDoc.id.slice(-6).toUpperCase()}
                     </div>
@@ -263,9 +264,9 @@ export default function DocumentsPage() {
 
                   {/* Signature Block */}
                   <div className="mt-24 pt-8 w-48 text-center">
-                    <div className="border-b border-black mb-2"></div>
-                    <p className="font-bold text-sm">Authorized Signatory</p>
-                    <p className="text-xs text-gray-500">Human Resources Dept.</p>
+                    <div className="border-b-2 border-[#49abc9] mb-2"></div>
+                    <p className="font-bold text-sm text-slate-900">Authorized Signatory</p>
+                    <p className="text-xs text-[#2DA16D] font-bold">Human Resources Dept.</p>
                   </div>
                 </div>
               </div>

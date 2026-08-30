@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
   coverMiddle: {
     marginVertical: sp['48'],
     borderLeftWidth: 4,
+    borderLeftColor: colors.teal,
     paddingLeft: sp['20'],
   },
   coverType: {
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 3,
     textTransform: 'uppercase',
+    color: colors.teal,
     marginBottom: sp['8'],
   },
   coverTitle: {
@@ -86,7 +88,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     borderWidth: 1,
-    borderColor: colors.rule,
+    borderColor: colors.teal,
+    borderRadius: 4,
+    backgroundColor: '#f0f9fc',
     padding: sp['12'],
     marginBottom: sp['20'],
   },
@@ -96,33 +100,30 @@ const styles = StyleSheet.create({
 
   // Section title
   sectionTitle: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
+    color: colors.teal,
     textTransform: 'uppercase',
     letterSpacing: 1,
     paddingBottom: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.rule,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.teal,
     marginBottom: sp['12'],
   },
 
   // Table
-  table: { width: '100%', marginBottom: sp['16'] },
+  table: { width: '100%', marginBottom: sp['16'], borderWidth: 1, borderColor: colors.rule, borderRadius: 4, overflow: 'hidden' },
   tableHeader: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderTopColor: colors.ink,
-    borderBottomColor: colors.ink,
-    paddingVertical: 5,
-    marginBottom: 2,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.teal,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    marginBottom: 0,
   },
   tableHeaderCell: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    color: colors.muted,
+    color: colors.white,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -131,13 +132,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.rule,
     paddingVertical: sp['8'],
+    paddingHorizontal: 6,
     minHeight: 22,
   },
   tableCell: { fontSize: 9, color: colors.body, lineHeight: 1.4 },
   colDesc: { flex: 4.5, paddingRight: sp['8'] },
   colQty: { width: 36, textAlign: 'center' },
   colRate: { width: 80, textAlign: 'right' },
-  colTotal: { width: 80, textAlign: 'right' },
+  colTotal: { width: 80, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
 
   // Summary
   summaryOuter: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: sp['20'] },
@@ -145,14 +147,15 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
   summaryLabel: { fontSize: 8.5, color: colors.muted },
   summaryValue: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: colors.ink },
-  totalRule: { borderTopWidth: 1.5, borderTopColor: colors.ink, marginVertical: 6 },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  totalRule: { borderTopWidth: 1.5, borderTopColor: colors.orange, marginVertical: 6 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   totalLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: colors.ink },
-  totalValue: { fontSize: 11, fontFamily: 'Helvetica-Bold' },
+  totalValue: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: colors.green },
 
   // Notes
   notesBox: {
     borderLeftWidth: 3,
+    borderLeftColor: colors.teal,
     backgroundColor: colors.surface,
     padding: sp['12'],
     marginBottom: sp['20'],

@@ -195,7 +195,7 @@ export default function ProposalDetailPage() {
                     }}
                   />
                 ) : null}
-                <div className={`w-12 h-12 bg-primary/20 border border-primary/30 rounded-xl items-center justify-center text-primary font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
+                <div className={`w-12 h-12 bg-[#49abc9]/20 border border-[#49abc9]/30 rounded-xl items-center justify-center text-[#49abc9] font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
                   {org.name ? org.name.charAt(0) : 'G'}
                 </div>
               </div>
@@ -206,69 +206,73 @@ export default function ProposalDetailPage() {
               {org.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
             </div>
             <div className="text-right">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-1">Proposal</h3>
+              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md bg-[#49abc9]/10 text-[#49abc9] border border-[#49abc9]/20 mb-2">
+                Agency Proposal
+              </span>
               <p className="text-xl font-bold text-foreground">{proposal.title}</p>
               <div className="mt-4 space-y-1 text-sm">
                 <p><span className="text-muted-foreground inline-block w-24 text-left">Date:</span> <span className="font-medium">{format(new Date(proposal.createdAt), 'MMM d, yyyy')}</span></p>
                 {proposal.validUntil && (
-                  <p><span className="text-muted-foreground inline-block w-24 text-left">Valid Until:</span> <span className="font-medium">{format(new Date(proposal.validUntil), 'MMM d, yyyy')}</span></p>
+                  <p><span className="text-muted-foreground inline-block w-24 text-left">Valid Until:</span> <span className="font-medium text-[#E1992D]">{format(new Date(proposal.validUntil), 'MMM d, yyyy')}</span></p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Prepared For */}
-          <div className="mb-10">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Prepared For</h3>
+          <div className="mb-10 bg-[#49abc9]/5 border-l-4 border-[#49abc9] p-5 rounded-r-2xl">
+            <h3 className="text-xs font-bold text-[#49abc9] uppercase tracking-widest mb-2">Prepared For</h3>
             <p className="text-lg font-bold text-foreground">
               {proposal.contact 
                 ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
                 : (proposal.lead?.name || "Valued Client")}
             </p>
             {(proposal.contact?.company?.name || proposal.lead?.company) && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-0.5 font-medium">
                 {proposal.contact?.company?.name || proposal.lead?.company}
               </p>
             )}
             {(proposal.contact?.email || proposal.lead?.email) && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {proposal.contact?.email || proposal.lead?.email}
               </p>
             )}
             {(proposal.contact?.phone || proposal.lead?.phone) && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {proposal.contact?.phone || proposal.lead?.phone}
               </p>
             )}
           </div>
 
           {/* Line Items */}
-          <table className="w-full mb-8 text-left border-collapse">
-            <thead>
-              <tr className="border-b-2 border-border/60">
-                <th className="py-3 text-sm font-semibold text-muted-foreground w-[50%]">Service / Description</th>
-                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Qty</th>
-                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Rate</th>
-                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Disc %</th>
-                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Tax %</th>
-                <th className="py-3 text-sm font-semibold text-muted-foreground text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30">
-              {proposal.items?.map((item: any, i: number) => (
-                <tr key={i}>
-                  <td className="py-4 text-sm font-medium text-foreground">
-                    <div>{item.description}</div>
-                  </td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{item.quantity}</td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{symbol}{Number(item.unitPrice || 0).toLocaleString()}</td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{item.discountRate || 0}%</td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{item.taxRate || 0}%</td>
-                  <td className="py-4 text-sm font-semibold text-foreground text-right">{symbol}{Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()}</td>
+          <div className="border border-border/40 rounded-xl overflow-hidden mb-8">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#49abc9] text-white">
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider w-[50%]">Service / Description</th>
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Qty</th>
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Rate</th>
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Disc %</th>
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Tax %</th>
+                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/20">
+                {proposal.items?.map((item: any, i: number) => (
+                  <tr key={i} className="hover:bg-white/2 transition-colors">
+                    <td className="py-4 px-4 text-sm font-medium text-foreground">
+                      <div>{item.description}</div>
+                    </td>
+                    <td className="py-4 px-4 text-sm text-muted-foreground text-right">{item.quantity}</td>
+                    <td className="py-4 px-4 text-sm text-muted-foreground text-right font-mono">{symbol}{Number(item.unitPrice || 0).toLocaleString()}</td>
+                    <td className="py-4 px-4 text-sm text-[#E1992D] text-right font-mono">{item.discountRate || 0}%</td>
+                    <td className="py-4 px-4 text-sm text-muted-foreground text-right font-mono">{item.taxRate || 0}%</td>
+                    <td className="py-4 px-4 text-sm font-bold text-foreground text-right font-mono">{symbol}{Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Totals */}
           {(() => {
@@ -276,26 +280,26 @@ export default function ProposalDetailPage() {
             const displaySubtotal = (proposal.subtotal && Number(proposal.subtotal) > 0) ? Number(proposal.subtotal) : (rawSubtotal > 0 ? rawSubtotal : Number(proposal.totalAmount || 0));
             return (
               <div className="flex justify-end border-t border-border/60 pt-6 mb-10">
-                <div className="w-72 space-y-3">
+                <div className="w-80 space-y-3 bg-[#49abc9]/5 p-5 rounded-2xl border border-[#49abc9]/20">
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subtotal</span>
-                    <span>{symbol}{displaySubtotal.toLocaleString()}</span>
+                    <span className="font-mono text-foreground font-bold">{symbol}{displaySubtotal.toLocaleString()}</span>
                   </div>
                   {(proposal.discountRate > 0) && (
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Overall Discount ({proposal.discountRate}%)</span>
-                      <span className="text-red-400">-{symbol}{ (displaySubtotal * (Number(proposal.discountRate) / 100)).toLocaleString() }</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Overall Discount ({proposal.discountRate}%)</span>
+                      <span className="text-[#E1992D] font-mono font-bold">-{symbol}{ (displaySubtotal * (Number(proposal.discountRate) / 100)).toLocaleString() }</span>
                     </div>
                   )}
                   {(proposal.tax > 0) && (
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Tax</span>
-                      <span>{symbol}{Number(proposal.tax).toLocaleString()}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Tax ({proposal.taxRate || 18}%)</span>
+                      <span className="text-[#49abc9] font-mono font-bold">{symbol}{Number(proposal.tax).toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg font-bold border-t border-border/60 pt-3 mt-3">
-                    <span className="text-foreground">Total Value ({proposal.currency || 'INR'})</span>
-                    <span className="text-primary">{symbol}{Number(proposal.totalAmount || displaySubtotal).toLocaleString()}</span>
+                  <div className="flex justify-between items-center text-lg font-bold border-t border-[#49abc9]/20 pt-3 mt-3">
+                    <span className="text-foreground text-sm uppercase tracking-wider">Total Value ({proposal.currency || 'INR'})</span>
+                    <span className="text-[#2DA16D] font-mono font-black text-2xl">{symbol}{Number(proposal.totalAmount || displaySubtotal).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

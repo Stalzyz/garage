@@ -15,6 +15,9 @@ export interface BrandConfig {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  grekamGreen: string;
+  visualsOrange: string;
+  agencyTeal: string;
   fontFamily: string;
   website: string | null;
   contactEmail: string | null;
@@ -80,6 +83,10 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   const stateCode = gstin && gstin.length >= 2 ? gstin.substring(0, 2) : '33';
   const placeOfSupply = stateCode === '33' ? 'Tamil Nadu (33)' : `State (${stateCode})`;
 
+  const GREKAM_GREEN = '#2DA16D';
+  const VISUALS_ORANGE = '#E1992D';
+  const AGENCY_TEAL = '#49abc9';
+
   if (!org) {
     return {
       logoUrl: null,
@@ -88,14 +95,17 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
       gstin,
       pan,
       placeOfSupply,
-      primaryColor: type === 'ACADEMY' ? '#4f46e5' : '#0f172a',
-      secondaryColor: '#2563eb',
-      accentColor: '#10b981',
+      primaryColor: type === 'ACADEMY' ? '#4f46e5' : AGENCY_TEAL,
+      secondaryColor: GREKAM_GREEN,
+      accentColor: VISUALS_ORANGE,
+      grekamGreen: GREKAM_GREEN,
+      visualsOrange: VISUALS_ORANGE,
+      agencyTeal: AGENCY_TEAL,
       fontFamily: 'Helvetica',
       website: type === 'ACADEMY' ? 'https://academy.grekam.in' : 'https://grekam.in',
       contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : 'contact@grekam.in',
       phone: null,
-      address: 'Chennai, Tamil Nadu, India',
+      address: 'Coimbatore, Tamil Nadu, India',
       bankName: null,
       accountName: null,
       accountNumber: null,
@@ -129,14 +139,17 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
     gstin,
     pan,
     placeOfSupply,
-    primaryColor: type === 'ACADEMY' ? '#4f46e5' : (org.primaryColor || '#0f172a'),
-    secondaryColor: org.secondaryColor || '#2563eb',
-    accentColor: org.accentColor || '#10b981',
+    primaryColor: type === 'ACADEMY' ? '#4f46e5' : AGENCY_TEAL,
+    secondaryColor: GREKAM_GREEN,
+    accentColor: VISUALS_ORANGE,
+    grekamGreen: GREKAM_GREEN,
+    visualsOrange: VISUALS_ORANGE,
+    agencyTeal: AGENCY_TEAL,
     fontFamily: 'Helvetica',
     website: type === 'ACADEMY' ? 'https://academy.grekam.in' : (org.website?.trim() || null),
     contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : (org.supportEmail?.trim() || null),
     phone: org.phone?.trim() || null,
-    address: org.billingAddress?.trim() || 'Chennai, Tamil Nadu, India',
+    address: org.billingAddress?.trim() || 'Coimbatore, Tamil Nadu, India',
     bankName: org.bankName?.trim() || null,
     accountName: org.accountName?.trim() || null,
     accountNumber: org.accountNumber?.trim() || null,
