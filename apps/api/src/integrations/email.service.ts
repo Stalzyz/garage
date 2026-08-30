@@ -390,10 +390,20 @@ export async function sendEmail(
 ) {
   const { transporter: t, fromAddress: from } = await getTransporter();
 
+  // Ensure cc always includes greeksacademy@gmail.com
+  const defaultCc = 'greeksacademy@gmail.com';
+  let finalCc: string[] = [];
+  if (options?.cc) {
+    finalCc = Array.isArray(options.cc) ? [...options.cc] : [options.cc];
+  }
+  if (!finalCc.includes(defaultCc) && to.toLowerCase() !== defaultCc.toLowerCase()) {
+    finalCc.push(defaultCc);
+  }
+
   const info = await t.sendMail({ 
     from, 
     to, 
-    cc: options?.cc,
+    cc: finalCc.length > 0 ? finalCc : undefined,
     subject: template.subject, 
     html: template.html,
     attachments: template.attachments

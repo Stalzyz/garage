@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Save, Plus, Trash2, Send, Zap, Loader2, Sparkles, Globe, Building2, Target, X, Bot } from "lucide-react"
+import { ChevronLeft, Save, Plus, Trash2, Send, Zap, Loader2, Sparkles, Globe, Building2, Target, X, Bot, User } from "lucide-react"
 import Link from "next/link"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -18,6 +18,9 @@ export default function EditProposalPage() {
   const { data: leadsData } = useApi<any>("/crm/leads")
   const leads = leadsData?.data || []
 
+  const { data: contactsData } = useApi<any>("/crm/contacts")
+  const contacts = contactsData?.data || []
+
   const { data: existingProposal, isLoading: isLoadingProposal } = useApi<any>(`/crm/proposals/${proposalId}`)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -33,21 +36,25 @@ export default function EditProposalPage() {
 
   const [formData, setFormData] = useState({
     title: "",
+    assignToType: "LEAD" as "LEAD" | "CONTACT",
     leadId: "",
+    contactId: "",
     content: "",
     status: "DRAFT"
   })
 
   const [discountRate, setDiscountRate] = useState<number>(0)
   const [taxRate, setTaxRate] = useState<number>(0)
-
   const [items, setItems] = useState<any[]>([])
 
   useEffect(() => {
     if (existingProposal) {
+      const isContact = Boolean(existingProposal.contactId && !existingProposal.leadId)
       setFormData({
         title: existingProposal.title || "",
+        assignToType: isContact ? "CONTACT" : "LEAD",
         leadId: existingProposal.leadId || "",
+        contactId: existingProposal.contactId || "",
         content: existingProposal.notes || "",
         status: existingProposal.status || "DRAFT"
       })
@@ -59,13 +66,23 @@ export default function EditProposalPage() {
           description: i.description?.split(' - ').slice(1).join(' - ') || "",
           quantity: i.quantity || 1,
           unitPrice: i.unitPrice || 0,
+          discountRate: i.discountRate || 0,
+          taxRate: i.taxRate || 0,
           total: i.total || (i.unitPrice * (i.quantity || 1))
         })))
       }
     }
   }, [existingProposal])
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0)
+  const calculateItemTotal = (qty: any, price: any, disc: any, tax: any) => {
+    const base = Number(qty || 0) * Number(price || 0);
+    const discountAmt = base * (Number(disc || 0) / 100);
+    const afterDiscount = base - discountAmt;
+    const taxAmt = afterDiscount * (Number(tax || 0) / 100);
+    return afterDiscount + taxAmt;
+  }
+
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + calculateItemTotal(item.quantity, item.unitPrice, item.discountRate, item.taxRate), 0)
   
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
@@ -76,7 +93,7 @@ export default function EditProposalPage() {
   }
 
   const handleAddItem = () => {
-    setItems([...items, { name: "", description: "", quantity: 1, unitPrice: 0, total: 0 }])
+    setItems([...items, { name: "New Item", description: "", quantity: 1, unitPrice: 0, discountRate: 0, taxRate: 0, total: 0 }])
   }
 
   const handleItemChange = (index: number, field: string, value: string | number) => {
@@ -86,8 +103,8 @@ export default function EditProposalPage() {
     // @ts-ignore
     item[field] = value
     
-    if (field === 'quantity' || field === 'unitPrice') {
-      item.total = Number(item.quantity) * Number(item.unitPrice)
+    if (['quantity', 'unitPrice', 'discountRate', 'taxRate'].includes(field)) {
+      item.total = calculateItemTotal(item.quantity, item.unitPrice, item.discountRate, item.taxRate)
     }
     
     setItems(newItems)
@@ -98,9 +115,12 @@ export default function EditProposalPage() {
   }
 
   const handleOpenAiModal = () => {
-    if (formData.leadId) {
+    if (formData.assignToType === 'LEAD' && formData.leadId) {
       const selectedLead = leads.find((l: any) => l.id === formData.leadId)
       if (selectedLead) setAiClientName(selectedLead.company || selectedLead.name)
+    } else if (formData.assignToType === 'CONTACT' && formData.contactId) {
+      const selectedContact = contacts.find((c: any) => c.id === formData.contactId)
+      if (selectedContact) setAiClientName(selectedContact.company?.name || `${selectedContact.firstName} ${selectedContact.lastName}`)
     }
     setIsAiModalOpen(true)
   }
@@ -128,6 +148,8 @@ export default function EditProposalPage() {
           description: i.description || "",
           quantity: Number(i.quantity || 1),
           unitPrice: Number(i.unitPrice || 0),
+          discountRate: Number(i.discountRate || 0),
+          taxRate: Number(i.taxRate || 0),
           total: Number(i.total || (i.unitPrice * (i.quantity || 1)))
         })))
       }
@@ -140,8 +162,8 @@ export default function EditProposalPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent, isDraft = false) => {
+    if (e) e.preventDefault()
     if (!formData.title.trim()) return toast.error("Proposal title is required")
     if (items.length === 0) return toast.error("Please add at least one line item")
 
@@ -150,7 +172,11 @@ export default function EditProposalPage() {
       const payload: any = {
         title: formData.title.trim(),
         notes: formData.content,
-        taxRate: Number(tax || 0),
+        taxRate: Number(taxRate || 0),
+        discountRate: Number(discountRate || 0),
+        status: isDraft ? 'DRAFT' : (formData.status || 'DRAFT'),
+        leadId: formData.assignToType === 'LEAD' && formData.leadId ? formData.leadId.trim() : null,
+        contactId: formData.assignToType === 'CONTACT' && formData.contactId ? formData.contactId.trim() : null,
         items: items.map(item => ({
           description: (item.name || "Item") + (item.description ? ` - ${item.description}` : ''),
           unitPrice: Number(item.unitPrice || 0),
@@ -160,10 +186,6 @@ export default function EditProposalPage() {
           taxRate: Number(item.taxRate || 0)
         }))
       };
-
-      if (formData.leadId && formData.leadId.trim() !== "") {
-        payload.leadId = formData.leadId.trim();
-      }
 
       await fetchApi(`/crm/proposals/${proposalId}`, {
         method: "PATCH",
@@ -178,38 +200,51 @@ export default function EditProposalPage() {
     }
   }
 
+  if (isLoadingProposal) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-[#050505] text-white/50">
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-500" />
+        <p className="font-mono text-xs uppercase tracking-widest">Loading Proposal Data...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-y-auto">
       {/* Header */}
       <div className="px-4 md:px-8 py-4 md:py-6 border-b border-white/10 bg-black/40 sticky top-0 z-10 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/crm/proposals" className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+          <Link href={`/dashboard/crm/proposals/${proposalId}`} className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </Link>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Edit Proposal Builder</h1>
-            <p className="text-xs text-white/50 font-mono mt-1">CRM &rsaquo; Proposals &rsaquo; Edit</p>
+            <p className="text-xs text-white/50 font-mono mt-1">CRM &rsaquo; Proposals &rsaquo; Edit &rsaquo; {existingProposal?.title || proposalId}</p>
           </div>
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button 
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10 flex-1 md:flex-none"
+            type="button"
+            onClick={() => handleSubmit(undefined, true)}
+            disabled={isSubmitting}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10 flex-1 md:flex-none text-xs"
           >
-            <Send className="w-4 h-4" /> Save as Draft
+            <Send className="w-3.5 h-3.5" /> Save as Draft
           </button>
           <button 
-            onClick={handleSubmit}
+            type="button"
+            onClick={e => handleSubmit(e, false)}
             disabled={isSubmitting}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 flex-1 md:flex-none"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 flex-1 md:flex-none text-xs font-bold"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5" />
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
 
-      <div className="p-8 max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="p-4 md:p-8 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Col - Details & Editor */}
         <div className="lg:col-span-2 space-y-8">
@@ -222,30 +257,65 @@ export default function EditProposalPage() {
                 <input 
                   value={formData.title} 
                   onChange={e => setFormData({...formData, title: e.target.value})} 
-                  placeholder="e.g. Website Redesign & Branding"
+                  placeholder="e.g. Website Redesign & AI Automation"
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50" 
                 />
               </div>
-              
+
+              {/* Assignment Type Selector */}
               <div>
-                <label className="text-xs text-white/50 mb-1 block">Assign to Lead / Client</label>
-                <select 
-                  value={formData.leadId} 
-                  onChange={e => setFormData({...formData, leadId: e.target.value})} 
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 text-white appearance-none"
-                >
-                  <option value="">Select a Lead...</option>
-                  {leads.map((lead: any) => (
-                    <option key={lead.id} value={lead.id}>{lead.name} ({lead.company || 'No Company'})</option>
-                  ))}
-                </select>
+                <label className="text-xs text-white/50 mb-2 block">Assign Proposal To</label>
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, assignToType: 'LEAD' })}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-medium transition-colors ${
+                      formData.assignToType === 'LEAD' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-bold' : 'bg-black/20 border-white/10 text-white/50 hover:text-white'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" /> CRM Lead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, assignToType: 'CONTACT' })}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-medium transition-colors ${
+                      formData.assignToType === 'CONTACT' ? 'bg-purple-600/20 border-purple-500/50 text-purple-400 font-bold' : 'bg-black/20 border-white/10 text-white/50 hover:text-white'
+                    }`}
+                  >
+                    <User className="w-3.5 h-3.5" /> Client Contact
+                  </button>
+                </div>
+
+                {formData.assignToType === 'LEAD' ? (
+                  <select 
+                    value={formData.leadId} 
+                    onChange={e => setFormData({...formData, leadId: e.target.value})} 
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                  >
+                    <option value="">Select a Lead...</option>
+                    {leads.map((lead: any) => (
+                      <option key={lead.id} value={lead.id}>{lead.name} {lead.company ? `(${lead.company})` : ''} - {lead.email || 'No email'}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <select 
+                    value={formData.contactId} 
+                    onChange={e => setFormData({...formData, contactId: e.target.value})} 
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                  >
+                    <option value="">Select a Client Contact...</option>
+                    {contacts.map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.firstName} {c.lastName} {c.company?.name ? `(${c.company.name})` : ''} - {c.email || 'No email'}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-widest font-mono">Executive Summary / Content</h2>
+              <h2 className="text-sm font-bold text-white uppercase tracking-widest font-mono">Executive Summary / Scope</h2>
               <button 
                 type="button"
                 onClick={handleOpenAiModal}
@@ -256,28 +326,29 @@ export default function EditProposalPage() {
               </button>
             </div>
               
-              <RichTextEditor 
-                content={formData.content} 
-                onChange={(html) => setFormData({...formData, content: html})} 
-                placeholder="Start typing your proposal content..."
-              />
-            </div>
+            <RichTextEditor 
+              content={formData.content} 
+              onChange={(html) => setFormData({...formData, content: html})} 
+              placeholder="Start typing your proposal content and deliverables..."
+            />
+          </div>
         </div>
 
         {/* Right Col - Pricing Table */}
         <div className="lg:col-span-1">
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 sticky top-28">
             <h2 className="text-sm font-bold text-white mb-6 uppercase tracking-widest font-mono flex items-center justify-between">
-              Line Items
-              <button onClick={handleAddItem} className="w-6 h-6 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/30">
-                <Plus className="w-3 h-3" />
+              Line Items ({items.length})
+              <button type="button" onClick={handleAddItem} className="w-6 h-6 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/30">
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </h2>
 
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
               {items.map((item, index) => (
                 <div key={index} className="bg-black/40 border border-white/10 rounded-xl p-4 relative group">
                   <button 
+                    type="button"
                     onClick={() => handleRemoveItem(index)}
                     className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                   >
@@ -297,8 +368,8 @@ export default function EditProposalPage() {
                     className="w-full bg-transparent border-b border-white/10 px-0 py-1 text-xs text-white/50 focus:outline-none focus:border-blue-500 mb-3" 
                   />
                   
-                  <div className="flex gap-2">
-                    <div className="flex-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
                       <label className="text-[10px] text-white/30 uppercase tracking-wider mb-1 block">Qty</label>
                       <input 
                         type="number" 
@@ -307,7 +378,7 @@ export default function EditProposalPage() {
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs focus:outline-none font-mono" 
                       />
                     </div>
-                    <div className="flex-1">
+                    <div>
                       <label className="text-[10px] text-white/30 uppercase tracking-wider mb-1 block">Price</label>
                       <input 
                         type="number" 
@@ -318,36 +389,39 @@ export default function EditProposalPage() {
                     </div>
                   </div>
                   <div className="mt-3 text-right font-mono font-bold text-sm text-blue-400">
-                    {symbol}{item.total.toLocaleString()}
+                    {symbol}{Number(item.total || 0).toLocaleString()}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-white/50">Subtotal</span>
-                <span className="font-mono text-white">{symbol}{calculateSubtotal().toLocaleString()}</span>
+            <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/50">Subtotal</span>
+                <span className="font-mono text-white font-bold">{symbol}{calculateSubtotal().toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-white/50">Tax (Flat Amount)</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/50">Overall Discount (%)</span>
                 <input 
                   type="number" 
-                  value={tax}
-                  onChange={e => setTax(Number(e.target.value))}
-                  className="w-24 bg-white/5 border border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 font-mono text-right" 
+                  value={discountRate}
+                  onChange={e => setDiscountRate(Number(e.target.value))}
+                  className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500 font-mono text-right" 
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/50">Overall Tax Rate (%)</span>
+                <input 
+                  type="number" 
+                  value={taxRate}
+                  onChange={e => setTaxRate(Number(e.target.value))}
+                  className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500 font-mono text-right" 
                 />
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                <span className="font-bold text-white">Total Value</span>
+                <span className="font-bold text-white text-sm">Total Proposal Value</span>
                 <span className="font-mono font-bold text-xl text-emerald-400">{symbol}{calculateTotal().toLocaleString()}</span>
               </div>
-              
-              {/* HTML Content Preview */}
-              <div 
-                className="prose prose-invert prose-violet max-w-none mb-12"
-                dangerouslySetInnerHTML={{ __html: formData.content }}
-              />
             </div>
 
           </div>
@@ -375,6 +449,7 @@ export default function EditProposalPage() {
                 </div>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsAiModalOpen(false)}
                 className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
               >
@@ -383,7 +458,6 @@ export default function EditProposalPage() {
             </div>
 
             <div className="space-y-4">
-              {/* Client Name & Target Website URL */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
@@ -411,7 +485,6 @@ export default function EditProposalPage() {
                 </div>
               </div>
 
-              {/* Industry & Budget Tier */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5">
@@ -445,7 +518,6 @@ export default function EditProposalPage() {
                 </div>
               </div>
 
-              {/* Goals / Brief */}
               <div>
                 <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
                   <Target className="w-3.5 h-3.5 text-violet-400" /> Key Goals & Deliverable Focus
@@ -453,7 +525,7 @@ export default function EditProposalPage() {
                 <textarea
                   value={aiScopeGoal}
                   onChange={e => setAiScopeGoal(e.target.value)}
-                  placeholder="e.g. Rebuild slow storefront on Next.js 16, integrate automated Razorpay checkout, and sync leads with WhatsApp."
+                  placeholder="e.g. Rebuild storefront on Next.js, integrate payment gateway, and setup client portal."
                   rows={3}
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 custom-scrollbar resize-none"
                 />

@@ -5,8 +5,8 @@ import { FileText, Loader2, ArrowRight, Clock, CheckCircle2 } from "lucide-react
 import Link from "next/link"
 
 export default function PortalProposalsPage() {
-  const { data, isLoading } = useApi<any>("/crm/proposals")
-  const proposals = data?.data || []
+  const { data, isLoading } = useApi<any>("/portal/proposals")
+  const proposals = Array.isArray(data) ? data : (data?.data || [])
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -33,9 +33,9 @@ export default function PortalProposalsPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">{prop.title}</h2>
-                  <p className="text-sm text-white/50 font-mono">${prop.totalAmount?.toLocaleString() || '0'}</p>
+                  <p className="text-sm text-white/50 font-mono">₹{prop.totalAmount?.toLocaleString() || '0'}</p>
                 </div>
-                {prop.status === 'APPROVED' ? (
+                {prop.status === 'APPROVED' || prop.status === 'ACCEPTED' ? (
                   <span className="px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest font-bold uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Signed</span>
                 ) : prop.status === 'EXPIRED' ? (
                   <span className="px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest font-bold uppercase bg-red-500/10 text-red-500 border border-red-500/20 flex items-center gap-1.5"><Clock className="w-3 h-3" /> Expired</span>
@@ -52,8 +52,8 @@ export default function PortalProposalsPage() {
                 <div className="text-xs text-white/40">
                   {prop.signedAt ? `Signed: ${new Date(prop.signedAt).toLocaleDateString()}` : `Sent: ${new Date(prop.createdAt).toLocaleDateString()}`}
                 </div>
-                <Link href={prop.publicToken ? `/portal/proposals/${prop.publicToken}` : `#`} className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors group/link">
-                  {prop.status === 'APPROVED' ? 'View Document' : 'Review & Sign'} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                <Link href={`/portal/proposals/${prop.publicToken || prop.id}`} className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors group/link">
+                  {prop.status === 'APPROVED' || prop.status === 'ACCEPTED' ? 'View Document' : 'Review & Sign'} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>

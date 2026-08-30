@@ -106,6 +106,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
       include: {
         items: true,
         lead: { select: { id: true, name: true, company: true, email: true, phone: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: { select: { name: true } } } },
       },
     });
     if (!proposal) return reply.notFound('Proposal not found');
@@ -294,10 +295,13 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
     const cleanContactId = body.contactId && body.contactId.trim() !== "" ? body.contactId.trim() : null;
     const cleanValidUntil = body.validUntil && !isNaN(Date.parse(body.validUntil)) ? new Date(body.validUntil) : null;
 
+    const generatedToken = `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
     const proposal = await app.prisma.proposal.create({
       data: {
         leadId: cleanLeadId,
         contactId: cleanContactId,
+        publicToken: generatedToken,
         title: body.title,
         validUntil: cleanValidUntil,
         currency: body.currency || "INR",
@@ -326,8 +330,7 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
     return proposal;
   });
 
-  // PATCH /api/v1/crm/proposals/:id — update proposal or change status
-  app.patch('/proposals/:id', async (req, reply) => {
+  const updateProposalHandler = async (req: any, reply: any) => {
     const { id } = req.params as { id: string };
     const body = UpdateProposalSchema.parse(req.body);
     const { items, taxRate, discountRate, leadId, contactId, validUntil, signedAt, ...rest } = body;
@@ -415,7 +418,12 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
 
     await auditLog(app.prisma as any, req, 'UPDATE', 'Proposal', proposal.id, { status: proposal.status });
     return proposal;
-  });
+  };
+
+  // PATCH & PUT /api/v1/crm/proposals/:id — update proposal or change status
+  app.patch('/proposals/:id', updateProposalHandler);
+  app.put('/proposals/:id', updateProposalHandler);
+
   app.post('/proposals/:id/send', async (req, reply) => {
     const { id } = req.params as { id: string };
     

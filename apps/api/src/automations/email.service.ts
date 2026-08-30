@@ -6,6 +6,9 @@ import { Resend } from 'resend';
 export const EmailService = {
   async sendEmail(to: string, subject: string, htmlContent: string, fromOverride?: string) {
     try {
+      const defaultCc = 'greeksacademy@gmail.com';
+      const ccList = to.toLowerCase() !== defaultCc.toLowerCase() ? [defaultCc] : undefined;
+
       // 1. Check if Organization has Resend API Key
       const org = await prisma.organization.findFirst();
       if (org?.resendApiKey) {
@@ -13,10 +16,11 @@ export const EmailService = {
         const data = await resend.emails.send({
           from: fromOverride || 'Grekam OS <onboarding@resend.dev>', // Should ideally be configured or verified domain
           to: [to],
+          cc: ccList,
           subject,
           html: htmlContent
         });
-        console.log(`[EmailService] Sent email via Resend to ${to} | ID: ${data.data?.id}`);
+        console.log(`[EmailService] Sent email via Resend to ${to} (CC: ${ccList || 'none'}) | ID: ${data.data?.id}`);
         return true;
       }
 
@@ -54,10 +58,11 @@ export const EmailService = {
       const info = await transporter.sendMail({
         from: fromAddress,
         to,
+        cc: ccList,
         subject,
         html: htmlContent,
       });
-      console.log(`[EmailService] Sent email via SMTP to ${to} | MessageId: ${info.messageId}`);
+      console.log(`[EmailService] Sent email via SMTP to ${to} (CC: ${ccList || 'none'}) | MessageId: ${info.messageId}`);
       
       if (info.messageId && nodemailer.getTestMessageUrl(info)) {
          console.log(`[EmailService] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
