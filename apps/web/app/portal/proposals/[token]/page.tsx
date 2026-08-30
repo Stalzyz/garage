@@ -97,8 +97,21 @@ export default function PublicProposalPage() {
           {/* Client Info */}
           <div className="p-10 border-b border-black/10">
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Prepared For</h4>
-            <p className="font-bold text-lg">{proposal.lead?.name}</p>
-            {proposal.lead?.company && <p className="text-slate-600">{proposal.lead?.company}</p>}
+            <p className="font-bold text-lg">
+              {proposal.contact 
+                ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
+                : (proposal.lead?.name || "Valued Client")}
+            </p>
+            {(proposal.contact?.company?.name || proposal.lead?.company) && (
+              <p className="text-slate-600 font-medium mt-1">
+                {proposal.contact?.company?.name || proposal.lead?.company}
+              </p>
+            )}
+            {(proposal.contact?.email || proposal.lead?.email) && (
+              <p className="text-sm text-slate-500 mt-1">
+                {proposal.contact?.email || proposal.lead?.email}
+              </p>
+            )}
           </div>
 
           {proposal.notes && (

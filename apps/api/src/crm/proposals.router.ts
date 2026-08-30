@@ -121,6 +121,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
       include: {
         items: true,
         lead: { select: { id: true, name: true, company: true, email: true, phone: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: { select: { name: true } } } },
       },
     });
     
@@ -131,15 +132,20 @@ export default async function proposalsRouter(app: FastifyInstance) {
     const { getBrandConfig } = await import('../utils/brand');
     const brand = await getBrandConfig(app, 'AGENCY');
 
+    const clientName = proposal.contact ? `${proposal.contact.firstName} ${proposal.contact.lastName}` : (proposal.lead?.name || 'Valued Client');
+    const clientCompany = proposal.contact?.company?.name || proposal.lead?.company || '';
+    const clientEmail = proposal.contact?.email || proposal.lead?.email || '';
+    const clientPhone = proposal.contact?.phone || proposal.lead?.phone || '';
+
     const pdfBuffer = await generateProposalPDF({
       brand,
       proposal: {
         id: proposal.id,
         title: proposal.title,
-        clientName: proposal.lead?.name || 'Client',
-        clientCompany: proposal.lead?.company,
-        clientEmail: proposal.lead?.email,
-        clientPhone: proposal.lead?.phone,
+        clientName,
+        clientCompany,
+        clientEmail,
+        clientPhone,
         status: proposal.status,
         currency: financeSettings?.currencySymbol || proposal.currency,
         validUntil: proposal.validUntil ? proposal.validUntil.toISOString() : null,
@@ -431,7 +437,11 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
     const [existing, financeSettings] = await Promise.all([
       app.prisma.proposal.findUnique({ 
         where: { id }, 
-        include: { lead: true, items: true } 
+        include: { 
+          lead: true, 
+          items: true,
+          contact: { include: { company: true } }
+        } 
       }),
       app.prisma.financeSettings.findFirst()
     ]);
@@ -448,7 +458,12 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
       },
     });
 
-    if (existing.lead && existing.lead.email) {
+    const clientEmail = existing.contact?.email || existing.lead?.email;
+    const clientName = existing.contact ? `${existing.contact.firstName} ${existing.contact.lastName}` : (existing.lead?.name || 'Client');
+    const clientCompany = existing.contact?.company?.name || existing.lead?.company || '';
+    const clientPhone = existing.contact?.phone || existing.lead?.phone || '';
+
+    if (clientEmail) {
       const { sendEmail } = await import('../integrations/email.service');
       const { generateProposalPDF } = await import('../finance/pdf.service');
       
@@ -463,10 +478,10 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
         proposal: {
           id: existing.id,
           title: existing.title,
-          clientName: existing.lead.name,
-          clientCompany: existing.lead.company,
-          clientEmail: existing.lead.email,
-          clientPhone: existing.lead.phone,
+          clientName,
+          clientCompany,
+          clientEmail,
+          clientPhone,
           status: existing.status,
           currency: financeSettings?.currencySymbol || existing.currency,
           validUntil: existing.validUntil ? existing.validUntil.toISOString() : null,

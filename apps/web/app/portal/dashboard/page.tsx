@@ -989,7 +989,7 @@ export default function ClientDashboard() {
                     <p className="text-xl font-bold text-white mt-0.5">{symbol}{prop.totalAmount.toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2">
-                    <a href={`/portal/proposals/${prop.publicToken}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
+                    <a href={`/portal/proposals/${prop.publicToken || prop.id}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" /> View Proposal
                     </a>
                   </div>

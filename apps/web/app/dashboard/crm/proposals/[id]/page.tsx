@@ -179,10 +179,26 @@ export default function ProposalDetailPage() {
           {/* Header */}
           <div className="flex justify-between items-start mb-12 border-b border-border/40 pb-8">
             <div>
-              {org.logoUrl
-                ? <img src={org.logoUrl} alt={org.name} className="w-14 h-14 object-contain rounded-xl mb-4" />
-                : <div className="w-14 h-14 bg-primary rounded-xl mb-4 flex items-center justify-center text-white font-black text-2xl">{org.name.charAt(0)}</div>
-              }
+              <div className="flex items-center gap-3 mb-4">
+                {org.logoUrl ? (
+                  <img 
+                    src={org.logoUrl} 
+                    alt={org.name} 
+                    className="w-12 h-12 object-contain rounded-xl"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        const fallback = parent.querySelector('.logo-fallback');
+                        if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                      }
+                    }}
+                  />
+                ) : null}
+                <div className={`w-12 h-12 bg-primary/20 border border-primary/30 rounded-xl items-center justify-center text-primary font-black text-xl logo-fallback ${org.logoUrl ? 'hidden' : 'flex'}`}>
+                  {org.name ? org.name.charAt(0) : 'G'}
+                </div>
+              </div>
               <h2 className="text-xl font-bold text-foreground">{org.name}</h2>
               {org.billingAddress && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{org.billingAddress}</p>}
               {org.supportEmail && <p className="text-sm text-muted-foreground">{org.supportEmail}</p>}
@@ -204,10 +220,26 @@ export default function ProposalDetailPage() {
           {/* Prepared For */}
           <div className="mb-10">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Prepared For</h3>
-            <p className="text-lg font-bold text-foreground">{proposal.lead?.name || "Unknown Client"}</p>
-            {proposal.lead?.company && <p className="text-sm text-muted-foreground mt-1">{proposal.lead?.company}</p>}
-            {proposal.lead?.email && <p className="text-sm text-muted-foreground mt-1">{proposal.lead?.email}</p>}
-            {proposal.lead?.phone && <p className="text-sm text-muted-foreground mt-1">{proposal.lead?.phone}</p>}
+            <p className="text-lg font-bold text-foreground">
+              {proposal.contact 
+                ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
+                : (proposal.lead?.name || "Valued Client")}
+            </p>
+            {(proposal.contact?.company?.name || proposal.lead?.company) && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {proposal.contact?.company?.name || proposal.lead?.company}
+              </p>
+            )}
+            {(proposal.contact?.email || proposal.lead?.email) && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {proposal.contact?.email || proposal.lead?.email}
+              </p>
+            )}
+            {(proposal.contact?.phone || proposal.lead?.phone) && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {proposal.contact?.phone || proposal.lead?.phone}
+              </p>
+            )}
           </div>
 
           {/* Line Items */}
@@ -223,46 +255,52 @@ export default function ProposalDetailPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
-              {proposal.items.map((item: any, i: number) => (
+              {proposal.items?.map((item: any, i: number) => (
                 <tr key={i}>
                   <td className="py-4 text-sm font-medium text-foreground">
                     <div>{item.description}</div>
                   </td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.quantity}</td>
-                  <td className="py-4 text-sm text-muted-foreground text-right">{symbol}{item.unitPrice.toLocaleString()}</td>
+                  <td className="py-4 text-sm text-muted-foreground text-right">{symbol}{Number(item.unitPrice || 0).toLocaleString()}</td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.discountRate || 0}%</td>
                   <td className="py-4 text-sm text-muted-foreground text-right">{item.taxRate || 0}%</td>
-                  <td className="py-4 text-sm font-semibold text-foreground text-right">{symbol}{item.total.toLocaleString()}</td>
+                  <td className="py-4 text-sm font-semibold text-foreground text-right">{symbol}{Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           {/* Totals */}
-          <div className="flex justify-end border-t border-border/60 pt-6 mb-10">
-            <div className="w-72 space-y-3">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Subtotal</span>
-                <span>{symbol}{proposal.subtotal?.toLocaleString() ?? proposal.totalAmount.toLocaleString()}</span>
-              </div>
-              {(proposal.discountRate > 0) && (
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Overall Discount ({proposal.discountRate}%)</span>
-                  <span className="text-red-400">-{symbol}{ (proposal.subtotal * (proposal.discountRate / 100)).toLocaleString() }</span>
+          {(() => {
+            const rawSubtotal = proposal.items?.reduce((sum: number, item: any) => sum + (Number(item.total) || (Number(item.quantity || 1) * Number(item.unitPrice || 0))), 0) || 0;
+            const displaySubtotal = (proposal.subtotal && Number(proposal.subtotal) > 0) ? Number(proposal.subtotal) : (rawSubtotal > 0 ? rawSubtotal : Number(proposal.totalAmount || 0));
+            return (
+              <div className="flex justify-end border-t border-border/60 pt-6 mb-10">
+                <div className="w-72 space-y-3">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span>{symbol}{displaySubtotal.toLocaleString()}</span>
+                  </div>
+                  {(proposal.discountRate > 0) && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Overall Discount ({proposal.discountRate}%)</span>
+                      <span className="text-red-400">-{symbol}{ (displaySubtotal * (Number(proposal.discountRate) / 100)).toLocaleString() }</span>
+                    </div>
+                  )}
+                  {(proposal.tax > 0) && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Tax</span>
+                      <span>{symbol}{Number(proposal.tax).toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-lg font-bold border-t border-border/60 pt-3 mt-3">
+                    <span className="text-foreground">Total Value ({proposal.currency || 'INR'})</span>
+                    <span className="text-primary">{symbol}{Number(proposal.totalAmount || displaySubtotal).toLocaleString()}</span>
+                  </div>
                 </div>
-              )}
-              {(proposal.tax > 0) && (
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Tax</span>
-                  <span>{symbol}{proposal.tax.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-lg font-bold border-t border-border/60 pt-3 mt-3">
-                <span className="text-foreground">Total Value ({proposal.currency})</span>
-                <span className="text-primary">{symbol}{proposal.totalAmount.toLocaleString()}</span>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Notes */}
           {proposal.notes && (
