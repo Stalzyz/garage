@@ -46,6 +46,13 @@ export default function CRMDashboard() {
   const [activityType, setActivityType] = useState("CALL")
   const [activityContent, setActivityContent] = useState("")
   const [selectedWhatsappTemplate, setSelectedWhatsappTemplate] = useState("NONE")
+  
+  // Meeting Setup in Log Activity
+  const [meetingSummary, setMeetingSummary] = useState("")
+  const [meetingTime, setMeetingTime] = useState("")
+
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [scheduleLead, setScheduleLead] = useState<any>(null)
 
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
   const [convertLead, setConvertLead] = useState<any>(null)
@@ -330,6 +337,16 @@ export default function CRMDashboard() {
     setActivityType("CALL")
     setActivityContent("")
     setSelectedWhatsappTemplate("NONE")
+    setMeetingSummary(`Intro Call with ${lead.name}`)
+    
+    // Default to next hour
+    const d = new Date()
+    d.setHours(d.getHours() + 1)
+    d.setMinutes(0)
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+    setMeetingTime(localISOTime)
+    
     setIsActivityModalOpen(true)
   }
 
@@ -337,6 +354,27 @@ export default function CRMDashboard() {
     e.preventDefault()
     if (!activityContent.trim()) return
     try {
+      
+      if (activityType === "MEETING") {
+        if (!meetingTime || !meetingSummary || !activityLead.email) {
+          toast.error("Lead must have an email, and meeting details must be filled.")
+          return
+        }
+        const start = new Date(meetingTime)
+        const end = new Date(start.getTime() + 30 * 60 * 1000) // default 30 mins
+        await fetchApi('/crm/calendar/invite', {
+          method: 'POST',
+          body: JSON.stringify({
+            leadId: activityLead.id,
+            summary: meetingSummary,
+            startTime: start.toISOString(),
+            endTime: end.toISOString(),
+            attendeeEmail: activityLead.email,
+          })
+        });
+        toast.success("Google Calendar invite sent to prospect!")
+      }
+
       await fetchApi(`/crm/leads/${activityLead.id}/activities`, {
         method: "POST",
         body: JSON.stringify({
@@ -715,6 +753,10 @@ export default function CRMDashboard() {
             onStatusChange={handleQuickStatusChange}
             onOpenLead={handleOpenEditLead}
             onLogActivity={handleOpenActivityModal}
+            onSchedule={(lead: any) => { 
+              handleOpenActivityModal(lead);
+              setActivityType("MEETING");
+            }}
           />
         ) : (
           <div className="space-y-8 relative z-10 overflow-x-auto">
@@ -838,6 +880,16 @@ export default function CRMDashboard() {
                                   title="Log Activity"
                                 >
                                   <ClipboardList className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => { 
+                                    handleOpenActivityModal(lead);
+                                    setActivityType("MEETING");
+                                  }}
+                                  className="text-blue-400/70 hover:text-blue-400 transition-colors p-1.5 hover:bg-blue-500/10 rounded-lg"
+                                  title="Schedule Meeting"
+                                >
+                                  <Calendar className="w-3.5 h-3.5" />
                                 </button>
                                 <button 
                                   onClick={() => handleOpenEditLead(lead)}
@@ -1123,6 +1175,41 @@ export default function CRMDashboard() {
                   </div>
                 )}
 
+                {activityType === "MEETING" && (
+                  <div className="space-y-4 bg-blue-500/5 p-4 rounded-xl border border-blue-500/20 mt-4">
+                    <h4 className="text-[10px] font-bold text-blue-400 font-mono tracking-widest uppercase flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Google Meet Auto-Schedule
+                    </h4>
+                    
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Event Title</label>
+                      <input 
+                        type="text" 
+                        value={meetingSummary} 
+                        onChange={e => setMeetingSummary(e.target.value)} 
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                        placeholder="e.g. Intro Call"
+                        required={activityType === "MEETING"}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Date & Time</label>
+                      <div className="relative">
+                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dash-text-primary)]/40" />
+                        <input 
+                          type="datetime-local" 
+                          value={meetingTime} 
+                          onChange={e => setMeetingTime(e.target.value)} 
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] [color-scheme:dark]"
+                          required={activityType === "MEETING"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Content Notes *</label>
@@ -1385,6 +1472,7 @@ export default function CRMDashboard() {
         </motion.div>
       )}
     </AnimatePresence>
+
   </div>
 )
 }

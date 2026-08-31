@@ -2598,7 +2598,97 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
           </motion.div>
         )}
       </AnimatePresence>
-      
+
+      {/* ─── AGENCY FOOTER ─── */}
+      <footer className="border-t border-white/[0.06] bg-[#090909] mt-20">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+
+            {/* Brand column */}
+            <div className="col-span-2 md:col-span-1">
+              <div className="text-xl font-black tracking-tight text-white mb-2">GREKAM<span className="text-emerald-400">.</span></div>
+              <p className="text-white/40 text-sm leading-relaxed mb-6">Premium digital experiences for brands that mean business. Based in Coimbatore, serving clients across India.</p>
+              <div className="space-y-2">
+                <a href="mailto:admin@grekam.in" className="flex items-center gap-2 text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                  <Mail className="w-3.5 h-3.5" /> admin@grekam.in
+                </a>
+                <a href="tel:+919843199556" className="flex items-center gap-2 text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                  <Phone className="w-3.5 h-3.5" /> +91 98431 99556
+                </a>
+                <div className="flex items-start gap-2 text-sm text-white/40">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Coimbatore, Tamil Nadu, India
+                </div>
+              </div>
+            </div>
+
+            {/* Services column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Services</p>
+              <ul className="space-y-2.5">
+                {[
+                  "Web Design & Development",
+                  "E-commerce Solutions",
+                  "Branding & Identity",
+                  "Digital Marketing",
+                  "WhatsApp Automation",
+                  "Video Production",
+                ].map(s => (
+                  <li key={s}><a href="#" className="text-sm text-white/40 hover:text-white transition-colors">{s}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Company</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Portfolio", href: "#portfolio" },
+                  { label: "Pricing", href: "#pricing" },
+                  { label: "Grekam Academy", href: "/academy" },
+                  { label: "Contact Us", href: "/contact" },
+                  { label: "Client Portal", href: "/portal" },
+                ].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-white/40 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Policies column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Policies</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Terms & Conditions", href: "/legal/terms" },
+                  { label: "Privacy Policy", href: "/legal/privacy" },
+                  { label: "Payment & Billing", href: "/legal/payment" },
+                  { label: "Cancellation & Refunds", href: "/legal/refunds" },
+                  { label: "Service Delivery", href: "/legal/delivery" },
+                  { label: "Revision & Scope", href: "/legal/revisions" },
+                  { label: "Intellectual Property", href: "/legal/ip" },
+                  { label: "Maintenance & Support", href: "/legal/maintenance" },
+                ].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-white/40 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-white/25">© {new Date().getFullYear()} Grekam Visuals. All rights reserved. GST Registered. Coimbatore, Tamil Nadu, India.</p>
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+              <Link href="/legal/terms" className="text-xs text-white/25 hover:text-white/60 transition-colors">Terms</Link>
+              <Link href="/legal/privacy" className="text-xs text-white/25 hover:text-white/60 transition-colors">Privacy</Link>
+              <Link href="/legal/payment" className="text-xs text-white/25 hover:text-white/60 transition-colors">Payment Policy</Link>
+              <Link href="/legal/refunds" className="text-xs text-white/25 hover:text-white/60 transition-colors">Refunds</Link>
+            </div>
+          </div>
+
+        </div>
+      </footer>
+
     </div>
   )
 }

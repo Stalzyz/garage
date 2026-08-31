@@ -14,6 +14,7 @@ interface KanbanBoardProps {
   onStatusChange: (leadId: string, newStatus: string) => void;
   onOpenLead: (lead: any) => void;
   onLogActivity: (lead: any) => void;
+  onSchedule: (lead: any) => void;
 }
 
 const AGENCY_COLUMNS = [
@@ -35,7 +36,7 @@ const ACADEMY_COLUMNS = [
 ];
 
 // Individual Draggable Card
-function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: any, onLogActivity: any }) {
+function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any }) {
   const { symbol } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lead.id,
@@ -97,6 +98,13 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
             </button>
           )}
           <button 
+            onPointerDown={(e) => { e.stopPropagation(); onSchedule(lead); }}
+            title="Schedule Meeting"
+            className="text-blue-400/70 hover:text-blue-400 transition-colors p-2.5 -m-2.5"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+          </button>
+          <button 
             onPointerDown={(e) => { e.stopPropagation(); onLogActivity(lead); }}
             title="Log Activity"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2.5 -m-2.5"
@@ -117,7 +125,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity }: { lead: any, onOpenLead: 
 }
 
 // Column Container
-function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any }) {
+function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any, onSchedule: any }) {
   const { setNodeRef } = useSortable({
     id,
     data: { type: 'Column', id }
@@ -132,7 +140,7 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity }: { id: str
       <div ref={setNodeRef} className="p-3 flex-1 overflow-y-auto custom-scrollbar">
         <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
           {leads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} />
+            <LeadCard key={lead.id} lead={lead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} />
           ))}
         </SortableContext>
         {leads.length === 0 && (
@@ -145,7 +153,7 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity }: { id: str
   );
 }
 
-export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity }: KanbanBoardProps) {
+export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity, onSchedule }: KanbanBoardProps) {
   const columns = activeTab === 'AGENCY' ? AGENCY_COLUMNS : ACADEMY_COLUMNS;
   const [activeLead, setActiveLead] = React.useState<any>(null);
 
@@ -211,6 +219,7 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
               leads={colLeads} 
               onOpenLead={onOpenLead}
               onLogActivity={onLogActivity}
+              onSchedule={onSchedule}
             />
           );
         })}
@@ -219,7 +228,7 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
       <DragOverlay>
         {activeLead ? (
           <div className="opacity-80 rotate-3 scale-105">
-            <LeadCard lead={activeLead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} />
+            <LeadCard lead={activeLead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} />
           </div>
         ) : null}
       </DragOverlay>
