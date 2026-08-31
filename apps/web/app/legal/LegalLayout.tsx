@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowLeft, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Fingerprint, Wrench, ChevronRight, Mail, Phone } from "lucide-react"
+import { ArrowLeft, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Fingerprint, Wrench, ChevronRight, Mail, Phone, Trash2 } from "lucide-react"
 
 const POLICY_LINKS = [
   { href: "/legal/terms", label: "Terms & Conditions", icon: Scale },
@@ -13,6 +13,7 @@ const POLICY_LINKS = [
   { href: "/legal/revisions", label: "Revision & Scope", icon: Pencil },
   { href: "/legal/ip", label: "Intellectual Property", icon: Fingerprint },
   { href: "/legal/maintenance", label: "Maintenance & Support", icon: Wrench },
+  { href: "/legal/data-deletion", label: "Data Deletion Instructions", icon: Trash2 },
 ]
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {

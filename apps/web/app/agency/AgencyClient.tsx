@@ -2667,6 +2667,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
                   { label: "Revision & Scope", href: "/legal/revisions" },
                   { label: "Intellectual Property", href: "/legal/ip" },
                   { label: "Maintenance & Support", href: "/legal/maintenance" },
+                  { label: "Data Deletion", href: "/legal/data-deletion" },
                 ].map(l => (
                   <li key={l.label}><Link href={l.href} className="text-sm text-white/40 hover:text-white transition-colors">{l.label}</Link></li>
                 ))}
