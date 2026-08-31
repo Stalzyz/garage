@@ -103,6 +103,7 @@ export default function IntegrationsDashboard() {
     STRIPE: ["STRIPE_PUBLISHABLE_KEY", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
     GOOGLE: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI"],
     OPENAI: ["OPENAI_API_KEY"],
+    GEMINI: ["GEMINI_API_KEY"],
   }
 
   const load = useCallback(async () => {
