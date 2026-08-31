@@ -47,6 +47,7 @@ This document is the front door to every operational resource in the company.
 | [Developer 90-Day Playbook](developer_90day_playbook.md) | Full onboarding for developers | Developer hire | Day 1 |
 | [Designer 90-Day Playbook](designer_90day_playbook.md) | Full onboarding for designers | Designer hire | Day 1 |
 | [Support 90-Day Playbook](support_90day_playbook.md) | Full onboarding for support roles | Support hire | Day 1 |
+| [Grekam OS Admin Training Playbook](grekam_os_admin_training_playbook.md) | Hands-on operational training tasks for admin/ops staff | Admin & Ops hires | Day 1 |
 
 ---
 
@@ -305,4 +306,4 @@ The choice is made every day — not once at onboarding.
 *Document Owner: Business Development & Operations Manager*
 *Last Updated: August 2026*
 *Version: 1.0*
-*Total Documents in System: 23*
+*Total Documents in System: 24*
