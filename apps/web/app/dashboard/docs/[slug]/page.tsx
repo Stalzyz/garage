@@ -70,6 +70,7 @@ const DOC_TITLES: Record<string, string> = {
   "role_checklists": "Role Checklists",
   "evaluation_tests": "Evaluation & Certification Tests",
   "grekam_os_bible": "Grekam OS Bible",
+  "grekam_os_admin_training_playbook": "Grekam OS Admin Training Playbook",
 }
 
 export default function DocViewerPage() {

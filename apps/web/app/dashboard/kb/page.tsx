@@ -307,6 +307,15 @@ const KB_SECTIONS = [
         howItWorks: "Scored 1–10 per section. A score below 6 requires a re-test before full role access is granted.",
         roles: ["Super Admin", "Manager"],
         docUrl: "/dashboard/docs/evaluation_tests"
+      },
+      {
+        title: "Grekam OS Admin Training Playbook",
+        icon: UserCheck,
+        desc: "Consolidated operational manual and hands-on tasks for training administrative and operations staff.",
+        howToUse: "Follow the 6 business cycles and core warm-ups sequentially to learn how to manage leads, invoices, payroll, and tickets.",
+        howItWorks: "Bridges CRM, Finance, HR, CMS, LMS, and Support modules to verify operational workflow understanding.",
+        roles: ["Super Admin", "Manager", "Staff"],
+        docUrl: "/dashboard/docs/grekam_os_admin_training_playbook"
       }
     ]
   }
