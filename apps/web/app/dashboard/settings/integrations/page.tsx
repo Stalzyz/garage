@@ -254,7 +254,7 @@ export default function IntegrationsDashboard() {
               <button onClick={() => setShowAdd(false)} className="text-muted-foreground hover:text-foreground transition-colors"><X className="w-5 h-5"/></button>
             </div>
 
-            <div className="space-y-4">
+            <form onSubmit={e => { e.preventDefault(); handleSaveKeys(); }} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Service</label>
                 <select
@@ -281,6 +281,7 @@ export default function IntegrationsDashboard() {
                       type={keyName.includes("PASS") || keyName.includes("SECRET") || keyName.includes("KEY") || keyName.includes("TOKEN") ? "password" : "text"}
                       placeholder={`Enter ${keyName}`}
                       value={formValues[keyName] || ""}
+                      autoComplete="new-password"
                       onChange={e => setFormValues(prev => ({ ...prev, [keyName]: e.target.value }))}
                       className="w-full bg-background border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -293,18 +294,18 @@ export default function IntegrationsDashboard() {
               <div className="flex gap-3 pt-2">
                 <button
                   id="integration-save-btn"
-                  onClick={handleSaveKeys}
+                  type="submit"
                   disabled={saving}
                   className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {saving ? "Encrypting & Saving…" : "Save Key"}
                 </button>
-                <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground border border-border/60 hover:bg-muted/50 transition-all">
+                <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground border border-border/60 hover:bg-muted/50 transition-all">
                   Cancel
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -365,6 +366,7 @@ export default function IntegrationsDashboard() {
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">HMAC Secret Key (Optional)</label>
                 <input
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Secret key to sign X-Hub-Signature payloads"
                   value={newWebhookSecret}
                   onChange={e => setNewWebhookSecret(e.target.value)}
