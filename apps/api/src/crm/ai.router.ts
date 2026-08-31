@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { getOpenAiApiKey, getOpenAiClient } from '../utils/openai';
+import { getGeminiApiKey, generateJsonFromGemini, generateTextFromGemini } from '../utils/gemini';
 
 export default async function aiRouter(app: FastifyInstance) {
-  
+
   // 1. Generate Proposal Endpoint
   app.post('/generate-proposal', async (request, reply) => {
     try {
@@ -11,65 +11,53 @@ export default async function aiRouter(app: FastifyInstance) {
         clientName: z.string(),
         brief: z.string()
       });
-      
+
       const { clientName, brief } = schema.parse(request.body);
 
-      const systemPrompt = `You are an expert creative agency producer. 
-Generate a professional proposal based on the user's brief.
-Return ONLY valid JSON matching this schema:
+      const systemPrompt = `You are an expert creative agency producer at Grekam Visuals.
+Generate a professional, compelling proposal based on the client's brief.
+Return ONLY valid JSON matching this exact schema:
 {
-  "title": "A catchy title for the proposal",
-  "summary": "1 paragraph overview of the project",
-  "deliverables": ["List of deliverable 1", "List of deliverable 2"],
-  "budget": 10000,
+  "title": "A catchy, specific title for the proposal",
+  "summary": "2-3 sentence overview that hooks the client",
+  "deliverables": ["Specific deliverable 1", "Specific deliverable 2", "Specific deliverable 3", "Specific deliverable 4"],
+  "budget": 50000,
   "timelineWeeks": 4
-}`;
+}
+Make the summary and deliverables specific to the client's industry and goals. Use INR for budget.`;
 
-      const apiKey = await getOpenAiApiKey(app);
+      const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
-        app.log.warn("OpenAI API Key is not set. Returning mock AI proposal.");
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        app.log.warn("Gemini API Key is not set. Returning mock AI proposal.");
+        await new Promise(resolve => setTimeout(resolve, 800));
         return {
           success: true,
           data: {
-            title: `${clientName} - Custom Creative Proposal`,
-            summary: `Based on your brief: "${brief}". We propose a comprehensive creative campaign designed to elevate your brand presence.`,
+            title: `${clientName} — Custom Digital Growth Proposal`,
+            summary: `Based on your brief: "${brief}". We propose a comprehensive digital strategy designed to elevate your brand presence, drive qualified leads, and deliver measurable ROI within 60 days.`,
             deliverables: [
-              "Concept Development & Storyboarding",
-              "1x Hero Video (60 seconds)",
-              "3x Social Media Cutdowns (15 seconds)",
-              "Raw Project Files & Assets"
+              "Brand Identity Audit & Competitor Analysis",
+              "1x Hero Video Production (60 seconds, 4K)",
+              "3x Social Media Cutdowns (15s Reels/Shorts)",
+              "Performance Ad Creatives (Meta + Google)",
+              "Raw Project Files & Revision-Ready Assets"
             ],
-            budget: 15000,
-            timelineWeeks: 6
+            budget: 55000,
+            timelineWeeks: 5
           }
         };
       }
 
-      const openai = await getOpenAiClient(app);
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Client: ${clientName}\nBrief: ${brief}` }
-        ]
-      });
+      const data = await generateJsonFromGemini(
+        app,
+        systemPrompt,
+        `Generate a proposal for:\nClient: ${clientName}\nBrief: ${brief}`
+      );
 
-      const content = completion.choices[0]?.message?.content || '{}';
-      let jsonStr = content.trim();
-      if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
-      }
-
-      const parsedData = JSON.parse(jsonStr);
-
-      return {
-        success: true,
-        data: parsedData
-      };
+      return { success: true, data };
     } catch (error: any) {
-      app.log.error({ err: error }, "Error generating proposal via AI");
+      app.log.error({ err: error }, "Error generating proposal via Gemini AI");
       return reply.code(500).send({
         success: false,
         error: "Failed to generate AI proposal",
@@ -87,62 +75,41 @@ Return ONLY valid JSON matching this schema:
         email: z.string().optional()
       });
 
-      const { message, role, email } = schema.parse(request.body);
+      const { message, role } = schema.parse(request.body);
 
       // Fetch dynamic telemetry context from database
-      const totalLeads = await app.prisma.lead.count();
-      const totalInvoices = await app.prisma.invoice.count();
-      const totalRev = await app.prisma.invoice.aggregate({ _sum: { totalAmount: true } });
+      const [totalLeads, totalInvoices, totalRev, totalStudents, totalProjects] = await Promise.all([
+        app.prisma.lead.count(),
+        app.prisma.invoice.count(),
+        app.prisma.invoice.aggregate({ _sum: { totalAmount: true } }),
+        app.prisma.student.count(),
+        app.prisma.project.count(),
+      ]);
       const totalRevVal = totalRev._sum.totalAmount || 0;
-      const totalStudents = await app.prisma.student.count();
-      const totalProjects = await app.prisma.project.count();
 
-      let contextString = `You are the executive AI copilot for Grekam OS (Visuals Pro Agency & Academy).
+      const systemPrompt = `You are the executive AI copilot for Grekam OS (Visuals Pro Agency & Academy).
 You have access to live database metrics:
 - Total CRM Leads: ${totalLeads}
 - Total Generated Invoices: ${totalInvoices}
 - Total Enrolled Students: ${totalStudents}
 - Total Active Projects: ${totalProjects}
-- Total Invoiced Revenue: INR ${totalRevVal.toLocaleString()}
-Answer queries concisely and guide users. User Role: ${role}.`;
+- Total Invoiced Revenue: INR ${totalRevVal.toLocaleString('en-IN')}
+Answer queries concisely, use data where relevant, and guide users to the right dashboard sections.
+User Role: ${role}. Be professional but friendly.`;
 
-      const apiKey = await getOpenAiApiKey(app);
+      const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
-        await new Promise(r => setTimeout(r, 800));
-        let mockReply = `I am operating in offline sandbox mode (OpenAI API key not configured). Live database snapshot:\n`;
-        mockReply += `- Live Revenue: INR ${totalRevVal.toLocaleString()}\n- Active Projects: ${totalProjects}\n- Total Leads: ${totalLeads}`;
+        await new Promise(r => setTimeout(r, 500));
+        const mockReply = `I'm running in offline mode (Gemini API key not configured). Here's a live snapshot from the database:\n\n📊 **Current Metrics:**\n- Revenue: ₹${totalRevVal.toLocaleString('en-IN')}\n- Active Projects: ${totalProjects}\n- Total Leads: ${totalLeads}\n- Students Enrolled: ${totalStudents}\n\nTo enable full AI responses, add your free Gemini key under **Settings → Integrations**.`;
         return { success: true, reply: mockReply };
       }
 
-      let responseText: string | null = null;
-      try {
-        const openai = await getOpenAiClient(app);
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: contextString },
-            { role: "user", content: message }
-          ]
-        });
-        responseText = completion.choices[0]?.message?.content || null;
-      } catch (openAiError: any) {
-        app.log.warn({ err: openAiError }, "OpenAI API call failed in assistant. Falling back.");
-      }
+      const responseText = await generateTextFromGemini(app, systemPrompt, message);
+      return { success: true, reply: responseText };
 
-      if (!responseText) {
-        return {
-          success: true,
-          reply: `Here is a live snapshot from the database:\n- Revenue: INR ${totalRevVal.toLocaleString()}\n- Leads: ${totalLeads}\n- Projects: ${totalProjects}`
-        };
-      }
-
-      return {
-        success: true,
-        reply: responseText
-      };
     } catch (err: any) {
-      app.log.error({ err }, "Error in assistant router");
+      app.log.error({ err }, "Error in Gemini assistant router");
       return reply.code(500).send({ success: false, error: err.message });
     }
   });
@@ -156,9 +123,9 @@ Answer queries concisely and guide users. User Role: ${role}.`;
 
       const { subject } = schema.parse(request.body);
 
-      const systemPrompt = `You are a senior LMS Curriculum Architect.
-Given a subject/course topic, generate a structured 2-module curriculum with lessons.
-Return ONLY valid JSON matching this schema:
+      const systemPrompt = `You are a senior LMS Curriculum Architect specializing in creative, design, and digital marketing education.
+Given a subject/course topic, generate a structured 2-module curriculum with practical lessons.
+Return ONLY valid JSON matching this exact schema:
 {
   "modules": [
     {
@@ -168,62 +135,61 @@ Return ONLY valid JSON matching this schema:
         { "id": "l-1", "title": "Lesson Title 1", "type": "video", "duration": "10:00" },
         { "id": "l-2", "title": "Lesson Title 2", "type": "pdf", "duration": "Read" }
       ]
+    },
+    {
+      "id": "m-2",
+      "title": "Module 2 Title",
+      "lessons": [
+        { "id": "l-3", "title": "Lesson Title 3", "type": "video", "duration": "15:00" },
+        { "id": "l-4", "title": "Lesson Title 4", "type": "assignment", "duration": "AI Graded" }
+      ]
     }
   ]
-}`;
+}
+Make lesson titles specific, practical, and industry-relevant for the subject.`;
 
-      const apiKey = await getOpenAiApiKey(app);
+      const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
-        app.log.warn("OpenAI API Key is not set. Returning mock curriculum.");
-        await new Promise(r => setTimeout(r, 1000));
+        app.log.warn("Gemini API Key is not set. Returning mock curriculum.");
+        await new Promise(r => setTimeout(r, 600));
         return {
           success: true,
           data: [
             {
               id: "m-ai-1",
-              title: `Module 1: Fundamentals of ${subject}`,
+              title: `Module 1: Foundations of ${subject}`,
               lessons: [
-                { id: "l-ai-1", title: `1. Introduction to ${subject}`, type: "video", duration: "10:00" },
-                { id: "l-ai-2", title: "2. Principles & Workflow", type: "video", duration: "15:00" },
-                { id: "l-ai-3", title: "3. Reference Guide & Documentation", type: "pdf", duration: "Read" }
+                { id: "l-ai-1", title: `1. Introduction to ${subject} — Core Concepts`, type: "video", duration: "12:00" },
+                { id: "l-ai-2", title: "2. Tools, Software & Professional Workflow", type: "video", duration: "18:00" },
+                { id: "l-ai-3", title: "3. Reference Guide & Resource Library", type: "pdf", duration: "Read" }
               ]
             },
             {
               id: "m-ai-2",
-              title: `Module 2: Advanced ${subject} & Projects`,
+              title: `Module 2: Advanced ${subject} — Real Projects`,
               lessons: [
-                { id: "l-ai-4", title: "1. Hands-on Execution & Best Practices", type: "video", duration: "20:00" },
-                { id: "l-ai-5", title: "2. Real-world Assessment Task", type: "assignment", duration: "AI Graded" }
+                { id: "l-ai-4", title: "1. Industry Case Studies & Execution Techniques", type: "video", duration: "22:00" },
+                { id: "l-ai-5", title: "2. Hands-on Project Workshop", type: "video", duration: "30:00" },
+                { id: "l-ai-6", title: "3. Final Assessment — Portfolio Submission", type: "assignment", duration: "AI Graded" }
               ]
             }
           ]
         };
       }
 
-      const openai = await getOpenAiClient(app);
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Subject: ${subject}` }
-        ]
-      });
-
-      const content = completion.choices[0]?.message?.content || '{}';
-      let jsonStr = content.trim();
-      if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
-      }
-
-      const parsed = JSON.parse(jsonStr);
+      const parsed = await generateJsonFromGemini(
+        app,
+        systemPrompt,
+        `Generate a 2-module curriculum for the subject: ${subject}`
+      );
 
       return {
         success: true,
         data: parsed.modules || parsed
       };
     } catch (err: any) {
-      app.log.error({ err }, "Error generating curriculum via AI");
+      app.log.error({ err }, "Error generating curriculum via Gemini AI");
       return reply.code(500).send({ success: false, error: err.message });
     }
   });

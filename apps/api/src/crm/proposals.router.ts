@@ -165,7 +165,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     return reply.send(pdfBuffer);
   });
 
-  // POST /api/v1/crm/proposals/generate — AI Proposal Architect with Website Audit & Scope Engine
+  // POST /api/v1/crm/proposals/generate — AI Proposal Architect with Website Audit & Scope Engine (Powered by Gemini 2.0 Flash)
   app.post('/proposals/generate', async (req, reply) => {
     const { 
       title, 
@@ -186,8 +186,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     };
     
     try {
-      const { getOpenAiClient } = await import('../utils/openai');
-      const openai = await getOpenAiClient(app);
+      const { getGeminiApiKey, generateJsonFromGemini } = await import('../utils/gemini');
 
       // 1. Scrape basic website metadata if websiteUrl provided
       let websiteContext = "";
@@ -226,14 +225,20 @@ Grekam is an elite engineering agency known for:
 
 Your goal: Craft a compelling, technical, high-converting enterprise proposal that diagnoses the client's current pain points, proposes a multi-phase architectural roadmap, and delivers realistic milestone line items with Indian Rupee (INR) pricing.
 
-Return ONLY a valid JSON object matching this schema:
+IMPORTANT RULES:
+- Write the "content" field as clean, professional HTML. Use <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em> tags only. Never use markdown.
+- Be specific to the client's industry and goals. Reference real pain points.
+- Each phase item should have a clear business outcome, not just technical jargon.
+- Keep the tone confident, premium, and results-driven.
+
+Return ONLY a valid JSON object matching this schema exactly:
 {
-  "title": "Descriptive, high-impact proposal title",
-  "content": "Professional HTML markup containing: <h2>1. Executive Summary & Problem Diagnosis</h2>, <h2>2. Architectural Solution & Scope</h2>, <h2>3. Deliverables & Milestones</h2>, <h2>4. Expected ROI & Technical SLAs</h2>. (Use <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em> tags. Do not use markdown backticks in content)",
+  "title": "Descriptive, high-impact proposal title personalized to the client",
+  "content": "<h2>1. Executive Summary & Problem Diagnosis</h2><p>...</p><h2>2. Architectural Solution & Scope</h2><p>...</p><h2>3. Deliverables & Milestones</h2><ul><li>...</li></ul><h2>4. Expected ROI & Technical SLAs</h2><p>...</p>",
   "items": [
     {
       "name": "Phase 1: Milestone Name",
-      "description": "Clear explanation of deliverables in this milestone",
+      "description": "Clear explanation of deliverables and business value in this milestone",
       "quantity": 1,
       "unitPrice": 25000,
       "discountRate": 0,
@@ -241,31 +246,46 @@ Return ONLY a valid JSON object matching this schema:
       "total": 29500
     }
   ],
-  "timelineWeeks": 3,
-  "keyMetrics": ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
+  "timelineWeeks": 4,
+  "keyMetrics": ["Metric 1", "Metric 2", "Metric 3"]
 }`;
 
-      const userPrompt = `Generate an architectural proposal brief for:
+      const userPrompt = `Generate a detailed enterprise proposal for:
 Client / Company Name: ${clientName || 'Valued Client'}
 Industry / Niche: ${industry || 'Digital Technology & Commerce'}
 Proposal Focus / Title: ${title || 'Fullstack Digital Ecosystem Overhaul'}
-Specific Client Goals / Pain Points: ${scopeGoal || 'Rebuild outdated infrastructure, automate lead pipelines, improve conversion speed, and scale digital sales.'}
-Budget Tier: ${budgetTier} (Startup: ₹35,000 - ₹60,000 total | Growth: ₹65,000 - ₹1,40,000 total | Enterprise: ₹1,50,000+ total)
-${websiteContext ? `\nClient Website Context:\n${websiteContext}` : ''}
-${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}` : ''}`;
+Client Goals & Pain Points: ${scopeGoal || 'Rebuild outdated infrastructure, automate lead pipelines, improve conversion speed, and scale digital sales.'}
+Budget Tier: ${budgetTier} (Startup: ₹35,000–₹60,000 | Growth: ₹65,000–₹1,40,000 | Enterprise: ₹1,50,000+)
+${websiteContext ? `\nClient Website Audit Data:\n${websiteContext}` : ''}
+${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}` : ''}
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.7,
-      });
+Write a proposal with 3–4 phases that map directly to the client's goals. Make it feel bespoke, not generic.`;
 
-      const rawJson = response.choices[0]?.message?.content || '{}';
-      const parsed = JSON.parse(rawJson);
+      const apiKey = await getGeminiApiKey(app);
+
+      // Fallback if no API key configured
+      if (!apiKey) {
+        app.log.warn("Gemini API Key not set. Returning structured mock proposal.");
+        const budgetMap: Record<string, { phase1: number; phase2: number; phase3: number }> = {
+          startup:    { phase1: 12000, phase2: 20000, phase3: 8000  },
+          growth:     { phase1: 25000, phase2: 45000, phase3: 15000 },
+          enterprise: { phase1: 50000, phase2: 90000, phase3: 35000 },
+        };
+        const b = budgetMap[budgetTier] || budgetMap.growth;
+        return {
+          title: `${clientName || 'Digital'} — ${title || 'Fullstack Platform Overhaul'} Proposal`,
+          content: `<h2>1. Executive Summary</h2><p>Based on your brief, we propose a comprehensive ${industry || 'digital'} transformation for <strong>${clientName || 'your business'}</strong>. Our approach addresses your core challenge: <em>${scopeGoal || 'modernising your digital infrastructure'}</em>.</p><h2>2. Our Solution</h2><p>Grekam will architect a high-performance, scalable platform leveraging Next.js, real-time APIs, and AI-driven automation — built to grow with your business.</p><h2>3. Deliverables</h2><ul><li><strong>Phase 1:</strong> Discovery, UX Research & Architecture Blueprint</li><li><strong>Phase 2:</strong> Full-Stack Development & Integrations</li><li><strong>Phase 3:</strong> Launch, SEO Audit & 30-Day Performance SLA</li></ul><h2>4. Expected ROI</h2><p>Clients typically see a <strong>40–60% improvement</strong> in lead conversion and page speed within 90 days of launch. We back every project with measurable SLAs.</p>`,
+          items: [
+            { name: "Phase 1: Discovery & UX Architecture", description: "Stakeholder interviews, competitor audit, Figma wireframes, DB schema & tech stack blueprint", quantity: 1, unitPrice: b.phase1, discountRate: 0, taxRate: 18, total: Math.round(b.phase1 * 1.18) },
+            { name: "Phase 2: Full-Stack Engineering & Integrations", description: "Next.js frontend, Fastify API, payment gateway, CRM sync, WhatsApp automation", quantity: 1, unitPrice: b.phase2, discountRate: 0, taxRate: 18, total: Math.round(b.phase2 * 1.18) },
+            { name: "Phase 3: Launch, CDN & Performance SLA", description: "Production deployment, Cloudflare CDN setup, Core Web Vitals audit, 30-day warranty support", quantity: 1, unitPrice: b.phase3, discountRate: 0, taxRate: 18, total: Math.round(b.phase3 * 1.18) },
+          ],
+          timelineWeeks: budgetTier === 'startup' ? 3 : budgetTier === 'enterprise' ? 8 : 5,
+          keyMetrics: ["Sub-800ms Page Load Time", "Automated CRM Lead Sync", "30-Day Post-Launch SLA", "Mobile-First, SEO-Optimised"]
+        };
+      }
+
+      const parsed = await generateJsonFromGemini(app, systemPrompt, userPrompt);
 
       return {
         title: parsed.title || title || "Digital Platform Proposal",
@@ -275,14 +295,14 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
           { name: "Phase 2: Next.js & Fullstack Platform Engineering", description: "API microservices, payment & CRM integration", quantity: 1, unitPrice: 45000, discountRate: 0, taxRate: 18, total: 53100 },
           { name: "Phase 3: Production Rollout, Cloudflare CDN & SLA", description: "Performance optimization, SEO audit, 30-day warranty", quantity: 1, unitPrice: 15000, discountRate: 0, taxRate: 18, total: 17700 }
         ],
-        timelineWeeks: parsed.timelineWeeks || 3,
+        timelineWeeks: parsed.timelineWeeks || 4,
         keyMetrics: parsed.keyMetrics || ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
       };
     } catch (error: any) {
-      app.log.error({ err: error }, "AI Proposal Content Generation Error");
+      app.log.error({ err: error }, "Gemini AI Proposal Generation Error");
       return reply.code(500).send({
         error: "Failed to generate AI proposal content",
-        details: error?.message || "OpenAI API Key is not configured."
+        details: error?.message || "Gemini API Key is not configured. Add your free key at Settings → Integrations."
       });
     }
   });
