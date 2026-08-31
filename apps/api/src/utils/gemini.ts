@@ -65,18 +65,32 @@ export async function generateJsonFromGemini(
   userPrompt: string
 ): Promise<any> {
   const genAI = await getGeminiClient(app);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0.7,
-    },
-    systemInstruction: systemPrompt,
-  });
 
-  const result = await model.generateContent(userPrompt);
-  const text = result.response.text();
-  return JSON.parse(text);
+  // Try gemini-2.0-flash first, fallback to gemini-1.5-flash
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastError: any;
+
+  for (const modelName of models) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        },
+        systemInstruction: systemPrompt,
+      });
+      const result = await model.generateContent(userPrompt);
+      const text = result.response.text();
+      return JSON.parse(text);
+    } catch (e: any) {
+      lastError = e;
+      app.log.warn({ model: modelName, err: e?.message }, `Gemini model failed, trying next...`);
+    }
+  }
+
+  app.log.error({ err: lastError?.message, stack: lastError?.stack }, 'All Gemini models failed');
+  throw lastError;
 }
 
 /**
@@ -88,14 +102,24 @@ export async function generateTextFromGemini(
   userPrompt: string
 ): Promise<string> {
   const genAI = await getGeminiClient(app);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    generationConfig: {
-      temperature: 0.7,
-    },
-    systemInstruction: systemPrompt,
-  });
 
-  const result = await model.generateContent(userPrompt);
-  return result.response.text();
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastError: any;
+
+  for (const modelName of models) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: { temperature: 0.7 },
+        systemInstruction: systemPrompt,
+      });
+      const result = await model.generateContent(userPrompt);
+      return result.response.text();
+    } catch (e: any) {
+      lastError = e;
+      app.log.warn({ model: modelName, err: e?.message }, `Gemini text model failed, trying next...`);
+    }
+  }
+
+  throw lastError;
 }

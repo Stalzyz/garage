@@ -299,10 +299,11 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
         keyMetrics: parsed.keyMetrics || ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
       };
     } catch (error: any) {
-      app.log.error({ err: error }, "Gemini AI Proposal Generation Error");
+      const errMsg = error?.message || 'Unknown error';
+      app.log.error({ err: errMsg }, "Gemini AI Proposal Generation Error");
       return reply.code(500).send({
         error: "Failed to generate AI proposal content",
-        details: error?.message || "Gemini API Key is not configured. Add your free key at Settings → Integrations."
+        details: errMsg,
       });
     }
   });
