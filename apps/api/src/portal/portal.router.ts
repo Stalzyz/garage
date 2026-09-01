@@ -292,17 +292,31 @@ export default async function portalRouter(app: FastifyInstance) {
       },
       select: { id: true }
     });
-    
     const leadIds = matchingLeads.map(l => l.id);
 
-    // Find all proposals matching leadId OR contactId OR matching lead email
+    // Find all contacts associated with this client's email, contactId, or company
+    const matchingContacts = await app.prisma.contact.findMany({
+      where: {
+        OR: [
+          ...(contactEmail ? [{ email: { equals: contactEmail, mode: 'insensitive' as const } }] : []),
+          ...(contactId ? [{ id: contactId }] : []),
+          ...(companyId ? [{ companyId }] : []),
+        ]
+      },
+      select: { id: true }
+    });
+    const contactIds = matchingContacts.map(c => c.id);
+
+    // Find all proposals matching leadId, contactId, matching lead/contact email, or companyId
     const proposals = await app.prisma.proposal.findMany({
       where: {
         OR: [
           ...(leadIds.length > 0 ? [{ leadId: { in: leadIds } }] : []),
-          ...(contactId ? [{ contactId }] : []),
+          ...(contactIds.length > 0 ? [{ contactId: { in: contactIds } }] : []),
           ...(contactEmail ? [{ lead: { email: { equals: contactEmail, mode: 'insensitive' as const } } }] : []),
           ...(contactEmail ? [{ contact: { email: { equals: contactEmail, mode: 'insensitive' as const } } }] : []),
+          ...(companyId ? [{ contact: { companyId } }] : []),
+          ...(companyId ? [{ lead: { companyId } }] : []),
         ],
         status: { not: 'REJECTED' as const }
       },
