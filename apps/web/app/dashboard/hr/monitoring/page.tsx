@@ -1,30 +1,66 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Monitor, MousePointer2, Keyboard, Clock, Activity, Camera, AlertTriangle, Play, Pause } from "lucide-react"
-import { useApi } from "@/lib/useApi"
+import { useState, useEffect } from "react"
+import { Monitor, Keyboard, Activity, Camera, Play, Pause, RefreshCw, Zap } from "lucide-react"
+import { useApi, fetchApi } from "@/lib/useApi"
 import Image from "next/image"
 import { format } from "date-fns"
+import { toast } from "sonner"
 
 export default function HRMonitoringDashboard() {
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("cuid-emp-1")
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("")
+  const [isSendingHeartbeat, setIsSendingHeartbeat] = useState(false)
   
   // 1. Fetch All Employees for the selector
-  const { data: empData } = useApi<any>("/hr/employees")
+  const { data: empData, mutate: mutateEmp } = useApi<any>("/hr/employees")
   const employees = empData?.employees || []
+
+  // Auto-select first real employee when loaded
+  useEffect(() => {
+    if (employees.length > 0 && !selectedEmployeeId) {
+      setSelectedEmployeeId(employees[0].id)
+    }
+  }, [employees, selectedEmployeeId])
   
-  // 2. Fetch Telemetry for selected employee
-  const { data: telemetryData } = useApi<any>(`/hr/telemetry/report/${selectedEmployeeId}`)
+  // 2. Fetch Telemetry for selected employee, auto-refresh every 30s
+  const { data: telemetryData, mutate: mutateTelemetry } = useApi<any>(
+    selectedEmployeeId ? `/hr/telemetry/report/${selectedEmployeeId}` : null,
+    { refreshInterval: 30000 }
+  )
   
   const stats = telemetryData?.dailyStats || { totalActive: 0, totalIdle: 0, totalKeystrokes: 0, totalClicks: 0 }
   const screenshots = telemetryData?.screenshots || []
   
-  // Mock image generation for demo if screenshots are empty
+  // Show real screenshots or demo placeholders
   const mockScreenshots = screenshots.length > 0 ? screenshots : [
     { id: '1', imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&q=80', timestamp: new Date(Date.now() - 1000 * 60 * 30), notes: 'Coding IDE active' },
     { id: '2', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&q=80', timestamp: new Date(Date.now() - 1000 * 60 * 60), notes: 'Data science dashboard' },
     { id: '3', imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655cb?w=500&q=80', timestamp: new Date(Date.now() - 1000 * 60 * 120), notes: 'Idle on desktop' }
   ]
+
+  // Send a test heartbeat for the selected employee
+  const handleTestHeartbeat = async () => {
+    if (!selectedEmployeeId) return toast.error('Select an employee first')
+    setIsSendingHeartbeat(true)
+    try {
+      await fetchApi('/hr/telemetry/heartbeat', {
+        method: 'POST',
+        body: JSON.stringify({
+          employeeId: selectedEmployeeId,
+          activeMinutes: Math.floor(Math.random() * 50) + 10,
+          idleMinutes: Math.floor(Math.random() * 10),
+          keyboardStrokes: Math.floor(Math.random() * 500) + 100,
+          mouseClicks: Math.floor(Math.random() * 200) + 50,
+        })
+      })
+      toast.success('Test heartbeat sent — stats updated!')
+      mutateTelemetry()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send heartbeat')
+    } finally {
+      setIsSendingHeartbeat(false)
+    }
+  }
 
   const totalMinutes = stats.totalActive + stats.totalIdle
   const productivityScore = totalMinutes > 0 ? Math.round((stats.totalActive / totalMinutes) * 100) : 0
@@ -45,31 +81,57 @@ export default function HRMonitoringDashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-[10px] font-mono tracking-widest uppercase text-white/40 font-bold">Monitor:</span>
             <select 
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
               className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50"
             >
-              <option value="cuid-emp-1">Employee 1</option>
-              <option value="cuid-emp-2">Employee 2</option>
+              {employees.length === 0 && <option value="">No employees found</option>}
               {employees.map((emp: any) => (
                 <option key={emp.id} value={emp.id}>{emp.user?.firstName} {emp.user?.lastName}</option>
               ))}
             </select>
+            <button
+              onClick={() => mutateTelemetry()}
+              className="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+              title="Refresh telemetry"
+            >
+              <RefreshCw className="w-4 h-4 text-white/50" />
+            </button>
+            <button
+              onClick={handleTestHeartbeat}
+              disabled={isSendingHeartbeat || !selectedEmployeeId}
+              className="flex items-center gap-2 px-3 py-2 bg-violet-500/20 border border-violet-500/30 rounded-xl text-violet-300 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-violet-500/30 transition-colors disabled:opacity-50"
+            >
+              <Zap className="w-3 h-3" />
+              {isSendingHeartbeat ? 'Sending...' : 'Test Signal'}
+            </button>
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         
-        {stats.totalActive === 0 && stats.totalIdle === 0 && (
-          <div className="mb-8 p-4 bg-violet-500/10 border border-violet-500/30 rounded-xl flex items-center gap-4 animate-pulse">
-            <Monitor className="w-6 h-6 text-violet-400" />
+        {!selectedEmployeeId && employees.length === 0 && (
+          <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center gap-4">
+            <Monitor className="w-6 h-6 text-amber-400 shrink-0" />
             <div>
-              <h3 className="text-sm font-bold text-violet-400">Waiting for Data...</h3>
-              <p className="text-xs text-white/50">Telemetry requires the Grekam OS Desktop Client to be running on the employee's machine.</p>
+              <h3 className="text-sm font-bold text-amber-400">No Employees Found</h3>
+              <p className="text-xs text-white/50">Add employees in HR → Employees to begin monitoring.</p>
+            </div>
+          </div>
+        )}
+
+        {selectedEmployeeId && stats.totalActive === 0 && stats.totalIdle === 0 && (
+          <div className="mb-8 p-4 bg-violet-500/10 border border-violet-500/30 rounded-xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Monitor className="w-6 h-6 text-violet-400 shrink-0" />
+              <div>
+                <h3 className="text-sm font-bold text-violet-400">No Activity Today</h3>
+                <p className="text-xs text-white/50">No telemetry received yet. Use &ldquo;Test Signal&rdquo; to simulate data, or install the desktop client.</p>
+              </div>
             </div>
           </div>
         )}

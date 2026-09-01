@@ -21,30 +21,30 @@ type CardData = { id: string; category: string; title: string; subtitle: string;
 const DUMMY_PROJECTS: ProjectData[] = [
   { 
     id: 'p1', 
-    title: 'Aura SaaS Platform', 
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
-    url: 'https://grekam.in',
-    category: 'Enterprise SaaS',
-    techStack: ['Next.js 15', 'TypeScript', 'TailwindCSS', 'Framer Motion'],
-    description: 'High-converting interactive digital experience and platform ecosystem.'
+    title: 'Raaghas Luxury E-Commerce', 
+    image: 'https://api.microlink.io/?url=https%3A%2F%2Fraaghas.in&screenshot=true&embed=screenshot.url&meta=false',
+    url: 'https://raaghas.in',
+    category: 'Luxury E-Commerce',
+    techStack: ['Next.js 15', 'TypeScript', 'TailwindCSS', 'Razorpay'],
+    description: 'Ultra-fast luxury fashion e-commerce with headless architecture and sub-800ms page transitions.'
   },
   { 
     id: 'p2', 
-    title: 'Lumina Dashboard & Academy', 
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-    url: 'https://academy.grekam.in',
-    category: 'EdTech & Learning',
-    techStack: ['React', 'Node.js', 'PostgreSQL', 'Stripe'],
-    description: 'Next-generation learning portal for design and software engineers.'
+    title: 'Grafty WhatsApp AI Engine', 
+    image: 'https://api.microlink.io/?url=https%3A%2F%2Fgrafty.pro&screenshot=true&embed=screenshot.url&meta=false',
+    url: 'https://grafty.pro',
+    category: 'AI Automation',
+    techStack: ['Node.js', 'WhatsApp API', 'Fastify', 'PostgreSQL'],
+    description: 'Proprietary WhatsApp AI automation engine for business outreach and customer support.'
   },
   { 
     id: 'p3', 
-    title: 'Nexus Client Portal & Garage', 
-    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80',
-    url: 'https://garage.grekam.in/portal',
-    category: 'Operations & CRM',
-    techStack: ['Next.js', 'Prisma', 'Tailwind', 'Realtime Sync'],
-    description: 'Unified client workflow management and enterprise invoice tracking.'
+    title: 'Grekam Academy Portal', 
+    image: 'https://api.microlink.io/?url=https%3A%2F%2Facademy.grekam.in&screenshot=true&embed=screenshot.url&meta=false',
+    url: 'https://academy.grekam.in',
+    category: 'EdTech & Learning',
+    techStack: ['React', 'Node.js', 'PostgreSQL', 'Stripe'],
+    description: 'Next-generation learning portal for design and software engineering education.'
   },
 ]
 

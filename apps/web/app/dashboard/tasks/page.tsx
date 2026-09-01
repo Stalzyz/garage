@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { 
   CheckSquare, Plus, Search, Filter, Calendar, User, Clock, 
   Trash2, Kanban, List, AlertCircle, CheckCircle2, MoreVertical,
-  Briefcase, ArrowUpRight, Flame, ShieldAlert
+  Briefcase, ArrowUpRight, Flame, ShieldAlert, Play, Square, Timer
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -41,6 +41,39 @@ export default function StaffTasksDashboard() {
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [assigneeFilter, setAssigneeFilter] = useState("ALL")
   const [priorityFilter, setPriorityFilter] = useState("ALL")
+
+  // Kanban drag state
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
+
+  // Time tracking state: { [taskId]: { startedAt: number, totalSecs: number, running: boolean } }
+  const [timers, setTimers] = useState<Record<string, { startedAt: number; totalSecs: number; running: boolean }>>(() => {
+    try { return JSON.parse(localStorage.getItem('task_timers') || '{}') } catch { return {} }
+  })
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Persist timers to localStorage
+  useEffect(() => {
+    localStorage.setItem('task_timers', JSON.stringify(timers))
+  }, [timers])
+
+  // Tick running timers every second
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setTimers(prev => {
+        const updated = { ...prev }
+        let changed = false
+        for (const id in updated) {
+          if (updated[id].running) {
+            updated[id] = { ...updated[id], totalSecs: updated[id].totalSecs + 1 }
+            changed = true
+          }
+        }
+        return changed ? updated : prev
+      })
+    }, 1000)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [])
 
   // Modal States
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
@@ -180,11 +213,55 @@ export default function StaffTasksDashboard() {
         method: "PATCH",
         body: JSON.stringify({ status: newStatus })
       })
-      toast.success(`Task status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`)
+      toast.success(`Task moved to ${STATUS_CONFIG[newStatus]?.label || newStatus}`)
       mutateTasks()
     } catch (err: any) {
       toast.error(err.message || "Failed to update status")
     }
+  }
+
+  // Kanban drag handlers
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    setDraggedTaskId(taskId)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, column: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverColumn(column)
+  }
+
+  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault()
+    if (!draggedTaskId) return
+    const task = rawTasks.find(t => t.id === draggedTaskId)
+    if (task && task.status !== newStatus) {
+      await handleStatusChange(draggedTaskId, newStatus)
+    }
+    setDraggedTaskId(null)
+    setDragOverColumn(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null)
+    setDragOverColumn(null)
+  }
+
+  // Timer helpers
+  const formatTimer = (totalSecs: number) => {
+    const h = Math.floor(totalSecs / 3600)
+    const m = Math.floor((totalSecs % 3600) / 60)
+    const s = totalSecs % 60
+    if (h > 0) return `${h}h ${m.toString().padStart(2,'0')}m`
+    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`
+  }
+
+  const toggleTimer = (taskId: string) => {
+    setTimers(prev => {
+      const cur = prev[taskId] || { startedAt: 0, totalSecs: 0, running: false }
+      return { ...prev, [taskId]: { ...cur, running: !cur.running, startedAt: Date.now() } }
+    })
   }
 
   const KANBAN_STAGES = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "BLOCKED"]
@@ -326,7 +403,17 @@ export default function StaffTasksDashboard() {
               const cfg = STATUS_CONFIG[stage] || { label: stage, color: "text-white", border: "border-white/10" }
 
               return (
-                <div key={stage} className="bg-black/30 border border-white/10 rounded-2xl p-4 flex flex-col min-h-[400px]">
+                <div
+                  key={stage}
+                  onDragOver={(e) => handleDragOver(e, stage)}
+                  onDrop={(e) => handleDrop(e, stage)}
+                  onDragLeave={() => setDragOverColumn(null)}
+                  className={`rounded-2xl p-4 flex flex-col min-h-[400px] border transition-all ${
+                    dragOverColumn === stage
+                      ? 'bg-blue-500/10 border-blue-500/40 border-dashed shadow-[0_0_20px_rgba(59,130,246,0.2)]'
+                      : 'bg-black/30 border-white/10'
+                  }`}
+                >
                   <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                     <span className={`text-xs font-mono font-bold uppercase tracking-wider ${cfg.color}`}>
                       {cfg.label}
@@ -345,8 +432,15 @@ export default function StaffTasksDashboard() {
                         <motion.div
                           key={task.id}
                           layout
+                          draggable
+                          onDragStart={(e: any) => handleDragStart(e, task.id)}
+                          onDragEnd={handleDragEnd}
                           onClick={() => handleOpenEditModal(task)}
-                          className="bg-black/60 border border-white/10 hover:border-blue-500/40 rounded-xl p-4 cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] group"
+                          className={`bg-black/60 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all group ${
+                            draggedTaskId === task.id
+                              ? 'opacity-40 scale-95 border-dashed border-white/20'
+                              : 'border-white/10 hover:border-blue-500/40 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:-translate-y-0.5'
+                          }`}
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <h4 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-2">
@@ -362,6 +456,20 @@ export default function StaffTasksDashboard() {
                               {task.description}
                             </p>
                           )}
+
+                          {/* Time Tracker */}
+                          <div
+                            onClick={(e) => { e.stopPropagation(); toggleTimer(task.id) }}
+                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[10px] font-mono cursor-pointer mb-3 transition-all ${
+                              timers[task.id]?.running
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                : 'bg-white/5 border-white/10 text-white/40 hover:text-white/70'
+                            }`}
+                          >
+                            {timers[task.id]?.running ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
+                            <Timer className="w-2.5 h-2.5" />
+                            <span>{formatTimer(timers[task.id]?.totalSecs || 0)}</span>
+                          </div>
 
                           <div className="flex items-center justify-between pt-3 border-t border-white/5 text-[10px] font-mono text-white/50">
                             <div className="flex items-center gap-1.5 text-blue-300">
