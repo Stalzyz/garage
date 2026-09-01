@@ -57,7 +57,16 @@ export async function getGeminiClient(app: FastifyInstance): Promise<GoogleGener
 
 /**
  * Helper: Generate text from Gemini and parse as JSON.
- * Uses gemini-2.0-flash-exp model with JSON response mode.
+function cleanJsonText(raw: string): string {
+  let cleaned = raw.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+  }
+  return cleaned;
+}
+
+/**
+ * Helper: Generate text from Gemini and parse as JSON.
  */
 export async function generateJsonFromGemini(
   app: FastifyInstance,
@@ -66,8 +75,7 @@ export async function generateJsonFromGemini(
 ): Promise<any> {
   const genAI = await getGeminiClient(app);
 
-  // Try gemini-2.0-flash first, fallback to gemini-1.5-flash
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
   let lastError: any;
 
   for (const modelName of models) {
@@ -82,10 +90,10 @@ export async function generateJsonFromGemini(
       });
       const result = await model.generateContent(userPrompt);
       const text = result.response.text();
-      return JSON.parse(text);
+      return JSON.parse(cleanJsonText(text));
     } catch (e: any) {
       lastError = e;
-      app.log.warn({ model: modelName, err: e?.message }, `Gemini model failed, trying next...`);
+      app.log.warn({ model: modelName, err: e?.message }, `Gemini model ${modelName} failed, trying next...`);
     }
   }
 
@@ -103,7 +111,7 @@ export async function generateTextFromGemini(
 ): Promise<string> {
   const genAI = await getGeminiClient(app);
 
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
   let lastError: any;
 
   for (const modelName of models) {
@@ -117,7 +125,7 @@ export async function generateTextFromGemini(
       return result.response.text();
     } catch (e: any) {
       lastError = e;
-      app.log.warn({ model: modelName, err: e?.message }, `Gemini text model failed, trying next...`);
+      app.log.warn({ model: modelName, err: e?.message }, `Gemini text model ${modelName} failed, trying next...`);
     }
   }
 
