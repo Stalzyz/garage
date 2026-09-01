@@ -284,7 +284,6 @@ export default async function portalRouter(app: FastifyInstance) {
       
       const leadOrConditions: any[] = [];
       if (contactEmail) leadOrConditions.push({ email: { equals: contactEmail, mode: 'insensitive' as const } });
-      if (contactId) leadOrConditions.push({ contactId });
       if (companyId) leadOrConditions.push({ companyId });
 
       let leadIds: string[] = [];
