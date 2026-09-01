@@ -168,6 +168,29 @@ export function ClockWidget({ employeeId }: { employeeId: string }) {
             </div>
           </div>
         )}
+
+        {/* 1-Tap Offline Work Logger */}
+        <button
+          onClick={async () => {
+            const reason = prompt("Log Offline Work Category:\n1. CLIENT_MEETING\n2. OFFLINE_PLANNING\n3. INTERNAL_DISCUSSION\n\nEnter number (1-3):", "1");
+            if (!reason) return;
+            const map: Record<string, string> = { "1": "CLIENT_MEETING", "2": "OFFLINE_PLANNING", "3": "INTERNAL_DISCUSSION" };
+            const selectedReason = map[reason] || "CLIENT_MEETING";
+            try {
+              await fetchApi('/hr/telemetry/idle-reason', {
+                method: 'POST',
+                body: JSON.stringify({ employeeId, reason: selectedReason, durationMinutes: 30 })
+              });
+              toast.success(`Logged 30 mins as ${selectedReason.replace(/_/g, ' ')}!`);
+              mutate();
+            } catch (err: any) {
+              toast.error(err.message || 'Failed to log offline time');
+            }
+          }}
+          className="w-full py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-[10px] font-mono uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5"
+        >
+          <Coffee className="w-3 h-3 text-amber-400" /> Log Offline Work / Meeting
+        </button>
       </div>
 
       {/* Selfie Capture Modal */}
