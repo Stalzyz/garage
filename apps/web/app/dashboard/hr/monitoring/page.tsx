@@ -284,17 +284,16 @@ export default function HRMonitoringDashboard() {
                 </div>
                 <div className="text-3xl font-bold text-violet-400 relative z-10">{aiInsights.focusScore || productivityScore}%</div>
               </div>
-
-          </div>
-          
-          {mockScreenshots.length === 0 && (
-            <div className="p-12 text-center text-white/30 border-2 border-dashed border-white/10 rounded-2xl">
-              <Camera className="w-8 h-8 mx-auto mb-4 opacity-30" />
-              <p>No screenshots recorded for this employee today.</p>
             </div>
-          )}
-        </div>
 
+            {mockScreenshots.length === 0 && (
+              <div className="p-12 text-center text-white/30 border-2 border-dashed border-white/10 rounded-2xl">
+                <Camera className="w-8 h-8 mx-auto mb-4 opacity-30" />
+                <p>No screenshots recorded for this employee today.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
