@@ -261,6 +261,7 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
 
 Write a proposal with 3–4 phases that map directly to the client's goals. Make it feel bespoke, not generic.`;
 
+      const apiKey = await getGeminiApiKey(app);
       let parsed: any;
       if (apiKey) {
         try {
