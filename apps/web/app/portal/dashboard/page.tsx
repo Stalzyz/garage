@@ -66,19 +66,25 @@ export default function ClientDashboard() {
 
   // API Fetches
   const { data: profileMe } = useApi<any>("/portal/me")
-  const { data: dashboard, error: dashError, isLoading: dashLoading, mutate: dashMutate } = useApi<any>("/portal/dashboard")
-  const { data: projects, error: projError, isLoading: projLoading, mutate: projMutate } = useApi<any>("/portal/projects")
-  const { data: invoices, error: invError, isLoading: invLoading, mutate: invMutate } = useApi<any>("/portal/invoices")
-  const { data: proposals, error: propError, isLoading: propLoading, mutate: propMutate } = useApi<any>("/portal/proposals")
-  const { data: notifications = [], error: notifError, mutate: notifMutate } = useApi<any>("/portal/notifications")
+  const { data: dashboardData, error: dashError, isLoading: dashLoading, mutate: dashMutate } = useApi<any>("/portal/dashboard")
+  const { data: projectsData, error: projError, isLoading: projLoading, mutate: projMutate } = useApi<any>("/portal/projects")
+  const { data: invoicesData, error: invError, isLoading: invLoading, mutate: invMutate } = useApi<any>("/portal/invoices")
+  const { data: proposalsData, error: propError, isLoading: propLoading, mutate: propMutate } = useApi<any>("/portal/proposals")
+  const { data: notificationsData, error: notifError, mutate: notifMutate } = useApi<any>("/portal/notifications")
   const { data: catalogData, mutate: mutateCatalog } = useApi<any>("/lms/courses")
   const { data: enrollmentsData, mutate: mutateEnrollments } = useApi<any>("/lms/enrollments/my")
+
+  const dashboard = dashboardData || { activeProjects: 0, progress: 0, paidTotal: 0, pendingTotal: 0, activeProject: null, subscription: null }
+  const projects = Array.isArray(projectsData) ? projectsData : projectsData?.projects || projectsData?.data || []
+  const invoices = Array.isArray(invoicesData) ? invoicesData : invoicesData?.invoices || invoicesData?.data || []
+  const proposals = Array.isArray(proposalsData) ? proposalsData : proposalsData?.proposals || proposalsData?.data || []
+  const notifications = Array.isArray(notificationsData) ? notificationsData : notificationsData?.notifications || notificationsData?.data || []
 
   // Courses & Chat State
   const [coursesSubTab, setCoursesSubTab] = useState<"my" | "catalog">("my")
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
   const { data: chatChannelsData, mutate: mutateChannels } = useApi<any>("/chat/channels")
-  const channels = chatChannelsData?.channels || []
+  const channels = Array.isArray(chatChannelsData?.channels) ? chatChannelsData.channels : Array.isArray(chatChannelsData) ? chatChannelsData : []
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null)
   const [chatMessage, setChatMessage] = useState("")
   const [isSendingChat, setIsSendingChat] = useState(false)
@@ -86,10 +92,10 @@ export default function ClientDashboard() {
   const activeChannel = channels.find((c: any) => c.id === activeChannelId) || channels[0]
   const currentChannelId = activeChannelId || activeChannel?.id || null
   const { data: messagesData, mutate: mutateMessages } = useApi<any>(currentChannelId ? `/chat/channels/${currentChannelId}/messages` : null)
-  const chatMessages = messagesData?.messages || []
+  const chatMessages = Array.isArray(messagesData?.messages) ? messagesData.messages : Array.isArray(messagesData) ? messagesData : []
 
-  const catalogCourses = catalogData?.courses || []
-  const myEnrollments = enrollmentsData?.enrollments || []
+  const catalogCourses = Array.isArray(catalogData?.courses) ? catalogData.courses : Array.isArray(catalogData) ? catalogData : []
+  const myEnrollments = Array.isArray(enrollmentsData?.enrollments) ? enrollmentsData.enrollments : Array.isArray(enrollmentsData) ? enrollmentsData : []
 
   const mutate = () => {
     dashMutate()
@@ -471,7 +477,7 @@ export default function ClientDashboard() {
   const companyName = profileMe?.companyName || "Independent Client"
   const tier = profileMe?.tier || "BRONZE"
   const avatarInitials = clientName.charAt(0).toUpperCase()
-  const unreadCount = notifications.filter((n: any) => !n.readAt).length
+  const unreadCount = (Array.isArray(notifications) ? notifications : []).filter((n: any) => !n.readAt).length
 
   const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
     { id: "overview",  label: "Overview",  icon: Zap },
@@ -485,7 +491,7 @@ export default function ClientDashboard() {
 
   const handlePayment = (method: 'stripe' | 'razorpay' | 'bank', milestoneId: string, amount: number) => {
     if (method === 'bank') {
-      alert(`Bank Transfer Instructions for Milestone ${milestoneId}:\n\nAccount Name: ${org.name}\nAccount No: 123456789\nIFSC: HDFC000123\n\nPlease email the receipt to ${org.supportEmail || 'billing@agency.com'}`);
+      alert(`Bank Transfer Instructions for Milestone ${milestoneId}:\n\nAccount Name: ${org?.name || "Grekam Visuals"}\nAccount No: 123456789\nIFSC: HDFC000123\n\nPlease email the receipt to ${org?.supportEmail || 'billing@agency.com'}`);
     } else {
       alert(`Redirecting to ${method} checkout for ${symbol}${amount}...`);
       // In production, this would call your payment gateway integration
@@ -498,14 +504,14 @@ export default function ClientDashboard() {
       {/* Top Navigation */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b border-white/8 bg-[#0a0a0f]/90 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          {org.logoUrl
-            ? <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-contain" />
+          {org?.logoUrl
+            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-8 h-8 rounded-lg object-contain" />
             : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
                 <Zap className="w-4 h-4 text-white" />
               </div>
           }
           <div>
-            <p className="text-xs font-bold text-white">{org.name}</p>
+            <p className="text-xs font-bold text-white">{org?.name || "Grekam OS"}</p>
             <p className="text-[9px] text-white/30 uppercase tracking-widest">Client Portal</p>
           </div>
         </div>

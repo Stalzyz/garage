@@ -47,12 +47,24 @@ export default function GlobalError({
         </p>
       )}
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <button
-          onClick={handleCleanReload}
+          onClick={() => reset()}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-violet-500/20 cursor-pointer"
         >
-          <RefreshCw className="w-4 h-4" /> Reload Portal
+          <RefreshCw className="w-4 h-4" /> Try Again
+        </button>
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.location.reload()
+            } else {
+              reset()
+            }
+          }}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 font-medium text-sm border border-white/10 transition-all cursor-pointer"
+        >
+          Reload Page
         </button>
       </div>
     </div>

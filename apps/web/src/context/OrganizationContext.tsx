@@ -43,7 +43,8 @@ const defaultOrg: Organization = {
 const OrganizationContext = createContext<Organization>(defaultOrg);
 
 export function useOrganization() {
-  return useContext(OrganizationContext);
+  const ctx = useContext(OrganizationContext);
+  return ctx || defaultOrg;
 }
 
 export function OrganizationProvider({ children }: { children: ReactNode }) {
