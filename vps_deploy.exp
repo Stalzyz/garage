@@ -1,19 +1,40 @@
 #!/usr/bin/expect -f
 set timeout 300
-set script {
+
+# Write the start_web.sh wrapper on the server
+set setup_script {
   cd /root/grekam-os
   echo "Current directory: $(pwd)"
-  git pull
+  git pull origin main
   pnpm i
   cd packages/db && npx prisma generate && npx prisma db push && cd ../..
-  NODE_OPTIONS="--max-old-space-size=4096" pnpm build:all
-  pm2 delete grekam-os-web || true
-  export HOST=0.0.0.0 && pm2 start pnpm --name grekam-os-web --cwd /root/grekam-os/apps/web -- start
+  pnpm --filter=api build || true
   pm2 restart grekam-os-api --update-env || true
-  pm2 restart academy-web --update-env || true
+
+  # Build web inside apps/web directory
+  cd /root/grekam-os/apps/web
+  rm -rf .next
+  pnpm build
+
+  # Create a shell wrapper that guarantees correct cwd
+  cat > /root/start_web.sh << 'SHEOF'
+#!/bin/bash
+cd /root/grekam-os/apps/web
+export AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU="
+export AUTH_TRUST_HOST=true
+export NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1"
+export PORT=3000
+exec npx next start -p 3000 -H 0.0.0.0
+SHEOF
+  chmod +x /root/start_web.sh
+
+  pm2 delete grekam-os-web || true
+  pm2 start /root/start_web.sh --name grekam-os-web
   pm2 save
+  pm2 status
 }
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $setup_script
 expect "assword:"
 send "Photoshop09@\r"
 expect eof
