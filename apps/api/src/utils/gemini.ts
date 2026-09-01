@@ -55,8 +55,6 @@ export async function getGeminiClient(app: FastifyInstance): Promise<GoogleGener
   return new GoogleGenerativeAI(apiKey);
 }
 
-/**
- * Helper: Generate text from Gemini and parse as JSON.
 function cleanJsonText(raw: string): string {
   let cleaned = raw.trim();
   if (cleaned.startsWith('```')) {
