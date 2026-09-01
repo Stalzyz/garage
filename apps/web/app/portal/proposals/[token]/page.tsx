@@ -101,7 +101,7 @@ export default function PublicProposalPage() {
               <p className="font-bold text-sm">{org.name}</p>
               {org.supportEmail && <p className="text-xs text-slate-500">{org.supportEmail}</p>}
               {org.phone && <p className="text-xs text-slate-500">{org.phone}</p>}
-              <p className="text-xs text-slate-500 mt-2 font-mono">Date: {new Date(proposal.createdAt).toLocaleDateString()}</p>
+              <p className="text-xs text-slate-500 mt-2 font-mono">Date: {proposal.createdAt ? new Date(proposal.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}</p>
             </div>
           </div>
 
@@ -110,8 +110,8 @@ export default function PublicProposalPage() {
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#49abc9] mb-3">Prepared For</h4>
             <p className="font-bold text-lg">
               {proposal.contact 
-                ? `${proposal.contact.firstName} ${proposal.contact.lastName}` 
-                : (proposal.lead?.name || "Valued Client")}
+                ? `${proposal.contact.firstName} ${proposal.contact.lastName}`.trim()
+                : (proposal.lead?.name || proposal.contact?.email || proposal.lead?.email || "Valued Client")}
             </p>
             {(proposal.contact?.company?.name || proposal.lead?.company) && (
               <p className="text-slate-600 font-medium mt-1">

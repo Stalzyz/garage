@@ -4,6 +4,11 @@ import { useApi } from "@/lib/useApi"
 import { FileText, Loader2, ArrowRight, Clock, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
+function stripHtml(html: string): string {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export default function PortalProposalsPage() {
   const { data, isLoading } = useApi<any>("/portal/proposals")
   const proposals = Array.isArray(data) ? data : (data?.data || [])
@@ -45,7 +50,7 @@ export default function PortalProposalsPage() {
               </div>
 
               <div className="flex-1 text-sm text-white/60 mb-6 line-clamp-2">
-                {prop.notes || "Please review the proposed scope of work."}
+                {prop.notes ? stripHtml(prop.notes) : "Please review the proposed scope of work."}
               </div>
 
               <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-auto">
