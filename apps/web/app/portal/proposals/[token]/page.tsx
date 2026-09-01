@@ -125,10 +125,16 @@ export default function PublicProposalPage() {
             )}
           </div>
 
-          {proposal.notes && (
+          {/* Project Overview / Notes */}
+          {proposal.notes ? (
             <div className="p-10 border-b border-black/10 text-slate-700 leading-relaxed prose prose-slate max-w-none">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Project Overview</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-[#49abc9] mb-4">Project Overview & Scope</h4>
               <div dangerouslySetInnerHTML={{ __html: proposal.notes }} />
+            </div>
+          ) : (
+            <div className="p-10 border-b border-black/10 text-slate-500 leading-relaxed italic text-sm">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-[#49abc9] mb-2 not-italic">Project Overview</h4>
+              <p>Standard Agency Proposal / Statement of Work</p>
             </div>
           )}
 
@@ -145,19 +151,27 @@ export default function PublicProposalPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
-                {proposal.items?.map((item: any) => (
-                  <tr key={item.id}>
-                    <td className="py-4 text-sm font-medium">{item.description}</td>
-                    <td className="py-4 text-sm text-right text-slate-600 font-mono">{item.quantity}</td>
-                    <td className="py-4 text-sm text-right text-slate-600 font-mono">₹{item.unitPrice.toLocaleString()}</td>
-                    <td className="py-4 text-sm text-right font-bold font-mono">₹{item.total.toLocaleString()}</td>
+                {proposal.items && proposal.items.length > 0 ? (
+                  proposal.items.map((item: any, idx: number) => (
+                    <tr key={item.id || idx}>
+                      <td className="py-4 text-sm font-medium">{item.description || item.name || 'Service Item'}</td>
+                      <td className="py-4 text-sm text-right text-slate-600 font-mono">{item.quantity ?? 1}</td>
+                      <td className="py-4 text-sm text-right text-slate-600 font-mono">₹{Number(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                      <td className="py-4 text-sm text-right font-bold font-mono">₹{Number(item.total || (item.unitPrice * (item.quantity || 1)) || 0).toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-6 text-center text-sm text-slate-400 italic">
+                      No individual line items listed. Total investment applies to full project scope.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
               <tfoot>
                 <tr>
                   <td colSpan={3} className="py-6 text-right font-bold text-lg">Total Investment:</td>
-                  <td className="py-6 text-right font-black text-2xl text-[#2DA16D] font-mono">₹{proposal.totalAmount?.toLocaleString()}</td>
+                  <td className="py-6 text-right font-black text-2xl text-[#2DA16D] font-mono">₹{Number(proposal.totalAmount || 0).toLocaleString('en-IN')}</td>
                 </tr>
               </tfoot>
             </table>
