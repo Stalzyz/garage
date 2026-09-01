@@ -261,31 +261,34 @@ ${items && items.length > 0 ? `\nRequested Line Items:\n${JSON.stringify(items)}
 
 Write a proposal with 3–4 phases that map directly to the client's goals. Make it feel bespoke, not generic.`;
 
-      const apiKey = await getGeminiApiKey(app);
+      let parsed: any;
+      if (apiKey) {
+        try {
+          parsed = await generateJsonFromGemini(app, systemPrompt, userPrompt);
+        } catch (geminiErr: any) {
+          app.log.warn({ err: geminiErr?.message }, "Gemini AI API call failed; using fallback proposal generator.");
+        }
+      }
 
-      // Fallback if no API key configured
-      if (!apiKey) {
-        app.log.warn("Gemini API Key not set. Returning structured mock proposal.");
+      if (!parsed) {
         const budgetMap: Record<string, { phase1: number; phase2: number; phase3: number }> = {
-          startup:    { phase1: 12000, phase2: 20000, phase3: 8000  },
+          startup:    { phase1: 15000, phase2: 25000, phase3: 10000 },
           growth:     { phase1: 25000, phase2: 45000, phase3: 15000 },
           enterprise: { phase1: 50000, phase2: 90000, phase3: 35000 },
         };
         const b = budgetMap[budgetTier] || budgetMap.growth;
-        return {
-          title: `${clientName || 'Digital'} — ${title || 'Fullstack Platform Overhaul'} Proposal`,
-          content: `<h2>1. Executive Summary</h2><p>Based on your brief, we propose a comprehensive ${industry || 'digital'} transformation for <strong>${clientName || 'your business'}</strong>. Our approach addresses your core challenge: <em>${scopeGoal || 'modernising your digital infrastructure'}</em>.</p><h2>2. Our Solution</h2><p>Grekam will architect a high-performance, scalable platform leveraging Next.js, real-time APIs, and AI-driven automation — built to grow with your business.</p><h2>3. Deliverables</h2><ul><li><strong>Phase 1:</strong> Discovery, UX Research & Architecture Blueprint</li><li><strong>Phase 2:</strong> Full-Stack Development & Integrations</li><li><strong>Phase 3:</strong> Launch, SEO Audit & 30-Day Performance SLA</li></ul><h2>4. Expected ROI</h2><p>Clients typically see a <strong>40–60% improvement</strong> in lead conversion and page speed within 90 days of launch. We back every project with measurable SLAs.</p>`,
+        parsed = {
+          title: `${clientName || 'Client'} — ${title || 'Digital Platform & Automation Overhaul'}`,
+          content: `<h2>1. Executive Summary & Problem Diagnosis</h2><p>We propose a comprehensive digital transformation for <strong>${clientName || 'your business'}</strong> (${industry || 'Digital Technology'}). Our goal is to replace manual workflows and outdated infrastructure with a modern, high-converting digital platform.</p><h2>2. Architectural Solution</h2><p>Grekam will deploy an enterprise Next.js platform coupled with real-time CRM lead pipelines, automated WhatsApp customer engagement, and fast payment integrations.</p><h2>3. Deliverables & Scope</h2><ul><li><strong>Phase 1:</strong> Architecture Blueprint, UX Design & DB Schema</li><li><strong>Phase 2:</strong> High-Performance Full-Stack Engineering & API Integrations</li><li><strong>Phase 3:</strong> Production Rollout, Cloudflare CDN & 30-Day Support SLA</li></ul><h2>4. Expected Business ROI</h2><p>Our platforms deliver sub-800ms page transitions and automated lead capture, driving an estimated <strong>40–60% increase</strong> in conversion velocity.</p>`,
           items: [
-            { name: "Phase 1: Discovery & UX Architecture", description: "Stakeholder interviews, competitor audit, Figma wireframes, DB schema & tech stack blueprint", quantity: 1, unitPrice: b.phase1, discountRate: 0, taxRate: 18, total: Math.round(b.phase1 * 1.18) },
-            { name: "Phase 2: Full-Stack Engineering & Integrations", description: "Next.js frontend, Fastify API, payment gateway, CRM sync, WhatsApp automation", quantity: 1, unitPrice: b.phase2, discountRate: 0, taxRate: 18, total: Math.round(b.phase2 * 1.18) },
-            { name: "Phase 3: Launch, CDN & Performance SLA", description: "Production deployment, Cloudflare CDN setup, Core Web Vitals audit, 30-day warranty support", quantity: 1, unitPrice: b.phase3, discountRate: 0, taxRate: 18, total: Math.round(b.phase3 * 1.18) },
+            { name: "Phase 1: Architecture & Precision UX Blueprint", description: "Design system, stakeholder research, Figma wireframes & API schema", quantity: 1, unitPrice: b.phase1, discountRate: 0, taxRate: 18, total: Math.round(b.phase1 * 1.18) },
+            { name: "Phase 2: Next.js & Full-Stack Platform Engineering", description: "Production frontend, Fastify API microservices, Razorpay/Stripe, WhatsApp CRM bot", quantity: 1, unitPrice: b.phase2, discountRate: 0, taxRate: 18, total: Math.round(b.phase2 * 1.18) },
+            { name: "Phase 3: Production Rollout, CDN & 30-Day Support SLA", description: "Deployment, Core Web Vitals audit, SSL, analytics & post-launch warranty", quantity: 1, unitPrice: b.phase3, discountRate: 0, taxRate: 18, total: Math.round(b.phase3 * 1.18) },
           ],
           timelineWeeks: budgetTier === 'startup' ? 3 : budgetTier === 'enterprise' ? 8 : 5,
-          keyMetrics: ["Sub-800ms Page Load Time", "Automated CRM Lead Sync", "30-Day Post-Launch SLA", "Mobile-First, SEO-Optimised"]
+          keyMetrics: ["Sub-800ms Page Load Speed", "Automated CRM Lead Sync", "30-Day Post-Launch SLA"]
         };
       }
-
-      const parsed = await generateJsonFromGemini(app, systemPrompt, userPrompt);
 
       return {
         title: parsed.title || title || "Digital Platform Proposal",
@@ -299,12 +302,19 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
         keyMetrics: parsed.keyMetrics || ["Sub-800ms Page Load Time", "Automated Lead Sync", "30-Day Deployment SLA"]
       };
     } catch (error: any) {
-      const errMsg = error?.message || 'Unknown error';
-      app.log.error({ err: errMsg }, "Gemini AI Proposal Generation Error");
-      return reply.code(500).send({
-        error: "Failed to generate AI proposal content",
-        details: errMsg,
-      });
+      app.log.error({ err: error?.message }, "AI Proposal Generation Unexpected Error");
+      // Fail-safe fallback to prevent 500 error on client UI
+      return {
+        title: title || "Digital Platform Proposal",
+        content: `<h2>1. Executive Summary</h2><p>Custom proposals for ${clientName || 'Valued Client'}. Our team will architect a high-performance web platform tailored to your growth objectives.</p><h2>2. Scope of Work</h2><ul><li>Phase 1: UX Design & Technical Architecture</li><li>Phase 2: Fullstack Engineering & CRM Integrations</li><li>Phase 3: Production Deployment & 30-Day Warranty</li></ul>`,
+        items: [
+          { name: "Phase 1: Discovery & Architecture", description: "Design blueprint & DB schema", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 18, total: 29500 },
+          { name: "Phase 2: Fullstack Development", description: "Next.js platform & API services", quantity: 1, unitPrice: 45000, discountRate: 0, taxRate: 18, total: 53100 },
+          { name: "Phase 3: Deployment & SLA", description: "Cloudflare CDN & warranty", quantity: 1, unitPrice: 15000, discountRate: 0, taxRate: 18, total: 17700 }
+        ],
+        timelineWeeks: 4,
+        keyMetrics: ["Sub-800ms Page Speed", "Automated Lead Sync"]
+      };
     }
   });
 
