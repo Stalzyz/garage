@@ -21,15 +21,11 @@ export default function InteractiveProposalBuilder() {
   const contacts = contactsData?.data || []
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
 
-  // AI Architect Inputs
-  const [aiWebsiteUrl, setAiWebsiteUrl] = useState("")
-  const [aiIndustry, setAiIndustry] = useState("Headless E-Commerce & Fullstack Web")
-  const [aiScopeGoal, setAiScopeGoal] = useState("")
-  const [aiBudgetTier, setAiBudgetTier] = useState("growth")
-  const [aiClientName, setAiClientName] = useState("")
+  // Fetch Templates
+  const { data: templatesData, isLoading: isLoadingTemplates } = useApi<any>("/crm/proposals?isTemplate=true")
+  const templates = templatesData?.data || []
   
   const [formData, setFormData] = useState({
     title: "Brand Strategy & Web Development",
@@ -87,54 +83,47 @@ export default function InteractiveProposalBuilder() {
     setItems(items.filter((_, i) => i !== index))
   }
 
-  const handleOpenAiModal = () => {
-    // Pre-populate client name if lead or contact is selected
+  const handleApplyTemplate = (template: any) => {
+    let newContent = template.notes || template.content || ""
+    let newTitle = template.title
+
+    // Replace basic dynamic variables based on currently selected client
+    let clientName = ""
     if (formData.assignToType === 'LEAD' && formData.leadId) {
       const selectedLead = leads.find((l: any) => l.id === formData.leadId)
-      if (selectedLead) setAiClientName(selectedLead.company || selectedLead.name)
+      if (selectedLead) clientName = selectedLead.company || selectedLead.name
     } else if (formData.assignToType === 'CONTACT' && formData.contactId) {
       const selectedContact = contacts.find((c: any) => c.id === formData.contactId)
-      if (selectedContact) setAiClientName(selectedContact.company?.name || `${selectedContact.firstName} ${selectedContact.lastName}`)
+      if (selectedContact) clientName = selectedContact.company?.name || `${selectedContact.firstName} ${selectedContact.lastName}`
     }
-    setIsAiModalOpen(true)
-  }
 
-  const handleAiGenerate = async () => {
-    setIsGenerating(true)
-    try {
-      const res = await fetchApi<any>("/crm/proposals/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          title: formData.title,
-          websiteUrl: aiWebsiteUrl,
-          industry: aiIndustry,
-          clientName: aiClientName,
-          scopeGoal: aiScopeGoal,
-          budgetTier: aiBudgetTier,
-          items: items
-        })
-      })
-      
-      if (res.title) setFormData(prev => ({ ...prev, title: res.title }))
-      if (res.content) setFormData(prev => ({ ...prev, content: res.content }))
-      if (Array.isArray(res.items) && res.items.length > 0) {
-        setItems(res.items.map((i: any) => ({
-          name: i.name || "Milestone Item",
-          description: i.description || "",
-          quantity: Number(i.quantity || 1),
-          unitPrice: Number(i.unitPrice || 0),
-          discountRate: Number(i.discountRate || 0),
-          taxRate: Number(i.taxRate || 18),
-          total: Number(i.total || (i.unitPrice * (i.quantity || 1)))
-        })))
-      }
-      setIsAiModalOpen(false)
-      toast.success("AI Proposal & Milestone Scope Generated!")
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate AI content")
-    } finally {
-      setIsGenerating(false)
+    if (clientName) {
+      newContent = newContent.replace(/{{client_name}}/g, clientName)
+      newContent = newContent.replace(/{{company_name}}/g, clientName)
+      newTitle = newTitle.replace(/{{client_name}}/g, clientName)
+      newTitle = newTitle.replace(/{{company_name}}/g, clientName)
     }
+
+    setFormData(prev => ({ 
+      ...prev, 
+      title: newTitle,
+      content: newContent
+    }))
+
+    if (template.items && Array.isArray(template.items)) {
+      setItems(template.items.map((i: any) => ({
+        name: i.name || i.description || "Template Item",
+        description: i.description || "",
+        quantity: Number(i.quantity || 1),
+        unitPrice: Number(i.unitPrice || 0),
+        discountRate: Number(i.discountRate || 0),
+        taxRate: Number(i.taxRate || 0),
+        total: calculateItemTotal(i.quantity || 1, i.unitPrice || 0, i.discountRate || 0, i.taxRate || 0)
+      })))
+    }
+
+    setIsTemplateModalOpen(false)
+    toast.success("Template applied successfully!")
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -265,7 +254,7 @@ export default function InteractiveProposalBuilder() {
               </div>
             </div>
 
-            {/* AI Content */}
+            {/* Template Content */}
             <div className="pt-4 border-t border-white/5 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 text-violet-400 font-bold text-sm uppercase tracking-widest">
@@ -273,11 +262,11 @@ export default function InteractiveProposalBuilder() {
                 </div>
                 <button 
                   type="button"
-                  onClick={handleOpenAiModal}
-                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-3.5 py-1.5 rounded-lg shadow-lg shadow-violet-500/25 transition-all"
+                  onClick={() => setIsTemplateModalOpen(true)}
+                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white px-3.5 py-1.5 rounded-lg border border-white/10 transition-all"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  AI Proposal Architect
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  Use Template
                 </button>
               </div>
               
@@ -505,136 +494,67 @@ export default function InteractiveProposalBuilder() {
 
       </div>
 
-      {/* AI PROPOSAL ARCHITECT MODAL */}
-      {isAiModalOpen && (
+      {/* TEMPLATE SELECTION MODAL */}
+      {isTemplateModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-[#0e0e14] border border-violet-500/30 rounded-2xl shadow-2xl p-6 md:p-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-400" />
+          <div className="w-full max-w-2xl bg-[#0e0e14] border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 relative overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
             
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between mb-6 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
-                  <Bot className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    AI Proposal Architect
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">GREKAM AI</span>
+                    Proposal Templates
                   </h3>
-                  <p className="text-xs text-white/50">Generates problem diagnosis, technical roadmap, and milestone pricing.</p>
+                  <p className="text-xs text-white/50">Select a pre-built template to instantly populate your proposal.</p>
                 </div>
               </div>
               <button 
-                onClick={() => setIsAiModalOpen(false)}
+                onClick={() => setIsTemplateModalOpen(false)}
                 className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Client Name & Target Website URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-violet-400" /> Client / Company
-                  </label>
-                  <input
-                    type="text"
-                    value={aiClientName}
-                    onChange={e => setAiClientName(e.target.value)}
-                    placeholder="e.g. Raaghas Luxury"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500"
-                  />
+            <div className="overflow-y-auto custom-scrollbar pr-2 flex-1 space-y-3">
+              {isLoadingTemplates ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="w-6 h-6 animate-spin text-white/30" />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-emerald-400" /> Website URL (For Live Audit)
-                  </label>
-                  <input
-                    type="text"
-                    value={aiWebsiteUrl}
-                    onChange={e => setAiWebsiteUrl(e.target.value)}
-                    placeholder="e.g. https://clientbrand.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
+              ) : templates.length === 0 ? (
+                <div className="text-center py-10 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                  <p className="text-sm text-white/50 mb-2">No templates found.</p>
+                  <p className="text-xs text-white/30">Save an existing proposal as a template to see it here.</p>
                 </div>
-              </div>
-
-              {/* Industry & Budget Tier */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5">
-                    Industry / Niche
-                  </label>
-                  <select
-                    value={aiIndustry}
-                    onChange={e => setAiIndustry(e.target.value)}
-                    className="w-full bg-[#14141c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500"
-                  >
-                    <option value="Headless E-Commerce & Luxury Retail">Headless E-Commerce & Luxury Retail</option>
-                    <option value="AI WhatsApp Automation & Lead Engine">AI WhatsApp Automation & Lead Engine</option>
-                    <option value="Custom SaaS ERP / CRM Web Application">Custom SaaS ERP / CRM Web Application</option>
-                    <option value="Bespoke Agency & Brand Identity">Bespoke Agency & Brand Identity</option>
-                    <option value="Audio Streaming & Interactive Media">Audio Streaming & Interactive Media</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5">
-                    Investment Tier
-                  </label>
-                  <select
-                    value={aiBudgetTier}
-                    onChange={e => setAiBudgetTier(e.target.value)}
-                    className="w-full bg-[#14141c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500"
-                  >
-                    <option value="startup">🚀 Startup MVP (₹35k – ₹60k)</option>
-                    <option value="growth">📈 Growth Engine (₹65k – ₹1,40k)</option>
-                    <option value="enterprise">🏢 Enterprise Bespoke (₹1,50k+)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Goals / Brief */}
-              <div>
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-violet-400" /> Key Goals & Deliverable Focus
-                </label>
-                <textarea
-                  value={aiScopeGoal}
-                  onChange={e => setAiScopeGoal(e.target.value)}
-                  placeholder="e.g. Rebuild slow storefront on Next.js 16, integrate automated Razorpay checkout, and sync leads with WhatsApp."
-                  rows={3}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 custom-scrollbar resize-none"
-                />
-              </div>
+              ) : (
+                templates.map((tpl: any) => (
+                  <div key={tpl.id} className="p-4 bg-white/5 border border-white/10 hover:border-amber-500/30 rounded-xl transition-all group flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-bold text-sm text-white mb-1">{tpl.title}</h4>
+                      <p className="text-xs text-white/50 line-clamp-1">{tpl.notes?.replace(/<[^>]*>?/gm, '') || 'No content'}</p>
+                    </div>
+                    <button
+                      onClick={() => handleApplyTemplate(tpl)}
+                      className="shrink-0 px-4 py-2 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-white text-xs font-bold rounded-lg transition-colors border border-amber-500/20"
+                    >
+                      Use Template
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
-                onClick={() => setIsAiModalOpen(false)}
+                onClick={() => setIsTemplateModalOpen(false)}
                 className="px-4 py-2 text-xs font-bold text-white/60 hover:text-white bg-white/5 rounded-xl transition-colors"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAiGenerate}
-                disabled={isGenerating}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-500/25 transition-all disabled:opacity-50"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Auditing & Synthesizing Scope...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Generate Proposal & Milestones
-                  </>
-                )}
               </button>
             </div>
           </div>
