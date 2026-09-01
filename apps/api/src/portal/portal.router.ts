@@ -277,59 +277,74 @@ export default async function portalRouter(app: FastifyInstance) {
 
   // GET /api/v1/portal/proposals
   app.get('/proposals', async (req, reply) => {
-    const contactId = (req as any).contactId;
-    const contactEmail = (req as any).contactEmail || req.user?.email || '';
-    const companyId = (req as any).companyId;
-    
-    // Find all leads associated with this client's email, contactId, or company
-    const matchingLeads = await app.prisma.lead.findMany({
-      where: {
-        OR: [
-          ...(contactEmail ? [{ email: { equals: contactEmail, mode: 'insensitive' as const } }] : []),
-          ...(contactId ? [{ contactId }] : []),
-          ...(companyId ? [{ companyId }] : []),
-        ]
-      },
-      select: { id: true }
-    });
-    const leadIds = matchingLeads.map(l => l.id);
+    try {
+      const contactId = (req as any).contactId;
+      const contactEmail = (req as any).contactEmail || req.user?.email || '';
+      const companyId = (req as any).companyId;
+      
+      const leadOrConditions: any[] = [];
+      if (contactEmail) leadOrConditions.push({ email: { equals: contactEmail, mode: 'insensitive' as const } });
+      if (contactId) leadOrConditions.push({ contactId });
+      if (companyId) leadOrConditions.push({ companyId });
 
-    // Find all contacts associated with this client's email, contactId, or company
-    const matchingContacts = await app.prisma.contact.findMany({
-      where: {
-        OR: [
-          ...(contactEmail ? [{ email: { equals: contactEmail, mode: 'insensitive' as const } }] : []),
-          ...(contactId ? [{ id: contactId }] : []),
-          ...(companyId ? [{ companyId }] : []),
-        ]
-      },
-      select: { id: true }
-    });
-    const contactIds = matchingContacts.map(c => c.id);
+      let leadIds: string[] = [];
+      if (leadOrConditions.length > 0) {
+        const matchingLeads = await app.prisma.lead.findMany({
+          where: { OR: leadOrConditions },
+          select: { id: true }
+        });
+        leadIds = matchingLeads.map(l => l.id);
+      }
 
-    // Find all proposals matching leadId, contactId, matching lead/contact email, or companyId
-    const proposals = await app.prisma.proposal.findMany({
-      where: {
-        OR: [
-          ...(leadIds.length > 0 ? [{ leadId: { in: leadIds } }] : []),
-          ...(contactIds.length > 0 ? [{ contactId: { in: contactIds } }] : []),
-          ...(contactEmail ? [{ lead: { email: { equals: contactEmail, mode: 'insensitive' as const } } }] : []),
-          ...(contactEmail ? [{ contact: { email: { equals: contactEmail, mode: 'insensitive' as const } } }] : []),
-          ...(companyId ? [{ contact: { companyId } }] : []),
-          ...(companyId ? [{ lead: { companyId } }] : []),
-        ],
-        status: { not: 'REJECTED' as const }
-      },
-      include: {
-        items: true,
-        comments: { orderBy: { createdAt: 'desc' } },
-        contact: { select: { id: true, firstName: true, lastName: true, email: true } },
-        lead: { select: { id: true, name: true, email: true, company: true } },
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    return proposals;
+      const contactOrConditions: any[] = [];
+      if (contactEmail) contactOrConditions.push({ email: { equals: contactEmail, mode: 'insensitive' as const } });
+      if (contactId) contactOrConditions.push({ id: contactId });
+      if (companyId) contactOrConditions.push({ companyId });
+
+      let contactIds: string[] = [];
+      if (contactOrConditions.length > 0) {
+        const matchingContacts = await app.prisma.contact.findMany({
+          where: { OR: contactOrConditions },
+          select: { id: true }
+        });
+        contactIds = matchingContacts.map(c => c.id);
+      }
+
+      const propOrConditions: any[] = [];
+      if (leadIds.length > 0) propOrConditions.push({ leadId: { in: leadIds } });
+      if (contactIds.length > 0) propOrConditions.push({ contactId: { in: contactIds } });
+      if (contactEmail) {
+        propOrConditions.push({ lead: { email: { equals: contactEmail, mode: 'insensitive' as const } } });
+        propOrConditions.push({ contact: { email: { equals: contactEmail, mode: 'insensitive' as const } } });
+      }
+      if (companyId) {
+        propOrConditions.push({ contact: { companyId } });
+        propOrConditions.push({ lead: { companyId } });
+      }
+
+      if (propOrConditions.length === 0) {
+        return [];
+      }
+
+      const proposals = await app.prisma.proposal.findMany({
+        where: {
+          OR: propOrConditions,
+          status: { not: 'REJECTED' as const }
+        },
+        include: {
+          items: true,
+          comments: { orderBy: { createdAt: 'desc' } },
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, name: true, email: true, company: true } },
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+      
+      return proposals;
+    } catch (err: any) {
+      app.log.error({ err }, "Error in GET /portal/proposals");
+      return reply.code(500).send({ error: "Failed to fetch proposals", details: err?.message || String(err) });
+    }
   });
 
   // GET /api/v1/portal/notifications
