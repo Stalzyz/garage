@@ -282,9 +282,9 @@ export default async function portalRouter(app: FastifyInstance) {
       const contactEmail = (req as any).contactEmail || req.user?.email || '';
       const companyId = (req as any).companyId;
       
+      // Lead.company is a plain String (company name), no companyId relation on Lead
       const leadOrConditions: any[] = [];
       if (contactEmail) leadOrConditions.push({ email: { equals: contactEmail, mode: 'insensitive' as const } });
-      if (companyId) leadOrConditions.push({ companyId });
 
       let leadIds: string[] = [];
       if (leadOrConditions.length > 0) {
@@ -317,8 +317,8 @@ export default async function portalRouter(app: FastifyInstance) {
         propOrConditions.push({ contact: { email: { equals: contactEmail, mode: 'insensitive' as const } } });
       }
       if (companyId) {
+        // Only Contact has a companyId relation — Lead.company is a plain String
         propOrConditions.push({ contact: { companyId } });
-        propOrConditions.push({ lead: { companyId } });
       }
 
       if (propOrConditions.length === 0) {
