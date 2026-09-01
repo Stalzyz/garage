@@ -7,16 +7,43 @@ import { useApi } from "@/lib/useApi"
 import { format } from "date-fns"
 import { useCurrency } from "@/hooks/useCurrency"
 
+import { toast } from "sonner"
+import { fetchApi } from "@/lib/useApi"
+import { Copy } from "lucide-react"
+
 export default function ProposalsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [viewMode, setViewMode] = useState<'all' | 'templates'>('all')
+  const [sendingId, setSendingId] = useState<string | null>(null)
   const limit = 20
   const { symbol } = useCurrency()
 
   const { data, isLoading, mutate } = useApi<any>(`/crm/proposals?page=${page}&limit=${limit}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}${viewMode === 'templates' ? '&isTemplate=true' : ''}`)
   const proposals = data?.data || []
   const totalPages = data?.totalPages || 1
+
+  const handleSendProposal = async (p: any, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSendingId(p.id)
+    try {
+      await fetchApi(`/crm/proposals/${p.id}/send`, { method: "POST" })
+      toast.success(`Proposal "${p.title}" emailed to client & updated to SENT!`)
+      mutate()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send proposal")
+    } finally {
+      setSendingId(null)
+    }
+  }
+
+  const handleCopyLink = (p: any, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const token = p.publicToken || p.id
+    const link = `${window.location.origin}/portal/proposals/${token}`
+    navigator.clipboard.writeText(link)
+    toast.success("Proposal link copied to clipboard!")
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -135,9 +162,32 @@ export default function ProposalsPage() {
                       {format(new Date(p.createdAt), 'MMM d, yyyy')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link href={`/dashboard/crm/proposals/${p.id}`} onClick={e => e.stopPropagation()} className="p-1.5 hover:bg-white/10 rounded-md transition-colors text-white/40 hover:text-white inline-block">
-                        <span className="text-xs bg-white/10 px-3 py-1 rounded-md text-white">View</span>
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => handleSendProposal(p, e)}
+                          disabled={sendingId === p.id}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded-lg text-[11px] border border-blue-500/20 transition-colors disabled:opacity-50"
+                          title="Email PDF & link directly to client"
+                        >
+                          <Send className="w-3 h-3" /> {sendingId === p.id ? "Sending..." : p.status === 'SENT' ? "Resend" : "Send Email"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyLink(p, e)}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-white/5 hover:bg-white/10 text-white/70 font-bold rounded-lg text-[11px] border border-white/10 transition-colors"
+                          title="Copy client proposal URL"
+                        >
+                          <Copy className="w-3 h-3" /> Copy Link
+                        </button>
+                        <Link 
+                          href={`/dashboard/crm/proposals/${p.id}`} 
+                          onClick={e => e.stopPropagation()} 
+                          className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg text-[11px] transition-colors"
+                        >
+                          View
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                   );
