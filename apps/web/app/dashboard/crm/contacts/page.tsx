@@ -265,6 +265,60 @@ export default function ContactsAndCompaniesPage() {
     }
   }
 
+  // ── Client Portal Credentials & Password Reset Handlers ──
+  const [portalModalData, setPortalModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    email: string;
+    passcode?: string;
+    loginUrl: string;
+    alreadyExisted?: boolean;
+  }>({ isOpen: false, title: "", email: "", loginUrl: "https://garage.grekam.in/portal" })
+
+  const handleInvitePortal = async (c: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    if (!c.email) return toast.error("Contact must have an email address to generate portal credentials.")
+    try {
+      const res = await fetchApi(`/crm/contacts/${c.id}/invite`, { method: "POST" })
+      if (res?.credentials) {
+        setPortalModalData({
+          isOpen: true,
+          title: "Client Portal Credentials Created",
+          email: res.credentials.email,
+          passcode: res.credentials.password,
+          loginUrl: "https://garage.grekam.in/portal",
+          alreadyExisted: false
+        })
+        toast.success("Client portal credentials generated & sent to email!")
+      } else {
+        setPortalModalData({
+          isOpen: true,
+          title: "Client Portal Account Active",
+          email: c.email,
+          loginUrl: "https://garage.grekam.in/portal",
+          alreadyExisted: true
+        })
+        toast.info("Portal account already active. Instructions sent to client!")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate portal credentials")
+    }
+  }
+
+  const handleResetPasscode = async (c: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    if (!c.email) return toast.error("Contact must have an email address.")
+    if (!confirm(`Reset portal passcode for ${c.firstName} ${c.lastName} (${c.email})?`)) return
+    try {
+      const res = await fetchApi(`/crm/contacts/${c.id}/reset-pin`, { method: "POST" })
+      toast.success(`Passcode reset link & temporary credentials sent to ${c.email}!`)
+      mutateContacts()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reset passcode. Make sure portal account is created.")
+    }
+  }
+
+
   // ── Company Handlers ──
   const handleOpenNewCompany = () => {
     setEditingCompanyId(null)
@@ -563,14 +617,34 @@ export default function ContactsAndCompaniesPage() {
                     </div>
 
                     {/* Action Bar */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs text-white/40">
-                      <button
-                        type="button"
-                        onClick={(e) => handleEditContact(contact, e)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded-lg transition-colors text-xs border border-blue-500/20"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" /> Edit Contact
-                      </button>
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/5 text-xs text-white/40">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => handleEditContact(contact, e)}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded-lg transition-colors text-[11px] border border-blue-500/20"
+                        >
+                          <Edit3 className="w-3 h-3" /> Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleInvitePortal(contact, e)}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold rounded-lg transition-colors text-[11px] border border-emerald-500/20"
+                          title="Generate Client Portal Account & Send Email Invite"
+                        >
+                          <Key className="w-3 h-3" /> Enable Portal
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleResetPasscode(contact, e)}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold rounded-lg transition-colors text-[11px] border border-amber-500/20"
+                          title="Reset Client Portal Passcode & Email"
+                        >
+                          <RefreshCcw className="w-3 h-3" /> Reset Passcode
+                        </button>
+                      </div>
                       
                       <button
                         type="button"
@@ -620,6 +694,20 @@ export default function ContactsAndCompaniesPage() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
+                              onClick={(e) => handleInvitePortal(c, e)}
+                              className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold rounded-lg text-[11px] border border-emerald-500/20 transition-colors"
+                              title="Enable Client Portal Account"
+                            >
+                              <Key className="w-3 h-3" /> Enable Portal
+                            </button>
+                            <button
+                              onClick={(e) => handleResetPasscode(c, e)}
+                              className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold rounded-lg text-[11px] border border-amber-500/20 transition-colors"
+                              title="Reset Client Passcode"
+                            >
+                              <RefreshCcw className="w-3 h-3" /> Reset
+                            </button>
+                            <button
                               onClick={(e) => handleEditContact(c, e)}
                               className="flex items-center gap-1 px-2.5 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded-lg text-[11px] border border-blue-500/20 transition-colors"
                             >
@@ -634,6 +722,7 @@ export default function ContactsAndCompaniesPage() {
                             </button>
                           </div>
                         </td>
+
                       </tr>
                     ))}
                   </tbody>
@@ -1185,6 +1274,73 @@ export default function ContactsAndCompaniesPage() {
           </div>
         </form>
       </SlideOver>
+
+      {/* Client Portal Credentials Modal */}
+      {portalModalData.isOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-[#0b0f19] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-emerald-500/10">
+              <div className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-base text-white">{portalModalData.title}</h3>
+              </div>
+              <button
+                onClick={() => setPortalModalData({ ...portalModalData, isOpen: false })}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs font-mono">
+              <p className="text-white/70 leading-relaxed font-sans">
+                {portalModalData.alreadyExisted
+                  ? `An active Client Portal account exists for ${portalModalData.email}. Login instructions have been sent via email.`
+                  : `Client Portal account created! An email with temporary login credentials has been sent to ${portalModalData.email}.`}
+              </p>
+
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                <div>
+                  <span className="text-white/40 block text-[10px] uppercase">Login Email</span>
+                  <span className="text-emerald-400 font-bold text-sm">{portalModalData.email}</span>
+                </div>
+                {portalModalData.passcode && (
+                  <div>
+                    <span className="text-white/40 block text-[10px] uppercase">Temporary Passcode</span>
+                    <span className="text-amber-300 font-bold text-sm bg-black/50 px-2 py-0.5 rounded border border-amber-500/30">
+                      {portalModalData.passcode}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-white/40 block text-[10px] uppercase">Client Portal URL</span>
+                  <span className="text-blue-400 font-bold text-xs underline">{portalModalData.loginUrl}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    const text = `Client Portal Credentials:\nURL: ${portalModalData.loginUrl}\nEmail: ${portalModalData.email}${portalModalData.passcode ? `\nPasscode: ${portalModalData.passcode}` : ''}`
+                    navigator.clipboard.writeText(text)
+                    toast.success("Credentials copied to clipboard!")
+                  }}
+                  className="flex-1 py-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold rounded-xl hover:bg-emerald-500/30 transition-colors uppercase tracking-widest text-[11px]"
+                >
+                  Copy Credentials
+                </button>
+                <button
+                  onClick={() => setPortalModalData({ ...portalModalData, isOpen: false })}
+                  className="py-3 px-5 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-colors text-[11px]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
