@@ -283,11 +283,8 @@ export default function HRMonitoringDashboard() {
                   <span className="text-[10px] font-mono tracking-widest uppercase font-bold">AI Focus Score</span>
                 </div>
                 <div className="text-3xl font-bold text-violet-400 relative z-10">{aiInsights.focusScore || productivityScore}%</div>
-                
-                  <p className="text-sm text-white/90">{shot.notes || "No unusual activity detected"}</p>
-                </div>
               </div>
-            ))}
+
           </div>
           
           {mockScreenshots.length === 0 && (
