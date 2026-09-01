@@ -453,6 +453,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
   app.post('/proposals/:id/send', async (req, reply) => {
     const { id } = req.params as { id: string };
+    const body = (req.body as any) || {};
     
     // Generate token if it doesn't have one
     const [existing, financeSettings] = await Promise.all([
@@ -469,20 +470,46 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
     
     if (!existing) return reply.notFound('Proposal not found');
 
+    let targetContactId = existing.contactId || body.contactId || null;
+    let targetLeadId = existing.leadId || body.leadId || null;
+    let targetEmail = body.recipientEmail || existing.contact?.email || existing.lead?.email || null;
+
+    // Auto-link unassigned proposals to matching contact or lead by email
+    if (!targetContactId && !targetLeadId && targetEmail) {
+      const matchedContact = await app.prisma.contact.findFirst({
+        where: { email: { equals: targetEmail, mode: 'insensitive' } }
+      });
+      if (matchedContact) {
+        targetContactId = matchedContact.id;
+      } else {
+        const matchedLead = await app.prisma.lead.findFirst({
+          where: { email: { equals: targetEmail, mode: 'insensitive' } }
+        });
+        if (matchedLead) targetLeadId = matchedLead.id;
+      }
+    }
+
     const token = existing.publicToken || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const proposal = await app.prisma.proposal.update({
       where: { id },
       data: { 
         status: 'SENT',
-        publicToken: token
+        publicToken: token,
+        ...(targetContactId ? { contactId: targetContactId } : {}),
+        ...(targetLeadId ? { leadId: targetLeadId } : {}),
       },
+      include: {
+        contact: { include: { company: true } },
+        lead: true,
+        items: true
+      }
     });
 
-    const clientEmail = existing.contact?.email || existing.lead?.email;
-    const clientName = existing.contact ? `${existing.contact.firstName} ${existing.contact.lastName}` : (existing.lead?.name || 'Client');
-    const clientCompany = existing.contact?.company?.name || existing.lead?.company || '';
-    const clientPhone = existing.contact?.phone || existing.lead?.phone || '';
+    const clientEmail = targetEmail || proposal.contact?.email || proposal.lead?.email;
+    const clientName = proposal.contact ? `${proposal.contact.firstName} ${proposal.contact.lastName}` : (proposal.lead?.name || 'Client');
+    const clientCompany = proposal.contact?.company?.name || proposal.lead?.company || '';
+    const clientPhone = proposal.contact?.phone || proposal.lead?.phone || '';
 
     if (clientEmail) {
       const { sendEmail } = await import('../integrations/email.service');

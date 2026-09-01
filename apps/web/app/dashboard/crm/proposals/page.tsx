@@ -25,10 +25,21 @@ export default function ProposalsPage() {
 
   const handleSendProposal = async (p: any, e: React.MouseEvent) => {
     e.stopPropagation()
+    let recipientEmail: string | undefined = undefined;
+
+    if (!p.contactId && !p.leadId && !p.contact?.email && !p.lead?.email) {
+      const emailInput = window.prompt("This proposal is unassigned. Enter the client's email address to send and publish to their portal:")
+      if (!emailInput || !emailInput.trim()) return;
+      recipientEmail = emailInput.trim();
+    }
+
     setSendingId(p.id)
     try {
-      await fetchApi(`/crm/proposals/${p.id}/send`, { method: "POST" })
-      toast.success(`Proposal "${p.title}" emailed to client & updated to SENT!`)
+      await fetchApi(`/crm/proposals/${p.id}/send`, {
+        method: "POST",
+        body: JSON.stringify({ recipientEmail })
+      })
+      toast.success(`Proposal "${p.title}" emailed to client & published to portal!`)
       mutate()
     } catch (err: any) {
       toast.error(err.message || "Failed to send proposal")

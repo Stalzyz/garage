@@ -46,15 +46,22 @@ export default function ProposalDetailPage() {
   }
 
   const markAsSent = async () => {
+    let recipientEmail: string | undefined = undefined;
+    if (!proposal?.contactId && !proposal?.leadId && !proposal?.contact?.email && !proposal?.lead?.email) {
+      const emailInput = window.prompt("This proposal is unassigned. Enter the client's email address to send and publish to their portal:")
+      if (!emailInput || !emailInput.trim()) return;
+      recipientEmail = emailInput.trim();
+    }
     try {
       await fetchApi(`/crm/proposals/${proposalId}/send`, {
-        method: "POST"
+        method: "POST",
+        body: JSON.stringify({ recipientEmail })
       });
       mutate();
-      alert("Proposal securely emailed to the client!");
-    } catch (err) {
+      alert("Proposal securely emailed to the client & published to their portal!");
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to send email");
+      alert(err.message || "Failed to send email");
     }
   }
 
