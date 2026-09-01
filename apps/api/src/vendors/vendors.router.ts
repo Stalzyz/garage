@@ -43,7 +43,7 @@ export default async function vendorsRouter(app: FastifyInstance) {
     const vendors = await app.prisma.vendor.findMany({
       where: { ...(type && { type: type as any }) },
       include: {
-        user: { select: { name: true, email: true, avatarUrl: true } },
+        user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } },
         _count: { select: { assignments: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -57,7 +57,7 @@ export default async function vendorsRouter(app: FastifyInstance) {
     const vendor = await app.prisma.vendor.findUnique({
       where: { id },
       include: {
-        user: { select: { name: true, email: true, avatarUrl: true } },
+        user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } },
         assignments: { orderBy: { createdAt: 'desc' } },
       },
     });

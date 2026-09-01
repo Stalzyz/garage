@@ -2,6 +2,45 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 
+const userSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  avatarUrl: true,
+  role: true,
+};
+
+function formatUserData(u: any) {
+  if (!u) return u;
+  const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+  return {
+    ...u,
+    name: fullName || u.email || 'User',
+    image: u.avatarUrl || null,
+  };
+}
+
+function formatChannelData(c: any) {
+  if (!c) return c;
+  return {
+    ...c,
+    participants: Array.isArray(c.participants)
+      ? c.participants.map((p: any) => ({
+          ...p,
+          user: formatUserData(p.user),
+        }))
+      : [],
+    messages: Array.isArray(c.messages)
+      ? c.messages.map((m: any) => ({
+          ...m,
+          sender: formatUserData(m.sender),
+          user: formatUserData(m.sender),
+        }))
+      : [],
+  };
+}
+
 export default async function messagesRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
@@ -10,7 +49,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const userId = req.user.id;
 
-    let channels = await server.prisma.chatChannel.findMany({
+    let rawChannels = await server.prisma.chatChannel.findMany({
       where: {
         participants: {
           some: { userId }
@@ -18,13 +57,13 @@ export default async function messagesRoutes(app: FastifyInstance) {
       },
       include: {
         participants: {
-          include: { user: { select: { id: true, name: true, email: true, image: true, role: true } } }
+          include: { user: { select: userSelect } }
         },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
           include: {
-            sender: { select: { id: true, name: true, email: true, image: true, role: true } }
+            sender: { select: userSelect }
           }
         }
       },
@@ -32,7 +71,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
     });
 
     // If user has no channels yet, auto-provision a General / Support channel
-    if (channels.length === 0) {
+    if (rawChannels.length === 0) {
       const admins = await server.prisma.user.findMany({
         where: { role: { in: ['SUPER_ADMIN', 'MANAGER', 'STAFF'] } },
         take: 3,
@@ -56,18 +95,19 @@ export default async function messagesRoutes(app: FastifyInstance) {
         },
         include: {
           participants: {
-            include: { user: { select: { id: true, name: true, email: true, image: true, role: true } } }
+            include: { user: { select: userSelect } }
           },
           messages: {
             include: {
-              sender: { select: { id: true, name: true, email: true, image: true, role: true } }
+              sender: { select: userSelect }
             }
           }
         }
       });
-      channels = [newChannel];
+      rawChannels = [newChannel];
     }
 
+    const channels = rawChannels.map(formatChannelData);
     return { channels };
   });
 
@@ -107,11 +147,11 @@ export default async function messagesRoutes(app: FastifyInstance) {
           ]
         },
         include: { 
-          participants: { include: { user: true } },
-          messages: { take: 1, orderBy: { createdAt: 'desc' } }
+          participants: { include: { user: { select: userSelect } } },
+          messages: { take: 1, orderBy: { createdAt: 'desc' }, include: { sender: { select: userSelect } } }
         }
       });
-      if (existing) return reply.send(existing);
+      if (existing) return reply.send(formatChannelData(existing));
     }
 
     const channel = await server.prisma.chatChannel.create({
@@ -124,12 +164,12 @@ export default async function messagesRoutes(app: FastifyInstance) {
         }
       },
       include: { 
-        participants: { include: { user: true } },
-        messages: true
+        participants: { include: { user: { select: userSelect } } },
+        messages: { include: { sender: { select: userSelect } } }
       }
     });
 
-    return reply.status(201).send(channel);
+    return reply.status(201).send(formatChannelData(channel));
   });
 
   server.get('/channels/:id/messages', {
@@ -141,17 +181,21 @@ export default async function messagesRoutes(app: FastifyInstance) {
       where: { channelId: id },
       include: {
         sender: {
-          select: { id: true, name: true, email: true, image: true, role: true }
+          select: userSelect
         }
       },
       orderBy: { createdAt: 'asc' }
     });
 
     // Map sender to user property for frontend compatibility
-    const messages = rawMessages.map(m => ({
-      ...m,
-      user: m.sender
-    }));
+    const messages = rawMessages.map(m => {
+      const formattedSender = formatUserData(m.sender);
+      return {
+        ...m,
+        sender: formattedSender,
+        user: formattedSender
+      };
+    });
 
     return { messages };
   });
@@ -189,7 +233,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       },
       include: {
         sender: {
-          select: { id: true, name: true, email: true, image: true, role: true }
+          select: userSelect
         }
       }
     });
@@ -199,9 +243,11 @@ export default async function messagesRoutes(app: FastifyInstance) {
       data: { updatedAt: new Date() }
     });
 
+    const formattedSender = formatUserData(message.sender);
     const formattedMessage = {
       ...message,
-      user: message.sender
+      sender: formattedSender,
+      user: formattedSender
     };
 
     // Broadcast via WebSockets if available
