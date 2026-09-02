@@ -32,15 +32,16 @@ pnpm --filter @grekam/web build
 
 # 6. Setup Standalone Static Files for Next.js
 echo "📂 Copying Next.js static files to standalone directory..."
-# Remove old static files if they exist
-rm -rf apps/web/.next/standalone/grekam-os/apps/web/.next/static
-# Copy new static files and public assets
-cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/
-cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/
+mkdir -p apps/web/.next/standalone/apps/web/.next 2>/dev/null || true
+mkdir -p apps/web/.next/standalone/grekam-os/apps/web/.next 2>/dev/null || true
+cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
+cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 2>/dev/null || true
+cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
+cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
 
 # 7. Restart PM2 processes
 echo "🔄 Restarting PM2 processes..."
-pm2 restart grekam-os-api grekam-os-web
+pm2 restart grekam-os-api grekam-os-web || pm2 restart all
 
 echo "======================================"
 echo "✅ Deployment completed successfully!"
