@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "curl -s -w '\nCHANNELS_CODE: %{http_code}\n' http://localhost:4000/api/v1/chat/channels\r"
+expect "# "
+send "curl -s -w '\nPROPOSALS_CODE: %{http_code}\n' http://localhost:4000/api/v1/portal/proposals\r"
+expect "# "
+send "exit\r"
+expect eof

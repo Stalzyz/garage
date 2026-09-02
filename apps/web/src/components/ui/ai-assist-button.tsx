@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Loader2 } from "lucide-react"
+import { Sliders, Loader2, FileText } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { Modal } from "./modal"
@@ -19,7 +19,7 @@ export function AIAssistButton({
   format = "text", 
   context = "", 
   buttonClassName = "flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 rounded text-xs font-bold transition-colors disabled:opacity-50 border border-emerald-500/30",
-  buttonLabel = "AI Assist"
+  buttonLabel = "Quick Assist"
 }: AIAssistButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [prompt, setPrompt] = useState("")
@@ -40,11 +40,11 @@ export function AIAssistButton({
         })
       })
       onGenerate(res.content)
-      toast.success("AI content generated successfully!")
+      toast.success("Content generated successfully!")
       setIsOpen(false)
       setPrompt("")
     } catch (err: any) {
-      toast.error(err.message || "Failed to generate content. Have you set your OpenAI API Key?")
+      toast.error(err.message || "Failed to generate content. Have you set your API Key in Settings?")
     } finally {
       setIsGenerating(false)
     }
@@ -57,7 +57,7 @@ export function AIAssistButton({
         onClick={() => setIsOpen(true)}
         className={buttonClassName}
       >
-        <Zap className="w-3.5 h-3.5" />
+        <Sliders className="w-3.5 h-3.5" />
         {buttonLabel}
       </button>
 
@@ -66,11 +66,11 @@ export function AIAssistButton({
           <div className="w-[500px] p-6 text-left">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                <Zap className="w-5 h-5" />
+                <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">AI Assistant</h2>
-                <p className="text-xs text-white/50">What would you like me to write?</p>
+                <h2 className="text-xl font-bold text-white">Content Assistant</h2>
+                <p className="text-xs text-white/50">What would you like to draft?</p>
               </div>
             </div>
 
@@ -100,7 +100,7 @@ export function AIAssistButton({
                   disabled={isGenerating || !prompt.trim()}
                   className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-500 transition-colors text-sm flex items-center shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:opacity-50"
                 >
-                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sliders className="w-4 h-4 mr-2" />}
                   Generate
                 </button>
               </div>

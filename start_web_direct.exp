@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os/apps/web && find .next/standalone -name server.js\r"
+expect "# "
+send "cd /root/grekam-os\r"
+expect "# "
+send "mkdir -p apps/web/.next/standalone/apps/web/.next/ && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true\r"
+expect "# "
+send "cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true\r"
+expect "# "
+send "pm2 delete grekam-os-web || true\r"
+expect "# "
+send "PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://garage.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/apps/web/server.js --name grekam-os-web || PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://garage.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/server.js --name grekam-os-web\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "sleep 3 && pm2 status\r"
+expect "# "
+send "exit\r"
+expect eof

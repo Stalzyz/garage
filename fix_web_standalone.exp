@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+set timeout 300
+set script {
+  cd /root/grekam-os
+  echo "Current directory: $(pwd)"
+  git pull origin main
+  pm2 stop grekam-os-web || true
+  rm -rf apps/web/.next
+  cd apps/web && npx next build && cd ../..
+  mkdir -p apps/web/.next/standalone/apps/web/.next/
+  cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
+  cp -r apps/web/public apps/web/.next/standalone/apps/web/
+  pm2 delete grekam-os-web || true
+  PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1" pm2 start apps/web/.next/standalone/apps/web/server.js --name grekam-os-web
+  pm2 save
+  sleep 3
+  pm2 status
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

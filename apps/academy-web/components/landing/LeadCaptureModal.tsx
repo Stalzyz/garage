@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Sparkles, Target } from "lucide-react";
+import { X, Loader2, Target, ArrowRight } from "lucide-react";
 import { fetchApi } from "@/lib/useApi";
 
 interface LeadCaptureModalProps {
@@ -49,12 +49,12 @@ export function LeadCaptureModal({ isOpen, onClose }: LeadCaptureModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+            className="absolute inset-0 bg-black/80 backdrop-blur-md" 
             onClick={onClose} 
           />
           
@@ -80,7 +80,7 @@ export function LeadCaptureModal({ isOpen, onClose }: LeadCaptureModalProps) {
                 <>
                   <div className="mb-8">
                     <h2 className="text-3xl font-black text-white flex items-center gap-2 mb-2 font-sans tracking-tight">
-                      Start Your Journey <Sparkles className="w-6 h-6 text-emerald-400" />
+                      Start Your Journey <ArrowRight className="w-6 h-6 text-emerald-400" />
                     </h2>
                     <p className="text-white/50 text-sm font-sans">
                       Leave your details below and an admissions counsellor will reach out to schedule a free demo session or campus tour.

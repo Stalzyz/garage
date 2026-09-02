@@ -153,7 +153,7 @@ const DevicePreviewModal: React.FC<DevicePreviewModalProps> = ({ project, onClos
           {/* Left: Project Meta */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 text-emerald-400">
-              <Sparkles className="w-4 h-4" />
+              <Globe className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">

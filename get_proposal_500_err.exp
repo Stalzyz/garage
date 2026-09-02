@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "grep -i -C 5 'proposals' /root/.pm2/logs/grekam-os-api-out.log | tail -60\r"
+expect "# "
+send "exit\r"
+expect eof

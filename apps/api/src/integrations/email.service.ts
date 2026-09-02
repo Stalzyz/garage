@@ -72,7 +72,7 @@ function baseTemplate(content: string, preheader = '') {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Grekam Visuals</title>
 </head>
-<body style="margin:0;padding:0;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   ${preheader ? `<span style="display:none;max-height:0;overflow:hidden;">${preheader}</span>` : ''}
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 20px;">
     <tr><td align="center">
@@ -82,9 +82,11 @@ function baseTemplate(content: string, preheader = '') {
           <td style="background:linear-gradient(135deg,#4c1d95,#1e3a8a);padding:32px 40px;">
             <table cellpadding="0" cellspacing="0">
               <tr>
-                <td style="width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;text-align:center;line-height:40px;font-size:20px;">✦</td>
+                <td style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;text-align:center;vertical-align:middle;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </td>
                 <td style="padding-left:12px;">
-                  <div style="color:#fff;font-size:14px;font-weight:700;">Grekam Visuals</div>
+                  <div style="color:#fff;font-size:14px;font-weight:700;letter-spacing:0.5px;">Grekam Visuals</div>
                   <div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:2px;text-transform:uppercase;">Client Portal</div>
                 </td>
               </tr>
@@ -96,8 +98,8 @@ function baseTemplate(content: string, preheader = '') {
         <!-- Footer -->
         <tr>
           <td style="background:rgba(255,255,255,0.03);border-top:1px solid rgba(255,255,255,0.06);padding:24px 40px;text-align:center;">
-            <p style="color:rgba(255,255,255,0.25);font-size:11px;margin:0;">© 2025 Grekam Visuals Pvt. Ltd. · Bangalore, India</p>
-            <p style="color:rgba(255,255,255,0.15);font-size:10px;margin:8px 0 0;">You're receiving this because you're a Grekam client. <a href="#" style="color:#7c3aed;">Unsubscribe</a></p>
+            <p style="color:rgba(255,255,255,0.25);font-size:11px;margin:0;">© 2026 Grekam Visuals Pvt. Ltd. · Bangalore, India</p>
+            <p style="color:rgba(255,255,255,0.15);font-size:10px;margin:8px 0 0;">You are receiving this because you are a Grekam client. <a href="#" style="color:#7c3aed;">Unsubscribe</a></p>
           </td>
         </tr>
       </table>
@@ -112,7 +114,7 @@ function baseTemplate(content: string, preheader = '') {
 export const EmailTemplates = {
 
   proposalReady: (clientName: string, proposalTitle: string, proposalId: string) => ({
-    subject: `📋 Your Proposal is Ready — ${proposalTitle}`,
+    subject: `Proposal Ready — ${proposalTitle}`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Hi ${clientName},</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
@@ -134,11 +136,11 @@ export const EmailTemplates = {
   }),
 
   projectUpdate: (clientName: string, projectName: string, phase: string, progress: number) => ({
-    subject: `🚀 Project Update — ${projectName} is now ${progress}% complete`,
+    subject: `Project Update — ${projectName} is now ${progress}% complete`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Project Update</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
-        Hi ${clientName}, great news! Your project <strong style="color:#fff;">${projectName}</strong> has moved to a new phase.
+        Hi ${clientName}, your project <strong style="color:#fff;">${projectName}</strong> has moved to a new phase.
       </p>
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:24px;">
         <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">Current Phase</div>
@@ -156,7 +158,7 @@ export const EmailTemplates = {
   }),
 
   invoiceDue: (clientName: string, invoiceId: string, amount: number, dueDate: string) => ({
-    subject: `🧾 Invoice ${invoiceId} Due on ${dueDate}`,
+    subject: `Invoice ${invoiceId} Due on ${dueDate}`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Invoice Reminder</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
@@ -184,15 +186,15 @@ export const EmailTemplates = {
   }),
 
   deliverableReady: (clientName: string, projectName: string, fileName: string) => ({
-    subject: `📦 Deliverable Ready — ${fileName}`,
+    subject: `Deliverable Ready — ${fileName}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Your file is ready!</h2>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Your file is ready</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
         Hi ${clientName}, a new deliverable has been uploaded for your project <strong style="color:#fff;">${projectName}</strong>.
       </p>
       <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;margin-bottom:28px;">
         <div style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">File Ready</div>
-        <div style="color:#34d399;font-size:15px;font-weight:600;">📄 ${fileName}</div>
+        <div style="color:#34d399;font-size:15px;font-weight:600;">${fileName}</div>
       </div>
       <a href="${process.env.PORTAL_URL || 'http://localhost:3000'}/portal/dashboard"
          style="display:inline-block;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
@@ -204,15 +206,15 @@ export const EmailTemplates = {
   // ── Drip sequence ──────────────────────────────────────────────────────────
 
   dripWelcome: (clientName: string) => ({
-    subject: `✦ Welcome to Grekam Visuals, ${clientName}!`,
+    subject: `Welcome to Grekam Visuals, ${clientName}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, ${clientName}! 🎉</h2>
+      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, ${clientName}</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
         We're excited to start working with you. Here's everything you need to know to get started with your Grekam Client Portal.
       </p>
       ${['Track your project in real-time', 'Download deliverables instantly', 'Review and approve proposals', 'View and pay invoices'].map(item =>
         `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="color:#7c3aed;font-size:18px;">✓</span>
+          <span style="display:inline-block;width:16px;height:16px;background:rgba(124,58,237,0.2);color:#a78bfa;border-radius:50%;text-align:center;line-height:16px;font-size:11px;font-weight:bold;">✓</span>
           <span style="color:rgba(255,255,255,0.7);font-size:14px;">${item}</span>
         </div>`).join('')}
       <br/>
@@ -224,7 +226,7 @@ export const EmailTemplates = {
   }),
 
   dripFollowUp3Days: (clientName: string, projectName: string) => ({
-    subject: `👋 Quick check-in on ${projectName}`,
+    subject: `Quick check-in on ${projectName}`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">How are things going?</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
@@ -242,7 +244,7 @@ export const EmailTemplates = {
   }),
 
   dripWeekly: (clientName: string, projectName: string, progress: number, nextMilestone: string) => ({
-    subject: `📊 Weekly Update — ${projectName} (${progress}% done)`,
+    subject: `Weekly Update — ${projectName} (${progress}% done)`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Weekly Project Update</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
@@ -260,21 +262,21 @@ export const EmailTemplates = {
          style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
         View Full Details →
       </a>
-    `, `\${projectName} is \${progress}% complete — weekly update`),
+    `, `${projectName} is ${progress}% complete — weekly update`),
   }),
 
   // ── Phase 1: New Transactional Templates ─────────────────────────────────────
 
   portalInvite: (clientName: string, passwordResetLink: string) => ({
-    subject: `✦ Welcome to Grekam Visuals, \${clientName}`,
+    subject: `Welcome to Grekam Visuals, ${clientName}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, \${clientName}!</h2>
+      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;">Welcome aboard, ${clientName}!</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 20px;">
         Your client portal account has been created. Here you can track projects, approve proposals, pay invoices, and download deliverables.
       </p>
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:24px;">
         <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0 0 12px;">Please set up your password to gain access:</p>
-        <a href="\${passwordResetLink}"
+        <a href="${passwordResetLink}"
            style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
           Set Password & Login →
         </a>
@@ -284,35 +286,35 @@ export const EmailTemplates = {
   }),
 
   invoicePaid: (clientName: string, invoiceId: string, amount: number) => ({
-    subject: `✅ Payment Received — Invoice \${invoiceId}`,
+    subject: `Payment Received — Invoice ${invoiceId}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Thank You!</h2>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Thank You</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
-        Hi \${clientName}, we have successfully received your payment of <strong>₹\${amount.toLocaleString('en-IN')}</strong> for Invoice \${invoiceId}.
+        Hi ${clientName}, we have successfully received your payment of <strong>₹${amount.toLocaleString('en-IN')}</strong> for Invoice ${invoiceId}.
       </p>
       <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;margin-bottom:28px;">
         <div style="color:#34d399;font-size:15px;font-weight:600;">Payment Successful</div>
       </div>
-      <a href="\${process.env.PORTAL_URL || 'http://localhost:3000'}/portal/dashboard"
+      <a href="${process.env.PORTAL_URL || 'http://localhost:3000'}/portal/dashboard"
          style="display:inline-block;background:linear-gradient(135deg,#059669,#0284c7);color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:14px;">
         View Invoice in Portal →
       </a>
-    `, `Payment received for \${invoiceId}`),
+    `, `Payment received for ${invoiceId}`),
   }),
 
   proposalApproved: (clientName: string, proposalTitle: string) => ({
-    subject: `🎉 Proposal Approved — \${proposalTitle}`,
+    subject: `Proposal Approved — ${proposalTitle}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Let's get started!</h2>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Approval Confirmed</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
-        Hi \${clientName}, we've received your approval for <strong>\${proposalTitle}</strong>. 
+        Hi ${clientName}, we've received your approval for <strong>${proposalTitle}</strong>. 
         Our team will be in touch shortly with the next steps.
       </p>
     `, `Your proposal approval has been received`),
   }),
 
   newComment: (clientName: string, authorName: string, entityTitle: string, snippet: string, link: string) => ({
-    subject: `💬 New Comment from ${authorName} on ${entityTitle}`,
+    subject: `New Comment from ${authorName} on ${entityTitle}`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:20px;margin:0 0 8px;">New Message</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.7;margin:0 0 16px;">
@@ -329,7 +331,7 @@ export const EmailTemplates = {
   }),
 
   vendorBrief: (vendorName: string, projectName: string) => ({
-    subject: `📝 New Project Brief: ${projectName}`,
+    subject: `New Project Brief: ${projectName}`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">New Project Assignment</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
@@ -343,9 +345,9 @@ export const EmailTemplates = {
   }),
 
   subscriptionStarted: (clientName: string, planName: string) => ({
-    subject: `🚀 Subscription Started — ${planName}`,
+    subject: `Subscription Started — ${planName}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">You're all set!</h2>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Subscription Active</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
         Hi ${clientName}, your subscription to <strong>${planName}</strong> is now active. We're thrilled to have you on board!
       </p>
@@ -353,7 +355,7 @@ export const EmailTemplates = {
   }),
 
   paymentFailed: (clientName: string, reason: string) => ({
-    subject: `⚠️ Payment Failed Action Required`,
+    subject: `Payment Failed — Action Required`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Payment Failed</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
@@ -369,7 +371,7 @@ export const EmailTemplates = {
   vendorOnboarding: (vendorName: string, link: string) => ({
     subject: `Welcome to Grekam Visuals Partner Network`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Welcome ${vendorName}!</h2>
+      <h2 style="color:#fff;font-size:22px;margin:0 0 8px;">Welcome ${vendorName}</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.7;margin:0 0 24px;">
         We're excited to partner with you. Please complete your onboarding profile using the link below so we can start sending you briefs.
       </p>
@@ -422,9 +424,9 @@ export async function sendEmail(
 
 export function contactConfirmationTemplate(name: string, notes?: string) {
   return {
-    subject: `We received your message, ${name.split(' ')[0]} ✦`,
+    subject: `Message Received — ${name.split(' ')[0]}`,
     html: baseTemplate(`
-      <h2 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 8px;">Thanks for reaching out 👋</h2>
+      <h2 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 8px;">Thanks for reaching out</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.6;margin:0 0 24px;">
         Hi ${name}, we've received your request and our team will be in touch with you shortly.
       </p>
@@ -446,7 +448,7 @@ export function contactConfirmationTemplate(name: string, notes?: string) {
 
 export function newLeadNotificationTemplate(lead: any) {
   return {
-    subject: `[New Lead] ${lead.name} from ${lead.source || 'Website'}`,
+    subject: `New Lead: ${lead.name} (${lead.source || 'Website'})`,
     html: baseTemplate(`
       <h2 style="color:#fff;font-size:20px;font-weight:700;margin:0 0 16px;">New Lead Submitted</h2>
       

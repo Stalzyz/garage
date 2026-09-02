@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+
+# Write updated server-side build script
+send {cat << 'BASHEOF' > /root/rebuild_web.sh
+#!/bin/bash
+set -e
+echo "[1/5] Pulling latest code..."
+cd /root/grekam-os && git pull origin main
+
+echo "[2/5] Stopping PM2 web process..."
+pm2 delete grekam-os-web 2>/dev/null || true
+
+echo "[3/5] Cleaning and building..."
+cd /root/grekam-os/apps/web
+rm -rf .next
+pnpm build
+
+echo "[4/5] Verifying build..."
+cat .next/BUILD_ID
+echo "=== BUILD SUCCESS ==="
+
+echo "[5/5] Starting with PM2..."
+AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=" \
+AUTH_TRUST_HOST=true \
+NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1" \
+PORT=3000 \
+pm2 start npx --name grekam-os-web --cwd /root/grekam-os/apps/web -- next start -p 3000 -H 0.0.0.0
+
+pm2 save
+echo "=== DONE - SITE IS LIVE ==="
+BASHEOF
+}
+expect "# "
+send "nohup bash /root/rebuild_web.sh > /root/rebuild_web.log 2>&1 &\r"
+expect "# "
+send "echo 'Build started PID='$!\r"
+expect "# "
+send "exit\r"
+expect eof

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Laptop, Briefcase, Users, Award, Zap, BookOpen } from "lucide-react";
+import { Laptop, Briefcase, Users, Award, Cpu, BookOpen } from "lucide-react";
 
 const features = [
   {
@@ -25,9 +25,9 @@ const features = [
     description: "Get certified by Grekam Academy, a name recognized by top hiring partners globally."
   },
   {
-    icon: <Zap className="text-[#49abc9] w-8 h-8" />,
-    title: "AI-Integrated Curriculum",
-    description: "Stay ahead of the curve. Our courses integrate the latest AI tools to make you 10x more productive."
+    icon: <Cpu className="text-[#49abc9] w-8 h-8" />,
+    title: "Modern Tech Curriculum",
+    description: "Stay ahead of the curve. Our courses integrate the latest industry tools to make you highly productive."
   },
   {
     icon: <BookOpen className="text-[#2ecc71] w-8 h-8" />,

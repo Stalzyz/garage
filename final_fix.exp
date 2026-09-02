@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "ls /root/grekam-os/apps/web/.next/BUILD_ID\r"
+expect "# "
+send "pm2 delete grekam-os-web || true\r"
+expect "# "
+send {cat << 'SHEOF' > /root/start_web.sh
+#!/bin/bash
+cd /root/grekam-os/apps/web
+export AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU="
+export AUTH_TRUST_HOST=true
+export NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1"
+export PORT=3000
+exec npx next start -p 3000 -H 0.0.0.0
+SHEOF
+}
+expect "# "
+send "chmod +x /root/start_web.sh\r"
+expect "# "
+send "pm2 start /root/start_web.sh --name grekam-os-web\r"
+expect "# "
+send "sleep 8 && pm2 status && pm2 logs grekam-os-web --lines 5 --nostream\r"
+expect "# "
+send "pm2 save\r"
+expect "# "
+send "exit\r"
+expect eof

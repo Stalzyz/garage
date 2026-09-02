@@ -11,7 +11,7 @@ import {
   Layers,
   Radio,
   LifeBuoy,
-  Zap,
+  Workflow,
   MessageSquare,
   HardDrive,
   Globe,
@@ -176,7 +176,7 @@ export const navigation: NavItem[] = [
   {
     title: "Automations",
     href: "/dashboard/automations",
-    icon: Zap,
+    icon: Workflow,
     roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {

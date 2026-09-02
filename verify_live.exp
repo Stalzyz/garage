@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000\r"
+expect "# "
+send "pm2 status | grep grekam-os-web\r"
+expect "# "
+send "pm2 logs grekam-os-web --lines 3 --nostream 2>&1 | grep -E '(Ready|Error|DONE)'\r"
+expect "# "
+send "exit\r"
+expect eof

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Zap } from "lucide-react"
+import { Search, Command } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { getNavItemsByRole, Role } from "@/config/navigation"
 

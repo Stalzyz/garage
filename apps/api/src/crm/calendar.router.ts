@@ -94,7 +94,7 @@ export default async function calendarRouter(app: FastifyInstance) {
         data: {
           leadId,
           type: 'MEETING',
-          content: `[Google Meet] Scheduled: ${summary}. 📅 ${new Date(startTime).toLocaleString('en-IN', { timeZone: tz })} → ${new Date(endTime).toLocaleString('en-IN', { timeZone: tz })}. 🔗 ${meetLink || calendarLink || 'N/A'}`,
+          content: `[Meeting] Scheduled: ${summary}. Time: ${new Date(startTime).toLocaleString('en-IN', { timeZone: tz })} → ${new Date(endTime).toLocaleString('en-IN', { timeZone: tz })}. Link: ${meetLink || calendarLink || 'N/A'}`,
           userId: req.user?.id || 'system',
         }
       });
@@ -114,26 +114,26 @@ export default async function calendarRouter(app: FastifyInstance) {
 
       // Send confirmation email with Meet link directly to client
       await sendEmail(attendeeEmail, {
-        subject: `📅 Meeting Confirmed: ${summary}`,
+        subject: `Meeting Confirmed: ${summary}`,
         html: `
-          <div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;background:#0f0f12;color:#fff;border-radius:12px;overflow:hidden;border:1px solid #1e1e2e;">
+          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#0f0f12;color:#fff;border-radius:12px;overflow:hidden;border:1px solid #1e1e2e;">
             <div style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);padding:24px 32px;">
-              <h1 style="margin:0;font-size:22px;font-weight:700;">Your Meeting is Confirmed ✅</h1>
-              <p style="margin:4px 0 0;opacity:0.8;font-size:14px;">You have a session scheduled.</p>
+              <h1 style="margin:0;font-size:20px;font-weight:700;">Meeting Confirmed</h1>
+              <p style="margin:4px 0 0;opacity:0.8;font-size:13px;">Your session is scheduled.</p>
             </div>
             <div style="padding:32px;">
               <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:100px;">📌 Topic</td><td style="padding:8px 0;font-weight:600;">${summary}</td></tr>
-                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">🕐 Time</td><td style="padding:8px 0;">${new Date(startTime).toLocaleString('en-IN', { timeZone: tz, dateStyle: 'full', timeStyle: 'short' })}</td></tr>
-                ${description ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">📝 Notes</td><td style="padding:8px 0;">${description}</td></tr>` : ''}
+                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:100px;">Topic</td><td style="padding:8px 0;font-weight:600;">${summary}</td></tr>
+                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">Time</td><td style="padding:8px 0;">${new Date(startTime).toLocaleString('en-IN', { timeZone: tz, dateStyle: 'full', timeStyle: 'short' })}</td></tr>
+                ${description ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">Notes</td><td style="padding:8px 0;">${description}</td></tr>` : ''}
               </table>
               ${meetLink ? `
               <div style="text-align:center;margin:24px 0;">
-                <a href="${meetLink}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;letter-spacing:0.5px;">
-                  🎥 Join Google Meet
+                <a href="${meetLink}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;letter-spacing:0.5px;">
+                  Join Video Call →
                 </a>
               </div>
-              <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:8px;">Or copy the link: <a href="${meetLink}" style="color:#60a5fa;">${meetLink}</a></p>
+              <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:8px;">Meeting Link: <a href="${meetLink}" style="color:#60a5fa;">${meetLink}</a></p>
               ` : ''}
             </div>
             <div style="padding:16px 32px;background:#080810;border-top:1px solid #1e1e2e;font-size:12px;color:#6b7280;text-align:center;">

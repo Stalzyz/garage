@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronLeft, Save, Plus, Trash2, Send, Zap, Loader2, PenTool, Sparkles, Globe, Building2, Target, X, ArrowRight, Bot } from "lucide-react"
+import { ChevronLeft, Save, Plus, Trash2, Send, Zap, Loader2, PenTool, Sparkles, Globe, Building2, Target, X, ArrowRight, Bot, FileText, FolderOpen } from "lucide-react"
 import Link from "next/link"
 import { fetchApi, useApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -265,7 +265,7 @@ export default function InteractiveProposalBuilder() {
                   onClick={() => setIsTemplateModalOpen(true)}
                   className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white px-3.5 py-1.5 rounded-lg border border-white/10 transition-all"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <FileText className="w-3.5 h-3.5 text-violet-400" />
                   Use Template
                 </button>
               </div>
@@ -502,8 +502,8 @@ export default function InteractiveProposalBuilder() {
             
             <div className="flex items-start justify-between mb-6 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                  <Sparkles className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+                  <FolderOpen className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">

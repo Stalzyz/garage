@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os && git pull origin main && cd apps/web && npm run build && pm2 restart grekam-os-web --update-env && echo 'WEB RESTARTED OK'\r"
+expect "WEB RESTARTED OK"
+send "exit\r"
+expect eof
