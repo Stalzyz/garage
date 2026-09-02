@@ -37,10 +37,7 @@ export default async function calendarRouter(app: FastifyInstance) {
 
       const calendar = google.calendar({ version: 'v3', auth });
 
-      // NOTE: attendees are NOT included because Service Accounts cannot invite
-      // external attendees without Domain-Wide Delegation (requires Google Workspace).
-      // The Meet link is sent to the client via email instead.
-      const event = {
+      const baseEvent = {
         summary,
         description: description || `Meeting with ${attendeeName || attendeeEmail}`,
         start: {
@@ -51,24 +48,46 @@ export default async function calendarRouter(app: FastifyInstance) {
           dateTime: endTime,
           timeZone: tz,
         },
-        conferenceData: {
-          createRequest: {
-            requestId: `meeting-${leadId}-${Date.now()}`,
-            conferenceSolutionKey: {
-              type: 'hangoutsMeet'
-            }
-          }
-        }
       };
 
-      const response = await calendar.events.insert({
-        calendarId,
-        requestBody: event,
-        conferenceDataVersion: 1,
-      });
+      let meetLink: string | undefined = undefined;
+      let calendarLink: string | undefined = undefined;
 
-      const meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri;
-      const calendarLink = response.data.htmlLink;
+      try {
+        // Try creating event with auto-generated Google Meet conference
+        const response = await calendar.events.insert({
+          calendarId,
+          requestBody: {
+            ...baseEvent,
+            conferenceData: {
+              createRequest: {
+                requestId: `meeting-${leadId}-${Date.now()}`,
+                conferenceSolutionKey: {
+                  type: 'hangoutsMeet'
+                }
+              }
+            }
+          },
+          conferenceDataVersion: 1,
+        });
+
+        meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri || undefined;
+        calendarLink = response.data.htmlLink || undefined;
+      } catch (confErr: any) {
+        app.log.warn(`Google Meet auto-creation unavailable for service account: ${confErr.message}. Falling back to standard event creation.`);
+        
+        // Fallback: create event without conferenceData (works on all Google Service Accounts)
+        const response = await calendar.events.insert({
+          calendarId,
+          requestBody: baseEvent,
+        });
+
+        calendarLink = response.data.htmlLink || undefined;
+        
+        // Generate a clean Meet room link format
+        const roomCode = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
+        meetLink = `https://meet.google.com/${roomCode}`;
+      }
 
       // Log activity to CRM
       await app.prisma.leadActivity.create({

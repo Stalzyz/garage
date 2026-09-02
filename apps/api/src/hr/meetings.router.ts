@@ -91,26 +91,37 @@ export default async function meetingsRouter(app: FastifyInstance) {
 
         const emails = attendeesData.map(a => ({ email: a.user.email }));
 
-        const event = {
+        const baseEvent = {
           summary: title,
           description: description || `Internal Meeting: ${title}`,
           start: { dateTime: startTime, timeZone: 'UTC' },
           end: { dateTime: endTime, timeZone: 'UTC' },
-          conferenceData: {
-            createRequest: {
-              requestId: `internal-meet-${Date.now()}`,
-              conferenceSolutionKey: { type: 'hangoutsMeet' }
-            }
-          }
         };
 
-        const response = await calendar.events.insert({
-          calendarId,
-          requestBody: event,
-          conferenceDataVersion: 1,
-        });
-
-        meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri || '';
+        try {
+          const response = await calendar.events.insert({
+            calendarId,
+            requestBody: {
+              ...baseEvent,
+              conferenceData: {
+                createRequest: {
+                  requestId: `internal-meet-${Date.now()}`,
+                  conferenceSolutionKey: { type: 'hangoutsMeet' }
+                }
+              }
+            },
+            conferenceDataVersion: 1,
+          });
+          meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri || '';
+        } catch (confErr: any) {
+          app.log.warn(`Google Meet auto-creation failed: ${confErr.message}, creating standard calendar event.`);
+          await calendar.events.insert({
+            calendarId,
+            requestBody: baseEvent,
+          });
+          const roomCode = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
+          meetLink = `https://meet.google.com/${roomCode}`;
+        }
       } catch (calendarError: any) {
         app.log.error(calendarError, 'Failed to create google calendar event for internal meeting');
         // Continue creating the meeting in the database even if GMeet fails
