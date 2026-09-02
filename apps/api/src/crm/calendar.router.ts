@@ -84,9 +84,9 @@ export default async function calendarRouter(app: FastifyInstance) {
 
         calendarLink = response.data.htmlLink || undefined;
         
-        // Generate a clean Meet room link format
-        const roomCode = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
-        meetLink = `https://meet.google.com/${roomCode}`;
+        // Generate a working live HD video room link (Jitsi Meet — free, zero login required)
+        const roomCode = `Grekam-Meeting-${Math.random().toString(36).substring(2, 8)}`;
+        meetLink = `https://meet.jit.si/${roomCode}`;
       }
 
       // Log activity to CRM

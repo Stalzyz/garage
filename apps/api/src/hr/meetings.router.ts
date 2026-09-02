@@ -119,8 +119,8 @@ export default async function meetingsRouter(app: FastifyInstance) {
             calendarId,
             requestBody: baseEvent,
           });
-          const roomCode = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
-          meetLink = `https://meet.google.com/${roomCode}`;
+          const roomCode = `Grekam-Meeting-${Math.random().toString(36).substring(2, 8)}`;
+          meetLink = `https://meet.jit.si/${roomCode}`;
         }
       } catch (calendarError: any) {
         app.log.error(calendarError, 'Failed to create google calendar event for internal meeting');
