@@ -916,7 +916,11 @@ const CustomCursor = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [cursorText, setCursorText] = useState("")
   const [cursorActive, setCursorActive] = useState(false)
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
 
   useEffect(() => {
     if (isMobile) return
@@ -1751,7 +1755,8 @@ const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
 
 // --- 04. INFINITE CANVAS ---
 const LayoutInfiniteCanvas = ({ cards, onPreviewProject }: any) => {
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
   return (
     <div className="h-[100dvh] w-full bg-zinc-100 overflow-hidden relative cursor-grab active:cursor-grabbing font-sans">
       <div className="absolute inset-0 bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:20px_20px]" />
