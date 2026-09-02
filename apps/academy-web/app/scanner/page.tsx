@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ScanFace, UserCheck, XCircle, Loader2 } from "lucide-react"
+import { fetchApi } from "@/lib/useApi"
 
 export default function ScannerApp() {
   const [status, setStatus] = useState<"IDLE" | "SCANNING" | "SUCCESS" | "ERROR">("IDLE")
@@ -30,14 +31,12 @@ export default function ScannerApp() {
             setMessage("Processing...")
             
             try {
-              const res = await fetch("http://localhost:3002/api/v1/academy/attendance/scan", {
+              const data = await fetchApi<any>("/academy/attendance/scan", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ studentCode: decodedText })
               })
-              const data = await res.json()
               
-              if (!res.ok || !data.success) throw new Error(data.message || "Invalid QR Code")
+              if (!data || !data.success) throw new Error(data?.message || "Invalid QR Code")
               
               setStudent(data.student)
               setMessage(data.alreadyMarked ? data.message : "Attendance Marked! +10 XP")

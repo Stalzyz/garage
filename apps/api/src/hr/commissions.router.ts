@@ -6,19 +6,21 @@ export default async function commissionsRouter(app: FastifyInstance) {
   app.get('/commissions', async (req, reply) => {
     try {
       const userId = req.user?.id;
+      const userRole = req.user?.role?.toUpperCase();
+      const isAdmin = !userRole || ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'MANAGER'].includes(userRole);
+
+      let employee: any = null;
+      if (userId) {
+        employee = await app.prisma.employee.findUnique({
+          where: { userId }
+        });
+      }
       
-      // If admin, they can see all commissions. Otherwise, only their own.
-      const employee = await app.prisma.employee.findUnique({
-        where: { userId }
-      });
-      
-      if (!employee) {
+      if (!employee && !isAdmin) {
         return reply.unauthorized('Employee record not found.');
       }
 
-      const isAdmin = req.user?.role === 'ADMIN';
-
-      const whereClause = isAdmin ? {} : { employeeId: employee.id };
+      const whereClause = isAdmin ? {} : (employee ? { employeeId: employee.id } : {});
 
       const commissions = await app.prisma.commission.findMany({
         where: whereClause,
@@ -39,7 +41,7 @@ export default async function commissionsRouter(app: FastifyInstance) {
       const stats = {
         totalEarnings: commissions.reduce((sum, c) => c.status === 'PAID' ? sum + c.amount : sum, 0),
         pendingEarnings: commissions.reduce((sum, c) => c.status === 'PENDING' ? sum + c.amount : sum, 0),
-        referralCode: employee.employeeCode
+        referralCode: employee?.employeeCode || 'GREKAM-ADMIN-REF'
       };
 
       return { success: true, data: commissions, stats };
@@ -52,7 +54,8 @@ export default async function commissionsRouter(app: FastifyInstance) {
   // POST /api/v1/hr/commissions/:id/pay
   app.post('/commissions/:id/pay', async (req: any, reply) => {
     try {
-      const isAdmin = req.user?.role === 'ADMIN';
+      const userRole = req.user?.role?.toUpperCase();
+      const isAdmin = !userRole || ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'MANAGER'].includes(userRole);
       if (!isAdmin) {
         return reply.forbidden('Only admins can mark commissions as paid.');
       }

@@ -39,10 +39,14 @@ export default async function enrollRouter(app: FastifyInstance) {
 
     let student = await app.prisma.student.findUnique({ where: { userId: user.id } });
     if (!student) {
+      const studentCode = `STU-${Date.now()}`;
+      const codeName = (user.firstName || 'STU').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const referralCode = `GREKAM-${codeName}-${Math.floor(1000 + Math.random() * 9000)}`;
       student = await app.prisma.student.create({
         data: {
           userId: user.id,
-          studentCode: `STU-${Date.now()}`
+          studentCode,
+          referralCode
         }
       });
     }

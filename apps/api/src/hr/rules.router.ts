@@ -111,4 +111,55 @@ export default async function rulesRoutes(app: FastifyInstance) {
     });
     return { success: true };
   });
+
+  // GET /commission
+  server.get('/commission', async (req, reply) => {
+    const [studentSetting, salesSetting] = await Promise.all([
+      server.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_student' } }),
+      server.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_sales' } })
+    ]);
+
+    const studentReferralPercentage = (studentSetting?.value as any)?.percentage ?? 10;
+    const salesCommissionPercentage = (salesSetting?.value as any)?.percentage ?? 10;
+
+    return {
+      success: true,
+      data: {
+        studentReferralPercentage,
+        salesCommissionPercentage
+      }
+    };
+  });
+
+  // POST /commission
+  server.post('/commission', {
+    schema: {
+      body: z.object({
+        studentReferralPercentage: z.number().min(0).max(100).optional(),
+        salesCommissionPercentage: z.number().min(0).max(100).optional()
+      })
+    }
+  }, async (req, reply) => {
+    const { studentReferralPercentage, salesCommissionPercentage } = req.body;
+    const userId = req.user?.id || 'admin';
+
+    if (studentReferralPercentage !== undefined) {
+      await server.prisma.systemSetting.upsert({
+        where: { key: 'commission_rate_student' },
+        create: { key: 'commission_rate_student', value: { percentage: studentReferralPercentage }, updatedBy: userId },
+        update: { value: { percentage: studentReferralPercentage }, updatedBy: userId }
+      });
+    }
+
+    if (salesCommissionPercentage !== undefined) {
+      await server.prisma.systemSetting.upsert({
+        where: { key: 'commission_rate_sales' },
+        create: { key: 'commission_rate_sales', value: { percentage: salesCommissionPercentage }, updatedBy: userId },
+        update: { value: { percentage: salesCommissionPercentage }, updatedBy: userId }
+      });
+    }
+
+    return { success: true, message: 'Commission rates updated successfully' };
+  });
 }
+

@@ -170,6 +170,69 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     return { attendance };
   });
 
+function parseTimeStringToDate(baseDate: Date, timeStr: string): Date {
+  if (!timeStr) return new Date(baseDate);
+  if (timeStr.includes('T') || timeStr.includes('-')) {
+    const parsed = new Date(timeStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  const date = new Date(baseDate);
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3] ? match[3].toUpperCase() : null;
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+  return date;
+}
+
+  // POST / (Manual Entry)
+  server.post('/', {
+    schema: {
+      body: z.object({
+        employeeId: z.string(),
+        status: z.string().default("PRESENT"),
+        checkIn: z.string().optional(),
+        checkOut: z.string().optional(),
+        date: z.string().optional(),
+        notes: z.string().optional()
+      })
+    }
+  }, async (req, reply) => {
+    const { employeeId, status, checkIn, checkOut, date, notes } = req.body;
+    const targetDate = date ? new Date(date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+
+    let clockInDate: Date | undefined = checkIn ? parseTimeStringToDate(targetDate, checkIn) : new Date();
+    let clockOutDate: Date | undefined = checkOut ? parseTimeStringToDate(targetDate, checkOut) : undefined;
+
+    const record = await server.prisma.attendance.upsert({
+      where: { employeeId_date: { employeeId, date: targetDate } },
+      create: {
+        employeeId,
+        date: targetDate,
+        status,
+        clockIn: clockInDate,
+        clockOut: clockOutDate,
+        notes: notes || "Manual entry marked by HR",
+        isRegularized: true
+      },
+      update: {
+        status,
+        ...(clockInDate ? { clockIn: clockInDate } : {}),
+        ...(clockOutDate ? { clockOut: clockOutDate } : {}),
+        notes: notes || "Manual entry updated by HR",
+        isRegularized: true
+      }
+    });
+
+    return reply.status(200).send(record);
+  });
+
   // POST /clock-in
   server.post('/clock-in', {
     schema: {

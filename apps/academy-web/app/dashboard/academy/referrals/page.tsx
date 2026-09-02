@@ -7,10 +7,36 @@ import { Share2, IndianRupee, Users, Clock, CheckCircle2, AlertCircle, Loader2 }
 
 export default function ReferralsAdmin() {
   const { data: payouts, mutate, isLoading } = useApi<any[]>("/academy/referrals/payouts")
+  const { data: rulesData, mutate: mutateRules } = useApi<{ data: { studentReferralPercentage: number } }>("/hr/rules/commission")
   
   const [selectedPayout, setSelectedPayout] = useState<any>(null)
   const [payForm, setPayForm] = useState({ paymentMethod: "UPI", transactionId: "", notes: "" })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [commissionRate, setCommissionRate] = useState<number>(10)
+  const [isSavingRate, setIsSavingRate] = useState(false)
+
+  useEffect(() => {
+    if (rulesData?.data?.studentReferralPercentage !== undefined) {
+      setCommissionRate(rulesData.data.studentReferralPercentage)
+    }
+  }, [rulesData])
+
+  const handleSaveCommissionRate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSavingRate(true)
+    try {
+      await fetchApi("/hr/rules/commission", {
+        method: "POST",
+        body: JSON.stringify({ studentReferralPercentage: Number(commissionRate) })
+      })
+      toast.success(`Student referral commission share updated to ${commissionRate}%`)
+      mutateRules()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update commission rate")
+    } finally {
+      setIsSavingRate(false)
+    }
+  }
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,13 +76,38 @@ export default function ReferralsAdmin() {
 
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white p-8 overflow-y-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black flex items-center gap-3">
             <Share2 className="w-8 h-8 text-amber-500" /> Referral Payouts
           </h1>
           <p className="text-white/50 mt-2">Manage and clear pending cash rewards for student referrals.</p>
         </div>
+
+        {/* Dynamic Commission % Rate Config Card */}
+        <form onSubmit={handleSaveCommissionRate} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center gap-3">
+          <div>
+            <label className="block text-[10px] font-bold text-amber-400 uppercase tracking-widest">Referral Commission Share %</label>
+            <div className="flex items-center gap-1 mt-1">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={commissionRate}
+                onChange={e => setCommissionRate(parseFloat(e.target.value))}
+                className="w-20 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-sm font-bold text-white text-center focus:outline-none focus:border-amber-400"
+              />
+              <span className="text-sm font-bold text-white/70">%</span>
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isSavingRate}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50"
+          >
+            {isSavingRate ? "Saving..." : "Save %"}
+          </button>
+        </form>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

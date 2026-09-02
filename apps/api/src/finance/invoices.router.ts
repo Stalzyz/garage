@@ -19,7 +19,9 @@ async function processCommission(app: FastifyInstance, invoice: any) {
     });
 
     if (!existing) {
-      const commissionAmt = invoice.totalAmount * 0.10; // 10% commission rate default
+      const setting = await app.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_sales' } });
+      const rate = ((setting?.value as any)?.percentage ?? 10) / 100;
+      const commissionAmt = invoice.totalAmount * rate;
       await app.prisma.commission.create({
         data: {
           employeeId: lead.referredById,
@@ -27,10 +29,10 @@ async function processCommission(app: FastifyInstance, invoice: any) {
           invoiceId: invoice.id,
           amount: commissionAmt,
           status: 'PENDING',
-          notes: `10% commission from invoice ${invoice.invoiceNumber}`
+          notes: `${rate * 100}% commission from invoice ${invoice.invoiceNumber}`
         }
       });
-      app.log.info(`[Commissions] Generated commission of ${commissionAmt} for employee ${lead.referredById}`);
+      app.log.info(`[Commissions] Generated commission of ${commissionAmt} (${rate * 100}%) for employee ${lead.referredById}`);
     }
   }
 }

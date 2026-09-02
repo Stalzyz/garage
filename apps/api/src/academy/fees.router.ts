@@ -123,11 +123,62 @@ export default async function feesRouter(app: FastifyInstance) {
         enrollment: {
           include: {
             student: { include: { user: true } },
-            batch: { select: { name: true } }
+            batch: { select: { name: true, type: true } }
           }
         }
       }
     });
+
+    if (body.referralCode) {
+      try {
+        const referrer = await app.prisma.student.findUnique({ where: { referralCode: body.referralCode } });
+        const studentId = installment.enrollment.studentId;
+        if (referrer && referrer.id !== studentId) {
+          const existingPayout = await app.prisma.referralPayout.findFirst({
+            where: { referredId: studentId }
+          });
+          if (!existingPayout) {
+            const setting = await app.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_student' } });
+            const percentage = (setting?.value as any)?.percentage ?? 10;
+            const amount = (netPayable * percentage) / 100;
+            const courseType = installment.enrollment.batch?.type === 'ONLINE' ? 'ONLINE' : 'ONSITE';
+
+            await app.prisma.student.update({
+              where: { id: studentId },
+              data: { referredById: referrer.id }
+            });
+
+            await app.prisma.referralPayout.create({
+              data: {
+                referrerId: referrer.id,
+                referredId: studentId,
+                amount,
+                percentage,
+                courseType,
+                status: 'PENDING'
+              }
+            });
+
+            await app.prisma.referral.upsert({
+              where: { referredUserId: studentId },
+              create: {
+                referrerId: referrer.id,
+                referredUserId: studentId,
+                status: 'PENDING',
+                commissionAmt: amount
+              },
+              update: {
+                referrerId: referrer.id,
+                status: 'PENDING',
+                commissionAmt: amount
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[FeesRouter] Referral processing error:', err);
+      }
+    }
 
     reply.code(201);
     return installment;
