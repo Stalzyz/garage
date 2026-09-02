@@ -10,16 +10,19 @@ const CalendarInviteSchema = z.object({
   startTime: z.string(),
   endTime: z.string(),
   attendeeEmail: z.string().email(),
+  attendeeName: z.string().optional(),
+  timeZone: z.string().optional(),
 });
 
 export default async function calendarRouter(app: FastifyInstance) {
   // POST /api/v1/crm/calendar/invite
   app.post('/calendar/invite', async (req, reply) => {
-    const { leadId, summary, description, startTime, endTime, attendeeEmail } = CalendarInviteSchema.parse(req.body);
+    const { leadId, summary, description, startTime, endTime, attendeeEmail, attendeeName, timeZone } = CalendarInviteSchema.parse(req.body);
 
     const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
     const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+    const tz = timeZone || 'Asia/Kolkata';
 
     if (!clientEmail || !privateKey) {
       return reply.badRequest('Google Service Account credentials are not configured in environment variables');
@@ -34,20 +37,20 @@ export default async function calendarRouter(app: FastifyInstance) {
 
       const calendar = google.calendar({ version: 'v3', auth });
 
+      // NOTE: attendees are NOT included because Service Accounts cannot invite
+      // external attendees without Domain-Wide Delegation (requires Google Workspace).
+      // The Meet link is sent to the client via email instead.
       const event = {
         summary,
-        description: description || `Meeting with ${attendeeEmail}`,
+        description: description || `Meeting with ${attendeeName || attendeeEmail}`,
         start: {
           dateTime: startTime,
-          timeZone: 'UTC',
+          timeZone: tz,
         },
         end: {
           dateTime: endTime,
-          timeZone: 'UTC',
+          timeZone: tz,
         },
-        attendees: [
-          { email: attendeeEmail }
-        ],
         conferenceData: {
           createRequest: {
             requestId: `meeting-${leadId}-${Date.now()}`,
@@ -64,19 +67,20 @@ export default async function calendarRouter(app: FastifyInstance) {
         conferenceDataVersion: 1,
       });
 
+      const meetLink = response.data.conferenceData?.entryPoints?.[0]?.uri;
+      const calendarLink = response.data.htmlLink;
+
       // Log activity to CRM
       await app.prisma.leadActivity.create({
         data: {
           leadId,
           type: 'MEETING',
-          content: `[Google Calendar] Meeting scheduled: ${summary}. Link: ${response.data.htmlLink || 'N/A'}. Meet Link: ${response.data.conferenceData?.entryPoints?.[0]?.uri || 'N/A'}`,
+          content: `[Google Meet] Scheduled: ${summary}. 📅 ${new Date(startTime).toLocaleString('en-IN', { timeZone: tz })} → ${new Date(endTime).toLocaleString('en-IN', { timeZone: tz })}. 🔗 ${meetLink || calendarLink || 'N/A'}`,
           userId: req.user?.id || 'system',
         }
       });
 
       // Track in ClientMeeting for reminders
-      const meetLinkUri = response.data.conferenceData?.entryPoints?.[0]?.uri;
-      
       await app.prisma.clientMeeting.create({
         data: {
           leadId,
@@ -84,29 +88,46 @@ export default async function calendarRouter(app: FastifyInstance) {
           description,
           startTime: new Date(startTime),
           endTime: new Date(endTime),
-          meetLink: meetLinkUri,
+          meetLink: meetLink,
           attendeeEmail,
         }
       });
 
-      // Send confirmation email
+      // Send confirmation email with Meet link directly to client
       await sendEmail(attendeeEmail, {
-        subject: `Meeting Confirmed: ${summary}`,
+        subject: `📅 Meeting Confirmed: ${summary}`,
         html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:20px;border-radius:10px;">
-            <h2 style="color:#3b82f6;">Your meeting is confirmed!</h2>
-            <p><strong>Topic:</strong> ${summary}</p>
-            <p><strong>Time:</strong> ${new Date(startTime).toLocaleString()}</p>
-            ${description ? `<p><strong>Details:</strong> ${description}</p>` : ''}
-            ${meetLinkUri ? `<p><a href="${meetLinkUri}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;">Join Google Meet</a></p>` : ''}
+          <div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;background:#0f0f12;color:#fff;border-radius:12px;overflow:hidden;border:1px solid #1e1e2e;">
+            <div style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);padding:24px 32px;">
+              <h1 style="margin:0;font-size:22px;font-weight:700;">Your Meeting is Confirmed ✅</h1>
+              <p style="margin:4px 0 0;opacity:0.8;font-size:14px;">You have a session scheduled.</p>
+            </div>
+            <div style="padding:32px;">
+              <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:100px;">📌 Topic</td><td style="padding:8px 0;font-weight:600;">${summary}</td></tr>
+                <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">🕐 Time</td><td style="padding:8px 0;">${new Date(startTime).toLocaleString('en-IN', { timeZone: tz, dateStyle: 'full', timeStyle: 'short' })}</td></tr>
+                ${description ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">📝 Notes</td><td style="padding:8px 0;">${description}</td></tr>` : ''}
+              </table>
+              ${meetLink ? `
+              <div style="text-align:center;margin:24px 0;">
+                <a href="${meetLink}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;letter-spacing:0.5px;">
+                  🎥 Join Google Meet
+                </a>
+              </div>
+              <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:8px;">Or copy the link: <a href="${meetLink}" style="color:#60a5fa;">${meetLink}</a></p>
+              ` : ''}
+            </div>
+            <div style="padding:16px 32px;background:#080810;border-top:1px solid #1e1e2e;font-size:12px;color:#6b7280;text-align:center;">
+              This invite was sent via Grekam OS. Please add this to your calendar.
+            </div>
           </div>
         `
       });
 
       return {
         success: true,
-        htmlLink: response.data.htmlLink,
-        meetLink: response.data.conferenceData?.entryPoints?.[0]?.uri,
+        htmlLink: calendarLink,
+        meetLink,
       };
     } catch (err: any) {
       app.log.error(err, 'Failed to create calendar event');
