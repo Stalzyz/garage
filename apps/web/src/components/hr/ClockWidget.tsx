@@ -91,12 +91,29 @@ export function ClockWidget({ employeeId }: { employeeId: string }) {
   const confirmAndSubmit = async () => {
     if (!pendingAction) return
     setIsProcessing(true)
+
+    let coords: { latitude?: number; longitude?: number } = {}
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 })
+        })
+        coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
+      } catch {
+        // Geolocation optional / denied
+      }
+    }
+
     try {
       await fetchApi(`/hr/attendance/${pendingAction}`, {
         method: 'POST',
-        body: JSON.stringify({ employeeId, ...(capturedPhoto ? { photoUrl: capturedPhoto } : {}) })
+        body: JSON.stringify({ 
+          employeeId, 
+          ...(capturedPhoto ? { photoUrl: capturedPhoto } : {}),
+          ...coords
+        })
       })
-      toast.success(`✅ ${pendingAction.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} recorded!`)
+      toast.success(`${pendingAction.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} recorded!`)
       mutate()
     } catch (err: any) {
       toast.error(err.message || 'Action failed')

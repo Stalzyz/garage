@@ -2,6 +2,48 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 
+// Haversine formula to calculate distance between two coordinates in meters
+function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000; // Radius of Earth in meters
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Automatically auto-close stale un-closed shifts from previous calendar days
+async function autoCloseStaleShifts(prisma: any, employeeId: string, today: Date) {
+  try {
+    const staleRecords = await prisma.attendance.findMany({
+      where: {
+        employeeId,
+        clockOut: null,
+        date: { lt: today }
+      }
+    });
+
+    for (const record of staleRecords) {
+      const eodTime = new Date(record.date);
+      eodTime.setHours(23, 59, 59, 999);
+
+      await prisma.attendance.update({
+        where: { id: record.id },
+        data: {
+          clockOut: eodTime,
+          status: record.status === 'PRESENT' ? 'EOD_CLOSED' : record.status,
+          notes: record.notes ? `${record.notes} (Auto-closed at EOD)` : 'Auto-closed at end of day due to missing clock-out'
+        }
+      });
+    }
+  } catch (err) {
+    console.error('[AttendanceRouter] Failed to auto-close stale shifts:', err);
+  }
+}
+
 export default async function attendanceRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
@@ -14,14 +56,27 @@ export default async function attendanceRoutes(app: FastifyInstance) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [todayRecord, recentLogs] = await Promise.all([
+    // Auto-close any stale open shifts from yesterday or before
+    await autoCloseStaleShifts(server.prisma, req.params.employeeId, today);
+
+    const [todayRecord, recentLogs, employeeShift] = await Promise.all([
       server.prisma.attendance.findFirst({
-        where: { employeeId: req.params.employeeId, date: today }
+        where: { employeeId: req.params.employeeId, date: today },
+        include: { shift: true }
       }),
       server.prisma.attendance.findMany({
         where: { employeeId: req.params.employeeId },
         orderBy: { date: 'desc' },
-        take: 3
+        take: 5
+      }),
+      server.prisma.employeeShift.findFirst({
+        where: {
+          employeeId: req.params.employeeId,
+          startDate: { lte: today },
+          OR: [{ endDate: null }, { endDate: { gte: today } }]
+        },
+        include: { shift: true },
+        orderBy: { startDate: 'desc' }
       })
     ]);
 
@@ -34,19 +89,26 @@ export default async function attendanceRoutes(app: FastifyInstance) {
       if (todayRecord.breakStart) {
         const breakEnd = todayRecord.breakEnd || new Date();
         const breakMins = Math.floor((breakEnd.getTime() - todayRecord.breakStart.getTime()) / 60000);
-        loggedMinutes -= breakMins;
+        loggedMinutes = Math.max(0, loggedMinutes - breakMins);
       }
     }
 
-    const scheduledMinutes = 8 * 60; // Standard 8 hour shift
+    // Determine shift hours (custom assigned shift vs 8-hour default)
+    const assignedShift = todayRecord?.shift || employeeShift?.shift;
+    const minShiftHours = assignedShift?.minHours || 8.0;
+    const scheduledMinutes = minShiftHours * 60;
     const overtimeMinutes = Math.max(0, loggedMinutes - scheduledMinutes);
+
+    const shiftTimingsStr = assignedShift
+      ? (assignedShift.type === 'OPEN' ? 'Flexible / Open' : `${assignedShift.startTime} - ${assignedShift.endTime}`)
+      : "09:00 - 17:00";
 
     return {
       activeShift: !!(todayRecord && !todayRecord.clockOut),
       onBreak: !!(todayRecord && todayRecord.breakStart && !todayRecord.breakEnd),
       clockInTime: todayRecord?.clockIn,
       telemetry: {
-        scheduled: "09:00 - 17:00",
+        scheduled: shiftTimingsStr,
         loggedHours: `${Math.floor(loggedMinutes / 60).toString().padStart(2, '0')}:${(loggedMinutes % 60).toString().padStart(2, '0')}`,
         overtime: `${Math.floor(overtimeMinutes / 60).toString().padStart(2, '0')}:${(overtimeMinutes % 60).toString().padStart(2, '0')}`
       },
@@ -57,27 +119,30 @@ export default async function attendanceRoutes(app: FastifyInstance) {
           if (log.breakStart && log.breakEnd) {
              m -= Math.floor((log.breakEnd.getTime() - log.breakStart.getTime()) / 60000);
           }
-          durationStr = `${Math.floor(m / 60)}h ${m % 60}m`;
+          durationStr = `${Math.floor(m / 60)}h ${Math.max(0, m % 60)}m`;
         }
         return {
           id: log.id,
           date: log.date.toISOString(),
           clockIn: log.clockIn?.toISOString(),
           clockOut: log.clockOut?.toISOString(),
+          status: log.status,
           duration: durationStr
-        }
+        };
       })
     };
   });
 
+  // GET /all
   server.get('/all', async (req, reply) => {
     const attendance = await server.prisma.attendance.findMany({
-      include: { employee: { include: { user: true } } },
+      include: { employee: { include: { user: true } }, shift: true },
       orderBy: { date: 'desc' }
     });
     return { attendance };
   });
 
+  // GET /:employeeId
   server.get('/:employeeId', {
     schema: {
       params: z.object({ employeeId: z.string() }),
@@ -99,29 +164,76 @@ export default async function attendanceRoutes(app: FastifyInstance) {
 
     const attendance = await server.prisma.attendance.findMany({
       where,
+      include: { shift: true },
       orderBy: { date: 'desc' }
     });
     return { attendance };
   });
 
+  // POST /clock-in
   server.post('/clock-in', {
     schema: {
       body: z.object({
         employeeId: z.string(),
-        photoUrl: z.string().optional()
+        photoUrl: z.string().optional(),
+        latitude: z.number().optional(),
+        longitude: z.number().optional()
       })
     }
   }, async (req, reply) => {
-    const { employeeId, photoUrl } = req.body;
+    const { employeeId, photoUrl, latitude, longitude } = req.body;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // 1. Auto-close any stale un-closed shifts from previous calendar days
+    await autoCloseStaleShifts(server.prisma, employeeId, today);
+
+    // 2. Check if already clocked in today
     const existingRecord = await server.prisma.attendance.findUnique({
       where: { employeeId_date: { employeeId, date: today } }
     });
 
     if (existingRecord?.clockIn) {
       return reply.status(400).send({ error: "Already clocked in for today" });
+    }
+
+    // 3. Geofence Distance Check
+    let isGeofenced = false;
+    if (latitude && longitude) {
+      const activeGeofences = await server.prisma.geofence.findMany({ where: { isActive: true } });
+      for (const gf of activeGeofences) {
+        const dist = haversineMeters(latitude, longitude, gf.latitude, gf.longitude);
+        if (dist <= gf.radius) {
+          isGeofenced = true;
+          break;
+        }
+      }
+    }
+
+    // 4. Shift & Late Arrival Detection
+    const employeeShift = await server.prisma.employeeShift.findFirst({
+      where: {
+        employeeId,
+        startDate: { lte: today },
+        OR: [{ endDate: null }, { endDate: { gte: today } }]
+      },
+      include: { shift: true },
+      orderBy: { startDate: 'desc' }
+    });
+
+    const shift = employeeShift?.shift;
+    let computedStatus = "PRESENT";
+
+    if (shift && shift.startTime && shift.type !== "OPEN") {
+      const [shiftH, shiftM] = shift.startTime.split(':').map(Number);
+      const shiftStartTime = new Date(today);
+      shiftStartTime.setHours(shiftH, shiftM, 0, 0);
+
+      // Default grace period of 15 mins
+      const gracePeriodMs = 15 * 60 * 1000;
+      if (new Date().getTime() > (shiftStartTime.getTime() + gracePeriodMs)) {
+        computedStatus = "LATE";
+      }
     }
 
     let record;
@@ -131,7 +243,11 @@ export default async function attendanceRoutes(app: FastifyInstance) {
         data: {
           clockIn: new Date(),
           clockInPhotoUrl: photoUrl,
-          status: "PRESENT"
+          latitude,
+          longitude,
+          isGeofenced,
+          shiftId: shift?.id || null,
+          status: computedStatus
         }
       });
     } else {
@@ -141,58 +257,119 @@ export default async function attendanceRoutes(app: FastifyInstance) {
           date: today,
           clockIn: new Date(),
           clockInPhotoUrl: photoUrl,
-          status: "PRESENT"
+          latitude,
+          longitude,
+          isGeofenced,
+          shiftId: shift?.id || null,
+          status: computedStatus
         }
       });
     }
+
     return reply.status(201).send(record);
   });
 
+  // POST /clock-out
   server.post('/clock-out', {
     schema: {
       body: z.object({
         employeeId: z.string(),
-        photoUrl: z.string().optional()
+        photoUrl: z.string().optional(),
+        latitude: z.number().optional(),
+        longitude: z.number().optional()
       })
     }
   }, async (req, reply) => {
-    const { employeeId, photoUrl } = req.body;
+    const { employeeId, photoUrl, latitude, longitude } = req.body;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const record = await server.prisma.attendance.updateMany({
+    // Find active shift specifically for today or current open record
+    const recordToClose = await server.prisma.attendance.findFirst({
       where: { employeeId, clockOut: null },
-      data: { clockOut: new Date(), clockOutPhotoUrl: photoUrl }
+      orderBy: { date: 'desc' }
     });
-    return reply.status(200).send({ success: true, updated: record.count });
+
+    if (!recordToClose) {
+      return reply.status(400).send({ error: "No active clock-in session found to clock out" });
+    }
+
+    // Geofence check on clock out
+    let isGeofenced = recordToClose.isGeofenced;
+    if (latitude && longitude) {
+      const activeGeofences = await server.prisma.geofence.findMany({ where: { isActive: true } });
+      for (const gf of activeGeofences) {
+        const dist = haversineMeters(latitude, longitude, gf.latitude, gf.longitude);
+        if (dist <= gf.radius) {
+          isGeofenced = true;
+          break;
+        }
+      }
+    }
+
+    const updated = await server.prisma.attendance.update({
+      where: { id: recordToClose.id },
+      data: {
+        clockOut: new Date(),
+        clockOutPhotoUrl: photoUrl,
+        ...(latitude ? { latitude } : {}),
+        ...(longitude ? { longitude } : {}),
+        ...(isGeofenced !== undefined ? { isGeofenced } : {})
+      }
+    });
+
+    return reply.status(200).send({ success: true, record: updated });
   });
 
+  // POST /break-in
   server.post('/break-in', {
     schema: {
       body: z.object({ employeeId: z.string() })
     }
   }, async (req, reply) => {
     const { employeeId } = req.body;
-
-    const record = await server.prisma.attendance.updateMany({
+    const activeRecord = await server.prisma.attendance.findFirst({
       where: { employeeId, clockOut: null },
+      orderBy: { date: 'desc' }
+    });
+
+    if (!activeRecord) {
+      return reply.status(400).send({ error: "Cannot start break: Employee is not clocked in" });
+    }
+
+    const record = await server.prisma.attendance.update({
+      where: { id: activeRecord.id },
       data: { breakStart: new Date(), breakEnd: null }
     });
-    return reply.status(200).send({ success: true, updated: record.count });
+
+    return reply.status(200).send({ success: true, record });
   });
 
+  // POST /break-out
   server.post('/break-out', {
     schema: {
       body: z.object({ employeeId: z.string() })
     }
   }, async (req, reply) => {
     const { employeeId } = req.body;
-
-    const record = await server.prisma.attendance.updateMany({
+    const activeRecord = await server.prisma.attendance.findFirst({
       where: { employeeId, clockOut: null },
+      orderBy: { date: 'desc' }
+    });
+
+    if (!activeRecord || !activeRecord.breakStart) {
+      return reply.status(400).send({ error: "Cannot end break: No active break session found" });
+    }
+
+    const record = await server.prisma.attendance.update({
+      where: { id: activeRecord.id },
       data: { breakEnd: new Date() }
     });
-    return reply.status(200).send({ success: true, updated: record.count });
+
+    return reply.status(200).send({ success: true, record });
   });
 
+  // PUT /override/:id
   server.put('/override/:id', {
     schema: {
       params: z.object({ id: z.string() }),

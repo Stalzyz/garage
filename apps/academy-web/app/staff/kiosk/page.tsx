@@ -74,19 +74,13 @@ export default function StaffKioskPage() {
     try {
       const endpoint = action === "IN" ? "/hr/attendance/clock-in" : "/hr/attendance/clock-out"
       
-      const res = await fetch(`http://localhost:4000/api/v1${endpoint}`, {
+      await fetchApi(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           employeeId: selectedEmployee.id,
           photoUrl: photoData
         })
       })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || "Failed to log attendance")
-      }
 
       setStep("SUCCESS")
     } catch (err: any) {
