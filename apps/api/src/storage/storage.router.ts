@@ -65,6 +65,7 @@ export default async function storageRouter(app: FastifyInstance) {
       reply.header('Access-Control-Allow-Origin', '*');
       reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
       reply.header('Access-Control-Allow-Headers', '*');
+      reply.header('Cross-Origin-Resource-Policy', 'cross-origin');
       reply.header('Cache-Control', 'public, max-age=31536000, immutable');
       if (response.ContentType) {
         reply.header('Content-Type', response.ContentType);

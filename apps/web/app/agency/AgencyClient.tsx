@@ -1335,7 +1335,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
   )
 }
 
-// Completely random positions on each load
+// Deterministic positions to guarantee identical SSR and client hydration
 function getGoldenPositions(count: number, isMobile: boolean) {
   const positions: { x: number; y: number; rotate: number }[] = []
   
@@ -1344,14 +1344,14 @@ function getGoldenPositions(count: number, isMobile: boolean) {
   const maxRadiusY = isMobile ? 160 : 180
 
   for (let i = 0; i < count; i++) {
-    const angle = Math.random() * Math.PI * 2
-    // Math.sqrt for uniform distribution across the circle area
-    const r = Math.sqrt(Math.random() * 0.8 + 0.2) // Avoid being exactly in the center
+    const pseudoRandomAngle = ((i * 137.508) % 360) * (Math.PI / 180)
+    const pseudoRandomR = 0.35 + ((((i * 73 + 17) % 100) / 100) * 0.55)
+    const pseudoRandomRotate = (((i * 41 + 13) % 60) - 30)
 
     positions.push({
-      x: Math.cos(angle) * r * maxRadiusX,
-      y: Math.sin(angle) * r * maxRadiusY,
-      rotate: Math.random() * 60 - 30,
+      x: Math.cos(pseudoRandomAngle) * pseudoRandomR * maxRadiusX,
+      y: Math.sin(pseudoRandomAngle) * pseudoRandomR * maxRadiusY,
+      rotate: pseudoRandomRotate,
     })
   }
   return positions

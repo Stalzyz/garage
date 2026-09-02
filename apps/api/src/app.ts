@@ -44,8 +44,11 @@ export async function buildApp(opts: any = {}): Promise<any> {
   startCronJobs();
   startAutomatedDrips();
 
-  // Security: Helmet HTTP headers
-  await app.register(helmet, { contentSecurityPolicy: false });
+  // Security: Helmet HTTP headers with cross-origin resource policy enabled for public assets & APIs
+  await app.register(helmet, {
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  });
 
   // Rate Limiting: higher in test to allow E2E parallel requests
   const isTest = process.env.NODE_ENV === 'test';
