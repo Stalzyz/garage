@@ -96,7 +96,6 @@ export default async function meetingsRouter(app: FastifyInstance) {
           description: description || `Internal Meeting: ${title}`,
           start: { dateTime: startTime, timeZone: 'UTC' },
           end: { dateTime: endTime, timeZone: 'UTC' },
-          attendees: emails,
           conferenceData: {
             createRequest: {
               requestId: `internal-meet-${Date.now()}`,
