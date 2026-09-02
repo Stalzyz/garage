@@ -61,7 +61,11 @@ export default async function storageRouter(app: FastifyInstance) {
         return reply.code(404).send({ error: 'File empty or not found' });
       }
 
-      // Set headers
+      // Set headers with CORS enabled for cross-domain client apps
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      reply.header('Access-Control-Allow-Headers', '*');
+      reply.header('Cache-Control', 'public, max-age=31536000, immutable');
       if (response.ContentType) {
         reply.header('Content-Type', response.ContentType);
       }

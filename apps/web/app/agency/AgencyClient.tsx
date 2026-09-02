@@ -1042,9 +1042,28 @@ const UniversalContactForm = ({
       </button>
     </form>
   )
-}// --- SHOWCASE IMAGE WITH SELF-HEALING FALLBACK ---
+}// Helper to format Cloudflare R2 images through backend CORS proxy
+function formatImageUrl(url?: string): string {
+  if (!url) return '';
+  if (url.includes('.r2.cloudflarestorage.com/')) {
+    try {
+      const parsed = new URL(url);
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      const keyParts = parts[0] === 'grekamos' ? parts.slice(1) : parts;
+      const key = keyParts.join('/');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.grekam.in/api/v1';
+      return `${apiUrl}/storage/asset/${key}`;
+    } catch {
+      return url;
+    }
+  }
+  return url;
+}
+
+// --- SHOWCASE IMAGE WITH SELF-HEALING FALLBACK ---
 const ShowcaseImage = ({ src, alt, title }: { src?: string; alt?: string; title?: string }) => {
   const [hasError, setHasError] = useState(false)
+  const formattedSrc = useMemo(() => formatImageUrl(src), [src])
 
   if (!src || hasError) {
     return (
@@ -1062,10 +1081,9 @@ const ShowcaseImage = ({ src, alt, title }: { src?: string; alt?: string; title?
   return (
     <img
       loading="lazy"
-      src={src}
+      src={formattedSrc}
       alt={alt || title || 'Showcase'}
       referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
       onError={() => setHasError(true)}
       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
     />
