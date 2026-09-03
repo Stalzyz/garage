@@ -24,6 +24,42 @@ export default async function tasksRouter(app: FastifyInstance) {
     return { data: tasks, total: tasks.length };
   });
 
+  // GET /api/v1/projects/tasks/ongoing — Get active/in-progress tasks for admin monitoring
+  app.get('/tasks/ongoing', async (req, reply) => {
+    const tasks = await app.prisma.task.findMany({
+      where: { status: { in: ['IN_PROGRESS', 'TODO', 'IN_REVIEW'] } },
+      include: {
+        project: { select: { id: true, name: true } },
+        timeLogs: { orderBy: { logDate: 'desc' }, take: 5 }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const assigneeIds = tasks.map(t => t.assigneeId).filter(Boolean) as string[];
+    const employees = await app.prisma.employee.findMany({
+      where: { OR: [{ id: { in: assigneeIds } }, { userId: { in: assigneeIds } }] },
+      include: { user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } } }
+    });
+
+    const empMap = new Map();
+    employees.forEach(e => {
+      empMap.set(e.id, e);
+      if (e.userId) empMap.set(e.userId, e);
+    });
+
+    const enrichedTasks = tasks.map(t => {
+      const emp = t.assigneeId ? empMap.get(t.assigneeId) : null;
+      return {
+        ...t,
+        assigneeName: emp?.user ? `${emp.user.firstName} ${emp.user.lastName}` : 'Unassigned',
+        assigneeAvatar: emp?.user?.avatarUrl || null,
+        assigneeEmail: emp?.user?.email || null,
+      };
+    });
+
+    return { data: enrichedTasks, total: enrichedTasks.length };
+  });
+
   // GET /api/v1/projects/:projectId/tasks
   app.get('/:projectId/tasks', async (req, reply) => {
     const { projectId } = req.params as { projectId: string };

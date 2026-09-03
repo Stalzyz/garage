@@ -908,7 +908,7 @@ const renderIcon = (iconName?: string, fallbackIcon?: React.ReactNode, className
     const IconComponent = (Icons as any)[iconName]
     return <IconComponent className={className || "w-8 h-8 md:w-12 md:h-12"} />
   }
-  return fallbackIcon || <Zap className={className || "w-8 h-8 md:w-12 md:h-12"} />
+  return fallbackIcon || <Sparkles className={className || "w-8 h-8 md:w-12 md:h-12"} />
 }
 
 // --- CUSTOM CURSOR ---

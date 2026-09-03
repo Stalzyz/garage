@@ -63,4 +63,76 @@ export default async function csvExportsRouter(app: FastifyInstance) {
     reply.header('Content-Disposition', 'attachment; filename="employees.csv"');
     return reply.send(csv);
   });
+
+  // GET /api/v1/exports/attendance.csv
+  app.get('/attendance.csv', async (req, reply) => {
+    const { startDate, endDate, employeeId, status } = req.query as {
+      startDate?: string;
+      endDate?: string;
+      employeeId?: string;
+      status?: string;
+    };
+
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+    if (status && status !== 'all') where.status = status.toUpperCase();
+    if (startDate && endDate) {
+      where.date = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      };
+    }
+
+    const records = await app.prisma.attendance.findMany({
+      where,
+      include: {
+        employee: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+        shift: true
+      },
+      orderBy: { date: 'desc' }
+    });
+
+    const headers = [
+      'date',
+      'employeeCode',
+      'employeeName',
+      'email',
+      'status',
+      'shift',
+      'clockIn',
+      'clockOut',
+      'duration',
+      'isGeofenced',
+      'notes'
+    ];
+
+    const csv = toCsv(records.map(r => {
+      let durationStr = '--';
+      if (r.clockIn && r.clockOut) {
+        let m = Math.floor((r.clockOut.getTime() - r.clockIn.getTime()) / 60000);
+        if (r.breakStart && r.breakEnd) {
+          m -= Math.floor((r.breakEnd.getTime() - r.breakStart.getTime()) / 60000);
+        }
+        durationStr = `${Math.floor(m / 60)}h ${Math.max(0, m % 60)}m`;
+      }
+
+      return {
+        date: r.date.toISOString().split('T')[0],
+        employeeCode: r.employee.employeeCode || r.employee.id,
+        employeeName: `${r.employee.user.firstName} ${r.employee.user.lastName}`,
+        email: r.employee.user.email,
+        status: r.status,
+        shift: r.shift?.name || 'Standard',
+        clockIn: r.clockIn ? r.clockIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--',
+        clockOut: r.clockOut ? r.clockOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--',
+        duration: durationStr,
+        isGeofenced: r.isGeofenced ? 'Yes' : 'No',
+        notes: r.notes || ''
+      };
+    }), headers);
+
+    reply.header('Content-Type', 'text/csv');
+    reply.header('Content-Disposition', 'attachment; filename="attendance.csv"');
+    return reply.send(csv);
+  });
 }

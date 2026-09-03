@@ -25,8 +25,8 @@ export default async function timeRoutes(app: FastifyInstance) {
   server.post('/', {
     schema: {
       body: z.object({
-        projectId: z.string(),
-        taskId: z.string().optional(),
+        projectId: z.string().optional().nullable(),
+        taskId: z.string().optional().nullable(),
         hours: z.number(),
         description: z.string().optional(),
         logDate: z.string().optional()
@@ -42,8 +42,8 @@ export default async function timeRoutes(app: FastifyInstance) {
     const data = req.body;
     const log = await server.prisma.timeLog.create({
       data: {
-        projectId: data.projectId,
-        taskId: data.taskId,
+        projectId: data.projectId || undefined,
+        taskId: data.taskId || undefined,
         hours: data.hours,
         description: data.description,
         userId: userId,

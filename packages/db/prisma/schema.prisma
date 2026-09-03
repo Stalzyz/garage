@@ -743,7 +743,7 @@ model Brief {
 
 model TimeLog {
   id          String   @id @default(cuid())
-  projectId   String
+  projectId   String?
   taskId      String?
   userId      String
   hours       Float
@@ -751,8 +751,8 @@ model TimeLog {
   logDate     DateTime @default(now())
   createdAt   DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
-  task    Task?   @relation(fields: [taskId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  task    Task?    @relation(fields: [taskId], references: [id])
 
   @@map("time_logs")
 }

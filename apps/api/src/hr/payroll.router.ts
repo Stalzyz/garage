@@ -218,8 +218,53 @@ export default async function payrollRoutes(app: FastifyInstance) {
         }
       }
 
+      // Scan attendance logs for ABSENT (1.0 day) and HALF_DAY (0.5 day)
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+
+      const attendanceLogs = await server.prisma.attendance.findMany({
+        where: {
+          employeeId: emp.id,
+          date: { gte: monthStart, lte: monthEnd },
+          status: { in: ['ABSENT', 'HALF_DAY'] }
+        }
+      });
+
+      // Avoid double counting dates that are already covered by an approved leave request
+      const approvedLeaveDates = new Set<string>();
+      const allApprovedLeaves = await server.prisma.leaveRequest.findMany({
+        where: {
+          employeeId: emp.id,
+          status: 'APPROVED',
+          startDate: { lte: monthEnd },
+          endDate: { gte: monthStart }
+        }
+      });
+
+      for (const l of allApprovedLeaves) {
+        let cur = new Date(Math.max(new Date(l.startDate).getTime(), monthStart.getTime()));
+        const end = new Date(Math.min(new Date(l.endDate).getTime(), monthEnd.getTime()));
+        while (cur <= end) {
+          approvedLeaveDates.add(cur.toISOString().split('T')[0]);
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+
+      let attendanceLwpDays = 0;
+      for (const log of attendanceLogs) {
+        const dateStr = new Date(log.date).toISOString().split('T')[0];
+        if (!approvedLeaveDates.has(dateStr)) {
+          if (log.status === 'ABSENT') {
+            attendanceLwpDays += 1.0;
+          } else if (log.status === 'HALF_DAY') {
+            attendanceLwpDays += 0.5;
+          }
+        }
+      }
+
+      const totalLwpDays = unpaidDays + attendanceLwpDays;
       const dailyRate = emp.salary / totalDaysInMonth;
-      const lwpDeduction = dailyRate * unpaidDays;
+      const lwpDeduction = dailyRate * totalLwpDays;
       
       const slip = calculatePayslip(emp.salary, config, lwpDeduction);
       totalAmount += slip.net;

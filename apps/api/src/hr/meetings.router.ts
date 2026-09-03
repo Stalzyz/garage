@@ -188,4 +188,47 @@ export default async function meetingsRouter(app: FastifyInstance) {
       return reply.internalServerError('Failed to delete meeting');
     }
   });
+
+  // POST /api/v1/hr/meetings/send-reminders (Send 10-minute before meeting alerts)
+  app.post('/meetings/send-reminders', async (req, reply) => {
+    try {
+      const now = new Date();
+      const fifteenMinsLater = new Date(now.getTime() + 15 * 60 * 1000);
+
+      const upcomingMeetings = await app.prisma.internalMeeting.findMany({
+        where: {
+          startTime: { gte: now, lte: fifteenMinsLater }
+        },
+        include: {
+          attendees: { include: { employee: { include: { user: true } } } }
+        }
+      });
+
+      let sentCount = 0;
+      for (const m of upcomingMeetings) {
+        for (const att of m.attendees) {
+          const email = att.employee?.user?.email;
+          if (email) {
+            await sendEmail(email, {
+              subject: `⏰ Reminder: Meeting Starting Soon — ${m.title}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:24px;border-radius:12px;border:1px solid #333;">
+                  <h2 style="color:#f59e0b;margin-top:0;">⏰ Meeting Starting Soon</h2>
+                  <p>Your meeting <strong>${m.title}</strong> starts in approximately 10 minutes.</p>
+                  <p><strong>Time:</strong> ${new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  ${m.meetLink ? `<p style="margin-top:20px;"><a href="${m.meetLink}" style="display:inline-block;padding:12px 24px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Join Google Meet Now</a></p>` : ''}
+                </div>
+              `
+            });
+            sentCount++;
+          }
+        }
+      }
+
+      return { success: true, sentCount, meetingsChecked: upcomingMeetings.length };
+    } catch (err: any) {
+      app.log.error(err, 'Failed to send meeting reminders');
+      return reply.internalServerError('Failed to send meeting reminders');
+    }
+  });
 }

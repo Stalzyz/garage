@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { sendEmail } from '../integrations/email.service';
 
 // Haversine formula to calculate distance between two coordinates in meters
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -381,7 +382,82 @@ function parseTimeStringToDate(baseDate: Date, timeStr: string): Date {
       }
     });
 
-    return reply.status(200).send({ success: true, record: updated });
+    // Send EOD Work Report Email & Pending Tasks Summary
+    let pendingTasks: any[] = [];
+    try {
+      const employee = await server.prisma.employee.findUnique({
+        where: { id: employeeId },
+        include: { user: true }
+      });
+
+      const staffEmail = employee?.user?.email;
+      const staffName = employee?.user?.firstName || 'Staff';
+
+      const userTasks = await server.prisma.task.findMany({
+        where: {
+          OR: [{ assigneeId: employeeId }, ...(employee?.userId ? [{ assigneeId: employee.userId }] : [])]
+        },
+        include: { project: { select: { name: true } } }
+      });
+
+      pendingTasks = userTasks.filter((t: any) => ['TODO', 'IN_PROGRESS', 'IN_REVIEW'].includes(t.status));
+      const doneTasks = userTasks.filter((t: any) => t.status === 'DONE');
+
+      if (staffEmail) {
+        (async () => {
+          try {
+            let hoursLoggedStr = '0.0 hours';
+            if (updated.clockIn && updated.clockOut) {
+              const mins = Math.floor((updated.clockOut.getTime() - updated.clockIn.getTime()) / 60000);
+              hoursLoggedStr = `${Math.floor(mins / 60)}h ${mins % 60}m`;
+            }
+
+            const pendingListHtml = pendingTasks.length > 0
+              ? pendingTasks.map((t: any) => `<li><strong>${t.title}</strong> (${t.project?.name || 'Internal'}) — Priority: ${t.priority}</li>`).join('')
+              : '<li>No pending tasks! All tasks completed.</li>';
+
+            const doneListHtml = doneTasks.length > 0
+              ? doneTasks.map((t: any) => `<li><strong>${t.title}</strong> (${t.project?.name || 'Internal'})</li>`).join('')
+              : '<li>No tasks marked completed today.</li>';
+
+            await sendEmail(staffEmail, {
+              subject: `Daily Work Report & EOD Summary — ${new Date().toLocaleDateString()}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#111;color:#fff;padding:24px;border-radius:12px;border:1px solid #333;">
+                  <h2 style="color:#3b82f6;margin-top:0;">Daily EOD Work Report</h2>
+                  <p>Hello <strong>${staffName}</strong>,</p>
+                  <p>You have clocked out for today. Here is your daily summary report:</p>
+                  
+                  <div style="background:#222;padding:16px;border-radius:8px;margin:16px 0;">
+                    <p style="margin:0 0 8px 0;">⏱️ <strong>Shift Duration Logged:</strong> ${hoursLoggedStr}</p>
+                    <p style="margin:0;">📅 <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                  </div>
+
+                  <h3 style="color:#10b981;margin-bottom:8px;">✅ Tasks Completed</h3>
+                  <ul style="padding-left:20px;color:#ccc;">${doneListHtml}</ul>
+
+                  <h3 style="color:#f59e0b;margin-bottom:8px;">⚠️ Pending Tasks (${pendingTasks.length})</h3>
+                  <ul style="padding-left:20px;color:#ccc;">${pendingListHtml}</ul>
+
+                  <p style="color:#888;font-size:12px;margin-top:24px;border-top:1px solid #333;padding-top:12px;">Grekam OS Work Management System</p>
+                </div>
+              `
+            });
+          } catch (e: any) {
+            console.error('[ClockOut] EOD email error:', e);
+          }
+        })();
+      }
+    } catch (err: any) {
+      console.error('[ClockOut] Task calculation error:', err);
+    }
+
+    return reply.status(200).send({
+      success: true,
+      record: updated,
+      pendingTasksCount: pendingTasks.length,
+      pendingTasks: pendingTasks.map(t => ({ id: t.id, title: t.title, priority: t.priority }))
+    });
   });
 
   // POST /break-in
@@ -460,4 +536,94 @@ function parseTimeStringToDate(baseDate: Date, timeStr: string): Date {
     });
     return reply.status(200).send(record);
   });
+
+  // POST /auto-absence (Trigger auto absence processing for target date)
+  server.post('/auto-absence', {
+    schema: {
+      body: z.object({
+        date: z.string().optional()
+      })
+    }
+  }, async (req, reply) => {
+    const targetDate = req.body.date ? new Date(req.body.date) : new Date(Date.now() - 86400000); // Default to yesterday
+    const result = await autoMarkAbsences(server.prisma, targetDate);
+    return reply.status(200).send({ success: true, ...result });
+  });
+}
+
+// Automatically mark active employees as ABSENT if they didn't clock in and have no approved leave/holiday/week-off
+async function autoMarkAbsences(prisma: any, targetDate: Date) {
+  try {
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const dayEnd = new Date(targetDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const dayOfWeek = dayStart.getDay(); // 0 = Sun, 1 = Mon ...
+
+    // 1. Check if targetDate is a Holiday
+    const holiday = await prisma.holiday.findFirst({
+      where: { date: { gte: dayStart, lte: dayEnd } }
+    });
+
+    if (holiday) {
+      return { markedCount: 0, reason: `Date ${dayStart.toISOString().split('T')[0]} is an official holiday: ${holiday.name}` };
+    }
+
+    // 2. Get active employees
+    const activeEmployees = await prisma.employee.findMany({
+      include: {
+        user: { select: { status: true } },
+        weekOffs: { where: { effectiveFrom: { lte: dayEnd } }, orderBy: { effectiveFrom: 'desc' }, take: 1 }
+      }
+    });
+
+    const eligibleEmployees = activeEmployees.filter((e: any) => e.user?.status === 'ACTIVE');
+
+    let markedCount = 0;
+
+    for (const emp of eligibleEmployees) {
+      // Check employee week-off
+      const employeeWeekOff = emp.weekOffs?.[0];
+      if (employeeWeekOff && employeeWeekOff.daysOfWeek && employeeWeekOff.daysOfWeek.includes(dayOfWeek)) {
+        continue; // Skip employee's scheduled week off
+      }
+
+      // Check existing attendance log for that date
+      const existingRecord = await prisma.attendance.findFirst({
+        where: { employeeId: emp.id, date: { gte: dayStart, lte: dayEnd } }
+      });
+
+      if (existingRecord) continue; // Already has an attendance record (PRESENT, LATE, ABSENT, etc.)
+
+      // Check approved leave request covering targetDate
+      const leave = await prisma.leaveRequest.findFirst({
+        where: {
+          employeeId: emp.id,
+          status: 'APPROVED',
+          startDate: { lte: dayEnd },
+          endDate: { gte: dayStart }
+        }
+      });
+
+      if (leave) continue; // On approved leave
+
+      // Create ABSENT record
+      await prisma.attendance.create({
+        data: {
+          employeeId: emp.id,
+          date: dayStart,
+          status: 'ABSENT',
+          notes: 'System auto-marked absent (No clock-in recorded)'
+        }
+      });
+      markedCount++;
+    }
+
+    return { markedCount, targetDate: dayStart.toISOString().split('T')[0] };
+  } catch (err) {
+    console.error('[AttendanceRouter] Auto-mark absences failed:', err);
+    throw err;
+  }
 }

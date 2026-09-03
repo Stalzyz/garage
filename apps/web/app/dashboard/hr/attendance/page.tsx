@@ -9,7 +9,7 @@ import {
 import { SlideOver } from "@/components/SlideOver"
 import { toast } from "sonner"
 import { Modal } from "@/components/ui/modal"
-import { useApi, fetchApi } from "@/lib/useApi"
+import { useApi, fetchApi, API_BASE_URL } from "@/lib/useApi"
 
 type TabType = "tracker" | "shifts" | "geofences" | "holidays" | "weekoffs" | "regularization" | "rules"
 
@@ -99,6 +99,50 @@ export default function StaffAttendanceDashboard() {
     time: "08:00",
     isActive: true
   })
+
+  const [isProcessingAbsence, setIsProcessingAbsence] = useState(false)
+
+  const handleExportCsv = async () => {
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"
+      const queryParams = new URLSearchParams()
+      if (filter && filter !== "all") queryParams.set("status", filter)
+      const res = await fetch(`${apiBase}/exports/attendance.csv?${queryParams.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+        }
+      })
+      if (!res.ok) throw new Error("Export failed")
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Staff_Attendance_${new Date().toISOString().split("T")[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success("Attendance CSV exported successfully")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to export attendance CSV")
+    }
+  }
+
+  const handleTriggerAutoAbsence = async () => {
+    setIsProcessingAbsence(true)
+    try {
+      const res = await fetchApi<{ success: boolean; markedCount: number; targetDate?: string }>("/hr/attendance/auto-absence", {
+        method: "POST",
+        body: JSON.stringify({ date: new Date(Date.now() - 86400000).toISOString().split("T")[0] })
+      })
+      toast.success(`Auto-marked ${res.markedCount} employee(s) as ABSENT for ${res.targetDate || 'yesterday'}`)
+      mutateAttendance()
+    } catch (err: any) {
+      toast.error(err.message || "Auto-absence processing failed")
+    } finally {
+      setIsProcessingAbsence(false)
+    }
+  }
 
   // Action Submit Helpers
   const handleSaveManual = async (e: React.FormEvent) => {
@@ -295,8 +339,11 @@ export default function StaffAttendanceDashboard() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             {activeTab === "tracker" && (
               <>
-                <button className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 min-h-[44px]">
-                  <Download className="w-4 h-4" /> Export
+                <button onClick={handleExportCsv} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 min-h-[44px]">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
+                <button onClick={handleTriggerAutoAbsence} disabled={isProcessingAbsence} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-all min-h-[44px]">
+                  <XCircle className="w-4 h-4" /> {isProcessingAbsence ? "Processing..." : "Auto-Mark Absences"}
                 </button>
                 <button onClick={() => setIsManualOpen(true)} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
                   <UserCheck className="w-4 h-4" /> Mark Manual Entry

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare, Mail, Phone } from "lucide-react"
+import { Sparkles, Search, UserPlus, Globe, CheckCircle2, Copy, AlertTriangle, MessageSquareShare, Mail, Phone } from "lucide-react"
 import { fetchApi } from "@/lib/useApi"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
@@ -133,7 +133,7 @@ export default function AIProspectingDashboard() {
               {analyzing ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Scraping & Enriching...</>
               ) : (
-                <><Zap className="w-4 h-4" /> Scrape & Enrich</>
+                <><Sparkles className="w-4 h-4" /> Scrape & Enrich</>
               )}
             </button>
           </div>
@@ -219,7 +219,7 @@ export default function AIProspectingDashboard() {
             {/* AI Icebreakers */}
             <div className="p-6">
               <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-primary" /> AI Generated Outreach Icebreakers
+                <Sparkles className="w-5 h-5 text-primary" /> AI Generated Outreach Icebreakers
               </h3>
               
               <div className="grid gap-4">

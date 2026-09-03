@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Command } from "lucide-react"
+import { Search, Command, Sparkles } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { getNavItemsByRole, Role } from "@/config/navigation"
 
@@ -107,7 +107,7 @@ export function CommandPalette() {
             <span className="flex items-center gap-1"><kbd className="bg-muted px-1.5 py-0.5 rounded border border-border/50">↑</kbd><kbd className="bg-muted px-1.5 py-0.5 rounded border border-border/50">↓</kbd> to navigate</span>
             <span className="flex items-center gap-1"><kbd className="bg-muted px-1.5 py-0.5 rounded border border-border/50">↵</kbd> to select</span>
           </div>
-          <span className="font-bold flex items-center gap-1"><Zap className="w-3 h-3 text-primary" /> Grekam OS Search</span>
+          <span className="font-bold flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> Grekam OS Search</span>
         </div>
       </div>
     </div>
