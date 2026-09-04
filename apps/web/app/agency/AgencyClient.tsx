@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
@@ -887,7 +887,7 @@ const PricingCalculator = () => {
 }
 
 const INITIAL_CARDS: CardData[] = [
-  { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures and strategic brand identities that dominate markets.", iconName: "Zap", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
+  { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures and strategic brand identities that dominate markets.", iconName: "Layers", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
   { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and trust.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: BRANDING_PROJECTS },
   { id: "webdev", category: "Build", title: "Enterprise Commerce", subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce engines capable of handling infinite scale without bottlenecks.", iconName: "Code2", colorHex: "#22d3ee", cta: "Scale Infrastructure", projects: DUMMY_PROJECTS },
   { id: "pricing", category: "Investment", title: "Pricing & Packages", subtitle: "Clear tiers for websites, e-commerce, custom app development, and interactive add-on price calculations.", iconName: "IndianRupee", colorHex: "#10b981", cta: "Calculate Quote", isPricing: true },
@@ -908,7 +908,7 @@ const renderIcon = (iconName?: string, fallbackIcon?: React.ReactNode, className
     const IconComponent = (Icons as any)[iconName]
     return <IconComponent className={className || "w-8 h-8 md:w-12 md:h-12"} />
   }
-  return fallbackIcon || <Sparkles className={className || "w-8 h-8 md:w-12 md:h-12"} />
+  return fallbackIcon || <Layers className={className || "w-8 h-8 md:w-12 md:h-12"} />
 }
 
 // --- CUSTOM CURSOR ---
@@ -1327,7 +1327,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
                      }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
-                        {activeCard.cta} <Zap className="w-4 h-4" />
+                        {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
                   )}
                 </div>
@@ -1556,7 +1556,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
                <p className="text-white/60 text-sm max-w-sm">Join an elite network of engineers and designers mastering the craft of modern software building.</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-[#eab308] flex items-center justify-center text-black group-hover:scale-110 transition-transform shrink-0">
-               <Zap className="w-5 h-5" />
+               <ArrowRight className="w-5 h-5" />
             </div>
          </div>
       )}
@@ -1607,7 +1607,7 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
                 else if (card.isCrm) window.location.href = '/dashboard/crm';
                 else if (card.isHrm) window.location.href = '/dashboard/hr';
              }} className="py-4 px-8 w-full md:w-auto bg-white text-black font-bold rounded-xl hover:bg-gray-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2">
-                {card.cta} <Zap className="w-4 h-4" />
+                {card.cta} <ArrowRight className="w-4 h-4" />
              </button>
           )}
         </div>
@@ -1742,7 +1742,7 @@ const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
                      else if (card.isCrm) window.location.href = '/dashboard/crm';
                      else if (card.isHrm) window.location.href = '/dashboard/hr';
                   }} className="mt-12 w-fit border-b border-[#2c2a29] pb-2 text-[10px] md:text-xs font-sans uppercase tracking-[0.2em] hover:text-[#7a7571] hover:border-[#7a7571] transition-all flex items-center gap-2">
-                    {card.cta} <Zap className="w-3 h-3" />
+                    {card.cta} <ArrowRight className="w-3 h-3" />
                   </button>
                )}
              </div>
@@ -1761,7 +1761,7 @@ const LayoutInfiniteCanvas = ({ cards, onPreviewProject }: any) => {
     <div className="h-[100dvh] w-full bg-zinc-100 overflow-hidden relative cursor-grab active:cursor-grabbing font-sans">
       <div className="absolute inset-0 bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:20px_20px]" />
       <div className="absolute bottom-8 md:top-24 md:bottom-auto left-1/2 -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 text-xs font-bold tracking-widest text-zinc-600 uppercase z-50 pointer-events-none flex items-center gap-2">
-         <Zap className="w-4 h-4" /> Drag canvas to explore
+         <Orbit className="w-4 h-4" /> Drag canvas to explore
       </div>
       <motion.div drag dragConstraints={{ left: -2000, right: 2000, top: -2000, bottom: 2000 }} className="w-[4000px] h-[4000px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         
@@ -1932,7 +1932,7 @@ const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
                             else if (card.isCrm) window.location.href = '/dashboard/crm';
                             else if (card.isHrm) window.location.href = '/dashboard/hr';
                          }} className="w-full md:w-fit px-8 py-4 bg-white border-[4px] border-black font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
-                            {card.cta} <Zap className="w-4 h-4" />
+                            {card.cta} <ArrowRight className="w-4 h-4" />
                          </button>
                       )}
                     </div>
@@ -2071,7 +2071,7 @@ const LayoutCinematic = ({ cards, onPreviewProject }: any) => {
                     />
                  ) : (
                     <button className="px-10 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-xs md:text-sm hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto md:mx-0 w-full md:w-fit">
-                       {card.cta} <Zap className="w-4 h-4" />
+                       {card.cta} <ArrowRight className="w-4 h-4" />
                     </button>
                  )}
 
@@ -2264,7 +2264,7 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
                        />
                     ) : (
                        <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 w-full md:w-fit mx-auto md:mx-0">
-                          {activeCard.cta} <Zap className="w-4 h-4" />
+                          {activeCard.cta} <ArrowRight className="w-4 h-4" />
                        </button>
                     )}
                  </div>
