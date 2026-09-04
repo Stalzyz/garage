@@ -3,14 +3,20 @@ import { Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer';
 import { PDFDocument, baseStyles, colors, sp } from './PDFDocument';
 import { DocFooter } from './components';
 import { BrandConfig, resolveBrandLogo } from '../../utils/brand';
-import { cleanDocumentText } from '../../utils/text';
+import { cleanDocumentText, numberToWordsIN } from '../../utils/text';
 
 const safeCurrency = (c: string) => c === '₹' ? 'Rs.' : c;
 
-const fmt = (amount: number, currency: string) => {
+const fmt = (amount: number, currency: string = 'INR') => {
   const n = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0);
-  return `${safeCurrency(currency)} ${n}`;
+  return `${n}`;
 };
+
+const BRAND_DARK_GREEN = '#064e3b';
+const BRAND_EMERALD = '#055740';
+const MINT_BG = '#f0fdf4';
+const MINT_BORDER = '#dcfce7';
+const MINT_TEXT = '#15803d';
 
 const styles = StyleSheet.create({
   // ─── Header ──────────────────────────────────────────────────────────────
@@ -19,671 +25,533 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: sp['16'],
-    paddingBottom: sp['12'],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.rule,
   },
   headerLeft: {
     flexDirection: 'column',
-    maxWidth: '55%',
+    maxWidth: '52%',
   },
   logo: {
-    maxWidth: 200,
-    maxHeight: 55,
+    maxWidth: 220,
+    maxHeight: 50,
     objectFit: 'contain',
-    marginBottom: sp['6'],
+    marginBottom: sp['4'],
+  },
+  tagline: {
+    fontSize: 7.5,
+    color: '#64748b',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: sp['8'],
   },
   companyName: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
+    color: '#0f172a',
     marginBottom: 2,
   },
-  tradeName: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.muted,
-    marginBottom: 4,
-  },
   supplierMeta: {
-    fontSize: 8,
-    color: colors.body,
+    fontSize: 8.5,
+    color: '#475569',
     lineHeight: 1.35,
   },
   headerRight: {
     flexDirection: 'column',
     alignItems: 'flex-end',
-    maxWidth: '42%',
-  },
-  documentBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    marginBottom: 6,
-  },
-  documentBadgeText: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.white,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    maxWidth: '45%',
   },
   invoiceTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
+    color: BRAND_DARK_GREEN,
     letterSpacing: 1,
     textTransform: 'uppercase',
-    textAlign: 'right',
-    marginBottom: 4,
+    marginBottom: sp['8'],
   },
-  headerMetaText: {
-    fontSize: 8,
-    color: colors.muted,
-    lineHeight: 1.4,
-    textAlign: 'right',
-  },
-
-  // ─── Meta & Bill-To Grid ──────────────────────────────────────────────────
-  gridContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: sp['16'],
-    backgroundColor: '#f8fafc',
-    borderRadius: 6,
-    padding: sp['12'],
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  gridColLeft: {
-    flex: 1.1,
-    paddingRight: sp['12'],
-  },
-  gridColRight: {
-    flex: 0.9,
-    alignItems: 'flex-end',
-  },
-  sectionHeading: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  clientName: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    marginBottom: 3,
-  },
-  clientMeta: {
-    fontSize: 8,
-    color: colors.body,
-    lineHeight: 1.35,
+  metaTable: {
+    width: '100%',
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginBottom: 3,
+    alignItems: 'center',
   },
   metaLabel: {
-    fontSize: 8,
-    color: colors.muted,
+    fontSize: 8.5,
+    color: '#64748b',
     marginRight: 6,
     textAlign: 'right',
   },
   metaValue: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
+    textAlign: 'right',
+  },
+  statusBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  statusBadgeText: {
     fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    textAlign: 'right',
+    color: MINT_TEXT,
+  },
+
+  // ─── 2-Column Mint Cards ──────────────────────────────────────────────────
+  gridContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: sp['16'],
+  },
+  mintCard: {
+    flex: 0.485,
+    backgroundColor: MINT_BG,
+    borderWidth: 1,
+    borderColor: MINT_BORDER,
+    borderRadius: 8,
+    padding: sp['12'],
+  },
+  cardTitle: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_DARK_GREEN,
+    marginBottom: sp['4'],
+  },
+  cardHeadingText: {
+    fontSize: 10.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
+    marginBottom: sp['4'],
+  },
+  cardBodyText: {
+    fontSize: 8.5,
+    color: '#334155',
+    lineHeight: 1.4,
   },
 
   // ─── Table ────────────────────────────────────────────────────────────────
   table: {
     width: '100%',
-    marginBottom: sp['16'],
+    marginBottom: sp['12'],
+    borderRadius: 6,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 4,
-    overflow: 'hidden',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#0f172a',
-    paddingVertical: 6,
+    backgroundColor: BRAND_EMERALD,
+    paddingVertical: 7,
     paddingHorizontal: 8,
     alignItems: 'center',
   },
   tableHeaderCell: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
     color: colors.white,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#f1f5f9',
     alignItems: 'center',
   },
   tableRowEven: {
     backgroundColor: '#ffffff',
   },
   tableRowOdd: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#fafafa',
   },
   tableCell: {
-    fontSize: 8,
-    color: colors.ink,
+    fontSize: 8.5,
+    color: '#1e293b',
   },
   colNum: { width: '6%', textAlign: 'center' },
-  colDesc: { width: '44%', paddingRight: 6 },
+  colDesc: { width: '42%', paddingRight: 6 },
   colSac: { width: '14%', textAlign: 'center' },
   colQty: { width: '8%', textAlign: 'center' },
-  colRate: { width: '14%', textAlign: 'right' },
-  colTotal: { width: '14%', textAlign: 'right', fontFamily: 'Helvetica-Bold' },
+  colRate: { width: '15%', textAlign: 'right' },
+  colTotal: { width: '15%', textAlign: 'right', fontFamily: 'Helvetica-Bold' },
 
-  // ─── Bottom Sections ──────────────────────────────────────────────────────
+  itemTitle: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
+  },
+  itemSub: {
+    fontSize: 7.5,
+    color: '#64748b',
+    marginTop: 1,
+  },
+
+  // ─── Bottom Section Grid ──────────────────────────────────────────────────
   bottomGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: sp['16'],
   },
   bottomLeft: {
-    width: '54%',
-    paddingRight: sp['12'],
+    width: '52%',
+    paddingRight: sp['8'],
   },
-  bottomRight: {
-    width: '42%',
+  wordsCard: {
+    backgroundColor: MINT_BG,
+    borderWidth: 1,
+    borderColor: MINT_BORDER,
+    borderRadius: 6,
+    padding: sp['8'],
+    marginBottom: sp['12'],
+  },
+  wordsLabel: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_DARK_GREEN,
+    marginBottom: 2,
+  },
+  wordsText: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
   },
 
-  // Payment Box
-  boxContainer: {
-    backgroundColor: '#f8fafc',
+  bottomRight: {
+    width: '45%',
+  },
+  summaryTable: {
+    width: '100%',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 6,
-    padding: sp['10'],
-    marginBottom: sp['10'],
+    overflow: 'hidden',
   },
-  boxHeading: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 5,
-  },
-  boxRow: {
-    flexDirection: 'row',
-    marginBottom: 2.5,
-  },
-  boxLabel: {
-    fontSize: 7.5,
-    color: colors.muted,
-    width: 75,
-  },
-  boxValue: {
-    fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    flex: 1,
-  },
-
-  // Terms Box
-  termsHeading: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-    textTransform: 'uppercase',
-    marginBottom: 3,
-  },
-  termsText: {
-    fontSize: 7.5,
-    color: colors.body,
-    lineHeight: 1.35,
-    marginBottom: 3,
-  },
-  exemptionNotice: {
-    fontSize: 7.5,
-    color: '#047857',
-    fontFamily: 'Helvetica-Oblique',
-    lineHeight: 1.3,
-    backgroundColor: '#ecfdf5',
-    padding: 4,
-    borderRadius: 3,
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: '#a7f3d0',
-  },
-
-  // Summary Rows
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 2.5,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
   summaryLabel: {
-    fontSize: 8,
-    color: colors.muted,
+    fontSize: 8.5,
+    color: '#475569',
   },
   summaryValue: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
+    color: '#0f172a',
+    textAlign: 'right',
   },
-  totalBanner: {
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: MINT_BG,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderTopWidth: 1,
+    borderTopColor: MINT_BORDER,
+  },
+  totalLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_DARK_GREEN,
+  },
+  totalValue: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    color: BRAND_DARK_GREEN,
+  },
+
+  // ─── Notes & Signatory ────────────────────────────────────────────────────
+  notesSignatoryGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: sp['8'],
+    marginBottom: sp['12'],
+  },
+  notesCol: {
+    width: '58%',
+  },
+  notesHeading: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  noteItem: {
+    fontSize: 7.5,
+    color: '#475569',
+    lineHeight: 1.35,
+    marginBottom: 2,
+  },
+  sigCol: {
+    width: '38%',
+    alignItems: 'center',
+  },
+  sigFor: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#0f172a',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  sigLine: {
+    width: 120,
+    height: 1,
+    backgroundColor: '#cbd5e1',
+    marginBottom: 4,
+  },
+  sigRole: {
+    fontSize: 8,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+
+  // ─── Footer Bar ───────────────────────────────────────────────────────────
+  footerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
     paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginTop: 6,
-  },
-  totalBannerLabel: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.white,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  totalBannerValue: {
-    fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.white,
-  },
-
-  // Signatory
-  signatoryBlock: {
-    marginTop: sp['20'],
-    alignItems: 'flex-end',
-  },
-  sigSpace: {
-    height: 24,
-  },
-  sigLine: {
-    width: 130,
-    borderBottomWidth: 1,
-    borderBottomColor: '#94a3b8',
-    marginBottom: 3,
-  },
-  sigName: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.ink,
-  },
-  sigRole: {
-    fontSize: 7,
-    color: colors.muted,
-    textTransform: 'uppercase',
-  },
-
-  // E-Invoice Strip
-  eInvoiceStrip: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 4,
-    padding: 6,
-    marginTop: sp['8'],
+    paddingHorizontal: 12,
+    marginTop: 'auto',
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: '#e2e8f0',
   },
-  eInvoiceText: {
-    fontSize: 7,
-    color: '#475569',
+  footerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BRAND_EMERALD,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginRight: 6,
+  },
+  footerPillText: {
+    fontSize: 7.5,
     fontFamily: 'Helvetica-Bold',
+    color: colors.white,
+  },
+  footerSocials: {
+    fontSize: 7.5,
+    color: '#64748b',
   },
 });
 
-interface InvoiceItem {
-  description: string;
-  hsnCode?: string | null;
-  quantity: number;
-  unitPrice: number;
-  taxRate?: number;
-  discountRate?: number;
-  total: number;
-}
-
 export interface TemplateInvoiceProps {
+  invoice: any;
   brand: BrandConfig;
-  invoice: {
-    invoiceNumber: string;
-    clientName: string;
-    clientEmail?: string | null;
-    clientAddress?: string | null;
-    clientGst?: string | null;
-    businessUnit?: 'AGENCY' | 'ACADEMY' | string;
-    studentId?: string | null;
-    courseName?: string | null;
-    batchName?: string | null;
-    academicYear?: string | null;
-    status: string;
-    currency: string;
-    dueDate: string;
-    createdAt: string;
-    subtotal: number;
-    discountRate?: number;
-    cgst: number;
-    sgst: number;
-    igst: number;
-    totalAmount: number;
-    paidAmount: number;
-    notes?: string | null;
-    irn?: string | null;
-    ackNo?: string | null;
-    ackDate?: string | null;
-    items: InvoiceItem[];
-  };
 }
 
-export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ brand, invoice }) => {
+export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand }) => {
   const isAcademy = invoice.businessUnit === 'ACADEMY';
-  const balanceDue = Math.max(0, invoice.totalAmount - invoice.paidAmount);
-  const resolvedLogo = resolveBrandLogo(brand.logoUrl);
+  const logo = resolveBrandLogo(brand.logoUrl, isAcademy ? 'academy-logo.png' : 'visuals-logo.png');
 
-  const documentTitle = isAcademy ? 'TAX INVOICE / FEE RECEIPT' : 'TAX INVOICE';
-  const primaryThemeColor = isAcademy ? '#4f46e5' : (brand.primaryColor || '#0f172a');
-  const defaultSac = isAcademy ? '999293' : '998314';
+  const formattedDate = invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const formattedDueDate = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+  const wordsAmount = numberToWordsIN(invoice.totalAmount || 0);
 
   return (
-    <PDFDocument title={`${documentTitle} - ${invoice.invoiceNumber}`} author={brand.companyName}>
+    <PDFDocument title={`${invoice.isProforma ? 'Proforma Invoice' : 'Tax Invoice'} ${invoice.invoiceNumber}`}>
       <Page size="A4" style={baseStyles.page}>
         
-        {/* ─── 1. SUPPLIER & DOCUMENT HEADER ───────────────────────────────── */}
+        {/* ─── 1. TOP HEADER STRIP ────────────────────────────────────────────── */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
-            {resolvedLogo ? (
-              <Image src={resolvedLogo} style={styles.logo} />
+            {logo ? (
+              <Image src={logo} style={styles.logo} />
             ) : (
-              <Text style={[styles.companyName, { color: primaryThemeColor }]}>
-                {brand.companyName}
-              </Text>
+              <Text style={styles.companyName}>{brand.companyName}</Text>
             )}
-            {brand.tradeName && <Text style={styles.tradeName}>{brand.tradeName}</Text>}
-            <Text style={styles.supplierMeta}>
-              {brand.address || 'Chennai, Tamil Nadu, India'}
-            </Text>
-            {brand.gstin && (
-              <Text style={styles.supplierMeta}>
-                <Text style={{ fontFamily: 'Helvetica-Bold' }}>GSTIN: </Text>{brand.gstin}
-                {brand.pan && <Text> | <Text style={{ fontFamily: 'Helvetica-Bold' }}>PAN: </Text>{brand.pan}</Text>}
-              </Text>
-            )}
-            <Text style={styles.supplierMeta}>
-              {brand.contactEmail && `${brand.contactEmail} `}
-              {brand.phone && `| ${brand.phone} `}
-              {brand.website && `| ${brand.website}`}
-            </Text>
+            <Text style={styles.tagline}>Ideas · Design · Digital Growth</Text>
+            
+            <Text style={styles.companyName}>{brand.companyName}</Text>
+            <Text style={styles.supplierMeta}>{brand.address || 'Coimbatore, Tamil Nadu, India - 641024'}</Text>
+            {brand.gstin && <Text style={styles.supplierMeta}>GSTIN : {brand.gstin}</Text>}
+            {brand.pan && <Text style={styles.supplierMeta}>PAN : {brand.pan}</Text>}
           </View>
 
           <View style={styles.headerRight}>
-            <View style={[styles.documentBadge, { backgroundColor: primaryThemeColor }]}>
-              <Text style={styles.documentBadgeText}>{documentTitle}</Text>
+            <Text style={styles.invoiceTitle}>
+              {invoice.isProforma ? 'PROFORMA INVOICE' : 'TAX INVOICE'}
+            </Text>
+
+            <View style={styles.metaTable}>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Invoice No.</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <Text style={styles.metaValue}>{invoice.invoiceNumber}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Invoice Date</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <Text style={styles.metaValue}>{formattedDate}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Due Date</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <Text style={styles.metaValue}>{formattedDueDate}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Payment Status</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusBadgeText}>
+                    {invoice.status === 'PAID' ? 'Paid' : invoice.status === 'OVERDUE' ? 'Overdue' : 'Pending'}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Place of Supply</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <Text style={styles.metaValue}>{brand.placeOfSupply || 'Tamil Nadu (33)'}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Reverse Charge</Text>
+                <Text style={styles.metaLabel}>:</Text>
+                <Text style={styles.metaValue}>No</Text>
+              </View>
             </View>
-            <Text style={styles.headerMetaText}>
-              <Text style={{ fontFamily: 'Helvetica-Bold' }}>Invoice No: </Text>{invoice.invoiceNumber}
-            </Text>
-            <Text style={styles.headerMetaText}>
-              <Text style={{ fontFamily: 'Helvetica-Bold' }}>Date: </Text>
-              {new Date(invoice.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </Text>
-            <Text style={styles.headerMetaText}>
-              <Text style={{ fontFamily: 'Helvetica-Bold' }}>Place of Supply: </Text>
-              {brand.placeOfSupply || 'Tamil Nadu (33)'}
-            </Text>
           </View>
         </View>
 
-        {/* ─── 2. RECIPIENT & INVOICE METADATA GRID ────────────────────────── */}
+        {/* ─── 2. MINT CARDS (BILL TO & THANK YOU) ──────────────────────────── */}
         <View style={styles.gridContainer}>
-          {isAcademy ? (
-            /* 🎓 ACADEMY STUDENT DETAILS BLOCK */
-            <View style={styles.gridColLeft}>
-              <Text style={styles.sectionHeading}>Student Particulars</Text>
-              <Text style={styles.clientName}>{invoice.clientName}</Text>
-              {invoice.studentId && (
-                <Text style={styles.clientMeta}>
-                  <Text style={{ fontFamily: 'Helvetica-Bold' }}>Student ID: </Text>{invoice.studentId}
-                </Text>
-              )}
-              {invoice.courseName && (
-                <Text style={styles.clientMeta}>
-                  <Text style={{ fontFamily: 'Helvetica-Bold' }}>Program: </Text>{invoice.courseName}
-                </Text>
-              )}
-              {invoice.batchName && (
-                <Text style={styles.clientMeta}>
-                  <Text style={{ fontFamily: 'Helvetica-Bold' }}>Batch: </Text>{invoice.batchName}
-                </Text>
-              )}
-              <Text style={styles.clientMeta}>
-                <Text style={{ fontFamily: 'Helvetica-Bold' }}>Academic Year: </Text>
-                {invoice.academicYear || '2026–2027'}
-              </Text>
-              {invoice.clientEmail && <Text style={styles.clientMeta}>{invoice.clientEmail}</Text>}
-            </View>
-          ) : (
-            /* 🏢 DIGITAL AGENCY BILL TO BLOCK */
-            <View style={styles.gridColLeft}>
-              <Text style={styles.sectionHeading}>Billed To (Customer Details)</Text>
-              <Text style={styles.clientName}>{invoice.clientName}</Text>
-              {invoice.clientAddress && <Text style={styles.clientMeta}>{invoice.clientAddress}</Text>}
-              {invoice.clientGst && (
-                <Text style={styles.clientMeta}>
-                  <Text style={{ fontFamily: 'Helvetica-Bold' }}>GSTIN: </Text>{invoice.clientGst}
-                </Text>
-              )}
-              {invoice.clientEmail && <Text style={styles.clientMeta}>{invoice.clientEmail}</Text>}
-            </View>
-          )}
+          {/* Bill To Card */}
+          <View style={styles.mintCard}>
+            <Text style={styles.cardTitle}>Bill To</Text>
+            <Text style={styles.cardHeadingText}>{invoice.clientName || 'Valued Client'}</Text>
+            {invoice.clientAddress && <Text style={styles.cardBodyText}>{cleanDocumentText(invoice.clientAddress)}</Text>}
+            {invoice.clientGst && <Text style={styles.cardBodyText}>GSTIN : {invoice.clientGst}</Text>}
+            <Text style={styles.cardBodyText}>State : Tamil Nadu (33)</Text>
+          </View>
 
-          <View style={styles.gridColRight}>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Payment Terms:</Text>
-              <Text style={styles.metaValue}>Due on Receipt / 7 Days</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Due Date:</Text>
-              <Text style={styles.metaValue}>
-                {new Date(invoice.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Status:</Text>
-              <Text style={[styles.metaValue, { color: invoice.status === 'PAID' ? (brand.grekamGreen || '#2DA16D') : (brand.visualsOrange || '#E1992D') }]}>
-                {invoice.status.replace(/_/g, ' ')}
-              </Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Reverse Charge:</Text>
-              <Text style={styles.metaValue}>No</Text>
-            </View>
+          {/* Greeting Card */}
+          <View style={styles.mintCard}>
+            <Text style={styles.cardHeadingText}>
+              Thank you for choosing {brand.companyName}!
+            </Text>
+            <Text style={styles.cardBodyText}>
+              Designing bold ideas for a brighter tomorrow.
+            </Text>
           </View>
         </View>
 
-        {/* ─── 3. GST LINE ITEMS TABLE ─────────────────────────────────────── */}
+        {/* ─── 3. LINE ITEMS TABLE ──────────────────────────────────────────── */}
         <View style={styles.table}>
-          <View style={[styles.tableHeader, { backgroundColor: primaryThemeColor }]}>
+          <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.colNum]}>#</Text>
-            <Text style={[styles.tableHeaderCell, styles.colDesc]}>
-              {isAcademy ? 'Fee Particulars & Curriculum' : 'Service Description'}
-            </Text>
-            <Text style={[styles.tableHeaderCell, styles.colSac]}>SAC / HSN</Text>
+            <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
+            <Text style={[styles.tableHeaderCell, styles.colSac]}>HSN/SAC</Text>
             <Text style={[styles.tableHeaderCell, styles.colQty]}>Qty</Text>
-            <Text style={[styles.tableHeaderCell, styles.colRate]}>Rate ({invoice.currency})</Text>
-            <Text style={[styles.tableHeaderCell, styles.colTotal]}>Amount ({invoice.currency})</Text>
+            <Text style={[styles.tableHeaderCell, styles.colRate]}>Unit Price (₹)</Text>
+            <Text style={[styles.tableHeaderCell, styles.colTotal]}>Amount (₹)</Text>
           </View>
-          
-          {invoice.items.map((item, i) => (
-            <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowEven : styles.tableRowOdd]}>
-              <Text style={[styles.tableCell, styles.colNum]}>{String(i + 1).padStart(2, '0')}</Text>
-              <Text style={[styles.tableCell, styles.colDesc]}>
-                {cleanDocumentText(item.description)}
-              </Text>
-              <Text style={[styles.tableCell, styles.colSac]}>{item.hsnCode || defaultSac}</Text>
+
+          {invoice.items?.map((item: any, idx: number) => (
+            <View key={idx} style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+              <Text style={[styles.tableCell, styles.colNum]}>{idx + 1}</Text>
+              <View style={styles.colDesc}>
+                <Text style={styles.itemTitle}>{item.description}</Text>
+              </View>
+              <Text style={[styles.tableCell, styles.colSac]}>{item.hsnCode || '998313'}</Text>
               <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-              <Text style={[styles.tableCell, styles.colRate]}>{fmt(item.unitPrice, invoice.currency)}</Text>
-              <Text style={[styles.tableCell, styles.colTotal]}>{fmt(item.total, invoice.currency)}</Text>
+              <Text style={[styles.tableCell, styles.colRate]}>{fmt(item.unitPrice)}</Text>
+              <Text style={[styles.tableCell, styles.colTotal]}>{fmt(item.total)}</Text>
             </View>
           ))}
         </View>
 
-        {/* ─── 4. BOTTOM GRID: BANK/TERMS VS GST TOTALS & SIGNATURE ────────── */}
-        <View style={styles.bottomGrid} wrap={false}>
-          
-          {/* Left Column: Bank Details, Terms, and Regulatory Notes */}
+        {/* ─── 4. BOTTOM TOTALS & WORDS SECTION ──────────────────────────────── */}
+        <View style={styles.bottomGrid}>
           <View style={styles.bottomLeft}>
-            {/* Bank & UPI Information */}
-            {brand.bankName && brand.accountNumber && (
-              <View style={styles.boxContainer}>
-                <Text style={[styles.boxHeading, { color: primaryThemeColor }]}>Bank &amp; UPI Payment Details</Text>
-                <View style={styles.boxRow}>
-                  <Text style={styles.boxLabel}>Bank Name:</Text>
-                  <Text style={styles.boxValue}>{brand.bankName}</Text>
-                </View>
-                {brand.accountName && (
-                  <View style={styles.boxRow}>
-                    <Text style={styles.boxLabel}>Account Name:</Text>
-                    <Text style={styles.boxValue}>{brand.accountName}</Text>
-                  </View>
-                )}
-                <View style={styles.boxRow}>
-                  <Text style={styles.boxLabel}>Account No:</Text>
-                  <Text style={styles.boxValue}>{brand.accountNumber}</Text>
-                </View>
-                {brand.ifscCode && (
-                  <View style={styles.boxRow}>
-                    <Text style={styles.boxLabel}>IFSC Code:</Text>
-                    <Text style={styles.boxValue}>{brand.ifscCode}</Text>
-                  </View>
-                )}
-                {brand.upiId && (
-                  <View style={styles.boxRow}>
-                    <Text style={styles.boxLabel}>UPI ID:</Text>
-                    <Text style={styles.boxValue}>{brand.upiId}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Terms & Conditions Block */}
-            <View>
-              <Text style={[styles.termsHeading, { color: primaryThemeColor }]}>Terms &amp; Conditions</Text>
-              {isAcademy ? (
-                <>
-                  <Text style={styles.termsText}>• Fees once paid are non-refundable and non-transferable under any circumstances.</Text>
-                  <Text style={styles.termsText}>• Minimum 85% attendance and sprint project completion required for official certification.</Text>
-                  <Text style={styles.termsText}>• All study material, code vaults, and LMS access are proprietary to Grekam Academy.</Text>
-                  {invoice.cgst === 0 && invoice.sgst === 0 && invoice.igst === 0 && (
-                    <Text style={styles.exemptionNotice}>
-                      * Educational training services may qualify under GST Notification No. 12/2017-Central Tax (Rate) subject to statutory criteria.
-                    </Text>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Text style={styles.termsText}>• Payment is due as per the payment terms mentioned on the invoice.</Text>
-                  <Text style={styles.termsText}>• Services delivered according to approved technical milestone specification.</Text>
-                  <Text style={styles.termsText}>• Third-party subscriptions, cloud hosting, domains, WhatsApp API fees, and advertising spend are billed separately.</Text>
-                  <Text style={styles.termsText}>• Taxes are applicable as per prevailing statutory Indian GST regulations.</Text>
-                </>
-              )}
-              {invoice.notes && (
-                <Text style={[styles.termsText, { marginTop: 4, fontFamily: 'Helvetica-Oblique' }]}>
-                  Note: {cleanDocumentText(invoice.notes)}
-                </Text>
-              )}
+            <View style={styles.wordsCard}>
+              <Text style={styles.wordsLabel}>Amount in Words</Text>
+              <Text style={styles.wordsText}>{wordsAmount}</Text>
             </View>
           </View>
 
-          {/* Right Column: Tax Breakdown, Grand Total, Signatory */}
           <View style={styles.bottomRight}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Taxable Subtotal</Text>
-              <Text style={styles.summaryValue}>{fmt(invoice.subtotal, invoice.currency)}</Text>
-            </View>
-
-            {invoice.discountRate && invoice.discountRate > 0 ? (
+            <View style={styles.summaryTable}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Discount ({invoice.discountRate}%)</Text>
-                <Text style={[styles.summaryValue, { color: brand.grekamGreen || '#2DA16D' }]}>
-                  -{fmt(invoice.subtotal * (invoice.discountRate / 100), invoice.currency)}
-                </Text>
+                <Text style={styles.summaryLabel}>Subtotal</Text>
+                <Text style={styles.summaryValue}>₹ {fmt(invoice.subtotal)}</Text>
               </View>
-            ) : null}
 
-            {invoice.cgst > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>CGST @ 9.0%</Text>
-                <Text style={styles.summaryValue}>{fmt(invoice.cgst, invoice.currency)}</Text>
+              {invoice.cgst > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>CGST @ 9%</Text>
+                  <Text style={styles.summaryValue}>₹ {fmt(invoice.cgst)}</Text>
+                </View>
+              )}
+
+              {invoice.sgst > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>SGST @ 9%</Text>
+                  <Text style={styles.summaryValue}>₹ {fmt(invoice.sgst)}</Text>
+                </View>
+              )}
+
+              {invoice.igst > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>IGST @ 18%</Text>
+                  <Text style={styles.summaryValue}>₹ {fmt(invoice.igst)}</Text>
+                </View>
+              )}
+
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total Amount (₹)</Text>
+                <Text style={styles.totalValue}>₹ {fmt(invoice.totalAmount)}</Text>
               </View>
-            )}
-
-            {invoice.sgst > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>SGST @ 9.0%</Text>
-                <Text style={styles.summaryValue}>{fmt(invoice.sgst, invoice.currency)}</Text>
-              </View>
-            )}
-
-            {invoice.igst > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>IGST @ 18.0%</Text>
-                <Text style={styles.summaryValue}>{fmt(invoice.igst, invoice.currency)}</Text>
-              </View>
-            )}
-
-            {/* Total Highlight Banner */}
-            <View style={[styles.totalBanner, { backgroundColor: primaryThemeColor }]}>
-              <Text style={styles.totalBannerLabel}>Total Amount:</Text>
-              <Text style={styles.totalBannerValue}>{fmt(invoice.totalAmount, invoice.currency)}</Text>
-            </View>
-
-            {invoice.paidAmount > 0 && (
-              <View style={[styles.summaryRow, { marginTop: 4 }]}>
-                <Text style={styles.summaryLabel}>Paid to Date:</Text>
-                <Text style={[styles.summaryValue, { color: brand.grekamGreen || '#2DA16D' }]}>{fmt(invoice.paidAmount, invoice.currency)}</Text>
-              </View>
-            )}
-
-            {balanceDue > 0 && (
-              <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 2 }]}>
-                <Text style={[styles.summaryLabel, { fontFamily: 'Helvetica-Bold', color: brand.visualsOrange || '#E1992D' }]}>Balance Due:</Text>
-                <Text style={[styles.summaryValue, { color: brand.visualsOrange || '#E1992D' }]}>{fmt(balanceDue, invoice.currency)}</Text>
-              </View>
-            )}
-
-            {/* Authorized Signatory Block */}
-            <View style={styles.signatoryBlock}>
-              <View style={styles.sigSpace} />
-              <View style={styles.sigLine} />
-              <Text style={styles.sigName}>
-                {isAcademy ? 'Academic Registrar / Dean' : 'Authorized Signatory'}
-              </Text>
-              <Text style={styles.sigRole}>{brand.companyName}</Text>
             </View>
           </View>
         </View>
 
-        {/* ─── 5. E-INVOICE / STATUTORY VERIFICATION FOOTER STRIP ────────────── */}
-        <View style={styles.eInvoiceStrip}>
-          <Text style={styles.eInvoiceText}>
-            IRN: {invoice.irn || 'e-Invoice generation registered on CBIC portal'}
-          </Text>
-          <Text style={styles.eInvoiceText}>
-            Digitally Authenticated by {brand.companyName}
-          </Text>
+        {/* ─── 5. NOTES & AUTHORIZED SIGNATORY ──────────────────────────────── */}
+        <View style={styles.notesSignatoryGrid}>
+          <View style={styles.notesCol}>
+            <Text style={styles.notesHeading}>Notes</Text>
+            <Text style={styles.noteItem}>1. This is a computer generated invoice and does not require a signature.</Text>
+            <Text style={styles.noteItem}>2. Services provided under {brand.companyName}.</Text>
+            <Text style={styles.noteItem}>3. Payment once made is non-refundable.</Text>
+            <Text style={styles.noteItem}>4. For any billing queries, contact {brand.contactEmail || 'support@grekam.in'}.</Text>
+            <Text style={styles.noteItem}>5. Thank you for being a valued client!</Text>
+          </View>
+
+          <View style={styles.sigCol}>
+            <Text style={styles.sigFor}>For {brand.companyName}</Text>
+            <View style={styles.sigLine} />
+            <Text style={styles.sigRole}>Authorized Signatory</Text>
+          </View>
         </View>
 
-        <DocFooter brand={brand} />
+        {/* ─── 6. FOOTER BAR ────────────────────────────────────────────────── */}
+        <View style={styles.footerBar}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.footerPill}>
+              <Text style={styles.footerPillText}>{brand.phone || '+91 422 123 4567'}</Text>
+            </View>
+            <View style={styles.footerPill}>
+              <Text style={styles.footerPillText}>{brand.contactEmail || 'support@grekam.in'}</Text>
+            </View>
+            <View style={styles.footerPill}>
+              <Text style={styles.footerPillText}>{brand.website || 'agency.grekam.in'}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.footerSocials}>Design · Develop · Grow</Text>
+        </View>
+
       </Page>
     </PDFDocument>
   );
