@@ -373,12 +373,11 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
             ) : (
               <Text style={styles.companyName}>{brand.companyName}</Text>
             )}
-            <Text style={styles.tagline}>Ideas · Design · Digital Growth</Text>
             
-            <Text style={styles.companyName}>{brand.companyName}</Text>
+            <Text style={[styles.companyName, { marginTop: 4 }]}>{brand.companyName}</Text>
             <Text style={styles.supplierMeta}>{brand.address || 'Coimbatore, Tamil Nadu, India - 641024'}</Text>
-            {brand.gstin && <Text style={styles.supplierMeta}>GSTIN : {brand.gstin}</Text>}
-            {brand.pan && <Text style={styles.supplierMeta}>PAN : {brand.pan}</Text>}
+            <Text style={styles.supplierMeta}>GSTIN : {brand.gstin || '33HCCPS5424M1Z8'}</Text>
+            <Text style={styles.supplierMeta}>PAN : {brand.pan || 'HCCPS5424M'}</Text>
           </View>
 
           <View style={styles.headerRight}>
@@ -432,9 +431,10 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
             <Text style={styles.cardTitle}>Bill To</Text>
             <Text style={styles.cardHeadingText}>{invoice.clientName || 'Valued Client'}</Text>
             {invoice.clientAddress && <Text style={styles.cardBodyText}>{cleanDocumentText(invoice.clientAddress)}</Text>}
-            {invoice.clientGst && <Text style={styles.cardBodyText}>GSTIN : {invoice.clientGst}</Text>}
+            <Text style={styles.cardBodyText}>GSTIN : {invoice.clientGst?.trim() ? invoice.clientGst : 'N/A'}</Text>
             <Text style={styles.cardBodyText}>State : Tamil Nadu (33)</Text>
           </View>
+
 
           {/* Greeting Card */}
           <View style={styles.mintCard}>

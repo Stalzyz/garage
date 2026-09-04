@@ -537,26 +537,32 @@ export default function NewInvoicePage() {
             
             {/* Top Brand Header */}
             <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1 max-w-[55%]">
+                {((invoice.businessUnit === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl) ? (
+                  <img
+                    src={(invoice.businessUnit === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl || '/visuals-logo.png'}
+                    alt={invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}
+                    className="max-h-16 max-w-[260px] w-auto h-auto object-contain object-left mb-2"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                      const fallback = (e.currentTarget.parentElement?.querySelector('.logo-fallback') as HTMLElement);
+                      if (fallback) fallback.style.display = 'block';
+                    }}
+                  />
+                ) : null}
+                <div className="logo-fallback hidden">
                   <span className="text-2xl font-black tracking-tight text-slate-900">
-                    {org.name || "Grekam"} <span className="text-emerald-600">Visual<sup>+</sup></span>
+                    {org.name || "Grekam"} <span className="text-emerald-600">Visuals</span>
                   </span>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">
-                  by {org.name || "Grekam"}.
-                </p>
-                <p className="text-[10px] tracking-widest text-slate-400 font-semibold pt-1">
-                  Ideas · Design · Digital Growth
-                </p>
 
-                <div className="pt-4 space-y-0.5">
+                <div className="pt-2 space-y-0.5">
                   <h3 className="font-bold text-slate-900 text-sm">
                     {invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}
                   </h3>
                   <p className="text-xs text-slate-600">{org.billingAddress || "Coimbatore, Tamil Nadu, India – 641024"}</p>
-                  {org.gstNumber && <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber}</p>}
-                  <p className="text-xs text-slate-600 font-mono">PAN : {org.gstNumber?.slice(2, 12) || "HCCPS5424M"}</p>
+                  <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber || "33HCCPS5424M1Z8"}</p>
+                  <p className="text-xs text-slate-600 font-mono">PAN : {org.gstNumber && org.gstNumber.length >= 12 ? org.gstNumber.slice(2, 12) : "HCCPS5424M"}</p>
                 </div>
               </div>
 
@@ -599,9 +605,10 @@ export default function NewInvoicePage() {
                 <p className="font-bold text-slate-900 text-sm">{invoice.companyName || invoice.contactName || "Valued Client"}</p>
                 {invoice.clientAddress && <p className="text-xs text-slate-600">{invoice.clientAddress}</p>}
                 <p className="text-xs text-slate-600">Tamil Nadu, India</p>
-                {invoice.clientGst && <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst}</p>}
+                <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst?.trim() ? invoice.clientGst : "N/A"}</p>
                 <p className="text-xs text-slate-600">State : Tamil Nadu (33)</p>
               </div>
+
 
               <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4 flex flex-col justify-center space-y-2">
                 <h4 className="font-bold text-[#064e3b] text-sm">
