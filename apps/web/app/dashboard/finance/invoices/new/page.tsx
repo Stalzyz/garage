@@ -10,7 +10,8 @@ import { useCurrency } from "@/hooks/useCurrency"
 import { useOrganization } from "@/context/OrganizationContext"
 import { Modal } from "@/components/ui/modal"
 import { numberToWordsIN } from "@/lib/utils"
-import { Phone, Mail, Globe, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Phone, Mail, Globe } from "lucide-react";
+
 
 
 export default function NewInvoicePage() {
@@ -704,12 +705,10 @@ export default function NewInvoicePage() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-slate-400 font-medium text-[10px]">
-                <Instagram className="w-3 h-3 text-slate-600" />
-                <Linkedin className="w-3 h-3 text-slate-600" />
-                <Youtube className="w-3 h-3 text-slate-600" />
+              <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px]">
                 <span>Design · Develop · Grow</span>
               </div>
+
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

@@ -1,7 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ChevronLeft, Send, Download, Loader2, Phone, Mail, Globe, Instagram, Linkedin, Youtube } from "lucide-react"
+import { ChevronLeft, Send, Download, Loader2, Phone, Mail, Globe } from "lucide-react"
+
 import Link from "next/link"
 import { useOrganization } from "@/context/OrganizationContext"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -313,12 +314,10 @@ export default function InvoiceDetailsPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-400 font-medium text-[11px]">
-              <Instagram className="w-3.5 h-3.5 text-slate-600" />
-              <Linkedin className="w-3.5 h-3.5 text-slate-600" />
-              <Youtube className="w-3.5 h-3.5 text-slate-600" />
+            <div className="flex items-center gap-2 text-slate-500 font-bold text-[11px]">
               <span>Design · Develop · Grow</span>
             </div>
+
           </div>
 
         </div>
