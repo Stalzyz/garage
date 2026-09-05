@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const API_INTERNAL = process.env.API_INTERNAL_URL || 'http://localhost:4000/api/v1';
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   compress: true, // Enable gzip/brotli compression on all responses
   allowedDevOrigins: ['192.168.0.220', 'localhost', '127.0.0.1'],
 

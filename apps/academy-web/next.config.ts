@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const API_INTERNAL = process.env.API_INTERNAL_URL || 'http://localhost:4000/api/v1';
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
