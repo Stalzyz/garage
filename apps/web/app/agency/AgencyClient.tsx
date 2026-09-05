@@ -18,28 +18,28 @@ type ProjectData = {
 }
 type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; isServices?: boolean; isLegal?: boolean; }
 
-const ServiceDetailsSection = ({ card }: { card: CardData }) => {
+const ServiceDetailsSection = ({ card, darkText = false }: { card: CardData; darkText?: boolean }) => {
   if (!card.features && !card.deliverables && !card.techStack) return null
 
   return (
-    <div className="w-full mt-6 text-left border-t border-white/10 pt-6 space-y-6">
+    <div className={`w-full mt-6 text-left border-t ${darkText ? 'border-black/30' : 'border-white/10'} pt-6 space-y-6`}>
       {/* Target Fit & Turnaround Banner */}
       {(card.idealFor || card.turnaround) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-white/[0.04] border border-white/10">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl ${darkText ? 'bg-white border-2 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/[0.04] border border-white/10'}`}>
           {card.idealFor && (
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-1">
+              <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${darkText ? 'text-black' : 'text-emerald-400'}`}>
                 Ideal For
               </span>
-              <p className="text-xs text-white/90 font-medium leading-relaxed">{card.idealFor}</p>
+              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-white/90'}`}>{card.idealFor}</p>
             </div>
           )}
           {card.turnaround && (
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold block mb-1">
+              <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${darkText ? 'text-black' : 'text-cyan-400'}`}>
                 Typical Turnaround
               </span>
-              <p className="text-xs text-white/90 font-medium leading-relaxed">{card.turnaround}</p>
+              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-white/90'}`}>{card.turnaround}</p>
             </div>
           )}
         </div>
@@ -48,13 +48,13 @@ const ServiceDetailsSection = ({ card }: { card: CardData }) => {
       {/* Scope Checklist / Included Features */}
       {card.features && card.features.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 mb-3 flex items-center gap-2">
+          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-3 flex items-center gap-2 ${darkText ? 'text-black font-black' : 'text-emerald-400'}`}>
             <CheckCircle2 className="w-4 h-4" /> Core Capabilities & Scope
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {card.features.map((feat, idx) => (
-              <div key={idx} className="flex items-start gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white/80 leading-relaxed">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div key={idx} className={`flex items-start gap-2.5 p-3 rounded-xl text-xs leading-relaxed ${darkText ? 'bg-white border-2 border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/5 border border-white/10 text-white/80'}`}>
+                <Check className={`w-4 h-4 shrink-0 mt-0.5 ${darkText ? 'text-black stroke-[3]' : 'text-emerald-400'}`} />
                 <span>{feat}</span>
               </div>
             ))}
@@ -65,13 +65,13 @@ const ServiceDetailsSection = ({ card }: { card: CardData }) => {
       {/* Key Deliverables */}
       {card.deliverables && card.deliverables.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-cyan-400 mb-3 flex items-center gap-2">
+          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-3 flex items-center gap-2 ${darkText ? 'text-black font-black' : 'text-cyan-400'}`}>
             <Sparkles className="w-4 h-4" /> What You Receive (Deliverables)
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.deliverables.map((item, idx) => (
-              <span key={idx} className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span key={idx} className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${darkText ? 'bg-black text-white font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-300'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${darkText ? 'bg-amber-400' : 'bg-cyan-400'}`} />
                 {item}
               </span>
             ))}
@@ -82,12 +82,12 @@ const ServiceDetailsSection = ({ card }: { card: CardData }) => {
       {/* Tech Stack */}
       {card.techStack && card.techStack.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-white/40 mb-2">
+          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-2 ${darkText ? 'text-black/70 font-bold' : 'text-white/40'}`}>
             Engineered With
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.techStack.map((tech, idx) => (
-              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 text-[10px] font-mono font-bold">
+              <span key={idx} className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold ${darkText ? 'bg-white border-2 border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/5 border border-white/10 text-white/70'}`}>
                 {tech}
               </span>
             ))}
@@ -2417,7 +2417,7 @@ const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
                       <div className="text-[10px] md:text-sm font-black uppercase mb-4 border-[2px] border-black inline-block px-3 py-1 bg-white w-fit mx-auto md:mx-0">{card.category}</div>
                       <h2 className="text-3xl md:text-5xl font-black uppercase mb-4 leading-tight">{card.title}</h2>
                       <p className="font-bold text-base md:text-xl mb-6">{card.subtitle}</p>
-                      <ServiceDetailsSection card={card} />
+                      <ServiceDetailsSection card={card} darkText={true} />
                       
                       {(card.id === 'contact_form' || card.isContactForm) ? (
                          <UniversalContactForm 
@@ -2749,13 +2749,29 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
 
       <AnimatePresence>
         {activeCard && (
-           <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="absolute bottom-10 md:bottom-10 left-0 right-0 z-[120] flex justify-center p-4 pointer-events-none">
-              <div className="pointer-events-auto w-full max-w-4xl bg-[#030014]/90 backdrop-blur-3xl border border-white/20 rounded-3xl p-6 pt-16 md:p-10 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-8 items-center">
-                 <button onClick={() => { playSound(); setActiveCard(null); }} className="absolute top-4 right-4 z-[130] text-white/50 hover:text-white p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X className="w-6 h-6" /></button>
+           <motion.div 
+             initial={{ opacity: 0, scale: 0.95 }} 
+             animate={{ opacity: 1, scale: 1 }} 
+             exit={{ opacity: 0, scale: 0.95 }} 
+             className="fixed inset-0 top-16 z-[1000] bg-black/85 backdrop-blur-2xl flex justify-center items-center p-4 md:p-8 pointer-events-auto"
+             onClick={() => setActiveCard(null)}
+           >
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-4xl max-h-[82vh] bg-[#0c0926] border border-white/20 rounded-3xl p-6 md:p-10 shadow-[0_0_80px_rgba(0,0,0,0.95)] relative overflow-y-auto custom-scrollbar flex flex-col md:flex-row gap-8 items-start"
+              >
+                 {/* Visible High-Contrast Sticky Close Button */}
+                 <button 
+                   onClick={() => { playSound(); setActiveCard(null); }} 
+                   className="absolute top-4 right-4 z-[1050] text-white hover:text-white p-3 bg-zinc-800/90 hover:bg-rose-500/80 border border-white/20 rounded-full transition-all shadow-xl cursor-pointer"
+                   title="Close (Esc)"
+                 >
+                   <X className="w-5 h-5" />
+                 </button>
                  
-                 <div className="w-full md:w-1/2 text-center md:text-left">
-                    <div className="text-[10px] md:text-xs text-white/50 uppercase tracking-widest mb-4">{activeCard.category}</div>
-                    <h2 className="text-2xl md:text-4xl font-black text-white mb-4 uppercase">{activeCard.title}</h2>
+                 <div className="w-full md:w-1/2 text-center md:text-left pt-2">
+                    <div className="text-[10px] md:text-xs text-white/50 uppercase tracking-widest mb-3 font-mono">{activeCard.category}</div>
+                    <h2 className="text-2xl md:text-4xl font-black text-white mb-3 uppercase">{activeCard.title}</h2>
                     <p className="text-sm md:text-base text-white/70 mb-4">{activeCard.subtitle}</p>
                     
                     <ServiceDetailsSection card={activeCard} />
@@ -2767,14 +2783,23 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
                           btnClass="p-4 w-full bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 mt-2 flex justify-center items-center gap-2"
                        />
                     ) : (
-                       <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 w-full md:w-fit mx-auto md:mx-0">
+                       <button onClick={() => {
+                          if (activeCard.isAcademy) window.location.href = '/academy';
+                          else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
+                          else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
+                          else if (activeCard.isLegal || activeCard.id === 'legal') window.location.href = '/legal';
+                          else {
+                            const contactFormCard = cards.find((c: any) => c.isContactForm || c.id === 'contact_form')
+                            if (contactFormCard) setActiveCard(contactFormCard)
+                          }
+                       }} className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 w-full md:w-fit mx-auto md:mx-0 mt-6">
                           {activeCard.cta} <ArrowRight className="w-4 h-4" />
                        </button>
                     )}
                  </div>
 
                  {activeCard.projects && (
-                    <div className="w-full md:w-1/2 flex flex-col gap-4 max-h-[40vh] md:max-h-[300px] overflow-y-auto custom-scrollbar pr-4">
+                    <div className="w-full md:w-1/2 flex flex-col gap-4 max-h-[40vh] md:max-h-[450px] overflow-y-auto custom-scrollbar pr-2 pt-2">
                        {activeCard.projects.map((proj: any) => (
                           <div 
                             key={proj.id} 
