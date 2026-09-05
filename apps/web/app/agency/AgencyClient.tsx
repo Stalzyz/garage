@@ -1871,11 +1871,11 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, zIdx, container
     animate(dragRotate, pos.rotate, { type: "spring", stiffness: 70, damping: 14, delay })
   }, [pos.x, pos.y, pos.rotate])
 
-  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08)`
-  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.2)`
+  const customBoxShadow = `0 10px 25px -5px rgba(0,0,0,0.8), 0 0 15px ${card.colorHex}25, inset 0 0 0 1px rgba(255,255,255,0.1)`
+  const hoverBoxShadow = `0 15px 35px -5px rgba(0,0,0,0.95), 0 0 25px ${card.colorHex}60, inset 0 0 0 1px rgba(255,255,255,0.25)`
 
-  const width = isMobile ? 180 : 250
-  const height = isMobile ? 110 : 130
+  const width = isMobile ? 64 : 76
+  const height = isMobile ? 64 : 76
 
   return (
     <motion.div
@@ -1904,31 +1904,23 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, zIdx, container
         if (isDragging.current) return
         onTap(card.id)
       }}
-      whileHover={{ scale: 1.08, zIndex: 100, boxShadow: hoverBoxShadow }}
-      className="absolute p-4 rounded-2xl bg-zinc-950/90 border border-white/15 backdrop-blur-xl flex flex-col justify-between cursor-grab active:cursor-grabbing overflow-hidden shadow-2xl group transition-colors hover:border-white/30"
+      whileHover={{ scale: 1.15, zIndex: 100, boxShadow: hoverBoxShadow }}
+      className="absolute rounded-2xl md:rounded-3xl bg-zinc-950/90 border border-white/20 backdrop-blur-xl flex items-center justify-center cursor-grab active:cursor-grabbing shadow-2xl group transition-all"
     >
-      <div className="flex items-center justify-between">
-        <div 
-          className="w-9 h-9 rounded-xl border flex items-center justify-center text-sm shadow-md"
-          style={{ 
-            backgroundColor: `${card.colorHex}20`, 
-            borderColor: `${card.colorHex}40`, 
-            color: card.colorHex 
-          }}
-        >
-          {renderIcon(card.iconName, card.icon, "text-sm")}
-        </div>
-        <span className="text-[9px] uppercase font-mono tracking-widest px-2 py-0.5 rounded bg-white/10 text-white/70">
-          {card.category}
-        </span>
+      <div 
+        className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner"
+        style={{ 
+          backgroundColor: `${card.colorHex}20`, 
+          borderColor: `${card.colorHex}40`, 
+          color: card.colorHex 
+        }}
+      >
+        {renderIcon(card.iconName, card.icon, "text-lg md:text-xl")}
       </div>
-      <div>
-        <div className="text-xs md:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
-          {card.title}
-        </div>
-        <div className="text-[10px] text-white/60 line-clamp-1 mt-0.5">
-          {card.subtitle}
-        </div>
+
+      {/* Floating Tooltip on Hover */}
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900/95 border border-white/20 rounded-lg text-[9px] font-mono font-bold text-white tracking-widest uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
+        {card.title}
       </div>
     </motion.div>
   )
@@ -2807,19 +2799,17 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
 }
 
 // --- MAIN WRAPPER ---
-type LayoutId = 'os' | 'cards' | 'editorial' | 'canvas' | 'gallery' | 'brutalism' | 'paper' | 'cinematic' | 'swiss' | 'universe'
+type LayoutId = 'os' | 'cards' | 'canvas' | 'gallery' | 'brutalism' | 'paper' | 'cinematic' | 'universe'
 
 const LAYOUTS: { id: LayoutId, name: string, component: any }[] = [
   { id: 'os', name: '01. Creative OS', component: LayoutCreativeOS },
-  { id: 'cards', name: '02. Scattered Cards', component: LayoutScatteredCards },
-  { id: 'editorial', name: '03. Editorial Magazine', component: LayoutEditorial },
-  { id: 'canvas', name: '04. Infinite Canvas', component: LayoutInfiniteCanvas },
-  { id: 'gallery', name: '05. Digital Gallery', component: LayoutDigitalGallery },
-  { id: 'brutalism', name: '06. Neo Brutalism', component: LayoutNeoBrutalism },
-  { id: 'paper', name: '07. Paper Craft', component: LayoutPaperCraft },
-  { id: 'cinematic', name: '08. Cinematic Scroll', component: LayoutCinematic },
-  { id: 'swiss', name: '09. Swiss Precision', component: LayoutSwissPrecision },
-  { id: 'universe', name: '10. Creative Universe', component: LayoutCreativeUniverse },
+  { id: 'cards', name: '02. Scattered Icons', component: LayoutScatteredCards },
+  { id: 'canvas', name: '03. Infinite Canvas', component: LayoutInfiniteCanvas },
+  { id: 'gallery', name: '04. Digital Gallery', component: LayoutDigitalGallery },
+  { id: 'brutalism', name: '05. Neo Brutalism', component: LayoutNeoBrutalism },
+  { id: 'paper', name: '06. Paper Craft', component: LayoutPaperCraft },
+  { id: 'cinematic', name: '07. Cinematic Scroll', component: LayoutCinematic },
+  { id: 'universe', name: '08. Creative Universe', component: LayoutCreativeUniverse },
 ]
 
 export default function AgencyClient({ initialCards }: { initialCards: CardData[] }) {
@@ -2990,7 +2980,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
   const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component
 
-  const isLightMode = ['editorial', 'canvas', 'bento', 'organic', 'minimal', 'paper', 'swiss'].includes(activeLayout)
+  const isLightMode = ['canvas', 'bento', 'organic', 'minimal', 'paper'].includes(activeLayout)
   const isBrutal = activeLayout === 'brutalism'
 
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
