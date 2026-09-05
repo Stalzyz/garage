@@ -18,7 +18,7 @@ type ProjectData = {
 }
 type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
 
-const ServiceDetailsSection = ({ card }: { card: CardData }) => {
+const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeginProject?: (card: CardData) => void }) => {
   if (!card.features && !card.deliverables && !card.techStack) return null
 
   return (
@@ -92,6 +92,24 @@ const ServiceDetailsSection = ({ card }: { card: CardData }) => {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Begin Project Action Callout */}
+      {onBeginProject && !card.isPricing && card.id !== 'contact_form' && (
+        <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border border-emerald-500/20">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-0.5">
+              Ready to Kick Off?
+            </span>
+            <p className="text-xs text-white/80 font-medium">Submit your brief and our team will get in touch within 2 hours.</p>
+          </div>
+          <button
+            onClick={() => onBeginProject(card)}
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 shrink-0 flex items-center justify-center gap-2 group"
+          >
+            {card.cta || `Begin ${card.title} Project`} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       )}
     </div>
@@ -968,81 +986,207 @@ const PricingCalculator = () => {
 
 export const INITIAL_CARDS: CardData[] = [
   { 
-    id: "intro", 
-    category: "Manifesto", 
-    title: "The Digital Ecosystem", 
-    subtitle: "We don't just build software. We engineer scalable architectures, custom automation engines, and strategic visual identities built to dominate markets.", 
-    iconName: "Layers", 
-    colorHex: "#4ade80", 
-    cta: "Enter the Ecosystem",
-    features: [
-      "Enterprise Multi-Tenant SaaS Architecture",
-      "Sub-800ms Page Load Speeds & Core Web Vitals Optimization",
-      "Cloud-Native Server Infrastructure (AWS, Vercel, Live VPS)",
-      "Security Hardening, SSL, CORS & Privacy Compliance",
-      "Automated Continuous Deployment (CI/CD Pipelines)"
-    ],
-    deliverables: [
-      "System Architecture Blueprint",
-      "Full Production Source Code (GitHub)",
-      "Automated CI/CD Deployment Scripts",
-      "Live Domain & SSL Configuration"
-    ],
-    techStack: ["Next.js 15", "TypeScript", "Node.js", "Docker", "PostgreSQL", "Redis"],
-    idealFor: "Startups, Growing Businesses & Enterprises upgrading legacy systems",
-    turnaround: "2 to 4 Weeks Architecture Sprint"
-  },
-  { 
-    id: "branding", 
-    category: "Identity", 
-    title: "Strategic Brand Perception", 
-    subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and customer trust.", 
+    id: "graphic_design", 
+    category: "Design Services", 
+    title: "Graphic Designing", 
+    subtitle: "Eye-catching visual designs, logo branding, social media graphics, brochures, and marketing collateral tailored to elevate your brand.", 
     iconName: "Palette", 
     colorHex: "#c084fc", 
-    cta: "Redefine Your Brand", 
-    projects: BRANDING_PROJECTS,
+    cta: "Begin Graphic Design Project", 
     features: [
-      "Brand Strategy & Market Positioning Analysis",
-      "Vector Logo System (Primary, Secondary & Monogram)",
-      "Custom Color Palettes & Typography Pairings",
-      "Figma Design Tokens & UI Component Guidelines",
-      "Social Media Campaign Templates & Ad Assets"
+      "Custom Logo Design & Vector Brand Identity",
+      "Social Media Creatives & Ad Banners",
+      "Brochures, Flyers, Posters & Print Media",
+      "Business Cards, Letterheads & Brand Stationery",
+      "High-Resolution Print-Ready & Digital Assets"
     ],
     deliverables: [
-      "Master Brand Guidelines Manual (PDF)",
-      "Complete Figma Design System Source File",
-      "High-Resolution Vector Assets (SVG, EPS, PNG)",
-      "Social Media Marketing Asset Pack"
+      "Source Vector Files (AI, SVG, EPS)",
+      "High-Res PNG, JPEG & Print PDF",
+      "Editable Canva & Figma Templates",
+      "Brand Usage & Font Guidelines"
     ],
-    techStack: ["Figma", "Adobe Illustrator", "Cinema 4D", "Framer Motion", "Vector Systems"],
-    idealFor: "New Venture Launches, Brand Re-designs & D2C Brands",
-    turnaround: "10 to 14 Business Days"
+    techStack: ["Figma", "Adobe Illustrator", "Photoshop", "Canva Pro"],
+    idealFor: "Startups, Re-brands, E-commerce Stores & Local Businesses",
+    turnaround: "2 to 5 Business Days"
   },
   { 
-    id: "webdev", 
-    category: "Build", 
-    title: "Enterprise Commerce & Web Dev", 
-    subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce platforms and web apps capable of handling infinite scale without bottlenecks.", 
-    iconName: "Code2", 
-    colorHex: "#22d3ee", 
-    cta: "Scale Infrastructure", 
-    projects: DUMMY_PROJECTS,
+    id: "uiux_design", 
+    category: "User Experience", 
+    title: "UI/UX Design", 
+    subtitle: "Intuitive, accessible, and high-converting user interfaces and wireframes for mobile apps and web platforms.", 
+    iconName: "Fingerprint", 
+    colorHex: "#38bdf8", 
+    cta: "Begin UI/UX Project", 
     features: [
-      "Custom Next.js 15 App Router & Server Components",
-      "Headless E-commerce Engine with Sub-second Transitions",
-      "Payment Gateway Link (Razorpay, Stripe, PayPal)",
-      "Custom Product Catalog, Search & Filter System",
-      "Technical SEO, OpenGraph Meta & Schema Markup"
+      "User Research & Wireframing Architecture",
+      "High-Fidelity UI Design & Clickable Prototypes",
+      "Mobile App (iOS & Android) & Web Interfaces",
+      "Design Systems, Component Libraries & Design Tokens",
+      "Developer-Ready Inspection & Handoff Specs"
     ],
     deliverables: [
-      "Full Production Source Code (GitHub Repository)",
-      "Admin Control Panel for Products & Content",
-      "Live VPS / Vercel Server Deployment",
-      "Google Analytics & Search Console Setup"
+      "Interactive Figma Prototype",
+      "Complete Design System & Components",
+      "Developer Assets & Typography Tokens",
+      "User Journey Maps & Wireframes"
     ],
-    techStack: ["Next.js 15", "TypeScript", "TailwindCSS", "Prisma ORM", "Razorpay", "PostgreSQL"],
-    idealFor: "D2C Brands, Retailers & High-Traffic Corporate Portals",
-    turnaround: "14 to 21 Days Production Sprint"
+    techStack: ["Figma", "Adobe XD", "Framer", "FigJam", "Principle"],
+    idealFor: "Mobile Apps, SaaS Startups, Web Portals & Product Teams",
+    turnaround: "1 to 2 Weeks Sprint"
+  },
+  { 
+    id: "web_design", 
+    category: "Visual Web", 
+    title: "Web Designing", 
+    subtitle: "Modern, responsive, and aesthetically stunning website designs engineered to engage visitors and drive conversions.", 
+    iconName: "Layout", 
+    colorHex: "#f472b6", 
+    cta: "Begin Web Design Project", 
+    features: [
+      "Custom Landing Page & Multi-Page Web Layouts",
+      "Fully Responsive Desktop, Tablet & Mobile Breakpoints",
+      "Interactive Micro-Animations & Scroll Dynamics",
+      "SEO & Conversion-Rate Optimized Layouts",
+      "Custom Visual Icons & Graphics Integration"
+    ],
+    deliverables: [
+      "Full Website Design in Figma",
+      "Responsive UI Assets & Graphics",
+      "Style Guide & Color Palette",
+      "Clickable Design Prototype"
+    ],
+    techStack: ["Figma", "Adobe Photoshop", "Framer", "HTML5/CSS3"],
+    idealFor: "Agencies, Corporate Portals, Professional Services & Portfolios",
+    turnaround: "5 to 10 Business Days"
+  },
+  { 
+    id: "web_dev", 
+    category: "Web Engineering", 
+    title: "Web Development", 
+    subtitle: "Fast, secure, and responsive custom websites and web applications built with modern frontend & backend technologies.", 
+    iconName: "Code2", 
+    colorHex: "#22d3ee", 
+    cta: "Begin Web Dev Project", 
+    projects: DUMMY_PROJECTS,
+    features: [
+      "Next.js 15 & React Production Web Apps",
+      "Lightning-Fast Sub-Second Page Load Speeds",
+      "Dynamic Admin CMS & Content Management",
+      "Technical SEO, Schema Tags & Social Cards",
+      "Domain Setup, SSL Security & Cloud Hosting Deployment"
+    ],
+    deliverables: [
+      "Full Production Source Code (GitHub)",
+      "Admin Dashboard for Content & Leads",
+      "Live Domain & SSL Deployment",
+      "Speed & SEO Audit Report"
+    ],
+    techStack: ["Next.js 15", "TypeScript", "TailwindCSS", "Node.js", "PostgreSQL"],
+    idealFor: "Businesses, High-Traffic Corporate Portals, Tech Companies",
+    turnaround: "1 to 3 Weeks Production"
+  },
+  { 
+    id: "digital_marketing", 
+    category: "Growth & Reach", 
+    title: "Digital Marketing", 
+    subtitle: "Result-driven digital marketing, Meta & Google ad campaigns, SEO growth, and social media management to boost sales.", 
+    iconName: "TrendingUp", 
+    colorHex: "#f59e0b", 
+    cta: "Begin Digital Marketing", 
+    features: [
+      "Meta Ads (Facebook & Instagram) & Google Search/Display Ads",
+      "Search Engine Optimization (SEO) & Technical Audits",
+      "Social Media Content Strategy & Account Management",
+      "Lead Capture & High-Converting Landing Pages",
+      "Real-Time Performance Analytics & Weekly ROI Reports"
+    ],
+    deliverables: [
+      "Configured Ad Accounts & Conversion Pixels",
+      "Ad Copies, Video & Image Creatives",
+      "Target Audience & Keyword Research Strategy",
+      "Weekly Growth & Performance Dashboard"
+    ],
+    techStack: ["Meta Ads Manager", "Google Ads", "GA4", "Semrush", "WhatsApp API"],
+    idealFor: "E-commerce Stores, D2C Brands, Real Estate & Service Firms",
+    turnaround: "Rapid Campaign Launch in 48 Hours"
+  },
+  { 
+    id: "ecommerce", 
+    category: "Online Store", 
+    title: "Ecommerce Web Development", 
+    subtitle: "Complete online store solutions with fast product catalogues, secure payment gateways, cart systems, and order tracking.", 
+    iconName: "ShoppingBag", 
+    colorHex: "#10b981", 
+    cta: "Begin Ecommerce Project", 
+    projects: DUMMY_PROJECTS,
+    features: [
+      "Custom Fast Product Catalogue, Search & Instant Filters",
+      "Seamless Shopping Cart & One-Click Checkout Flow",
+      "Integrated Payment Gateways (Razorpay, Stripe, UPI)",
+      "Admin Order Management, Invoices & Inventory Tracking",
+      "Automated Order Updates & Shipping Notifications"
+    ],
+    deliverables: [
+      "Complete Ecommerce Web Store",
+      "Admin Management Control Panel",
+      "Payment & WhatsApp Notification Integration",
+      "Product Upload & Inventory Setup"
+    ],
+    techStack: ["Next.js", "React", "Razorpay", "Stripe", "Node.js", "PostgreSQL"],
+    idealFor: "Retail Brands, D2C Apparel, Online Stores, Wholesalers",
+    turnaround: "2 to 3 Weeks Build"
+  },
+  { 
+    id: "crm_erp", 
+    category: "Business Systems", 
+    title: "CRM / ERP Development", 
+    subtitle: "Custom CRM and ERP platforms tailored to automate your business sales pipelines, employee operations, inventory, and analytics.", 
+    iconName: "Layers", 
+    colorHex: "#8b5cf6", 
+    cta: "Begin CRM / ERP Project", 
+    isCrm: true,
+    features: [
+      "Drag-and-Drop Lead Management Kanban Pipeline",
+      "Automated WhatsApp & Email Customer Reminders",
+      "Employee HR, Attendance & Automated Payroll Portal",
+      "Inventory Stock & Invoicing Tracking Systems",
+      "Multi-Role Access Control (Admin, Manager, Staff)"
+    ],
+    deliverables: [
+      "Bespoke Web CRM & ERP Dashboard",
+      "Configured User Roles & Permissions",
+      "Website & Lead Source Webhook Integration",
+      "Complete Team Onboarding & Documentation"
+    ],
+    techStack: ["React", "TypeScript", "Node.js", "PostgreSQL", "Prisma", "TailwindCSS"],
+    idealFor: "Growing Businesses, Multi-Branch Operations, Real Estate & Services",
+    turnaround: "3 to 5 Weeks Engagement"
+  },
+  { 
+    id: "custom_app", 
+    category: "Custom Software", 
+    title: "Custom App Development", 
+    subtitle: "Bespoke mobile (iOS & Android) and cloud web applications engineered from scratch to solve your unique business needs.", 
+    iconName: "Rocket", 
+    colorHex: "#ec4899", 
+    cta: "Begin Custom App Project", 
+    features: [
+      "Cross-Platform Mobile Apps (iOS & Android)",
+      "Scalable Backend API Infrastructure & Cloud Databases",
+      "Real-Time Push Notifications, Chat & Live Tracking",
+      "User Authentication, Security Hardening & Encryption",
+      "App Store & Google Play Store Publishing Support"
+    ],
+    deliverables: [
+      "Production iOS & Android App Builds (APK & IPA)",
+      "Full Cloud Backend API Server Source Code",
+      "Admin Management Control Panel",
+      "Store Submission & Deployment Support"
+    ],
+    techStack: ["React Native", "Flutter", "Next.js", "Node.js", "PostgreSQL", "AWS"],
+    idealFor: "Tech Startups, On-Demand Platforms, SaaS Products & Enterprises",
+    turnaround: "3 to 6 Weeks Sprint"
   },
   { 
     id: "pricing", 
@@ -1053,109 +1197,6 @@ export const INITIAL_CARDS: CardData[] = [
     colorHex: "#10b981", 
     cta: "Calculate Quote", 
     isPricing: true 
-  },
-  { 
-    id: "crm", 
-    category: "Systems", 
-    title: "Bespoke CRM Operations", 
-    subtitle: "Stop forcing your team into generic tools. We build custom CRM platforms tailored to the exact operational workflows of your business.", 
-    iconName: "Fingerprint", 
-    colorHex: "#fbbf24", 
-    cta: "Enter CRM Dashboard", 
-    isCrm: true,
-    features: [
-      "Automated Lead Capture & Multi-Source Ingestion",
-      "Interactive Drag-and-Drop Sales Pipeline (Kanban)",
-      "Automated WhatsApp & Email Customer Triggers",
-      "Role-Based Access Control (Admin, Manager, Agent)",
-      "Real-Time Revenue Analytics & Forecasting Charts"
-    ],
-    deliverables: [
-      "Custom CRM Web Portal & Dashboard",
-      "Configured User Roles & Access Permissions",
-      "Webhook Integrations with Website Leads",
-      "Team Onboarding & Video Documentation"
-    ],
-    techStack: ["React", "TypeScript", "Fastify", "PostgreSQL", "Prisma", "TailwindCSS"],
-    idealFor: "Sales Teams, Real Estate Agencies, Service Firms & B2B Operations",
-    turnaround: "3 to 5 Weeks Engagement"
-  },
-  { 
-    id: "hrm", 
-    category: "People", 
-    title: "HRM & Talent Operations", 
-    subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, leave approvals, and recruitment through a centralized human resource portal.", 
-    iconName: "Users", 
-    colorHex: "#10b981", 
-    cta: "Enter HR Dashboard", 
-    isHrm: true,
-    features: [
-      "Centralized Employee Directory & Confidential Records",
-      "Automated Attendance & Leave Request Workflows",
-      "Automated Payroll Engine with Tax Calculations & PDF Payslips",
-      "Applicant Tracking System (ATS) for Hiring Pipelines",
-      "Performance Appraisal & Goal Tracking Modules"
-    ],
-    deliverables: [
-      "Enterprise HR Control Dashboard",
-      "Employee Self-Service Portal",
-      "Automated PDF Payslip Generator",
-      "Workforce Analytics & Exportable Reports"
-    ],
-    techStack: ["Next.js", "Node.js", "PostgreSQL", "Prisma", "PDF Generation", "TailwindCSS"],
-    idealFor: "Growing Companies (10 to 500 Employees) & Multi-Branch Franchises",
-    turnaround: "3 to 4 Weeks Build"
-  },
-  { 
-    id: "grafty", 
-    category: "Proprietary Tech", 
-    title: "The Grafty Advantage (WhatsApp Tech)", 
-    subtitle: "Leverage our proprietary Meta WhatsApp Business API engine. Automate customer support, scale outreach campaigns, and connect where customers live.", 
-    iconName: "Rocket", 
-    colorHex: "#f43f5e", 
-    cta: "Deploy Grafty", 
-    projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }],
-    features: [
-      "Official Meta WhatsApp Cloud API Integration",
-      "Visual Chatbot Flow & Automated Lead Screener",
-      "Bulk Broadcast Campaigns with Delivery Tracking",
-      "Automated Order Updates & Invoice Alerts via WhatsApp",
-      "Multi-Agent Shared Customer Support Inbox"
-    ],
-    deliverables: [
-      "Verified WhatsApp Business API Integration",
-      "Dedicated Webhook Receiver Server Instance",
-      "Custom Chatbot Workflows & Template Approvals",
-      "Multi-Agent Support Portal"
-    ],
-    techStack: ["WhatsApp Cloud API", "Node.js", "Fastify", "PostgreSQL", "Redis", "Webhooks"],
-    idealFor: "D2C Stores, E-commerce Brands, Lead-Gen Companies & Support Teams",
-    turnaround: "7 to 10 Days Deployment"
-  },
-  { 
-    id: "ecosystem", 
-    category: "Partnership", 
-    title: "Fractional CTO & Strategic Advisory", 
-    subtitle: "We don't do one-off projects. We act as your dedicated technical and creative leadership team, guiding digital strategy from inception to enterprise scale.", 
-    iconName: "Users", 
-    colorHex: "#6366f1", 
-    cta: "Request Strategic Audit",
-    features: [
-      "System Architecture Audits & Code Health Reviews",
-      "Tech Stack Selection & Cloud Infrastructure Cost Optimization",
-      "Weekly Engineering Sprints & Delivery Sprint Oversight",
-      "Security Audits, Compliance & Backup Disaster Recovery",
-      "Technical Hiring & Engineering Mentorship"
-    ],
-    deliverables: [
-      "Quarterly Strategic Technical Roadmap",
-      "Weekly CTO Advisory & Sprint Syncs",
-      "Continuous Codebase & Security Audits",
-      "Priority 24/7 Technical SLA Support"
-    ],
-    techStack: ["AWS", "Docker", "Kubernetes", "Next.js", "PostgreSQL", "CI/CD"],
-    idealFor: "Funded Startups, Non-Tech Founders & High-Growth Companies",
-    turnaround: "Monthly Retainer / Ongoing Strategic Partnership"
   },
   { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure? Submit a technical brief and our lead architects will review your operational requirements.", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
   { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
@@ -1238,24 +1279,36 @@ const CustomCursor = () => {
 // --- UNIVERSAL CONTACT FORM ---
 const UniversalContactForm = ({ 
   ctaText = "Submit", 
+  defaultNotes = "",
+  onSuccess,
   inputClass = "p-3 md:p-4 w-full bg-transparent border-2 border-current rounded-xl outline-none focus:opacity-50 transition-opacity placeholder:text-current placeholder:opacity-50",
   btnClass = "p-4 w-full bg-current text-white font-bold tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 hover:opacity-80 transition-opacity mt-2 group invert mix-blend-difference"
-}: { ctaText?: string, inputClass?: string, btnClass?: string }) => {
+}: { ctaText?: string, defaultNotes?: string, onSuccess?: () => void, inputClass?: string, btnClass?: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [notes, setNotes] = useState(defaultNotes)
+
+  useEffect(() => {
+    if (defaultNotes) setNotes(defaultNotes)
+  }, [defaultNotes])
 
   if (isSubmitted) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center w-full">
-        <CheckCircle2 className="w-12 h-12 text-current mb-4" />
-        <h3 className="text-xl font-bold uppercase mb-2">Request Sent!</h3>
-        <p className="opacity-60 text-sm">Our lead architect will be in touch shortly.</p>
+        <CheckCircle2 className="w-12 h-12 text-emerald-400 mb-4 animate-bounce" />
+        <h3 className="text-xl font-bold uppercase mb-2">Request Received!</h3>
+        <p className="opacity-70 text-sm">Our lead architect will contact you within 2 hours to begin your project.</p>
+        {onSuccess && (
+          <button onClick={onSuccess} className="mt-4 px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold uppercase tracking-wider transition-colors">
+            Close
+          </button>
+        )}
       </div>
     )
   }
 
   return (
-    <form className="flex flex-col gap-4 w-full mt-8" onSubmit={async (e) => {
+    <form className="flex flex-col gap-4 w-full mt-4" onSubmit={async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
       const formData = new FormData(e.currentTarget);
@@ -1263,7 +1316,7 @@ const UniversalContactForm = ({
       const email = formData.get('email') as string;
       const countryCode = formData.get('countryCode') as string;
       const phone = formData.get('phone') as string;
-      const notes = formData.get('notes') as string;
+      const formNotes = formData.get('notes') as string;
       
       try {
         const res = await fetch('/api/v1/crm/public/leads', {
@@ -1274,11 +1327,14 @@ const UniversalContactForm = ({
             name,
             email,
             phone: `${countryCode}${phone}`,
-            notes,
+            notes: formNotes,
             projectType: 'CUSTOM'
           })
         });
-        if (res.ok) setIsSubmitted(true);
+        if (res.ok) {
+          setIsSubmitted(true);
+          if (onSuccess) setTimeout(onSuccess, 3000);
+        }
         else alert('Failed to submit. Please try again.');
       } catch (err) {
         console.error(err);
@@ -1288,8 +1344,8 @@ const UniversalContactForm = ({
       }
     }}>
       <div className="flex flex-col md:flex-row gap-4">
-        <input required name="name" type="text" placeholder="Name" className={inputClass} />
-        <input required name="email" type="email" placeholder="Email" className={inputClass} />
+        <input required name="name" type="text" placeholder="Your Full Name" className={inputClass} />
+        <input required name="email" type="email" placeholder="Your Email Address" className={inputClass} />
       </div>
       <div className="flex gap-4">
         <select name="countryCode" defaultValue="+91" className={`${inputClass} w-24 md:w-32 appearance-none text-center bg-transparent cursor-pointer [&>option]:text-black`}>
@@ -1300,14 +1356,84 @@ const UniversalContactForm = ({
           <option value="+81"> +81</option>
           <option value="+49"> +49</option>
         </select>
-        <input required name="phone" type="tel" placeholder="Phone Number" className={inputClass} />
+        <input required name="phone" type="tel" placeholder="Mobile / Phone Number" className={inputClass} />
       </div>
-      <textarea required name="notes" placeholder="Technical Brief / Inquiry Details" className={`${inputClass} h-32 resize-none`} />
+      <textarea 
+        required 
+        name="notes" 
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Technical Brief / Inquiry Details" 
+        className={`${inputClass} h-32 resize-none`} 
+      />
       <button disabled={isSubmitting} type="submit" className={`${btnClass} disabled:opacity-50`}>
          {isSubmitting ? "Sending..." : ctaText} <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </button>
     </form>
   )
+}
+
+// --- PROJECT KICKOFF INQUIRY MODAL ---
+const ProjectInquiryModal = ({ card, onClose }: { card: CardData | null, onClose: () => void }) => {
+  if (!card) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 md:p-6"
+        onClick={onClose}
+      >
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          onClick={e => e.stopPropagation()}
+          className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#111116] border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl text-white"
+        >
+          <button 
+            onClick={onClose}
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors flex items-center justify-center text-white/70"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0" style={{ color: card.colorHex }}>
+              {renderIcon(card.iconName, card.icon, "w-6 h-6")}
+            </div>
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400">
+                Kickoff Project Inquiry
+              </span>
+              <h2 className="text-xl md:text-2xl font-bold">{card.title}</h2>
+            </div>
+          </div>
+
+          <p className="text-xs md:text-sm text-white/70 mb-4 leading-relaxed">
+            {card.subtitle}
+          </p>
+
+          {card.turnaround && (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold mb-4">
+              <Zap className="w-3.5 h-3.5" /> Turnaround: {card.turnaround}
+            </div>
+          )}
+
+          <UniversalContactForm 
+            defaultNotes={`I want to begin a project for: ${card.title}.\n\nMy Requirements / Budget / Timeline:`}
+            ctaText={card.cta || `Submit ${card.title} Brief`}
+            inputClass="p-3.5 w-full bg-black/50 border border-white/15 rounded-xl outline-none focus:border-emerald-400 transition-colors text-white text-xs placeholder:text-white/30"
+            btnClass="p-4 w-full bg-emerald-400 text-black hover:bg-emerald-300 rounded-xl font-bold tracking-widest uppercase mt-2 flex items-center justify-center gap-2 group transition-all"
+            onSuccess={onClose}
+          />
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 }// Helper to format Cloudflare R2 images through backend CORS proxy
 function formatImageUrl(url?: string): string {
   if (!url) return '';
@@ -2606,9 +2732,27 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [activeLayout, setActiveLayout] = useState<LayoutId>('os')
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [activeProject, setActiveProject] = useState<ProjectData | null>(null)
+  const [inquiryCard, setInquiryCard] = useState<CardData | null>(null)
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
+
+  const handleBeginProject = (card: CardData) => {
+    if (!card) return;
+    if (card.isAcademy) {
+      window.location.href = 'https://academy.grekam.in';
+      return;
+    }
+    if (card.isCrm) {
+      window.location.href = '/dashboard/crm';
+      return;
+    }
+    if (card.isHrm) {
+      window.location.href = '/dashboard/hr';
+      return;
+    }
+    setInquiryCard(card);
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -2667,30 +2811,19 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       techStack: p.tags || ['Next.js', 'TailwindCSS', 'TypeScript']
     }))
     currentCards = currentCards.map(c => {
-      if (c.id === 'branding' || c.id === 'webdev') {
+      if (c.id === 'branding' || c.id === 'webdev' || c.id === 'web_dev' || c.id === 'ecommerce') {
         return { ...c, projects: portfolioProjects.slice(0, 3) }
       }
       return c
     })
   }
 
-  // Auto-inject the special cards if they are missing so changes reflect immediately
-  if (!currentCards.find(c => c.id === 'products' || c.isProducts)) {
-    const defaultProductCard = INITIAL_CARDS.find(c => c.id === 'products');
-    if (defaultProductCard) currentCards.push(defaultProductCard);
-  }
-  if (!currentCards.find(c => c.id === 'portfolio' || c.isPortfolio)) {
-    const defaultPortfolioCard = INITIAL_CARDS.find(c => c.id === 'portfolio');
-    if (defaultPortfolioCard) currentCards.push(defaultPortfolioCard);
-  }
-  if (!currentCards.find(c => c.id === 'academy' || c.isAcademy)) {
-    const defaultAcademyCard = INITIAL_CARDS.find(c => c.id === 'academy');
-    if (defaultAcademyCard) currentCards.push(defaultAcademyCard);
-  }
-  if (!currentCards.find(c => c.id === 'pricing' || c.isPricing)) {
-    const defaultPricingCard = INITIAL_CARDS.find(c => c.id === 'pricing');
-    if (defaultPricingCard) currentCards.push(defaultPricingCard);
-  }
+  // Auto-inject missing cards from INITIAL_CARDS so all 8 simple services are present
+  INITIAL_CARDS.forEach(ic => {
+    if (!currentCards.find(c => c.id === ic.id)) {
+      currentCards.push(ic);
+    }
+  });
 
   const playSound = () => {
     if (!audioCtx) return;
@@ -2750,62 +2883,64 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         const full = u.startsWith('http') ? u : `https://${u}`
         fetch(`/api/preview-proxy?url=${encodeURIComponent(full)}`, { priority: 'low' } as any).catch(() => {})
       })
-    }, 1200)
+    }, 1500)
     return () => clearTimeout(timer)
   }, [currentCards])
 
-  const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component
-
-  const isLightMode = ['editorial', 'canvas', 'bento', 'organic', 'minimal', 'paper', 'swiss'].includes(activeLayout)
+  const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component || LayoutCreativeOS
+  const isLightMode = activeLayout === 'paper' || activeLayout === 'swiss' || activeLayout === 'editorial'
   const isBrutal = activeLayout === 'brutalism'
 
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
 
   return (
-    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
-      {/* Header */}
-      <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
-        
-        {/* Logo / Brand */}
-        <a href="/" className={`pointer-events-auto flex items-center gap-2 text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all
-          ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white/70 hover:text-white'}`}>
-          <Orbit className="w-4 h-4" /> Grekam Visuals
-        </a>
+    <div className={`w-full h-screen relative flex flex-col font-sans select-none overflow-hidden ${isBrutal ? 'bg-[#FFFDF9] text-black' : isLightMode ? 'bg-zinc-50 text-zinc-900' : 'bg-[#060608] text-white'}`}>
+      
+      {/* Top Header Bar */}
+      <header className={`w-full py-4 px-6 md:px-12 flex items-center justify-between z-50 shrink-0 border-b ${isBrutal ? 'border-b-4 border-black bg-[#FFC900]' : isLightMode ? 'border-black/10 bg-white/70 backdrop-blur-md' : 'border-white/10 bg-black/40 backdrop-blur-md'}`}>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center font-black text-sm tracking-wider uppercase transition-transform group-hover:scale-105 ${isBrutal ? 'bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500 text-black shadow-lg shadow-emerald-500/20'}`}>
+              G
+            </div>
+            <div className="flex flex-col">
+              <span className={`font-black text-xs md:text-sm tracking-wider uppercase ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}>GREKAM</span>
+              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest leading-none">AGENCY OS</span>
+            </div>
+          </Link>
+        </div>
 
-        {/* Nav Links (Center) */}
-        <nav className="pointer-events-auto hidden md:flex items-center gap-6">
+        {/* Center Quick Nav Links */}
+        <nav className="hidden lg:flex items-center gap-8">
           {[
-            { label: 'Home', href: '/' },
+            { label: 'Agency', href: '/agency' },
             { label: 'Academy', href: 'https://academy.grekam.in', external: true },
-            { label: 'Contact', href: '/contact' },
-            { label: 'Login', href: '/auth/login' },
+            { label: 'CRM', href: '/dashboard/crm' },
+            { label: 'HRM', href: '/dashboard/hr' },
+            { label: 'Earn 5-10% Commission', href: '/agency/referral' },
           ].map(({ label, href, external }) => (
             <a 
               key={label} 
               href={href} 
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className={`text-[10px] font-bold tracking-widest uppercase transition-all hover:opacity-100 opacity-60 flex items-center gap-1
-              ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}
+              className={`text-[10px] font-black tracking-widest uppercase hover:opacity-100 transition-opacity ${isBrutal ? 'text-black' : 'opacity-60'}`}
             >
               {label}
-              {external && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
             </a>
           ))}
         </nav>
 
         {/* Right Actions: Academy Button + Choose Concept Dropdown */}
         <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
-           {/* Academy Pill Button */}
            <a 
              href="https://academy.grekam.in" 
              target="_blank" 
              rel="noopener noreferrer"
-             className="flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)] group"
+             className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md border shadow-sm ${isBrutal ? 'bg-white border-black text-black' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
            >
-             <GraduationCap className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+             <GraduationCap className="w-3.5 h-3.5" />
              <span className="hidden sm:inline">Academy</span>
-             <ExternalLink className="w-2.5 h-2.5 opacity-60" />
            </a>
 
            <div className="relative">
@@ -2815,14 +2950,14 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
                   if(!audioCtx) setAudioCtx(new (window.AudioContext || (window as any).webkitAudioContext)())
                }} 
                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full border text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-md
-                 bg-gradient-to-r from-[#218558] to-[#0E4E7E] text-white border-none hover:opacity-90 shadow-[0_0_20px_rgba(33,133,88,0.3)]`}
+                 ${isBrutal ? 'bg-black text-white border-black' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
              >
-               CHOOSE THEME <ChevronDown className="w-3 h-3" />
+               THEMES <ChevronDown className="w-3 h-3" />
              </button>
              
              {showMenu && (
                <div className={`absolute top-full right-0 mt-2 md:mt-4 p-2 min-w-[200px] md:min-w-[240px] flex flex-col gap-1 shadow-2xl overflow-y-auto max-h-[60vh] custom-scrollbar
-                 ${isBrutal ? 'bg-white border-[4px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : 
+                 ${isBrutal ? 'bg-white border-[4px] border-black' : 
                    isLightMode ? 'bg-white/95 backdrop-blur-xl border border-black/10 rounded-2xl' : 'bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl'}`}
                >
                  {LAYOUTS.map((layout) => (
@@ -2858,6 +2993,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
             playSound={playSound} 
             cmsData={cmsData} 
             onPreviewProject={handlePreviewProject}
+            onBeginProject={handleBeginProject}
           />
         )}
         
@@ -2878,6 +3014,12 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       <DevicePreviewModal 
         project={activeProject} 
         onClose={() => setActiveProject(null)} 
+      />
+
+      {/* Instant Project Kickoff Inquiry Modal */}
+      <ProjectInquiryModal
+        card={inquiryCard}
+        onClose={() => setInquiryCard(null)}
       />
 
       {/* Floating Strategy Call Widget */}
