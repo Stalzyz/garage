@@ -1962,7 +1962,8 @@ const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
              <div className="w-full md:w-1/2 flex flex-col justify-center">
                <div className="text-[10px] font-sans uppercase tracking-[0.2em] text-[#7a7571] mb-6 md:mb-8">— 0{i + 1} // {card.category}</div>
                <h2 className="text-4xl md:text-7xl font-normal mb-6 md:mb-8 leading-tight">{card.title}</h2>
-               <p className="text-lg md:text-xl text-[#7a7571] leading-relaxed max-w-md mb-12">{card.subtitle}</p>
+               <p className="text-lg md:text-xl text-[#7a7571] leading-relaxed max-w-md mb-6">{card.subtitle}</p>
+               <ServiceDetailsSection card={card} />
                
                {card.projects && (
                   <div className="flex flex-col gap-8 w-full">
@@ -2045,7 +2046,8 @@ const LayoutInfiniteCanvas = ({ cards, onPreviewProject }: any) => {
                <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center mb-6" style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon)}</div>
                <div className="text-[10px] md:text-xs uppercase tracking-widest text-zinc-400 mb-2">{card.category}</div>
                <h2 className="text-2xl md:text-4xl font-black text-black mb-4">{card.title}</h2>
-               <p className="text-zinc-500 font-medium mb-8 text-sm md:text-base">{card.subtitle}</p>
+               <p className="text-zinc-500 font-medium mb-6 text-sm md:text-base">{card.subtitle}</p>
+               <ServiceDetailsSection card={card} />
                
                {card.projects && (
                   <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar mb-6">
@@ -2177,14 +2179,11 @@ const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
             {cards.map((card: CardData, i: number) => (
               <div key={card.id} className="bg-[#FFC900] border-[4px] md:border-[6px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-6 md:p-10 flex flex-col transition-all" style={{ backgroundColor: i % 2 === 0 ? '#FFC900' : '#23A094' }}>
                  
-                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
-                    <div className="w-20 h-20 md:w-32 md:h-32 bg-white border-[4px] border-black flex items-center justify-center shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] [&>svg]:w-10 [&>svg]:h-10 md:[&>svg]:w-16 md:[&>svg]:h-16">
-                      {renderIcon(card.iconName, card.icon)}
-                    </div>
                     <div className="w-full flex-1 flex flex-col text-center md:text-left">
                       <div className="text-[10px] md:text-sm font-black uppercase mb-4 border-[2px] border-black inline-block px-3 py-1 bg-white w-fit mx-auto md:mx-0">{card.category}</div>
                       <h2 className="text-3xl md:text-5xl font-black uppercase mb-4 leading-tight">{card.title}</h2>
-                      <p className="font-bold text-base md:text-xl mb-8">{card.subtitle}</p>
+                      <p className="font-bold text-base md:text-xl mb-6">{card.subtitle}</p>
+                      <ServiceDetailsSection card={card} />
                       
                       {(card.id === 'contact_form' || card.isContactForm) ? (
                          <UniversalContactForm 
@@ -2259,7 +2258,8 @@ const LayoutPaperCraft = ({ cards, onPreviewProject }: any) => {
             <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border border-dashed border-[#dcd8c8] flex items-center justify-center mb-6" style={{ color: card.colorHex }}>{renderIcon(card.iconName, card.icon)}</div>
             <div className="text-[10px] uppercase tracking-widest text-[#a09c90] mb-2">{card.category}</div>
             <h2 className="text-xl md:text-3xl font-bold mb-4 font-serif text-[#2c2c2c] leading-tight">{card.title}</h2>
-            <p className="text-[#7a7a7a] leading-relaxed font-medium text-sm mb-8">{card.subtitle}</p>
+            <p className="text-[#7a7a7a] leading-relaxed font-medium text-sm mb-6">{card.subtitle}</p>
+            <ServiceDetailsSection card={card} />
             
             {card.projects && (
                <div className="flex flex-col gap-6 mb-8 mt-4 pt-8 border-t border-dashed border-[#e0dcd3]">
@@ -2327,7 +2327,8 @@ const LayoutCinematic = ({ cards, onPreviewProject }: any) => {
               <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="w-full md:w-1/2 text-center md:text-left">
                  <div className="text-[10px] md:text-sm font-bold tracking-[0.3em] md:tracking-[0.5em] text-white/40 uppercase mb-6 md:mb-8">Scene 0{i+1} — {card.category}</div>
                  <h2 className="text-4xl md:text-7xl font-bold mb-6 md:mb-8 uppercase leading-tight drop-shadow-xl">{card.title}</h2>
-                 <p className="text-lg md:text-2xl text-white/60 font-light mb-10 md:mb-12 drop-shadow-md">{card.subtitle}</p>
+                 <p className="text-lg md:text-2xl text-white/60 font-light mb-6 drop-shadow-md">{card.subtitle}</p>
+                 <ServiceDetailsSection card={card} />
                  
                  {card.id === 'contact_form' ? (
                     <UniversalContactForm 
@@ -2413,7 +2414,8 @@ const LayoutSwissPrecision = ({ cards, onPreviewProject }: any) => {
               </div>
               <div className="flex flex-col flex-1 justify-end relative overflow-hidden">
                  <h2 className={`font-bold tracking-tight mb-4 ${i === 0 || card.id === 'contact_form' ? 'text-4xl md:text-6xl' : 'text-2xl md:text-3xl'} z-10`}>{card.title}</h2>
-                 <p className="text-sm opacity-60 font-medium max-w-sm mb-8 z-10">{card.subtitle}</p>
+                 <p className="text-sm opacity-60 font-medium max-w-sm mb-6 z-10">{card.subtitle}</p>
+                 <ServiceDetailsSection card={card} />
                  
                  {card.projects && (
                     <div className="absolute inset-0 bg-black text-white p-8 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 flex flex-col justify-between">
@@ -2616,7 +2618,22 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       .catch(console.error)
   }, [])
 
-  const baseCards = cmsData?.['agency-main-data'] || INITIAL_CARDS
+  const rawCards = (cmsData?.['agency-main-data'] && Array.isArray(cmsData['agency-main-data']) && cmsData['agency-main-data'].length > 0)
+    ? cmsData['agency-main-data']
+    : INITIAL_CARDS
+
+  const baseCards = rawCards.map((card: CardData) => {
+    const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id)
+    return {
+      ...defaultCard,
+      ...card,
+      features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
+      deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
+      techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
+      idealFor: card.idealFor || defaultCard?.idealFor,
+      turnaround: card.turnaround || defaultCard?.turnaround,
+    }
+  })
   let currentCards = [...baseCards];
   
   // Dynamic CMS Portfolio Integration: If we have CMS portfolio, replace the DUMMY_PROJECTS
