@@ -1804,7 +1804,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                      </button>
                   )}
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
          )}
       </AnimatePresence>
