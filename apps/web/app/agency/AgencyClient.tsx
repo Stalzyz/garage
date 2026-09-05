@@ -1647,6 +1647,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Builds instant trust so customers buy from you instead of competitors.", 
                             gets: "Logos, brand guide, social media templates & banners.", 
                             iconClass: "fa-solid fa-palette", 
+                            colorClass: "bg-purple-500/15 border-purple-500/30 text-purple-400",
+                            badgeClass: "bg-purple-500/10 text-purple-300",
                             badge: "Brand Identity" 
                           },
                           { 
@@ -1654,6 +1656,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Turns casual visitors into paying customers with high-converting layouts.", 
                             gets: "Modern mobile-friendly page designs & interactive prototypes.", 
                             iconClass: "fa-solid fa-pen-ruler", 
+                            colorClass: "bg-sky-500/15 border-sky-500/30 text-sky-400",
+                            badgeClass: "bg-sky-500/10 text-sky-300",
                             badge: "UI/UX Layouts" 
                           },
                           { 
@@ -1661,6 +1665,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Ultra-fast website loading so visitors never leave due to lag or crashes.", 
                             gets: "Ready-to-use website, admin access, domain & SSL security.", 
                             iconClass: "fa-solid fa-code", 
+                            colorClass: "bg-cyan-500/15 border-cyan-500/30 text-cyan-400",
+                            badgeClass: "bg-cyan-500/10 text-cyan-300",
                             badge: "Fast Websites" 
                           },
                           { 
@@ -1668,6 +1674,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Replaces tedious manual work with 24/7 automated background tools.", 
                             gets: "Data extraction tools, automatic lead alerts & workflow tools.", 
                             iconClass: "fa-solid fa-robot", 
+                            colorClass: "bg-violet-500/15 border-violet-500/30 text-violet-400",
+                            badgeClass: "bg-violet-500/10 text-violet-300",
                             badge: "Save Hours" 
                           },
                           { 
@@ -1675,6 +1683,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Allows customers to browse products, order & pay online 24/7.", 
                             gets: "Online store, catalog manager, UPI/Card payments & order dashboard.", 
                             iconClass: "fa-solid fa-cart-shopping", 
+                            colorClass: "bg-rose-500/15 border-rose-500/30 text-rose-400",
+                            badgeClass: "bg-rose-500/10 text-rose-300",
                             badge: "Sell Online 24/7" 
                           },
                           { 
@@ -1682,6 +1692,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Organizes sales leads and customer inquiries so no deal is forgotten.", 
                             gets: "Custom sales dashboard, lead pipeline board & team roles.", 
                             iconClass: "fa-solid fa-chart-line", 
+                            colorClass: "bg-amber-500/15 border-amber-500/30 text-amber-400",
+                            badgeClass: "bg-amber-500/10 text-amber-300",
                             badge: "Manage Sales" 
                           },
                           { 
@@ -1689,6 +1701,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Brings a continuous stream of new buyers through Google & social ads.", 
                             gets: "Google SEO ranking setup, ad graphics & monthly growth reports.", 
                             iconClass: "fa-solid fa-bullhorn", 
+                            colorClass: "bg-indigo-500/15 border-indigo-500/30 text-indigo-400",
+                            badgeClass: "bg-indigo-500/10 text-indigo-300",
                             badge: "Get Buyers" 
                           },
                           { 
@@ -1696,17 +1710,19 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                             scales: "Answers customer questions instantly on WhatsApp and boosts repeat orders.", 
                             gets: "Official WhatsApp bot setup, auto-reply chat & message sender.", 
                             iconClass: "fa-brands fa-whatsapp", 
+                            colorClass: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
+                            badgeClass: "bg-emerald-500/10 text-emerald-300",
                             badge: "Instant Chat" 
                           },
                         ].map((srv, sIdx) => {
                           return (
-                            <div key={sIdx} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-400/50 hover:bg-emerald-500/10 transition-all flex flex-col justify-between gap-3">
+                            <div key={sIdx} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-3 group">
                               <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center w-8 h-8">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-md ${srv.colorClass}`}>
                                     <i className={`${srv.iconClass} text-sm`} />
                                   </div>
-                                  <span className="px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider font-bold bg-white/10 text-emerald-300">
+                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold ${srv.badgeClass}`}>
                                     {srv.badge}
                                   </span>
                                 </div>
@@ -1738,24 +1754,26 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {[
-                          { href: "/legal/terms", title: "Terms & Conditions", desc: "Fair rules on how we work together and launch your project.", iconClass: "fa-solid fa-scale-balanced" },
-                          { href: "/legal/privacy", title: "Privacy Policy", desc: "How we keep your business & customer information 100% safe.", iconClass: "fa-solid fa-shield-halved" },
-                          { href: "/legal/payment", title: "Payment & Invoicing", desc: "Clear milestone payments with zero hidden or surprise fees.", iconClass: "fa-solid fa-credit-card" },
-                          { href: "/legal/refunds", title: "Cancellation & Refunds", desc: "Honest refund rules and quality commitments.", iconClass: "fa-solid fa-rotate-left" },
-                          { href: "/legal/delivery", title: "Service Delivery", desc: "Guaranteed project launch steps & sprint schedules.", iconClass: "fa-solid fa-truck-fast" },
-                          { href: "/legal/revisions", title: "Revision & Scope", desc: "Flexible revision steps so you love the final result.", iconClass: "fa-solid fa-pen-to-square" },
-                          { href: "/legal/ip", title: "Code & Design Ownership", desc: "You own 100% of all code, design assets, and files.", iconClass: "fa-solid fa-fingerprint" },
-                          { href: "/legal/maintenance", title: "Maintenance & Support", desc: "Helpful post-launch support whenever you need assistance.", iconClass: "fa-solid fa-wrench" },
-                          { href: "/legal/data-deletion", title: "Data Deletion Steps", desc: "Simple steps to delete stored data anytime.", iconClass: "fa-solid fa-trash-can" },
+                          { href: "/legal/terms", title: "Terms & Conditions", desc: "Fair rules on how we work together and launch your project.", iconClass: "fa-solid fa-scale-balanced", colorClass: "bg-blue-500/15 border-blue-500/30 text-blue-400" },
+                          { href: "/legal/privacy", title: "Privacy Policy", desc: "How we keep your business & customer information 100% safe.", iconClass: "fa-solid fa-shield-halved", colorClass: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" },
+                          { href: "/legal/payment", title: "Payment & Invoicing", desc: "Clear milestone payments with zero hidden or surprise fees.", iconClass: "fa-solid fa-credit-card", colorClass: "bg-purple-500/15 border-purple-500/30 text-purple-400" },
+                          { href: "/legal/refunds", title: "Cancellation & Refunds", desc: "Honest refund rules and quality commitments.", iconClass: "fa-solid fa-rotate-left", colorClass: "bg-amber-500/15 border-amber-500/30 text-amber-400" },
+                          { href: "/legal/delivery", title: "Service Delivery", desc: "Guaranteed project launch steps & sprint schedules.", iconClass: "fa-solid fa-truck-fast", colorClass: "bg-cyan-500/15 border-cyan-500/30 text-cyan-400" },
+                          { href: "/legal/revisions", title: "Revision & Scope", desc: "Flexible revision steps so you love the final result.", iconClass: "fa-solid fa-pen-to-square", colorClass: "bg-pink-500/15 border-pink-500/30 text-pink-400" },
+                          { href: "/legal/ip", title: "Code & Design Ownership", desc: "You own 100% of all code, design assets, and files.", iconClass: "fa-solid fa-fingerprint", colorClass: "bg-indigo-500/15 border-indigo-500/30 text-indigo-400" },
+                          { href: "/legal/maintenance", title: "Maintenance & Support", desc: "Helpful post-launch support whenever you need assistance.", iconClass: "fa-solid fa-wrench", colorClass: "bg-teal-500/15 border-teal-500/30 text-teal-400" },
+                          { href: "/legal/data-deletion", title: "Data Deletion Steps", desc: "Simple steps to delete stored data anytime.", iconClass: "fa-solid fa-trash-can", colorClass: "bg-rose-500/15 border-rose-500/30 text-rose-400" },
                         ].map((item, idx) => {
                           return (
                             <Link
                               key={idx}
                               href={item.href}
-                              className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/10 transition-all group flex flex-col justify-between gap-2"
+                              className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all group flex flex-col justify-between gap-3"
                             >
                               <div className="flex items-center justify-between">
-                                <i className={`${item.iconClass} text-base text-sky-400 group-hover:scale-110 transition-transform`} />
+                                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-md ${item.colorClass}`}>
+                                  <i className={`${item.iconClass} text-sm`} />
+                                </div>
                                 <span className="text-[10px] text-sky-400/80 font-mono font-bold group-hover:text-sky-300">Read Policy →</span>
                               </div>
                               <div>
