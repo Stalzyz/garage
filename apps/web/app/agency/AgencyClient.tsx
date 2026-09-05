@@ -1568,32 +1568,156 @@ const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
       ref={ref} 
       style={{ width, height: width }} 
       onClick={() => { playSound(); onClick(); }} 
-      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] text-white"
     >
       {renderIcon(card.iconName, card.icon)}
     </motion.button>
   )
 }
 
-const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
+const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBeginProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
   
+  // Separate service cards from utility cards
+  const serviceCards = cards.filter((c: CardData) => !c.isPricing && !c.isContactForm && !c.isProducts && !c.isPortfolio && !c.isAcademy)
+  const utilityCards = cards.filter((c: CardData) => c.isPricing || c.isContactForm || c.isProducts || c.isPortfolio || c.isAcademy)
+
   return (
-    <div className="h-[100dvh] w-full bg-zinc-950 overflow-hidden relative font-sans text-white">
+    <div className="min-h-screen w-full bg-zinc-950 overflow-y-auto custom-scrollbar relative font-sans text-white pb-36">
       {/* Dynamic Background Particles & Gradients */}
       <AgencyCinemaParticles />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#3b0764,transparent_50%),radial-gradient(ellipse_at_bottom,#064e3b,transparent_50%)] opacity-40 blur-3xl pointer-events-none" />
       
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10 w-full px-6 transition-opacity duration-500 ${activeCard ? 'opacity-0' : 'opacity-100'}`}>
-        <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">Do you have the courage to <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 animate-pulse">stand out?</span></h1>
-        <p className="text-xl md:text-3xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed">Or will you settle for another template? We don't build standard websites. We engineer bespoke digital experiences.</p>
+      {/* Hero Title Header */}
+      <div className="pt-12 md:pt-20 pb-10 px-6 text-center max-w-5xl mx-auto z-10 relative">
+        <span className="px-4 py-1.5 rounded-full text-[10px] md:text-xs font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mb-6 inline-block shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+          GREKAM CREATIVE & SOFTWARE AGENCY
+        </span>
+        <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-6 leading-tight drop-shadow-xl">
+          Simple Services. <br className="hidden sm:block"/>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">Built to Win Markets.</span>
+        </h1>
+        <p className="text-base md:text-2xl text-white/60 font-light max-w-3xl mx-auto leading-relaxed">
+          High-performance visual design, custom software development, and digital marketing. Select a service to begin your project in 1-click.
+        </p>
       </div>
 
-      <div className="absolute bottom-6 md:bottom-10 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-20 md:h-24 items-center gap-3 md:gap-6 px-4 md:px-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
+      {/* Main 8-Services Card Grid */}
+      <div className="px-6 md:px-12 max-w-7xl mx-auto z-10 relative mb-16">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+          <h2 className="text-xs uppercase font-mono font-bold tracking-widest text-emerald-400 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Core Capabilities & Services
+          </h2>
+          <span className="text-xs font-mono text-white/40">{serviceCards.length} Specialized Services Available</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {serviceCards.map((card: CardData) => (
+            <motion.div
+              key={card.id}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              onClick={() => { playSound(); setActiveCard(card); }}
+              className="bg-gradient-to-b from-white/10 via-white/5 to-black/80 border border-white/15 hover:border-emerald-400/60 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer transition-all duration-300 shadow-xl hover:shadow-[0_0_35px_rgba(16,185,129,0.2)] relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all" />
+
+              <div>
+                {/* Header Badge & Icon */}
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div 
+                    className="w-12 h-12 rounded-2xl bg-black/60 border border-white/15 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform" 
+                    style={{ color: card.colorHex }}
+                  >
+                    {renderIcon(card.iconName, card.icon, "w-6 h-6")}
+                  </div>
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/60">
+                    {card.category}
+                  </span>
+                </div>
+
+                {/* Service Title & Subtitle */}
+                <h3 className="text-xl font-bold text-white group-hover:text-emerald-300 transition-colors mb-2">
+                  {card.title}
+                </h3>
+                <p className="text-xs text-white/70 line-clamp-3 leading-relaxed mb-4">
+                  {card.subtitle}
+                </p>
+
+                {/* Turnaround Badge */}
+                {card.turnaround && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold mb-4">
+                    <Zap className="w-3 h-3 shrink-0" /> {card.turnaround}
+                  </div>
+                )}
+
+                {/* Deliverables snippet */}
+                {card.deliverables && card.deliverables.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-6">
+                    {card.deliverables.slice(0, 3).map((item: string, idx: number) => (
+                      <span key={idx} className="text-[9px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-white/60 truncate max-w-[140px]">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 1-Click CTA Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playSound();
+                  if (onBeginProject) onBeginProject(card);
+                  else setActiveCard(card);
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-400/20 group/btn mt-2"
+              >
+                <span>{card.cta || `Begin ${card.title}`}</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Utility / Special Cards Grid (Pricing, Portfolio, Contact, Academy) */}
+      {utilityCards.length > 0 && (
+        <div className="px-6 md:px-12 max-w-7xl mx-auto z-10 relative mb-16">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/10">
+            <h2 className="text-xs uppercase font-mono font-bold tracking-widest text-cyan-400 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" /> Portals, Pricing & Direct Contact
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {utilityCards.map((card: CardData) => (
+              <div
+                key={card.id}
+                onClick={() => { playSound(); setActiveCard(card); }}
+                className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/50 cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center shrink-0" style={{ color: card.colorHex }}>
+                    {renderIcon(card.iconName, card.icon, "w-5 h-5")}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">{card.title}</h4>
+                    <p className="text-[10px] text-white/50 truncate max-w-[150px]">{card.subtitle}</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom Dock Bar */}
+      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
+         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-full bg-black/80 border border-white/15 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
            {cards.map((card: CardData) => (
              <DockItem 
                key={card.id} 
@@ -1606,10 +1730,12 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
            ))}
          </motion.div>
       </div>
+
+      {/* Expanded Card Details Modal */}
       <AnimatePresence>
          {activeCard && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none p-4 md:p-12 mb-24 md:mb-32">
-              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/85 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
+              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/95 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
                 <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
                   <div className="text-[10px] md:text-xs uppercase tracking-widest text-white/50">{activeCard.category}</div>
                   <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"><X className="w-4 h-4" /></button>
@@ -1629,7 +1755,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                   <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{activeCard.title}</h1>
                   <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-6 shrink-0">{activeCard.subtitle}</p>
                   
-                  <ServiceDetailsSection card={activeCard} />
+                  <ServiceDetailsSection card={activeCard} onBeginProject={onBeginProject} />
                   
                   {/* Projects / Products Grid */}
                   {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
@@ -1688,7 +1814,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                           </div>
                           <button 
                             onClick={() => {
-                              const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
+                              const contactSection = cards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
                               if (contactSection) setActiveCard(contactSection)
                             }}
                             className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
@@ -1713,10 +1839,11 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                   
                   {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && (
                      <button onClick={() => {
-                        if (activeCard.isAcademy) window.location.href = '/academy';
+                        if (activeCard.isAcademy) window.location.href = 'https://academy.grekam.in';
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
-                     }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
+                        else if (onBeginProject) onBeginProject(activeCard);
+                     }} className="mt-8 px-8 py-4 bg-emerald-400 text-black font-extrabold rounded-2xl hover:bg-emerald-300 shadow-lg shadow-emerald-500/20 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
                         {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
                   )}
