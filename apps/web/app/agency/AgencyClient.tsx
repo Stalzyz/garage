@@ -966,7 +966,7 @@ const PricingCalculator = () => {
   )
 }
 
-const INITIAL_CARDS: CardData[] = [
+export const INITIAL_CARDS: CardData[] = [
   { 
     id: "intro", 
     category: "Manifesto", 
@@ -2585,8 +2585,24 @@ const LAYOUTS: { id: LayoutId, name: string, component: any }[] = [
 ]
 
 export default function AgencyClient({ initialCards }: { initialCards: CardData[] }) {
-  const [activeCard, setActiveCard] = useState<CardData>(initialCards[0] || {} as CardData)
-  const [cards, setCards] = useState<CardData[]>(initialCards)
+  const mergedInitialCards = useMemo(() => {
+    const source = (initialCards && initialCards.length > 0) ? initialCards : INITIAL_CARDS;
+    return source.map((card: CardData) => {
+      const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id);
+      return {
+        ...defaultCard,
+        ...card,
+        features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
+        deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
+        techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
+        idealFor: card.idealFor || defaultCard?.idealFor,
+        turnaround: card.turnaround || defaultCard?.turnaround,
+      };
+    });
+  }, [initialCards]);
+
+  const [activeCard, setActiveCard] = useState<CardData>(mergedInitialCards[0] || {} as CardData)
+  const [cards, setCards] = useState<CardData[]>(mergedInitialCards)
   const [activeLayout, setActiveLayout] = useState<LayoutId>('os')
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [activeProject, setActiveProject] = useState<ProjectData | null>(null)

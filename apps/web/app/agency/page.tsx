@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
-import AgencyClient from "./AgencyClient"
-import { notFound } from "next/navigation"
+import AgencyClient, { INITIAL_CARDS } from "./AgencyClient"
 
-export const revalidate = 300 // Cache and revalidate once every 5 minutes or on demand
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'Grekam Visuals — Creative Digital Agency',
@@ -33,27 +33,36 @@ export const metadata: Metadata = {
 }
 
 export default async function AgencyPage() {
-  // Fetch the data we seeded in Phase 1
-  const page = await prisma.landingPage.findUnique({
-    where: { slug: 'agency' },
-    include: {
-      sections: {
-        where: { sectionId: 'agency-main-data' }
+  let initialCards = INITIAL_CARDS;
+
+  try {
+    const page = await prisma.landingPage.findUnique({
+      where: { slug: 'agency' },
+      include: {
+        sections: {
+          where: { sectionId: 'agency-main-data' }
+        }
       }
+    })
+
+    if (page?.sections?.[0]?.content && Array.isArray(page.sections[0].content) && page.sections[0].content.length > 0) {
+      const dbCards = page.sections[0].content as any[];
+      initialCards = dbCards.map((card: any) => {
+        const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id);
+        return {
+          ...defaultCard,
+          ...card,
+          features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
+          deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
+          techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
+          idealFor: card.idealFor || defaultCard?.idealFor,
+          turnaround: card.turnaround || defaultCard?.turnaround,
+        };
+      });
     }
-  })
-
-  // If the page or section doesn't exist, we could return a 404 or a fallback
-  if (!page || !page.sections || page.sections.length === 0) {
-    return (
-      <div className="w-full h-screen flex flex-col items-center justify-center text-white bg-black">
-        <h1 className="text-2xl font-bold mb-4">Agency Data Not Found</h1>
-        <p className="text-gray-400">Please seed the agency data in the CMS.</p>
-      </div>
-    )
+  } catch (err) {
+    console.error("Failed to fetch agency page from database:", err);
   }
-
-  const initialCards = page.sections[0].content as any[]
 
   return (
     <AgencyClient initialCards={initialCards} />
