@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, ArrowLeft } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
@@ -1250,7 +1250,6 @@ export const INITIAL_CARDS: CardData[] = [
     isPricing: true 
   },
   { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure? Submit a technical brief and our lead architects will review your operational requirements.", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
-  { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
   { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true },
   { id: "policies", category: "Legal & Governance", title: "Policies & Terms", subtitle: "Access official terms of service, privacy policy, payment terms, refund rules, and service delivery guidelines.", iconName: "Shield", colorHex: "#38bdf8", cta: "View All Policies", isPolicies: true },
@@ -1637,6 +1636,19 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
   const serviceCards = cards.filter((c: CardData) => !c.isPricing && !c.isContactForm && !c.isProducts && !c.isPortfolio && !c.isAcademy)
   const utilityCards = cards.filter((c: CardData) => c.isPricing || c.isContactForm || c.isProducts || c.isPortfolio || c.isAcademy)
 
+  const currentIndex = cards.findIndex((c: CardData) => c.id === activeCard?.id)
+  const prevCard = currentIndex > 0 ? cards[currentIndex - 1] : cards[cards.length - 1]
+  const nextCard = currentIndex >= 0 && currentIndex < cards.length - 1 ? cards[currentIndex + 1] : cards[0]
+
+  const handlePrevCard = () => {
+    playSound?.()
+    setActiveCard(prevCard)
+  }
+  const handleNextCard = () => {
+    playSound?.()
+    setActiveCard(nextCard)
+  }
+
   return (
     <div className="min-h-screen w-full bg-zinc-950 overflow-y-auto custom-scrollbar relative font-sans text-white pb-36">
       {/* Clean Dark Backdrop */}
@@ -1687,7 +1699,10 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                 className="w-full max-w-4xl max-h-[85vh] bg-zinc-950 border border-white/15 rounded-3xl flex flex-col overflow-hidden shadow-2xl ring-1 ring-white/10"
               >
                 <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">{activeCard.category}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">{activeCard.category}</span>
+                    <span className="text-xs text-white/40">Step {currentIndex + 1} of {cards.length}</span>
+                  </div>
                   <button 
                     onClick={() => { playSound(); setActiveCard(null); }} 
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 text-white text-xs font-semibold transition-colors"
@@ -1790,7 +1805,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                           inputClass="p-4 w-full bg-black/50 border border-white/10 rounded-xl outline-none focus:border-white/30 transition-colors text-white placeholder:text-white/30" 
                           btnClass="p-4 w-full bg-white text-black hover:bg-white/90 rounded-xl font-bold tracking-widest uppercase mt-4 flex items-center justify-center gap-2 group" 
                         />
-                     </div>
+                      </div>
                   )}
                   
                   {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && !activeCard.isPolicies && activeCard.id !== 'policies' && (
@@ -1803,12 +1818,35 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                         {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
                   )}
+
+                  {/* Connected Timeline Navigation Bar */}
+                  <div className="w-full mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+                    <button 
+                      onClick={handlePrevCard}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Prev: {prevCard?.title}</span>
+                    </button>
+                    
+                    <div className="flex items-center gap-1.5 text-xs text-white/50 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Step {currentIndex + 1} of {cards.length}</span>
+                    </div>
+
+                    <button 
+                      onClick={handleNextCard}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-400/20"
+                    >
+                      <span>Next: {nextCard?.title}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
                 </div>
               </motion.div>
             </motion.div>
          )}
-      </AnimatePresence>
-    </div>
   )
 }
 
