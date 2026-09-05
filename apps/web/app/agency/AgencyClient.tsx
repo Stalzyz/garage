@@ -16,7 +16,87 @@ type ProjectData = {
   techStack?: string[]; 
   description?: string; 
 }
-type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
+type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
+
+const ServiceDetailsSection = ({ card }: { card: CardData }) => {
+  if (!card.features && !card.deliverables && !card.techStack) return null
+
+  return (
+    <div className="w-full mt-6 text-left border-t border-white/10 pt-6 space-y-6">
+      {/* Target Fit & Turnaround Banner */}
+      {(card.idealFor || card.turnaround) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-white/[0.04] border border-white/10">
+          {card.idealFor && (
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-1">
+                Ideal For
+              </span>
+              <p className="text-xs text-white/90 font-medium leading-relaxed">{card.idealFor}</p>
+            </div>
+          )}
+          {card.turnaround && (
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold block mb-1">
+                Typical Turnaround
+              </span>
+              <p className="text-xs text-white/90 font-medium leading-relaxed">{card.turnaround}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scope Checklist / Included Features */}
+      {card.features && card.features.length > 0 && (
+        <div>
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 mb-3 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" /> Core Capabilities & Scope
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {card.features.map((feat, idx) => (
+              <div key={idx} className="flex items-start gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white/80 leading-relaxed">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>{feat}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Key Deliverables */}
+      {card.deliverables && card.deliverables.length > 0 && (
+        <div>
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-cyan-400 mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4" /> What You Receive (Deliverables)
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {card.deliverables.map((item, idx) => (
+              <span key={idx} className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tech Stack */}
+      {card.techStack && card.techStack.length > 0 && (
+        <div>
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-white/40 mb-2">
+            Engineered With
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {card.techStack.map((tech, idx) => (
+              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 text-[10px] font-mono font-bold">
+                {tech}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const DUMMY_PROJECTS: ProjectData[] = [
   { 
@@ -887,14 +967,196 @@ const PricingCalculator = () => {
 }
 
 const INITIAL_CARDS: CardData[] = [
-  { id: "intro", category: "Manifesto", title: "The Digital Ecosystem", subtitle: "We don't just build software. We engineer scalable architectures and strategic brand identities that dominate markets.", iconName: "Layers", colorHex: "#4ade80", cta: "Enter the Ecosystem" },
-  { id: "branding", category: "Identity", title: "Strategic Brand Perception", subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and trust.", iconName: "Palette", colorHex: "#c084fc", cta: "Redefine Your Brand", projects: BRANDING_PROJECTS },
-  { id: "webdev", category: "Build", title: "Enterprise Commerce", subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce engines capable of handling infinite scale without bottlenecks.", iconName: "Code2", colorHex: "#22d3ee", cta: "Scale Infrastructure", projects: DUMMY_PROJECTS },
-  { id: "pricing", category: "Investment", title: "Pricing & Packages", subtitle: "Clear tiers for websites, e-commerce, custom app development, and interactive add-on price calculations.", iconName: "IndianRupee", colorHex: "#10b981", cta: "Calculate Quote", isPricing: true },
-  { id: "crm", category: "Systems", title: "Bespoke CRM Operations", subtitle: "Stop forcing your team into generic software. We develop custom CRM platforms tailored to the exact neuro-pathways of your business operations.", iconName: "Fingerprint", colorHex: "#fbbf24", cta: "Enter CRM Dashboard", isCrm: true },
-  { id: "hrm", category: "People", title: "HRM & Talent", subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, and recruitment through our centralized human resource management system.", iconName: "Users", colorHex: "#10b981", cta: "Enter HR Dashboard", isHrm: true },
-  { id: "grafty", category: "Proprietary Tech", title: "The Grafty Advantage", subtitle: "Leverage our proprietary WhatsApp Business API integration. Automate your support, scale your outreach, and connect exactly where your customers already live.", iconName: "Rocket", colorHex: "#f43f5e", cta: "Deploy Grafty", projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }] },
-  { id: "ecosystem", category: "Partnership", title: "Fractional CTO & Creative", subtitle: "We don't do one-off projects. We act as your dedicated technical and creative partners, guiding your digital strategy from inception to enterprise scale.", iconName: "Users", colorHex: "#6366f1", cta: "Request Strategic Audit" },
+  { 
+    id: "intro", 
+    category: "Manifesto", 
+    title: "The Digital Ecosystem", 
+    subtitle: "We don't just build software. We engineer scalable architectures, custom automation engines, and strategic visual identities built to dominate markets.", 
+    iconName: "Layers", 
+    colorHex: "#4ade80", 
+    cta: "Enter the Ecosystem",
+    features: [
+      "Enterprise Multi-Tenant SaaS Architecture",
+      "Sub-800ms Page Load Speeds & Core Web Vitals Optimization",
+      "Cloud-Native Server Infrastructure (AWS, Vercel, Live VPS)",
+      "Security Hardening, SSL, CORS & Privacy Compliance",
+      "Automated Continuous Deployment (CI/CD Pipelines)"
+    ],
+    deliverables: [
+      "System Architecture Blueprint",
+      "Full Production Source Code (GitHub)",
+      "Automated CI/CD Deployment Scripts",
+      "Live Domain & SSL Configuration"
+    ],
+    techStack: ["Next.js 15", "TypeScript", "Node.js", "Docker", "PostgreSQL", "Redis"],
+    idealFor: "Startups, Growing Businesses & Enterprises upgrading legacy systems",
+    turnaround: "2 to 4 Weeks Architecture Sprint"
+  },
+  { 
+    id: "branding", 
+    category: "Identity", 
+    title: "Strategic Brand Perception", 
+    subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and customer trust.", 
+    iconName: "Palette", 
+    colorHex: "#c084fc", 
+    cta: "Redefine Your Brand", 
+    projects: BRANDING_PROJECTS,
+    features: [
+      "Brand Strategy & Market Positioning Analysis",
+      "Vector Logo System (Primary, Secondary & Monogram)",
+      "Custom Color Palettes & Typography Pairings",
+      "Figma Design Tokens & UI Component Guidelines",
+      "Social Media Campaign Templates & Ad Assets"
+    ],
+    deliverables: [
+      "Master Brand Guidelines Manual (PDF)",
+      "Complete Figma Design System Source File",
+      "High-Resolution Vector Assets (SVG, EPS, PNG)",
+      "Social Media Marketing Asset Pack"
+    ],
+    techStack: ["Figma", "Adobe Illustrator", "Cinema 4D", "Framer Motion", "Vector Systems"],
+    idealFor: "New Venture Launches, Brand Re-designs & D2C Brands",
+    turnaround: "10 to 14 Business Days"
+  },
+  { 
+    id: "webdev", 
+    category: "Build", 
+    title: "Enterprise Commerce & Web Dev", 
+    subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce platforms and web apps capable of handling infinite scale without bottlenecks.", 
+    iconName: "Code2", 
+    colorHex: "#22d3ee", 
+    cta: "Scale Infrastructure", 
+    projects: DUMMY_PROJECTS,
+    features: [
+      "Custom Next.js 15 App Router & Server Components",
+      "Headless E-commerce Engine with Sub-second Transitions",
+      "Payment Gateway Link (Razorpay, Stripe, PayPal)",
+      "Custom Product Catalog, Search & Filter System",
+      "Technical SEO, OpenGraph Meta & Schema Markup"
+    ],
+    deliverables: [
+      "Full Production Source Code (GitHub Repository)",
+      "Admin Control Panel for Products & Content",
+      "Live VPS / Vercel Server Deployment",
+      "Google Analytics & Search Console Setup"
+    ],
+    techStack: ["Next.js 15", "TypeScript", "TailwindCSS", "Prisma ORM", "Razorpay", "PostgreSQL"],
+    idealFor: "D2C Brands, Retailers & High-Traffic Corporate Portals",
+    turnaround: "14 to 21 Days Production Sprint"
+  },
+  { 
+    id: "pricing", 
+    category: "Investment", 
+    title: "Pricing & Packages", 
+    subtitle: "Transparent tiers for websites, e-commerce, custom web apps, and interactive add-on estimate calculations.", 
+    iconName: "IndianRupee", 
+    colorHex: "#10b981", 
+    cta: "Calculate Quote", 
+    isPricing: true 
+  },
+  { 
+    id: "crm", 
+    category: "Systems", 
+    title: "Bespoke CRM Operations", 
+    subtitle: "Stop forcing your team into generic tools. We build custom CRM platforms tailored to the exact operational workflows of your business.", 
+    iconName: "Fingerprint", 
+    colorHex: "#fbbf24", 
+    cta: "Enter CRM Dashboard", 
+    isCrm: true,
+    features: [
+      "Automated Lead Capture & Multi-Source Ingestion",
+      "Interactive Drag-and-Drop Sales Pipeline (Kanban)",
+      "Automated WhatsApp & Email Customer Triggers",
+      "Role-Based Access Control (Admin, Manager, Agent)",
+      "Real-Time Revenue Analytics & Forecasting Charts"
+    ],
+    deliverables: [
+      "Custom CRM Web Portal & Dashboard",
+      "Configured User Roles & Access Permissions",
+      "Webhook Integrations with Website Leads",
+      "Team Onboarding & Video Documentation"
+    ],
+    techStack: ["React", "TypeScript", "Fastify", "PostgreSQL", "Prisma", "TailwindCSS"],
+    idealFor: "Sales Teams, Real Estate Agencies, Service Firms & B2B Operations",
+    turnaround: "3 to 5 Weeks Engagement"
+  },
+  { 
+    id: "hrm", 
+    category: "People", 
+    title: "HRM & Talent Operations", 
+    subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, leave approvals, and recruitment through a centralized human resource portal.", 
+    iconName: "Users", 
+    colorHex: "#10b981", 
+    cta: "Enter HR Dashboard", 
+    isHrm: true,
+    features: [
+      "Centralized Employee Directory & Confidential Records",
+      "Automated Attendance & Leave Request Workflows",
+      "Automated Payroll Engine with Tax Calculations & PDF Payslips",
+      "Applicant Tracking System (ATS) for Hiring Pipelines",
+      "Performance Appraisal & Goal Tracking Modules"
+    ],
+    deliverables: [
+      "Enterprise HR Control Dashboard",
+      "Employee Self-Service Portal",
+      "Automated PDF Payslip Generator",
+      "Workforce Analytics & Exportable Reports"
+    ],
+    techStack: ["Next.js", "Node.js", "PostgreSQL", "Prisma", "PDF Generation", "TailwindCSS"],
+    idealFor: "Growing Companies (10 to 500 Employees) & Multi-Branch Franchises",
+    turnaround: "3 to 4 Weeks Build"
+  },
+  { 
+    id: "grafty", 
+    category: "Proprietary Tech", 
+    title: "The Grafty Advantage (WhatsApp Tech)", 
+    subtitle: "Leverage our proprietary Meta WhatsApp Business API engine. Automate customer support, scale outreach campaigns, and connect where customers live.", 
+    iconName: "Rocket", 
+    colorHex: "#f43f5e", 
+    cta: "Deploy Grafty", 
+    projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }],
+    features: [
+      "Official Meta WhatsApp Cloud API Integration",
+      "Visual Chatbot Flow & Automated Lead Screener",
+      "Bulk Broadcast Campaigns with Delivery Tracking",
+      "Automated Order Updates & Invoice Alerts via WhatsApp",
+      "Multi-Agent Shared Customer Support Inbox"
+    ],
+    deliverables: [
+      "Verified WhatsApp Business API Integration",
+      "Dedicated Webhook Receiver Server Instance",
+      "Custom Chatbot Workflows & Template Approvals",
+      "Multi-Agent Support Portal"
+    ],
+    techStack: ["WhatsApp Cloud API", "Node.js", "Fastify", "PostgreSQL", "Redis", "Webhooks"],
+    idealFor: "D2C Stores, E-commerce Brands, Lead-Gen Companies & Support Teams",
+    turnaround: "7 to 10 Days Deployment"
+  },
+  { 
+    id: "ecosystem", 
+    category: "Partnership", 
+    title: "Fractional CTO & Strategic Advisory", 
+    subtitle: "We don't do one-off projects. We act as your dedicated technical and creative leadership team, guiding digital strategy from inception to enterprise scale.", 
+    iconName: "Users", 
+    colorHex: "#6366f1", 
+    cta: "Request Strategic Audit",
+    features: [
+      "System Architecture Audits & Code Health Reviews",
+      "Tech Stack Selection & Cloud Infrastructure Cost Optimization",
+      "Weekly Engineering Sprints & Delivery Sprint Oversight",
+      "Security Audits, Compliance & Backup Disaster Recovery",
+      "Technical Hiring & Engineering Mentorship"
+    ],
+    deliverables: [
+      "Quarterly Strategic Technical Roadmap",
+      "Weekly CTO Advisory & Sprint Syncs",
+      "Continuous Codebase & Security Audits",
+      "Priority 24/7 Technical SLA Support"
+    ],
+    techStack: ["AWS", "Docker", "Kubernetes", "Next.js", "PostgreSQL", "CI/CD"],
+    idealFor: "Funded Startups, Non-Tech Founders & High-Growth Companies",
+    turnaround: "Monthly Retainer / Ongoing Strategic Partnership"
+  },
   { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure? Submit a technical brief and our lead architects will review your operational requirements.", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
   { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
@@ -1239,7 +1501,9 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                     </div>
                   </div>
                   <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{activeCard.title}</h1>
-                  <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-8 md:mb-12 shrink-0">{activeCard.subtitle}</p>
+                  <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-6 shrink-0">{activeCard.subtitle}</p>
+                  
+                  <ServiceDetailsSection card={activeCard} />
                   
                   {/* Projects / Products Grid */}
                   {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
@@ -1481,6 +1745,8 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
       )}
       
       {(!isSmallSquare && !isDesktopShrunk && (!isMobile || isActive)) && <p className={`text-white/60 mb-6 ${isActive ? 'text-lg md:text-xl max-w-2xl' : 'text-sm'}`}>{card.subtitle}</p>}
+      
+      {isActive && <ServiceDetailsSection card={card} />}
       
       {isActive && (card.projects || (card.isPortfolio && cmsData?.portfolio)) && (
          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -2254,7 +2520,9 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
                  <div className="w-full md:w-1/2 text-center md:text-left">
                     <div className="text-[10px] md:text-xs text-white/50 uppercase tracking-widest mb-4">{activeCard.category}</div>
                     <h2 className="text-2xl md:text-4xl font-black text-white mb-4 uppercase">{activeCard.title}</h2>
-                    <p className="text-sm md:text-base text-white/70 mb-8">{activeCard.subtitle}</p>
+                    <p className="text-sm md:text-base text-white/70 mb-4">{activeCard.subtitle}</p>
+                    
+                    <ServiceDetailsSection card={activeCard} />
                     
                     {activeCard.id === 'contact_form' ? (
                        <UniversalContactForm 
