@@ -116,6 +116,57 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
   )
 }
 
+const POLICIES_LIST = [
+  { title: "Terms & Conditions", href: "/legal/terms", desc: "General terms of service, client agreements & obligations" },
+  { title: "Privacy Policy", href: "/legal/privacy", desc: "Data protection, privacy policies & confidentiality commitments" },
+  { title: "Payment & Billing", href: "/legal/payment", desc: "Payment gateways, milestone schedules & GST invoicing details" },
+  { title: "Cancellation & Refunds", href: "/legal/refunds", desc: "Project cancellation rules, refund eligibility & timeline terms" },
+  { title: "Service Delivery SLA", href: "/legal/delivery", desc: "Milestone delivery guarantees, staging & deployment SLAs" },
+  { title: "Revision & Scope", href: "/legal/revisions", desc: "Included revision rounds, change request procedures & scope" },
+  { title: "Intellectual Property", href: "/legal/ip", desc: "Full source code ownership, copyright & asset transfer rights" },
+  { title: "Maintenance & Support", href: "/legal/maintenance", desc: "Post-launch maintenance, bug fix SLAs & support packages" },
+  { title: "Data Deletion Request", href: "/legal/data-deletion", desc: "Submit requests for account data erasure & export" },
+]
+
+const PoliciesSection = () => {
+  return (
+    <div className="w-full text-left space-y-6 mt-6 pt-6 border-t border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {POLICIES_LIST.map((policy, idx) => (
+          <a
+            key={idx}
+            href={policy.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/50 hover:bg-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-sm text-white group-hover:text-cyan-300 transition-colors flex items-center gap-2">
+                  {policy.title}
+                </span>
+                <ExternalLink className="w-3.5 h-3.5 text-white/40 group-hover:text-cyan-400 transition-colors" />
+              </div>
+              <p className="text-xs text-white/60 leading-relaxed mb-3">{policy.desc}</p>
+            </div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Open Document →
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/60">
+        <div>
+          <span className="font-bold text-white block mb-0.5">Grekam Visuals (GST Registered Agency)</span>
+          <span>Coimbatore, Tamil Nadu, India • admin@grekam.in • +91 98431 99556</span>
+        </div>
+        <span className="text-[10px] font-mono text-white/40">© 2026 Grekam Visuals. All rights reserved.</span>
+      </div>
+    </div>
+  )
+}
+
 const DUMMY_PROJECTS: ProjectData[] = [
   { 
     id: 'p1', 
@@ -1202,6 +1253,7 @@ export const INITIAL_CARDS: CardData[] = [
   { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
   { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true },
+  { id: "policies", category: "Legal & Governance", title: "Policies & Terms", subtitle: "Access official terms of service, privacy policy, payment terms, refund rules, and service delivery guidelines.", iconName: "Shield", colorHex: "#38bdf8", cta: "View All Policies", isPolicies: true },
 ]
 
 // Dynamic Icon Renderer Helper
@@ -1826,6 +1878,11 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                     </div>
                   )}
 
+                  {/* Policies Grid */}
+                  {(activeCard.isPolicies || activeCard.id === 'policies') && (
+                    <PoliciesSection />
+                  )}
+
                   {/* Contact Form */}
                   {activeCard.id === 'contact_form' && (
                      <div className="w-full max-w-2xl text-left mt-auto">
@@ -1837,7 +1894,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                      </div>
                   )}
                   
-                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && (
+                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && !activeCard.isPolicies && activeCard.id !== 'policies' && (
                      <button onClick={() => {
                         if (activeCard.isAcademy) window.location.href = 'https://academy.grekam.in';
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
@@ -3128,6 +3185,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         {cmsData && Object.entries(cmsData).map(([key, sectionContent]: [string, any]) => {
           if (key === 'cards') return null; // 'cards' is passed directly into the layouts above
           if (key === 'custom_html') return null; // ignore the legacy override section if it exists
+          if (key === 'footer' || key.includes('footer') || key === 'agency-footer' || key === 'agency-footer-section') return null; // HIDE the huge raw CMS footer!
           if (sectionContent?.type === 'html' && sectionContent?.html) {
             return (
               <div key={key} dangerouslySetInnerHTML={{ __html: sectionContent.html }} />

@@ -231,6 +231,7 @@ const INITIAL_CARDS = [
   { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
   { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true },
+  { id: "policies", category: "Legal & Governance", title: "Policies & Terms", subtitle: "Access official terms of service, privacy policy, payment terms, refund rules, and service delivery guidelines.", iconName: "Shield", colorHex: "#38bdf8", cta: "View All Policies", isPolicies: true },
 ]
 
 async function main() {
