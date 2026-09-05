@@ -49,16 +49,22 @@ export default async function AgencyPage() {
       const dbCards = page.sections[0].content as any[]
       initialCards = dbCards.map((card: any) => {
         const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id)
+        const isOldIntro = card.id === 'intro' && (card.category === 'Manifesto' || card.title === 'The Digital Ecosystem')
+        const cardOverride = isOldIntro ? {} : card
         return {
           ...defaultCard,
-          ...card,
-          features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
-          deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
-          techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
-          idealFor: card.idealFor || defaultCard?.idealFor,
-          turnaround: card.turnaround || defaultCard?.turnaround,
+          ...cardOverride,
+          features: (!isOldIntro && card.features && card.features.length > 0) ? card.features : defaultCard?.features,
+          deliverables: (!isOldIntro && card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
+          techStack: (!isOldIntro && card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
+          idealFor: (!isOldIntro && card.idealFor) || defaultCard?.idealFor,
+          turnaround: (!isOldIntro && card.turnaround) || defaultCard?.turnaround,
         }
       })
+      if (!initialCards.find(c => c.id === 'legal')) {
+        const legalCard = INITIAL_CARDS.find(c => c.id === 'legal')
+        if (legalCard) initialCards.push(legalCard)
+      }
     }
   } catch (err) {
     console.error("Failed to fetch agency page from database:", err)

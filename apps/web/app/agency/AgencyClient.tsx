@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Trash2, Wrench, ShoppingBag, Megaphone, MessageSquare, LayoutGrid, Briefcase, ShieldCheck, FileText } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
@@ -16,7 +16,7 @@ type ProjectData = {
   techStack?: string[]; 
   description?: string; 
 }
-type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
+type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; isServices?: boolean; isLegal?: boolean; }
 
 const ServiceDetailsSection = ({ card }: { card: CardData }) => {
   if (!card.features && !card.deliverables && !card.techStack) return null
@@ -969,28 +969,33 @@ const PricingCalculator = () => {
 export const INITIAL_CARDS: CardData[] = [
   { 
     id: "intro", 
-    category: "Manifesto", 
-    title: "The Digital Ecosystem", 
-    subtitle: "We don't just build software. We engineer scalable architectures, custom automation engines, and strategic visual identities built to dominate markets.", 
-    iconName: "Layers", 
+    category: "Services", 
+    title: "Complete Digital Services", 
+    subtitle: "Everything your business needs to grow: Graphic Design, Website Design, Custom Web Apps, Automation, Online Stores, CRM/ERP Tools, Digital Marketing, and WhatsApp Bots.", 
+    iconName: "LayoutGrid", 
     colorHex: "#4ade80", 
-    cta: "Enter the Ecosystem",
+    cta: "Explore All Services",
+    isServices: true,
     features: [
-      "Enterprise Multi-Tenant SaaS Architecture",
-      "Sub-800ms Page Load Speeds & Core Web Vitals Optimization",
-      "Cloud-Native Server Infrastructure (AWS, Vercel, Live VPS)",
-      "Security Hardening, SSL, CORS & Privacy Compliance",
-      "Automated Continuous Deployment (CI/CD Pipelines)"
+      "Graphic Designing — Build a premium brand look with logos, banners & visual templates that win customer trust.",
+      "Webdesigning — Modern, responsive layouts designed to turn site visitors into paying clients.",
+      "Web Development — Fast websites and web apps built to load instantly on any mobile or desktop screen.",
+      "Web Automation — Automate repetitive daily work, data collection & lead tracking to save hours every week.",
+      "Ecommerce — Launch your online store with product catalogs, instant UPI/card payments & order management.",
+      "CRM / ERP — Simple custom dashboards to track sales leads, customer records & team work in one place.",
+      "Digital Marketing — Boost Google search ranking (SEO) and run targeted ads to bring in new customers daily.",
+      "WhatsApp Automation — Send instant auto-replies, order alerts & marketing messages directly on WhatsApp."
     ],
     deliverables: [
-      "System Architecture Blueprint",
-      "Full Production Source Code (GitHub)",
-      "Automated CI/CD Deployment Scripts",
-      "Live Domain & SSL Configuration"
+      "Ready-to-Use Website & Source Code Files",
+      "Complete Brand Design Package (Logos, Banners & Fonts)",
+      "Automated Web Tools & WhatsApp Assistant Setup",
+      "Custom Sales & Operations Control Dashboard",
+      "Step-by-Step Video Guide & Ongoing Technical Support"
     ],
-    techStack: ["Next.js 15", "TypeScript", "Node.js", "Docker", "PostgreSQL", "Redis"],
-    idealFor: "Startups, Growing Businesses & Enterprises upgrading legacy systems",
-    turnaround: "2 to 4 Weeks Architecture Sprint"
+    techStack: ["Figma", "Next.js", "TypeScript", "Node.js", "WhatsApp API", "PostgreSQL", "SEO Tools"],
+    idealFor: "Business Owners, Retailers, E-Commerce Stores & Growing Companies wanting to scale revenue",
+    turnaround: "1 to 3 Weeks Delivery Sprint"
   },
   { 
     id: "branding", 
@@ -1161,16 +1166,68 @@ export const INITIAL_CARDS: CardData[] = [
   { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
   { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true },
+  { 
+    id: "legal", 
+    category: "Legal & Guarantees", 
+    title: "Client Policies & Direct Links", 
+    subtitle: "Simple, transparent agreements: Terms of Service, Privacy Policy, Payment & Refund terms, Delivery guarantees, and Full Ownership rights.", 
+    iconName: "Scale", 
+    colorHex: "#38bdf8", 
+    cta: "View All Legal Links", 
+    isLegal: true,
+    features: [
+      "Terms & Conditions — Fair, clear service agreements that protect your business rights.",
+      "Privacy Policy — Your customer data and business info remain 100% private and secure.",
+      "Payment & Billing — Transparent milestone payments with zero hidden fees or unexpected costs.",
+      "Cancellation & Refunds — Clear quality guarantees and fair refund policies.",
+      "Service Delivery — Agreed schedules so your project launches on time.",
+      "Revision & Scope — Flexible revision steps to make sure you love the final result.",
+      "Intellectual Property — You own 100% of your code, designs, and domain files upon delivery.",
+      "Maintenance & Support — Continuous support and technical assistance whenever you need help.",
+      "Data Deletion Instructions — Easy options to manage or erase stored data anytime."
+    ],
+    deliverables: [
+      "Clear Written Service Agreement & Scope Guarantee",
+      "Full Copyright & Code Ownership Handover",
+      "Written Privacy Protection & SLA Guarantee"
+    ],
+    techStack: ["Legal Security", "Privacy Protection", "SLA Guarantees", "Full IP Transfer"],
+    idealFor: "Clients, Business Partners, Investors & Legal Compliance",
+    turnaround: "Instant 24/7 Access"
+  },
 ]
 
-// Dynamic Icon Renderer Helper
-import * as Icons from "lucide-react"
+// Dynamic Icon Renderer Helper (Font Icons)
+const FONT_ICON_MAP: Record<string, string> = {
+  LayoutGrid: "fa-solid fa-table-cells-large",
+  Sparkles: "fa-solid fa-wand-magic-sparkles",
+  Palette: "fa-solid fa-palette",
+  Code2: "fa-solid fa-code",
+  IndianRupee: "fa-solid fa-indian-rupee-sign",
+  Fingerprint: "fa-solid fa-fingerprint",
+  Users: "fa-solid fa-users",
+  Rocket: "fa-solid fa-rocket",
+  Send: "fa-solid fa-paper-plane",
+  Layers: "fa-solid fa-layer-group",
+  Image: "fa-solid fa-images",
+  GraduationCap: "fa-solid fa-graduation-cap",
+  Scale: "fa-solid fa-scale-balanced",
+  Shield: "fa-solid fa-shield-halved",
+  CreditCard: "fa-solid fa-credit-card",
+  RefreshCw: "fa-solid fa-rotate",
+  Truck: "fa-solid fa-truck-fast",
+  Pencil: "fa-solid fa-pen-to-square",
+  Wrench: "fa-solid fa-wrench",
+  Trash2: "fa-solid fa-trash-can",
+  ShoppingBag: "fa-solid fa-bag-shopping",
+  Megaphone: "fa-solid fa-bullhorn",
+  MessageSquare: "fa-brands fa-whatsapp",
+  Zap: "fa-solid fa-bolt",
+}
+
 const renderIcon = (iconName?: string, fallbackIcon?: React.ReactNode, className?: string) => {
-  if (iconName && (Icons as any)[iconName]) {
-    const IconComponent = (Icons as any)[iconName]
-    return <IconComponent className={className || "w-8 h-8 md:w-12 md:h-12"} />
-  }
-  return fallbackIcon || <Layers className={className || "w-8 h-8 md:w-12 md:h-12"} />
+  const fontClass = iconName && FONT_ICON_MAP[iconName] ? FONT_ICON_MAP[iconName] : "fa-solid fa-layer-group"
+  return <i className={`${fontClass} ${className || "text-3xl md:text-5xl"}`} />
 }
 
 // --- CUSTOM CURSOR ---
@@ -1574,6 +1631,144 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                     </div>
                   )}
 
+                  {/* Services Breakdown Grid */}
+                  {(activeCard.isServices || activeCard.id === 'intro') && (
+                    <div className="w-full mt-6 text-left border-t border-white/10 pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 flex items-center gap-2">
+                          <i className="fa-solid fa-wand-magic-sparkles text-emerald-400 text-xs" /> How We Scale Your Business
+                        </h4>
+                        <span className="text-[10px] text-white/50 font-mono">8 Core Solutions</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { 
+                            title: "Graphic Designing", 
+                            scales: "Builds instant trust so customers buy from you instead of competitors.", 
+                            gets: "Logos, brand guide, social media templates & banners.", 
+                            iconClass: "fa-solid fa-palette", 
+                            badge: "Brand Identity" 
+                          },
+                          { 
+                            title: "Webdesigning", 
+                            scales: "Turns casual visitors into paying customers with high-converting layouts.", 
+                            gets: "Modern mobile-friendly page designs & interactive prototypes.", 
+                            iconClass: "fa-solid fa-pen-ruler", 
+                            badge: "UI/UX Layouts" 
+                          },
+                          { 
+                            title: "Web Development", 
+                            scales: "Ultra-fast website loading so visitors never leave due to lag or crashes.", 
+                            gets: "Ready-to-use website, admin access, domain & SSL security.", 
+                            iconClass: "fa-solid fa-code", 
+                            badge: "Fast Websites" 
+                          },
+                          { 
+                            title: "Web Automation", 
+                            scales: "Replaces tedious manual work with 24/7 automated background tools.", 
+                            gets: "Data extraction tools, automatic lead alerts & workflow tools.", 
+                            iconClass: "fa-solid fa-robot", 
+                            badge: "Save Hours" 
+                          },
+                          { 
+                            title: "Ecommerce Stores", 
+                            scales: "Allows customers to browse products, order & pay online 24/7.", 
+                            gets: "Online store, catalog manager, UPI/Card payments & order dashboard.", 
+                            iconClass: "fa-solid fa-cart-shopping", 
+                            badge: "Sell Online 24/7" 
+                          },
+                          { 
+                            title: "CRM / ERP Systems", 
+                            scales: "Organizes sales leads and customer inquiries so no deal is forgotten.", 
+                            gets: "Custom sales dashboard, lead pipeline board & team roles.", 
+                            iconClass: "fa-solid fa-chart-line", 
+                            badge: "Manage Sales" 
+                          },
+                          { 
+                            title: "Digital Marketing", 
+                            scales: "Brings a continuous stream of new buyers through Google & social ads.", 
+                            gets: "Google SEO ranking setup, ad graphics & monthly growth reports.", 
+                            iconClass: "fa-solid fa-bullhorn", 
+                            badge: "Get Buyers" 
+                          },
+                          { 
+                            title: "WhatsApp Automation", 
+                            scales: "Answers customer questions instantly on WhatsApp and boosts repeat orders.", 
+                            gets: "Official WhatsApp bot setup, auto-reply chat & message sender.", 
+                            iconClass: "fa-brands fa-whatsapp", 
+                            badge: "Instant Chat" 
+                          },
+                        ].map((srv, sIdx) => {
+                          return (
+                            <div key={sIdx} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-400/50 hover:bg-emerald-500/10 transition-all flex flex-col justify-between gap-3">
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center w-8 h-8">
+                                    <i className={`${srv.iconClass} text-sm`} />
+                                  </div>
+                                  <span className="px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider font-bold bg-white/10 text-emerald-300">
+                                    {srv.badge}
+                                  </span>
+                                </div>
+                                <div className="text-sm font-bold text-white mb-2">{srv.title}</div>
+                                <div className="space-y-1.5 text-xs">
+                                  <p className="text-white/80 leading-relaxed">
+                                    <strong className="text-emerald-400 font-medium">How it helps grow:</strong> {srv.scales}
+                                  </p>
+                                  <p className="text-white/60 leading-relaxed">
+                                    <strong className="text-cyan-300 font-medium">What you get:</strong> {srv.gets}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Legal Policies Links Grid */}
+                  {(activeCard.isLegal || activeCard.id === 'legal') && (
+                    <div className="w-full mt-6 text-left border-t border-white/10 pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-sky-400 flex items-center gap-2">
+                          <i className="fa-solid fa-scale-balanced text-sky-400 text-xs" /> Client Agreements & Policy Links
+                        </h4>
+                        <span className="text-[10px] text-white/50 font-mono">100% Transparent</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {[
+                          { href: "/legal/terms", title: "Terms & Conditions", desc: "Fair rules on how we work together and launch your project.", iconClass: "fa-solid fa-scale-balanced" },
+                          { href: "/legal/privacy", title: "Privacy Policy", desc: "How we keep your business & customer information 100% safe.", iconClass: "fa-solid fa-shield-halved" },
+                          { href: "/legal/payment", title: "Payment & Invoicing", desc: "Clear milestone payments with zero hidden or surprise fees.", iconClass: "fa-solid fa-credit-card" },
+                          { href: "/legal/refunds", title: "Cancellation & Refunds", desc: "Honest refund rules and quality commitments.", iconClass: "fa-solid fa-rotate-left" },
+                          { href: "/legal/delivery", title: "Service Delivery", desc: "Guaranteed project launch steps & sprint schedules.", iconClass: "fa-solid fa-truck-fast" },
+                          { href: "/legal/revisions", title: "Revision & Scope", desc: "Flexible revision steps so you love the final result.", iconClass: "fa-solid fa-pen-to-square" },
+                          { href: "/legal/ip", title: "Code & Design Ownership", desc: "You own 100% of all code, design assets, and files.", iconClass: "fa-solid fa-fingerprint" },
+                          { href: "/legal/maintenance", title: "Maintenance & Support", desc: "Helpful post-launch support whenever you need assistance.", iconClass: "fa-solid fa-wrench" },
+                          { href: "/legal/data-deletion", title: "Data Deletion Steps", desc: "Simple steps to delete stored data anytime.", iconClass: "fa-solid fa-trash-can" },
+                        ].map((item, idx) => {
+                          return (
+                            <Link
+                              key={idx}
+                              href={item.href}
+                              className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/10 transition-all group flex flex-col justify-between gap-2"
+                            >
+                              <div className="flex items-center justify-between">
+                                <i className={`${item.iconClass} text-base text-sky-400 group-hover:scale-110 transition-transform`} />
+                                <span className="text-[10px] text-sky-400/80 font-mono font-bold group-hover:text-sky-300">Read Policy →</span>
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-white group-hover:text-sky-300 transition-colors">{item.title}</div>
+                                <div className="text-[11px] text-white/60 leading-relaxed mt-1">{item.desc}</div>
+                              </div>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Contact Form */}
                   {activeCard.id === 'contact_form' && (
                      <div className="w-full max-w-2xl text-left mt-auto">
@@ -1590,6 +1785,12 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                         if (activeCard.isAcademy) window.location.href = '/academy';
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
+                        else if (activeCard.isLegal || activeCard.id === 'legal') window.location.href = '/legal';
+                        else if (activeCard.isServices || activeCard.id === 'intro') {
+                          const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
+                          if (contactSection) setActiveCard(contactSection)
+                          else window.location.href = '#contact_form'
+                        }
                      }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
                         {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
@@ -2628,14 +2829,16 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
   const baseCards = INITIAL_CARDS.map((initialCard: CardData) => {
     const cmsMatch = cmsCards.find((c: any) => c.id === initialCard.id) || {}
+    const isOldIntro = initialCard.id === 'intro' && (cmsMatch.category === 'Manifesto' || cmsMatch.title === 'The Digital Ecosystem')
+    const finalMatch = isOldIntro ? {} : cmsMatch
     return {
       ...initialCard,
-      ...cmsMatch,
-      features: (cmsMatch.features && cmsMatch.features.length > 0) ? cmsMatch.features : initialCard.features,
-      deliverables: (cmsMatch.deliverables && cmsMatch.deliverables.length > 0) ? cmsMatch.deliverables : initialCard.deliverables,
-      techStack: (cmsMatch.techStack && cmsMatch.techStack.length > 0) ? cmsMatch.techStack : initialCard.techStack,
-      idealFor: cmsMatch.idealFor || initialCard.idealFor,
-      turnaround: cmsMatch.turnaround || initialCard.turnaround,
+      ...finalMatch,
+      features: (finalMatch.features && finalMatch.features.length > 0) ? finalMatch.features : initialCard.features,
+      deliverables: (finalMatch.deliverables && finalMatch.deliverables.length > 0) ? finalMatch.deliverables : initialCard.deliverables,
+      techStack: (finalMatch.techStack && finalMatch.techStack.length > 0) ? finalMatch.techStack : initialCard.techStack,
+      idealFor: finalMatch.idealFor || initialCard.idealFor,
+      turnaround: finalMatch.turnaround || initialCard.turnaround,
     }
   })
 
@@ -2680,6 +2883,10 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   if (!currentCards.find(c => c.id === 'pricing' || c.isPricing)) {
     const defaultPricingCard = INITIAL_CARDS.find(c => c.id === 'pricing');
     if (defaultPricingCard) currentCards.push(defaultPricingCard);
+  }
+  if (!currentCards.find(c => c.id === 'legal' || c.isLegal)) {
+    const defaultLegalCard = INITIAL_CARDS.find(c => c.id === 'legal');
+    if (defaultLegalCard) currentCards.push(defaultLegalCard);
   }
 
   const playSound = () => {
