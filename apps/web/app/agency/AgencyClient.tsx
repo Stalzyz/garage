@@ -28,7 +28,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-white/[0.04] border border-white/10">
           {card.idealFor && (
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-1">
+              <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold block mb-1">
                 Ideal For
               </span>
               <p className="text-xs text-white/90 font-medium leading-relaxed">{card.idealFor}</p>
@@ -36,7 +36,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
           )}
           {card.turnaround && (
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold block mb-1">
+              <span className="text-xs uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
                 Typical Turnaround
               </span>
               <p className="text-xs text-white/90 font-medium leading-relaxed">{card.turnaround}</p>
@@ -48,7 +48,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Scope Checklist / Included Features */}
       {card.features && card.features.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 mb-3 flex items-center gap-2">
+          <h4 className="text-xs uppercase tracking-wider font-semibold text-emerald-400 mb-3 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" /> Core Capabilities & Scope
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -65,7 +65,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Key Deliverables */}
       {card.deliverables && card.deliverables.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-cyan-400 mb-3 flex items-center gap-2">
+          <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-400 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4" /> What You Receive (Deliverables)
           </h4>
           <div className="flex flex-wrap gap-2">
@@ -82,12 +82,12 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Tech Stack */}
       {card.techStack && card.techStack.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-white/40 mb-2">
-            Engineered With
+          <h4 className="text-xs uppercase tracking-wider font-semibold text-white/50 mb-2">
+            Technologies & Frameworks
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.techStack.map((tech, idx) => (
-              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 text-[10px] font-mono font-bold">
+              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium">
                 {tech}
               </span>
             ))}
@@ -97,16 +97,16 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
 
       {/* Begin Project Action Callout */}
       {onBeginProject && !card.isPricing && card.id !== 'contact_form' && (
-        <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border border-emerald-500/20">
+        <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-0.5">
+            <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold block mb-0.5">
               Ready to Kick Off?
             </span>
             <p className="text-xs text-white/80 font-medium">Submit your brief and our team will get in touch within 2 hours.</p>
           </div>
           <button
             onClick={() => onBeginProject(card)}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 shrink-0 flex items-center justify-center gap-2 group"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-2 group"
           >
             {card.cta || `Begin ${card.title} Project`} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
@@ -1639,134 +1639,23 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
 
   return (
     <div className="min-h-screen w-full bg-zinc-950 overflow-y-auto custom-scrollbar relative font-sans text-white pb-36">
-      {/* Dynamic Background Particles & Gradients */}
-      <AgencyCinemaParticles />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#3b0764,transparent_50%),radial-gradient(ellipse_at_bottom,#064e3b,transparent_50%)] opacity-40 blur-3xl pointer-events-none" />
+      {/* Clean Dark Backdrop */}
+      <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
       
       {/* Hero Title Header */}
-      <div className="pt-12 md:pt-20 pb-10 px-6 text-center max-w-5xl mx-auto z-10 relative">
+      <div className="pt-16 md:pt-28 pb-12 px-6 text-center max-w-4xl mx-auto z-10 relative">
         <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-6 leading-tight drop-shadow-xl">
           Simple Services. <br className="hidden sm:block"/>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">Built to Win Markets.</span>
         </h1>
         <p className="text-base md:text-2xl text-white/60 font-light max-w-3xl mx-auto leading-relaxed">
-          High-performance visual design, custom software development, and digital marketing. Select a service to begin your project in 1-click.
+          High-performance visual design, custom software development, and digital marketing. Select a service from the bottom dock to begin your project in 1-click.
         </p>
       </div>
 
-      {/* Main 8-Services Card Grid */}
-      <div className="px-6 md:px-12 max-w-7xl mx-auto z-10 relative mb-16">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-          <h2 className="text-xs uppercase font-mono font-bold tracking-widest text-emerald-400 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Core Capabilities & Services
-          </h2>
-          <span className="text-xs font-mono text-white/40">{serviceCards.length} Specialized Services Available</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {serviceCards.map((card: CardData) => (
-            <motion.div
-              key={card.id}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              onClick={() => { playSound(); setActiveCard(card); }}
-              className="bg-gradient-to-b from-white/10 via-white/5 to-black/80 border border-white/15 hover:border-emerald-400/60 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer transition-all duration-300 shadow-xl hover:shadow-[0_0_35px_rgba(16,185,129,0.2)] relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all" />
-
-              <div>
-                {/* Header Badge & Icon */}
-                <div className="flex items-center justify-between gap-3 mb-5">
-                  <div 
-                    className="w-12 h-12 rounded-2xl bg-black/60 border border-white/15 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform" 
-                    style={{ color: card.colorHex }}
-                  >
-                    {renderIcon(card.iconName, card.icon, "w-6 h-6")}
-                  </div>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/60">
-                    {card.category}
-                  </span>
-                </div>
-
-                {/* Service Title & Subtitle */}
-                <h3 className="text-xl font-bold text-white group-hover:text-emerald-300 transition-colors mb-2">
-                  {card.title}
-                </h3>
-                <p className="text-xs text-white/70 line-clamp-3 leading-relaxed mb-4">
-                  {card.subtitle}
-                </p>
-
-                {/* Turnaround Badge */}
-                {card.turnaround && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold mb-4">
-                    <Zap className="w-3 h-3 shrink-0" /> {card.turnaround}
-                  </div>
-                )}
-
-                {/* Deliverables snippet */}
-                {card.deliverables && card.deliverables.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-6">
-                    {card.deliverables.slice(0, 3).map((item: string, idx: number) => (
-                      <span key={idx} className="text-[9px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-white/60 truncate max-w-[140px]">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 1-Click CTA Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSound();
-                  if (onBeginProject) onBeginProject(card);
-                  else setActiveCard(card);
-                }}
-                className="w-full py-3 px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-400/20 group/btn mt-2"
-              >
-                <span>{card.cta || `Begin ${card.title}`}</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Utility / Special Cards Grid (Pricing, Portfolio, Contact, Academy) */}
-      {utilityCards.length > 0 && (
-        <div className="px-6 md:px-12 max-w-7xl mx-auto z-10 relative mb-16">
-          <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/10">
-            <h2 className="text-xs uppercase font-mono font-bold tracking-widest text-cyan-400 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" /> Portals, Pricing & Direct Contact
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {utilityCards.map((card: CardData) => (
-              <div
-                key={card.id}
-                onClick={() => { playSound(); setActiveCard(card); }}
-                className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/50 cursor-pointer transition-all flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center shrink-0" style={{ color: card.colorHex }}>
-                    {renderIcon(card.iconName, card.icon, "w-5 h-5")}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">{card.title}</h4>
-                    <p className="text-[10px] text-white/50 truncate max-w-[150px]">{card.subtitle}</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Floating Bottom Dock Bar */}
       <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-full bg-black/80 border border-white/15 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
+         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-full bg-black/90 border border-white/15 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
            {cards.map((card: CardData) => (
              <DockItem 
                key={card.id} 
@@ -1783,26 +1672,39 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
       {/* Expanded Card Details Modal */}
       <AnimatePresence>
          {activeCard && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none p-4 md:p-12 mb-24 md:mb-32">
-              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/95 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 z-[10001] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 pt-20 md:pt-24 pb-20 md:pb-24 pointer-events-auto"
+              onClick={() => setActiveCard(null)}
+            >
+              <motion.div 
+                initial={{ scale: 0.95, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-4xl max-h-[85vh] bg-zinc-950 border border-white/15 rounded-3xl flex flex-col overflow-hidden shadow-2xl ring-1 ring-white/10"
+              >
                 <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
-                  <div className="text-[10px] md:text-xs uppercase tracking-widest text-white/50">{activeCard.category}</div>
-                  <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"><X className="w-4 h-4" /></button>
+                  <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">{activeCard.category}</span>
+                  <button 
+                    onClick={() => { playSound(); setActiveCard(null); }} 
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 text-white text-xs font-semibold transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Close</span>
+                  </button>
                 </div>
-                <div className="flex-1 p-6 md:p-12 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
-                  {/* Glowing Icon Frame */}
-                  <div className="relative mb-6 md:mb-8 shrink-0">
-                    <motion.div 
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                      className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500 to-indigo-500 opacity-30 blur-md" 
-                    />
-                    <div className="relative w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-black/80 border border-white/15 flex items-center justify-center shadow-xl" style={{ color: activeCard.colorHex }}>
-                      {renderIcon(activeCard.iconName, activeCard.icon)}
+                <div className="flex-1 p-6 md:p-10 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
+                  {/* Icon Frame */}
+                  <div className="relative mb-6 shrink-0">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-black/80 border border-white/15 flex items-center justify-center shadow-xl" style={{ color: activeCard.colorHex }}>
+                      {renderIcon(activeCard.iconName, activeCard.icon, "w-8 h-8 md:w-10 md:h-10")}
                     </div>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{activeCard.title}</h1>
-                  <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-6 shrink-0">{activeCard.subtitle}</p>
+                  <h1 className="text-2xl md:text-4xl font-bold mb-3 tracking-tight text-white">{activeCard.title}</h1>
+                  <p className="text-sm md:text-base text-white/70 max-w-xl mb-6 shrink-0 leading-relaxed">{activeCard.subtitle}</p>
                   
                   <ServiceDetailsSection card={activeCard} onBeginProject={onBeginProject} />
                   
