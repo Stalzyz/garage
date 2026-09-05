@@ -3125,8 +3125,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
       </header>
 
-      </header>
-
 
       <div className="w-full h-full relative z-0 overflow-y-auto custom-scrollbar">
         {/* Render the Active Theme Layout */}
