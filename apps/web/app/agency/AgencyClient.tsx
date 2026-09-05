@@ -966,7 +966,7 @@ const PricingCalculator = () => {
   )
 }
 
-const INITIAL_CARDS: CardData[] = [
+export const INITIAL_CARDS: CardData[] = [
   { 
     id: "intro", 
     category: "Manifesto", 
@@ -2622,20 +2622,26 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       .catch(console.error)
   }, [])
 
-  const rawCards = (cmsData?.['agency-main-data'] && Array.isArray(cmsData['agency-main-data']) && cmsData['agency-main-data'].length > 0)
+  const cmsCards = (cmsData?.['agency-main-data'] && Array.isArray(cmsData['agency-main-data']))
     ? cmsData['agency-main-data']
-    : INITIAL_CARDS
+    : []
 
-  const baseCards = rawCards.map((card: CardData) => {
-    const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id)
+  const baseCards = INITIAL_CARDS.map((initialCard: CardData) => {
+    const cmsMatch = cmsCards.find((c: any) => c.id === initialCard.id) || {}
     return {
-      ...defaultCard,
-      ...card,
-      features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
-      deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
-      techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
-      idealFor: card.idealFor || defaultCard?.idealFor,
-      turnaround: card.turnaround || defaultCard?.turnaround,
+      ...initialCard,
+      ...cmsMatch,
+      features: (cmsMatch.features && cmsMatch.features.length > 0) ? cmsMatch.features : initialCard.features,
+      deliverables: (cmsMatch.deliverables && cmsMatch.deliverables.length > 0) ? cmsMatch.deliverables : initialCard.deliverables,
+      techStack: (cmsMatch.techStack && cmsMatch.techStack.length > 0) ? cmsMatch.techStack : initialCard.techStack,
+      idealFor: cmsMatch.idealFor || initialCard.idealFor,
+      turnaround: cmsMatch.turnaround || initialCard.turnaround,
+    }
+  })
+
+  cmsCards.forEach((cmsCard: any) => {
+    if (!baseCards.some((c: CardData) => c.id === cmsCard.id)) {
+      baseCards.push(cmsCard)
     }
   })
   let currentCards = [...baseCards];
