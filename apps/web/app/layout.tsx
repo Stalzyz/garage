@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Barlow_Condensed, Inter } from "next/font/google"
+import { Barlow_Condensed, Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { SmoothScroll } from "@/components/SmoothScroll"
 import { OrganizationProvider } from "@/context/OrganizationContext"
@@ -16,6 +16,20 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-inter",
+  display: "swap",
+})
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono-code",
   display: "swap",
 })
 
@@ -79,7 +93,7 @@ export default function RootLayout({
           referrerPolicy="no-referrer" 
         />
       </head>
-      <body className={`min-h-screen bg-background font-sans antialiased ${barlowCondensed.variable} ${inter.variable}`}>
+      <body className={`min-h-screen bg-background font-sans antialiased ${barlowCondensed.variable} ${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}>
         {/* Chunk-load self-healing: inline script runs synchronously before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {

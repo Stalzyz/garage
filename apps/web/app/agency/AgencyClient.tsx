@@ -25,21 +25,21 @@ const ServiceDetailsSection = ({ card, darkText = false }: { card: CardData; dar
     <div className={`w-full mt-6 text-left border-t ${darkText ? 'border-black/30' : 'border-white/10'} pt-6 space-y-6`}>
       {/* Target Fit & Turnaround Banner */}
       {(card.idealFor || card.turnaround) && (
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl ${darkText ? 'bg-white border-2 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/[0.04] border border-white/10'}`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl ${darkText ? 'bg-white border-2 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-[#12141A] border border-white/10 text-zinc-100 shadow-sm'}`}>
           {card.idealFor && (
             <div>
               <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${darkText ? 'text-black' : 'text-emerald-400'}`}>
-                Ideal For
+                [ TARGET FIT ]
               </span>
-              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-white/90'}`}>{card.idealFor}</p>
+              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-zinc-200'}`}>{card.idealFor}</p>
             </div>
           )}
           {card.turnaround && (
             <div>
-              <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${darkText ? 'text-black' : 'text-cyan-400'}`}>
-                Typical Turnaround
+              <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${darkText ? 'text-black' : 'text-zinc-400'}`}>
+                [ TURNAROUND ]
               </span>
-              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-white/90'}`}>{card.turnaround}</p>
+              <p className={`text-xs font-medium leading-relaxed ${darkText ? 'text-black font-bold' : 'text-zinc-200'}`}>{card.turnaround}</p>
             </div>
           )}
         </div>
@@ -49,12 +49,12 @@ const ServiceDetailsSection = ({ card, darkText = false }: { card: CardData; dar
       {card.features && card.features.length > 0 && (
         <div>
           <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-3 flex items-center gap-2 ${darkText ? 'text-black font-black' : 'text-emerald-400'}`}>
-            <CheckCircle2 className="w-4 h-4" /> Core Capabilities & Scope
+            <CheckCircle2 className="w-3.5 h-3.5" /> [ CORE CAPABILITIES & SCOPE ]
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {card.features.map((feat, idx) => (
-              <div key={idx} className={`flex items-start gap-2.5 p-3 rounded-xl text-xs leading-relaxed ${darkText ? 'bg-white border-2 border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/5 border border-white/10 text-white/80'}`}>
-                <Check className={`w-4 h-4 shrink-0 mt-0.5 ${darkText ? 'text-black stroke-[3]' : 'text-emerald-400'}`} />
+              <div key={idx} className={`flex items-start gap-2.5 p-3.5 rounded-xl text-xs leading-relaxed ${darkText ? 'bg-white border-2 border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-[#12141A] border border-white/10 text-zinc-200 shadow-sm'}`}>
+                <Check className={`w-4 h-4 shrink-0 mt-0.5 ${darkText ? 'text-black stroke-[3]' : 'text-emerald-400 stroke-[2.5]'}`} />
                 <span>{feat}</span>
               </div>
             ))}
@@ -65,13 +65,13 @@ const ServiceDetailsSection = ({ card, darkText = false }: { card: CardData; dar
       {/* Key Deliverables */}
       {card.deliverables && card.deliverables.length > 0 && (
         <div>
-          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-3 flex items-center gap-2 ${darkText ? 'text-black font-black' : 'text-cyan-400'}`}>
-            <Sparkles className="w-4 h-4" /> What You Receive (Deliverables)
+          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-3 flex items-center gap-2 ${darkText ? 'text-black font-black' : 'text-zinc-300'}`}>
+            <Layers className="w-3.5 h-3.5 text-emerald-400" /> [ DELIVERABLES & HANDOVER ]
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.deliverables.map((item, idx) => (
-              <span key={idx} className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${darkText ? 'bg-black text-white font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-300'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${darkText ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+              <span key={idx} className={`px-3.5 py-2 rounded-xl text-xs font-medium font-mono flex items-center gap-2 ${darkText ? 'bg-black text-white font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-[#16181D] border border-white/15 text-zinc-100 shadow-sm'}`}>
+                <span className={`w-1.5 h-1.5 rounded-sm ${darkText ? 'bg-amber-400' : 'bg-emerald-400'}`} />
                 {item}
               </span>
             ))}
@@ -82,12 +82,12 @@ const ServiceDetailsSection = ({ card, darkText = false }: { card: CardData; dar
       {/* Tech Stack */}
       {card.techStack && card.techStack.length > 0 && (
         <div>
-          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-2 ${darkText ? 'text-black/70 font-bold' : 'text-white/40'}`}>
-            Engineered With
+          <h4 className={`text-xs uppercase tracking-widest font-mono font-bold mb-2 ${darkText ? 'text-black/70 font-bold' : 'text-zinc-500'}`}>
+            [ TECHNICAL STACK ]
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.techStack.map((tech, idx) => (
-              <span key={idx} className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold ${darkText ? 'bg-white border-2 border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/5 border border-white/10 text-white/70'}`}>
+              <span key={idx} className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold tracking-wider ${darkText ? 'bg-white border-2 border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/[0.04] border border-white/10 text-zinc-400'}`}>
                 {tech}
               </span>
             ))}
@@ -1200,7 +1200,7 @@ export const INITIAL_CARDS: CardData[] = [
 // Dynamic Icon Renderer Helper (Font Icons)
 const FONT_ICON_MAP: Record<string, string> = {
   LayoutGrid: "fa-solid fa-table-cells-large",
-  Sparkles: "fa-solid fa-wand-magic-sparkles",
+  Sparkles: "fa-solid fa-layer-group",
   Palette: "fa-solid fa-palette",
   Code2: "fa-solid fa-code",
   IndianRupee: "fa-solid fa-indian-rupee-sign",
