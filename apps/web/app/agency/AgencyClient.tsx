@@ -1632,10 +1632,6 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
   
-  // Separate service cards from utility cards
-  const serviceCards = cards.filter((c: CardData) => !c.isPricing && !c.isContactForm && !c.isProducts && !c.isPortfolio && !c.isAcademy)
-  const utilityCards = cards.filter((c: CardData) => c.isPricing || c.isContactForm || c.isProducts || c.isPortfolio || c.isAcademy)
-
   const currentIndex = cards.findIndex((c: CardData) => c.id === activeCard?.id)
   const prevCard = currentIndex > 0 ? cards[currentIndex - 1] : cards[cards.length - 1]
   const nextCard = currentIndex >= 0 && currentIndex < cards.length - 1 ? cards[currentIndex + 1] : cards[0]
@@ -1650,24 +1646,88 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-950 overflow-y-auto custom-scrollbar relative font-sans text-white pb-36">
-      {/* Clean Dark Backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
+    <div className="min-h-screen w-full bg-[#11110F] overflow-y-auto custom-scrollbar relative font-sans text-[#F4F1EA] pb-36">
       
-      {/* Hero Title Header */}
-      <div className="pt-16 md:pt-28 pb-12 px-6 text-center max-w-4xl mx-auto z-10 relative">
-        <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-6 leading-tight drop-shadow-xl">
-          Simple Services. <br className="hidden sm:block"/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">Built to Win Markets.</span>
-        </h1>
-        <p className="text-base md:text-2xl text-white/60 font-light max-w-3xl mx-auto leading-relaxed">
-          High-performance visual design, custom software development, and digital marketing. Select a service from the bottom dock to begin your project in 1-click.
-        </p>
+      {/* Asymmetric 12-Column Hero Header */}
+      <div className="pt-20 md:pt-32 pb-16 px-6 max-w-6xl mx-auto z-10 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+          <div className="lg:col-span-7">
+            <span className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold block mb-4">
+              Creative & Technology Studio
+            </span>
+            <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-[0.95] text-[#F4F1EA] uppercase">
+              WE MAKE<br />
+              BUSINESSES<br />
+              <span className="text-emerald-400">LOOK BETTER.</span>
+            </h1>
+          </div>
+          <div className="lg:col-span-5 flex flex-col justify-end pb-2">
+            <p className="text-base md:text-xl text-[#A5A29B] font-normal leading-relaxed mb-8">
+              Strategy, visual design, software engineering and digital growth — built with intention under one roof.
+            </p>
+            <div>
+              <button
+                onClick={() => {
+                  playSound?.()
+                  const contactCard = cards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
+                  if (contactCard) setActiveCard(contactCard)
+                  else if (cards.length > 0) setActiveCard(cards[0])
+                }}
+                className="px-6 py-3.5 bg-[#F4F1EA] hover:bg-white text-[#11110F] font-bold text-sm rounded-md tracking-wide transition-all inline-flex items-center gap-2 shadow-sm"
+              >
+                <span>Start a project</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature GreKam Divider Line */}
+      <div className="w-full max-w-6xl mx-auto px-6 my-8 flex items-center gap-4 text-xs font-mono text-[#A5A29B]">
+        <span className="text-emerald-400 font-bold">01</span>
+        <div className="h-[1px] flex-1 bg-[#302F2B]" />
+        <span className="uppercase tracking-widest text-[10px]">Capabilities & Workflow</span>
+      </div>
+
+      {/* Editorial Numbered Services List */}
+      <div className="max-w-6xl mx-auto px-6 mb-24">
+        <div className="border-t border-[#302F2B]">
+          {cards.map((card: CardData, idx: number) => (
+            <div 
+              key={card.id}
+              onClick={() => { playSound?.(); setActiveCard(card); }}
+              className="group border-b border-[#302F2B] py-8 px-4 md:px-8 hover:bg-[#171715] transition-colors cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+            >
+              <div className="flex items-start md:items-center gap-6 md:gap-10">
+                <span className="text-xs font-mono font-bold text-emerald-400">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <h3 className="text-xl md:text-3xl font-bold text-[#F4F1EA] group-hover:text-emerald-300 transition-colors uppercase tracking-tight">
+                    {card.title}
+                  </h3>
+                  <p className="text-xs md:text-sm text-[#A5A29B] max-w-xl mt-1 leading-relaxed">
+                    {card.subtitle}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0 self-end md:self-auto">
+                <span className="text-xs uppercase font-mono tracking-wider text-[#A5A29B] group-hover:text-[#F4F1EA] transition-colors">
+                  {card.category}
+                </span>
+                <div className="w-9 h-9 rounded-md bg-[#22211E] border border-[#302F2B] flex items-center justify-center text-[#F4F1EA] group-hover:border-emerald-500/50 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Floating Bottom Dock Bar */}
       <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-full bg-black/90 border border-white/15 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
+         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-2xl bg-[#171715]/95 border border-[#302F2B] backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
            {cards.map((card: CardData) => (
              <DockItem 
                key={card.id} 
@@ -1688,24 +1748,24 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
-              className="fixed inset-0 z-[10001] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 pt-20 md:pt-24 pb-20 md:pb-24 pointer-events-auto"
+              className="fixed inset-0 z-[10001] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 md:p-8 pt-20 md:pt-24 pb-20 md:pb-24 pointer-events-auto"
               onClick={() => setActiveCard(null)}
             >
               <motion.div 
-                initial={{ scale: 0.95, y: 10 }}
+                initial={{ scale: 0.96, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 10 }}
+                exit={{ scale: 0.96, y: 10 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl max-h-[85vh] bg-zinc-950 border border-white/15 rounded-3xl flex flex-col overflow-hidden shadow-2xl ring-1 ring-white/10"
+                className="w-full max-w-4xl max-h-[85vh] bg-[#11110F] border border-[#302F2B] rounded-xl flex flex-col overflow-hidden shadow-2xl"
               >
-                <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
+                <div className="h-14 md:h-16 border-b border-[#302F2B] flex items-center justify-between px-6 bg-[#171715] shrink-0">
                   <div className="flex items-center gap-3">
                     <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">{activeCard.category}</span>
-                    <span className="text-xs text-white/40">Step {currentIndex + 1} of {cards.length}</span>
+                    <span className="text-xs text-[#A5A29B]">Step {currentIndex + 1} of {cards.length}</span>
                   </div>
                   <button 
-                    onClick={() => { playSound(); setActiveCard(null); }} 
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 text-white text-xs font-semibold transition-colors"
+                    onClick={() => { playSound?.(); setActiveCard(null); }} 
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#22211E] border border-[#302F2B] hover:bg-rose-500/20 hover:text-rose-300 text-[#F4F1EA] text-xs font-semibold transition-colors"
                   >
                     <X className="w-4 h-4" />
                     <span>Close</span>
@@ -1714,20 +1774,20 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                 <div className="flex-1 p-6 md:p-10 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
                   {/* Icon Frame */}
                   <div className="relative mb-6 shrink-0">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-black/80 border border-white/15 flex items-center justify-center shadow-xl" style={{ color: activeCard.colorHex }}>
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-[#171715] border border-[#302F2B] flex items-center justify-center shadow-md" style={{ color: activeCard.colorHex }}>
                       {renderIcon(activeCard.iconName, activeCard.icon, "w-8 h-8 md:w-10 md:h-10")}
                     </div>
                   </div>
-                  <h1 className="text-2xl md:text-4xl font-bold mb-3 tracking-tight text-white">{activeCard.title}</h1>
-                  <p className="text-sm md:text-base text-white/70 max-w-xl mb-6 shrink-0 leading-relaxed">{activeCard.subtitle}</p>
+                  <h1 className="text-2xl md:text-4xl font-bold mb-3 tracking-tight text-[#F4F1EA] uppercase">{activeCard.title}</h1>
+                  <p className="text-sm md:text-base text-[#A5A29B] max-w-xl mb-6 shrink-0 leading-relaxed">{activeCard.subtitle}</p>
                   
                   <ServiceDetailsSection card={activeCard} onBeginProject={onBeginProject} />
                   
                   {/* Projects / Products Grid */}
                   {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
                      <div className="w-full mt-auto">
-                        <div className="text-left text-xs uppercase tracking-widest text-cyan-400/70 font-mono mb-4 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                        <div className="text-left text-xs uppercase tracking-widest text-emerald-400 font-mono mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400" />
                           {activeCard.isProducts ? 'Proprietary Software' : 'Featured Client Platforms'}
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
@@ -1736,21 +1796,20 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                                 key={proj.id || pIdx} 
                                 data-cursor="VIEW" 
                                 onClick={() => onPreviewProject?.(proj)}
-                                className="w-64 md:w-80 shrink-0 snap-start bg-gradient-to-b from-white/10 to-white/5 border border-white/15 hover:border-cyan-400/60 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 shadow-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:-translate-y-1"
+                                className="w-64 md:w-80 shrink-0 snap-start bg-[#171715] border border-[#302F2B] hover:border-emerald-500/60 rounded-xl overflow-hidden group cursor-pointer transition-all duration-300 shadow-lg hover:-translate-y-1"
                               >
-                                 <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden relative flex items-center justify-center">
+                                 <div className="h-40 md:h-48 w-full bg-[#11110F] overflow-hidden relative flex items-center justify-center">
                                     <ShowcaseImage src={proj.image} alt={proj.title} title={proj.title} />
-                                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-lg text-[9px] font-mono font-bold text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 shadow-lg group-hover:bg-cyan-500 group-hover:text-black transition-colors">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping group-hover:hidden" />
+                                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 bg-black/80 rounded-md text-[9px] font-mono font-bold text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 shadow-lg group-hover:bg-emerald-500 group-hover:text-black transition-colors">
                                       <Eye className="w-3 h-3" /> Live Preview
                                     </div>
                                  </div>
-                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between bg-zinc-950/60">
+                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between bg-[#141412]">
                                    <div className="truncate mr-2">
-                                     <div className="truncate text-white group-hover:text-cyan-300 transition-colors">{proj.title}</div>
-                                     {proj.category && <div className="text-[10px] text-white/40 font-mono truncate">{proj.category}</div>}
+                                     <div className="truncate text-[#F4F1EA] group-hover:text-emerald-300 transition-colors">{proj.title}</div>
+                                     {proj.category && <div className="text-[10px] text-[#A5A29B] font-mono truncate">{proj.category}</div>}
                                    </div>
-                                   <span className="text-xs text-cyan-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
+                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                                  </div>
                               </div>
                            ))}
@@ -1766,11 +1825,11 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                         { title: 'Growth Engine', price: '₹85,000', period: 'monthly', popular: true, features: ['Fullstack Web + API Suite', 'Automated CRM & Lead Sync', 'Custom Microservices', 'Dedicated Tech Partner'] },
                         { title: 'Enterprise Bespoke', price: 'Custom', period: 'engagement', features: ['Architectural SLA & Audits', 'Private Cloud / On-Prem Deploy', 'AI Model Fine-Tuning', '24/7 Priority Support'] }
                       ].map((tier, tIdx) => (
-                        <div key={tIdx} className={`p-5 rounded-2xl border flex flex-col justify-between ${tier.popular ? 'bg-gradient-to-b from-purple-900/30 to-indigo-950/40 border-purple-500/40 shadow-lg' : 'bg-white/5 border-white/10'}`}>
+                        <div key={tIdx} className={`p-5 rounded-xl border flex flex-col justify-between ${tier.popular ? 'bg-[#191916] border-emerald-500/50 shadow-lg' : 'bg-[#171715] border-[#302F2B]'}`}>
                           <div>
                             <div className="text-xs uppercase tracking-widest text-emerald-400 font-mono mb-1">{tier.title}</div>
-                            <div className="text-2xl font-black mb-3">{tier.price} <span className="text-xs text-white/40 font-normal">/ {tier.period}</span></div>
-                            <ul className="space-y-2 mb-4 text-xs text-white/70">
+                            <div className="text-2xl font-black text-[#F4F1EA] mb-3">{tier.price} <span className="text-xs text-[#A5A29B] font-normal">/ {tier.period}</span></div>
+                            <ul className="space-y-2 mb-4 text-xs text-[#A5A29B]">
                               {tier.features.map((f, fi) => (
                                 <li key={fi} className="flex items-center gap-2">
                                   <span className="text-emerald-400">✓</span> {f}
@@ -1783,7 +1842,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                               const contactSection = cards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
                               if (contactSection) setActiveCard(contactSection)
                             }}
-                            className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                            className={`w-full py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-[#F4F1EA] text-[#11110F] hover:bg-white' : 'bg-[#22211E] text-[#F4F1EA] border border-[#302F2B] hover:bg-[#302F2B]'}`}
                           >
                             Get Started
                           </button>
@@ -1802,8 +1861,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                      <div className="w-full max-w-2xl text-left mt-auto">
                         <UniversalContactForm 
                           ctaText={activeCard.cta} 
-                          inputClass="p-4 w-full bg-black/50 border border-white/10 rounded-xl outline-none focus:border-white/30 transition-colors text-white placeholder:text-white/30" 
-                          btnClass="p-4 w-full bg-white text-black hover:bg-white/90 rounded-xl font-bold tracking-widest uppercase mt-4 flex items-center justify-center gap-2 group" 
+                          inputClass="p-4 w-full bg-[#171715] border border-[#302F2B] rounded-md outline-none focus:border-emerald-400/50 transition-colors text-[#F4F1EA] placeholder:text-[#A5A29B]" 
+                          btnClass="p-4 w-full bg-[#F4F1EA] text-[#11110F] hover:bg-white rounded-md font-bold tracking-widest uppercase mt-4 flex items-center justify-center gap-2 group" 
                         />
                       </div>
                   )}
@@ -1814,29 +1873,29 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
                         else if (onBeginProject) onBeginProject(activeCard);
-                     }} className="mt-8 px-8 py-4 bg-emerald-400 text-black font-extrabold rounded-2xl hover:bg-emerald-300 shadow-lg shadow-emerald-500/20 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
+                     }} className="mt-8 px-8 py-3.5 bg-[#F4F1EA] text-[#11110F] font-bold rounded-md hover:bg-white transition-all uppercase tracking-widest text-xs flex items-center gap-2">
                         {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
                   )}
 
                   {/* Connected Timeline Navigation Bar */}
-                  <div className="w-full mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+                  <div className="w-full mt-10 pt-6 border-t border-[#302F2B] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
                     <button 
                       onClick={handlePrevCard}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-md bg-[#22211E] border border-[#302F2B] hover:bg-[#302F2B] text-[#F4F1EA] text-xs font-semibold flex items-center justify-center gap-2 transition-all"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Prev: {prevCard?.title}</span>
                     </button>
                     
-                    <div className="flex items-center gap-1.5 text-xs text-white/50 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="flex items-center gap-1.5 text-xs text-[#A5A29B] font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
                       <span>Step {currentIndex + 1} of {cards.length}</span>
                     </div>
 
                     <button 
                       onClick={handleNextCard}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-400/20"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-md bg-[#F4F1EA] hover:bg-white text-[#11110F] font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
                     >
                       <span>Next: {nextCard?.title}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -3017,93 +3076,54 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
 
   return (
-    <div className={`w-full h-screen relative flex flex-col font-sans select-none overflow-hidden ${isBrutal ? 'bg-[#FFFDF9] text-black' : isLightMode ? 'bg-zinc-50 text-zinc-900' : 'bg-[#060608] text-white'}`}>
+    <div className={`w-full h-screen relative flex flex-col font-sans select-none overflow-hidden ${isBrutal ? 'bg-[#FFFDF9] text-black' : isLightMode ? 'bg-zinc-50 text-zinc-900' : 'bg-[#11110F] text-[#F4F1EA]'}`}>
       
       {/* Top Header Bar */}
-      <header className={`w-full py-4 px-6 md:px-12 flex items-center justify-between z-50 shrink-0 border-b ${isBrutal ? 'border-b-4 border-black bg-[#FFC900]' : isLightMode ? 'border-black/10 bg-white/70 backdrop-blur-md' : 'border-white/10 bg-black/40 backdrop-blur-md'}`}>
+      <header className={`w-full py-4 px-6 md:px-12 flex items-center justify-between z-50 shrink-0 border-b ${isBrutal ? 'border-b-4 border-black bg-[#FFC900]' : isLightMode ? 'border-black/10 bg-white/70 backdrop-blur-md' : 'border-[#302F2B] bg-[#11110F]/90 backdrop-blur-md'}`}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center font-black text-sm tracking-wider uppercase transition-transform group-hover:scale-105 ${isBrutal ? 'bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500 text-black shadow-lg shadow-emerald-500/20'}`}>
-              G
-            </div>
-            <div className="flex flex-col">
-              <span className={`font-black text-xs md:text-sm tracking-wider uppercase ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}>GREKAM</span>
-              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest leading-none">AGENCY OS</span>
-            </div>
+            <span className="font-black text-lg md:text-xl tracking-tight text-[#F4F1EA]">
+              GREKAM<span className="text-emerald-400">.</span>
+            </span>
           </Link>
         </div>
 
         {/* Center Quick Nav Links */}
         <nav className="hidden lg:flex items-center gap-8">
           {[
-            { label: 'Agency', href: '/agency' },
+            { label: 'Work', href: '#work' },
+            { label: 'Services', href: '#services' },
+            { label: 'About', href: '#about' },
             { label: 'Academy', href: 'https://academy.grekam.in', external: true },
-            { label: 'CRM', href: '/dashboard/crm' },
-            { label: 'HRM', href: '/dashboard/hr' },
-            { label: 'Earn 5-10% Commission', href: '/agency/referral' },
+            { label: 'Policies', href: '#policies' },
           ].map(({ label, href, external }) => (
             <a 
               key={label} 
               href={href} 
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className={`text-[10px] font-black tracking-widest uppercase hover:opacity-100 transition-opacity ${isBrutal ? 'text-black' : 'opacity-60'}`}
+              className="text-xs font-semibold uppercase tracking-wider text-[#A5A29B] hover:text-[#F4F1EA] transition-colors"
             >
               {label}
             </a>
           ))}
         </nav>
 
-        {/* Right Actions: Academy Button + Choose Concept Dropdown */}
+        {/* Right Actions: Crisp 6px Start Project Button */}
         <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
-           <a 
-             href="https://academy.grekam.in" 
-             target="_blank" 
-             rel="noopener noreferrer"
-             className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md border shadow-sm ${isBrutal ? 'bg-white border-black text-black' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+           <button 
+             onClick={() => {
+               const contactSection = currentCards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
+               if (contactSection) setActiveCard(contactSection)
+             }}
+             className="px-4 py-2 bg-[#F4F1EA] hover:bg-white text-[#11110F] rounded-md text-xs font-bold tracking-wide transition-all shadow-sm flex items-center gap-1.5"
            >
-             <GraduationCap className="w-3.5 h-3.5" />
-             <span className="hidden sm:inline">Academy</span>
-           </a>
-
-           <div className="relative">
-             <button 
-               onClick={() => {
-                  setShowMenu(!showMenu)
-                  if(!audioCtx) setAudioCtx(new (window.AudioContext || (window as any).webkitAudioContext)())
-               }} 
-               className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full border text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-md
-                 ${isBrutal ? 'bg-black text-white border-black' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
-             >
-               THEMES <ChevronDown className="w-3 h-3" />
-             </button>
-             
-             {showMenu && (
-               <div className={`absolute top-full right-0 mt-2 md:mt-4 p-2 min-w-[200px] md:min-w-[240px] flex flex-col gap-1 shadow-2xl overflow-y-auto max-h-[60vh] custom-scrollbar
-                 ${isBrutal ? 'bg-white border-[4px] border-black' : 
-                   isLightMode ? 'bg-white/95 backdrop-blur-xl border border-black/10 rounded-2xl' : 'bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl'}`}
-               >
-                 {LAYOUTS.map((layout) => (
-                   <button 
-                     key={layout.id}
-                     onClick={() => { 
-                       setActiveLayout(layout.id); 
-                       if (typeof window !== 'undefined') localStorage.setItem('grekam_agency_theme', layout.id);
-                       setShowMenu(false); 
-                       playSound(); 
-                     }}
-                     className={`text-left px-3 md:px-4 py-2 md:py-3 text-[10px] md:text-sm font-bold transition-all uppercase tracking-wider
-                       ${isBrutal ? 'text-black border-b-[2px] border-black last:border-0 hover:bg-[#FFC900]' : 
-                         isLightMode ? 'text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-xl' : 'text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl'}
-                       ${activeLayout === layout.id ? (isLightMode && !isBrutal ? 'bg-zinc-100 text-black' : !isBrutal ? 'bg-zinc-800 text-white' : 'bg-[#FF90E8]') : ''}`}
-                   >
-                     {layout.name}
-                   </button>
-                 ))}
-               </div>
-             )}
-           </div>
+             <span>Start a project</span>
+             <span>→</span>
+           </button>
         </div>
+
+      </header>
 
       </header>
 
