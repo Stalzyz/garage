@@ -2,38 +2,134 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
 
-// Helper to generate a commission if the client was referred
+// Helper to evaluate multi-role commission plan:
+// 1. Referral Partner (5%)
+// 2. Sales & Closing (7% - 10% based on deal size)
+// 3. Project Manager (2% - 3% based on project size)
+// Net Base Amount = invoice.subtotal (ex-GST)
+// Single Person Cap = Max 15% combined if the same person holds all 3 roles
 async function processCommission(app: FastifyInstance, invoice: any) {
   if (!invoice.clientEmail) return;
 
-  // Find the lead associated with this invoice's client email
+  // Find lead associated with client email
   const lead = await app.prisma.lead.findFirst({
-    where: { email: invoice.clientEmail, referredById: { not: null } },
+    where: { email: invoice.clientEmail },
     orderBy: { createdAt: 'desc' }
   });
 
-  if (lead && lead.referredById) {
-    // Check if commission already exists for this invoice
-    const existing = await app.prisma.commission.findFirst({
-      where: { invoiceId: invoice.id }
-    });
+  if (!lead) return;
 
-    if (!existing) {
-      const setting = await app.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_sales' } });
-      const rate = ((setting?.value as any)?.percentage ?? 10) / 100;
-      const commissionAmt = invoice.totalAmount * rate;
-      await app.prisma.commission.create({
-        data: {
-          employeeId: lead.referredById,
-          leadId: lead.id,
-          invoiceId: invoice.id,
-          amount: commissionAmt,
-          status: 'PENDING',
-          notes: `${rate * 100}% commission from invoice ${invoice.invoiceNumber}`
-        }
+  // Check if commissions have already been processed for this invoice
+  const existingCommissions = await app.prisma.commission.findMany({
+    where: { invoiceId: invoice.id }
+  });
+
+  if (existingCommissions.length > 0) {
+    // If invoice turned to PAID, update status of pending Referral/Sales commissions to APPROVED
+    if (invoice.status === 'PAID') {
+      await app.prisma.commission.updateMany({
+        where: { invoiceId: invoice.id, status: 'PENDING', role: { in: ['REFERRAL', 'SALES'] } },
+        data: { status: 'APPROVED' }
       });
-      app.log.info(`[Commissions] Generated commission of ${commissionAmt} (${rate * 100}%) for employee ${lead.referredById}`);
     }
+    return;
+  }
+
+  // Calculate Net Service Value (ex-GST invoice subtotal)
+  const netBaseAmount = invoice.subtotal || (invoice.totalAmount - (invoice.cgst + invoice.sgst + invoice.igst)) || invoice.totalAmount;
+
+  // Role Assignments
+  const referralPartnerId = lead.referredById;
+  const salesRepId = lead.assignedToId;
+  const projectManagerId = lead.projectManagerId;
+
+  // Calculate Rates
+  let referralRate = referralPartnerId ? 5.0 : 0;
+
+  let salesRate = 0;
+  if (salesRepId) {
+    if (netBaseAmount >= 250000) salesRate = 10.0;
+    else if (netBaseAmount >= 100000) salesRate = 9.0;
+    else if (netBaseAmount >= 50000) salesRate = 8.0;
+    else if (netBaseAmount >= 10000) salesRate = 7.0;
+    else salesRate = 5.0; // fallback micro deal rate
+  }
+
+  let pmRate = 0;
+  if (projectManagerId) {
+    if (netBaseAmount >= 250000) pmRate = 3.0;
+    else if (netBaseAmount >= 50000) pmRate = 2.5;
+    else pmRate = 2.0;
+  }
+
+  // Single-Person Cap Rule (Max 15% if 1 person holds all 3 roles)
+  const isSoloOperator = referralPartnerId && salesRepId && projectManagerId &&
+    (referralPartnerId === salesRepId && salesRepId === projectManagerId);
+
+  if (isSoloOperator) {
+    const rawTotal = referralRate + salesRate + pmRate;
+    if (rawTotal > 15.0) {
+      const scale = 15.0 / rawTotal;
+      referralRate = Math.round(referralRate * scale * 10) / 10;
+      salesRate = Math.round(salesRate * scale * 10) / 10;
+      pmRate = Math.round(pmRate * scale * 10) / 10;
+    }
+  }
+
+  // Create Commission Records
+  const newCommissions: any[] = [];
+
+  if (referralPartnerId && referralRate > 0) {
+    const amount = Math.round(netBaseAmount * (referralRate / 100));
+    newCommissions.push({
+      employeeId: referralPartnerId,
+      leadId: lead.id,
+      invoiceId: invoice.id,
+      role: 'REFERRAL',
+      ratePercentage: referralRate,
+      netBaseAmount,
+      amount,
+      status: invoice.status === 'PAID' ? 'APPROVED' : 'PENDING',
+      notes: `Referral Partner (${referralRate}%) for Invoice #${invoice.invoiceNumber}`
+    });
+  }
+
+  if (salesRepId && salesRate > 0) {
+    const amount = Math.round(netBaseAmount * (salesRate / 100));
+    newCommissions.push({
+      employeeId: salesRepId,
+      leadId: lead.id,
+      invoiceId: invoice.id,
+      role: 'SALES',
+      ratePercentage: salesRate,
+      netBaseAmount,
+      amount,
+      status: invoice.status === 'PAID' ? 'APPROVED' : 'PENDING',
+      notes: `Sales & Closing (${salesRate}%) for Invoice #${invoice.invoiceNumber}`
+    });
+  }
+
+  if (projectManagerId && pmRate > 0) {
+    const amount = Math.round(netBaseAmount * (pmRate / 100));
+    newCommissions.push({
+      employeeId: projectManagerId,
+      leadId: lead.id,
+      invoiceId: invoice.id,
+      role: 'PROJECT_MANAGER',
+      ratePercentage: pmRate,
+      netBaseAmount,
+      amount,
+      status: 'PENDING', // PM commission approved after project completion
+      notes: `Project Management (${pmRate}%) for Invoice #${invoice.invoiceNumber}`
+    });
+  }
+
+  for (const c of newCommissions) {
+    await app.prisma.commission.create({ data: c });
+  }
+
+  if (newCommissions.length > 0) {
+    app.log.info(`[Commissions] Created ${newCommissions.length} commission entries for Invoice #${invoice.invoiceNumber}`);
   }
 }
 import { generateInvoicePDF } from './pdf.service';
@@ -243,6 +339,11 @@ export default async function invoicesRouter(app: FastifyInstance) {
       amount: `${invoice.currency} ${invoice.totalAmount}`,
     });
     await auditLog(app.prisma as any, req, 'CREATE', 'Invoice', invoice.id, { invoiceNumber: invoice.invoiceNumber });
+    try {
+      await processCommission(app, invoice);
+    } catch (err) {
+      app.log.error(err, 'Failed to process commission on invoice creation');
+    }
 
     return invoice;
   });

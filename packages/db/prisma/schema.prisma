@@ -301,6 +301,7 @@ model Lead {
   projectType     String?
   notes           String?
   assignedToId    String?
+  projectManagerId String?
   lostReason      String?
   businessUnit    String     @default("AGENCY")
   courseInterest  String?
@@ -3149,19 +3150,22 @@ model ClientMeeting {
 // ─────────────────────────────────────────
 
 model Commission {
-  id            String   @id @default(cuid())
-  employeeId    String   // The freelancer who referred
-  leadId        String?  // The lead that was converted
-  invoiceId     String?  // The invoice that triggered the commission
-  amount        Float
-  status        String   @default("PENDING") // PENDING, APPROVED, PAID
-  paidAt        DateTime?
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  employeeId      String   // The employee or partner receiving commission
+  leadId          String?  // The lead that was converted
+  invoiceId       String?  // The invoice that triggered the commission
+  role            String   @default("REFERRAL") // REFERRAL, SALES, PROJECT_MANAGER
+  ratePercentage  Float?   // E.g. 5.0, 8.0, 10.0, 2.5
+  netBaseAmount   Float?   // Ex-GST invoice subtotal net base amount
+  amount          Float    // Calculated commission payout amount
+  status          String   @default("PENDING") // PENDING, APPROVED, PAID
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
-  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  lead          Lead?    @relation(fields: [leadId], references: [id])
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  lead            Lead?    @relation(fields: [leadId], references: [id])
   
   @@map("commissions")
 }

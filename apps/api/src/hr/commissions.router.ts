@@ -37,10 +37,14 @@ export default async function commissionsRouter(app: FastifyInstance) {
         }
       });
 
-      // Calculate totals for the specific user (if not admin, or we can just send it always)
+      // Calculate totals and role breakdowns
       const stats = {
         totalEarnings: commissions.reduce((sum, c) => c.status === 'PAID' ? sum + c.amount : sum, 0),
+        approvedEarnings: commissions.reduce((sum, c) => c.status === 'APPROVED' ? sum + c.amount : sum, 0),
         pendingEarnings: commissions.reduce((sum, c) => c.status === 'PENDING' ? sum + c.amount : sum, 0),
+        referralTotal: commissions.filter(c => c.role === 'REFERRAL').reduce((sum, c) => sum + c.amount, 0),
+        salesTotal: commissions.filter(c => c.role === 'SALES').reduce((sum, c) => sum + c.amount, 0),
+        pmTotal: commissions.filter(c => c.role === 'PROJECT_MANAGER').reduce((sum, c) => sum + c.amount, 0),
         referralCode: employee?.employeeCode || 'GREKAM-ADMIN-REF'
       };
 
@@ -48,6 +52,31 @@ export default async function commissionsRouter(app: FastifyInstance) {
     } catch (err: any) {
       app.log.error(err, 'Failed to fetch commissions');
       return reply.internalServerError('Failed to fetch commissions');
+    }
+  });
+
+  // POST /api/v1/hr/commissions/:id/approve
+  app.post('/commissions/:id/approve', async (req: any, reply) => {
+    try {
+      const userRole = req.user?.role?.toUpperCase();
+      const isAdmin = !userRole || ['ADMIN', 'SUPER_ADMIN', 'OWNER', 'MANAGER'].includes(userRole);
+      if (!isAdmin) {
+        return reply.forbidden('Only admins can approve commissions.');
+      }
+
+      const { id } = req.params;
+
+      const commission = await app.prisma.commission.update({
+        where: { id },
+        data: {
+          status: 'APPROVED'
+        }
+      });
+
+      return { success: true, data: commission };
+    } catch (err: any) {
+      app.log.error(err, 'Failed to approve commission');
+      return reply.internalServerError('Failed to update commission status');
     }
   });
 
