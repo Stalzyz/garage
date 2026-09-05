@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, ArrowLeft } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 // --- DATA ---
@@ -18,7 +18,7 @@ type ProjectData = {
 }
 type CardData = { id: string; category: string; title: string; subtitle: string; icon?: React.ReactNode; iconName?: string; colorHex: string; isGlitch?: boolean; cta?: string; projects?: ProjectData[]; features?: string[]; deliverables?: string[]; techStack?: string[]; idealFor?: string; turnaround?: string; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; isPricing?: boolean; }
 
-const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeginProject?: (card: CardData) => void }) => {
+const ServiceDetailsSection = ({ card }: { card: CardData }) => {
   if (!card.features && !card.deliverables && !card.techStack) return null
 
   return (
@@ -28,7 +28,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-white/[0.04] border border-white/10">
           {card.idealFor && (
             <div>
-              <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold block mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-1">
                 Ideal For
               </span>
               <p className="text-xs text-white/90 font-medium leading-relaxed">{card.idealFor}</p>
@@ -36,7 +36,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
           )}
           {card.turnaround && (
             <div>
-              <span className="text-xs uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold block mb-1">
                 Typical Turnaround
               </span>
               <p className="text-xs text-white/90 font-medium leading-relaxed">{card.turnaround}</p>
@@ -48,7 +48,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Scope Checklist / Included Features */}
       {card.features && card.features.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 mb-3 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" /> Core Capabilities & Scope
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -65,7 +65,7 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Key Deliverables */}
       {card.deliverables && card.deliverables.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-400 mb-3 flex items-center gap-2">
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-cyan-400 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4" /> What You Receive (Deliverables)
           </h4>
           <div className="flex flex-wrap gap-2">
@@ -82,87 +82,18 @@ const ServiceDetailsSection = ({ card, onBeginProject }: { card: CardData, onBeg
       {/* Tech Stack */}
       {card.techStack && card.techStack.length > 0 && (
         <div>
-          <h4 className="text-xs uppercase tracking-wider font-semibold text-white/50 mb-2">
-            Technologies & Frameworks
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-white/40 mb-2">
+            Engineered With
           </h4>
           <div className="flex flex-wrap gap-2">
             {card.techStack.map((tech, idx) => (
-              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium">
+              <span key={idx} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/70 text-[10px] font-mono font-bold">
                 {tech}
               </span>
             ))}
           </div>
         </div>
       )}
-
-      {/* Begin Project Action Callout */}
-      {onBeginProject && !card.isPricing && card.id !== 'contact_form' && (
-        <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
-          <div>
-            <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold block mb-0.5">
-              Ready to Kick Off?
-            </span>
-            <p className="text-xs text-white/80 font-medium">Submit your brief and our team will get in touch within 2 hours.</p>
-          </div>
-          <button
-            onClick={() => onBeginProject(card)}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-2 group"
-          >
-            {card.cta || `Begin ${card.title} Project`} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-const POLICIES_LIST = [
-  { title: "Terms & Conditions", href: "/legal/terms", desc: "General terms of service, client agreements & obligations" },
-  { title: "Privacy Policy", href: "/legal/privacy", desc: "Data protection, privacy policies & confidentiality commitments" },
-  { title: "Payment & Billing", href: "/legal/payment", desc: "Payment gateways, milestone schedules & GST invoicing details" },
-  { title: "Cancellation & Refunds", href: "/legal/refunds", desc: "Project cancellation rules, refund eligibility & timeline terms" },
-  { title: "Service Delivery SLA", href: "/legal/delivery", desc: "Milestone delivery guarantees, staging & deployment SLAs" },
-  { title: "Revision & Scope", href: "/legal/revisions", desc: "Included revision rounds, change request procedures & scope" },
-  { title: "Intellectual Property", href: "/legal/ip", desc: "Full source code ownership, copyright & asset transfer rights" },
-  { title: "Maintenance & Support", href: "/legal/maintenance", desc: "Post-launch maintenance, bug fix SLAs & support packages" },
-  { title: "Data Deletion Request", href: "/legal/data-deletion", desc: "Submit requests for account data erasure & export" },
-]
-
-const PoliciesSection = () => {
-  return (
-    <div className="w-full text-left space-y-6 mt-6 pt-6 border-t border-white/10">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {POLICIES_LIST.map((policy, idx) => (
-          <a
-            key={idx}
-            href={policy.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/50 hover:bg-white/10 transition-all flex flex-col justify-between group"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-sm text-white group-hover:text-cyan-300 transition-colors flex items-center gap-2">
-                  {policy.title}
-                </span>
-                <ExternalLink className="w-3.5 h-3.5 text-white/40 group-hover:text-cyan-400 transition-colors" />
-              </div>
-              <p className="text-xs text-white/60 leading-relaxed mb-3">{policy.desc}</p>
-            </div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Open Document →
-            </span>
-          </a>
-        ))}
-      </div>
-
-      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/60">
-        <div>
-          <span className="font-bold text-white block mb-0.5">Grekam Visuals (GST Registered Agency)</span>
-          <span>Coimbatore, Tamil Nadu, India • admin@grekam.in • +91 98431 99556</span>
-        </div>
-        <span className="text-[10px] font-mono text-white/40">© 2026 Grekam Visuals. All rights reserved.</span>
-      </div>
     </div>
   )
 }
@@ -1035,209 +966,83 @@ const PricingCalculator = () => {
   )
 }
 
-export const INITIAL_CARDS: CardData[] = [
+const INITIAL_CARDS: CardData[] = [
   { 
-    id: "graphic_design", 
-    category: "Design Services", 
-    title: "Graphic Designing", 
-    subtitle: "Eye-catching visual designs, logo branding, social media graphics, brochures, and marketing collateral tailored to elevate your brand.", 
+    id: "intro", 
+    category: "Manifesto", 
+    title: "The Digital Ecosystem", 
+    subtitle: "We don't just build software. We engineer scalable architectures, custom automation engines, and strategic visual identities built to dominate markets.", 
+    iconName: "Layers", 
+    colorHex: "#4ade80", 
+    cta: "Enter the Ecosystem",
+    features: [
+      "Enterprise Multi-Tenant SaaS Architecture",
+      "Sub-800ms Page Load Speeds & Core Web Vitals Optimization",
+      "Cloud-Native Server Infrastructure (AWS, Vercel, Live VPS)",
+      "Security Hardening, SSL, CORS & Privacy Compliance",
+      "Automated Continuous Deployment (CI/CD Pipelines)"
+    ],
+    deliverables: [
+      "System Architecture Blueprint",
+      "Full Production Source Code (GitHub)",
+      "Automated CI/CD Deployment Scripts",
+      "Live Domain & SSL Configuration"
+    ],
+    techStack: ["Next.js 15", "TypeScript", "Node.js", "Docker", "PostgreSQL", "Redis"],
+    idealFor: "Startups, Growing Businesses & Enterprises upgrading legacy systems",
+    turnaround: "2 to 4 Weeks Architecture Sprint"
+  },
+  { 
+    id: "branding", 
+    category: "Identity", 
+    title: "Strategic Brand Perception", 
+    subtitle: "Aesthetics mean nothing without strategy. We craft high-converting visual identities that establish immediate market authority and customer trust.", 
     iconName: "Palette", 
     colorHex: "#c084fc", 
-    cta: "Begin Graphic Design Project", 
+    cta: "Redefine Your Brand", 
+    projects: BRANDING_PROJECTS,
     features: [
-      "Custom Logo Design & Vector Brand Identity",
-      "Social Media Creatives & Ad Banners",
-      "Brochures, Flyers, Posters & Print Media",
-      "Business Cards, Letterheads & Brand Stationery",
-      "High-Resolution Print-Ready & Digital Assets"
+      "Brand Strategy & Market Positioning Analysis",
+      "Vector Logo System (Primary, Secondary & Monogram)",
+      "Custom Color Palettes & Typography Pairings",
+      "Figma Design Tokens & UI Component Guidelines",
+      "Social Media Campaign Templates & Ad Assets"
     ],
     deliverables: [
-      "Source Vector Files (AI, SVG, EPS)",
-      "High-Res PNG, JPEG & Print PDF",
-      "Editable Canva & Figma Templates",
-      "Brand Usage & Font Guidelines"
+      "Master Brand Guidelines Manual (PDF)",
+      "Complete Figma Design System Source File",
+      "High-Resolution Vector Assets (SVG, EPS, PNG)",
+      "Social Media Marketing Asset Pack"
     ],
-    techStack: ["Figma", "Adobe Illustrator", "Photoshop", "Canva Pro"],
-    idealFor: "Startups, Re-brands, E-commerce Stores & Local Businesses",
-    turnaround: "2 to 5 Business Days"
+    techStack: ["Figma", "Adobe Illustrator", "Cinema 4D", "Framer Motion", "Vector Systems"],
+    idealFor: "New Venture Launches, Brand Re-designs & D2C Brands",
+    turnaround: "10 to 14 Business Days"
   },
   { 
-    id: "uiux_design", 
-    category: "User Experience", 
-    title: "UI/UX Design", 
-    subtitle: "Intuitive, accessible, and high-converting user interfaces and wireframes for mobile apps and web platforms.", 
-    iconName: "Fingerprint", 
-    colorHex: "#38bdf8", 
-    cta: "Begin UI/UX Project", 
-    features: [
-      "User Research & Wireframing Architecture",
-      "High-Fidelity UI Design & Clickable Prototypes",
-      "Mobile App (iOS & Android) & Web Interfaces",
-      "Design Systems, Component Libraries & Design Tokens",
-      "Developer-Ready Inspection & Handoff Specs"
-    ],
-    deliverables: [
-      "Interactive Figma Prototype",
-      "Complete Design System & Components",
-      "Developer Assets & Typography Tokens",
-      "User Journey Maps & Wireframes"
-    ],
-    techStack: ["Figma", "Adobe XD", "Framer", "FigJam", "Principle"],
-    idealFor: "Mobile Apps, SaaS Startups, Web Portals & Product Teams",
-    turnaround: "1 to 2 Weeks Sprint"
-  },
-  { 
-    id: "web_design", 
-    category: "Visual Web", 
-    title: "Web Designing", 
-    subtitle: "Modern, responsive, and aesthetically stunning website designs engineered to engage visitors and drive conversions.", 
-    iconName: "Layout", 
-    colorHex: "#f472b6", 
-    cta: "Begin Web Design Project", 
-    features: [
-      "Custom Landing Page & Multi-Page Web Layouts",
-      "Fully Responsive Desktop, Tablet & Mobile Breakpoints",
-      "Interactive Micro-Animations & Scroll Dynamics",
-      "SEO & Conversion-Rate Optimized Layouts",
-      "Custom Visual Icons & Graphics Integration"
-    ],
-    deliverables: [
-      "Full Website Design in Figma",
-      "Responsive UI Assets & Graphics",
-      "Style Guide & Color Palette",
-      "Clickable Design Prototype"
-    ],
-    techStack: ["Figma", "Adobe Photoshop", "Framer", "HTML5/CSS3"],
-    idealFor: "Agencies, Corporate Portals, Professional Services & Portfolios",
-    turnaround: "5 to 10 Business Days"
-  },
-  { 
-    id: "web_dev", 
-    category: "Web Engineering", 
-    title: "Web Development", 
-    subtitle: "Fast, secure, and responsive custom websites and web applications built with modern frontend & backend technologies.", 
+    id: "webdev", 
+    category: "Build", 
+    title: "Enterprise Commerce & Web Dev", 
+    subtitle: "Monolithic platforms slow you down. We build headless, lightning-fast eCommerce platforms and web apps capable of handling infinite scale without bottlenecks.", 
     iconName: "Code2", 
     colorHex: "#22d3ee", 
-    cta: "Begin Web Dev Project", 
+    cta: "Scale Infrastructure", 
     projects: DUMMY_PROJECTS,
     features: [
-      "Next.js 15 & React Production Web Apps",
-      "Lightning-Fast Sub-Second Page Load Speeds",
-      "Dynamic Admin CMS & Content Management",
-      "Technical SEO, Schema Tags & Social Cards",
-      "Domain Setup, SSL Security & Cloud Hosting Deployment"
+      "Custom Next.js 15 App Router & Server Components",
+      "Headless E-commerce Engine with Sub-second Transitions",
+      "Payment Gateway Link (Razorpay, Stripe, PayPal)",
+      "Custom Product Catalog, Search & Filter System",
+      "Technical SEO, OpenGraph Meta & Schema Markup"
     ],
     deliverables: [
-      "Full Production Source Code (GitHub)",
-      "Admin Dashboard for Content & Leads",
-      "Live Domain & SSL Deployment",
-      "Speed & SEO Audit Report"
+      "Full Production Source Code (GitHub Repository)",
+      "Admin Control Panel for Products & Content",
+      "Live VPS / Vercel Server Deployment",
+      "Google Analytics & Search Console Setup"
     ],
-    techStack: ["Next.js 15", "TypeScript", "TailwindCSS", "Node.js", "PostgreSQL"],
-    idealFor: "Businesses, High-Traffic Corporate Portals, Tech Companies",
-    turnaround: "1 to 3 Weeks Production"
-  },
-  { 
-    id: "digital_marketing", 
-    category: "Growth & Reach", 
-    title: "Digital Marketing", 
-    subtitle: "Result-driven digital marketing, Meta & Google ad campaigns, SEO growth, and social media management to boost sales.", 
-    iconName: "TrendingUp", 
-    colorHex: "#f59e0b", 
-    cta: "Begin Digital Marketing", 
-    features: [
-      "Meta Ads (Facebook & Instagram) & Google Search/Display Ads",
-      "Search Engine Optimization (SEO) & Technical Audits",
-      "Social Media Content Strategy & Account Management",
-      "Lead Capture & High-Converting Landing Pages",
-      "Real-Time Performance Analytics & Weekly ROI Reports"
-    ],
-    deliverables: [
-      "Configured Ad Accounts & Conversion Pixels",
-      "Ad Copies, Video & Image Creatives",
-      "Target Audience & Keyword Research Strategy",
-      "Weekly Growth & Performance Dashboard"
-    ],
-    techStack: ["Meta Ads Manager", "Google Ads", "GA4", "Semrush", "WhatsApp API"],
-    idealFor: "E-commerce Stores, D2C Brands, Real Estate & Service Firms",
-    turnaround: "Rapid Campaign Launch in 48 Hours"
-  },
-  { 
-    id: "ecommerce", 
-    category: "Online Store", 
-    title: "Ecommerce Web Development", 
-    subtitle: "Complete online store solutions with fast product catalogues, secure payment gateways, cart systems, and order tracking.", 
-    iconName: "ShoppingBag", 
-    colorHex: "#10b981", 
-    cta: "Begin Ecommerce Project", 
-    projects: DUMMY_PROJECTS,
-    features: [
-      "Custom Fast Product Catalogue, Search & Instant Filters",
-      "Seamless Shopping Cart & One-Click Checkout Flow",
-      "Integrated Payment Gateways (Razorpay, Stripe, UPI)",
-      "Admin Order Management, Invoices & Inventory Tracking",
-      "Automated Order Updates & Shipping Notifications"
-    ],
-    deliverables: [
-      "Complete Ecommerce Web Store",
-      "Admin Management Control Panel",
-      "Payment & WhatsApp Notification Integration",
-      "Product Upload & Inventory Setup"
-    ],
-    techStack: ["Next.js", "React", "Razorpay", "Stripe", "Node.js", "PostgreSQL"],
-    idealFor: "Retail Brands, D2C Apparel, Online Stores, Wholesalers",
-    turnaround: "2 to 3 Weeks Build"
-  },
-  { 
-    id: "crm_erp", 
-    category: "Business Systems", 
-    title: "CRM / ERP Development", 
-    subtitle: "Custom CRM and ERP platforms tailored to automate your business sales pipelines, employee operations, inventory, and analytics.", 
-    iconName: "Layers", 
-    colorHex: "#8b5cf6", 
-    cta: "Begin CRM / ERP Project", 
-    isCrm: true,
-    features: [
-      "Drag-and-Drop Lead Management Kanban Pipeline",
-      "Automated WhatsApp & Email Customer Reminders",
-      "Employee HR, Attendance & Automated Payroll Portal",
-      "Inventory Stock & Invoicing Tracking Systems",
-      "Multi-Role Access Control (Admin, Manager, Staff)"
-    ],
-    deliverables: [
-      "Bespoke Web CRM & ERP Dashboard",
-      "Configured User Roles & Permissions",
-      "Website & Lead Source Webhook Integration",
-      "Complete Team Onboarding & Documentation"
-    ],
-    techStack: ["React", "TypeScript", "Node.js", "PostgreSQL", "Prisma", "TailwindCSS"],
-    idealFor: "Growing Businesses, Multi-Branch Operations, Real Estate & Services",
-    turnaround: "3 to 5 Weeks Engagement"
-  },
-  { 
-    id: "custom_app", 
-    category: "Custom Software", 
-    title: "Custom App Development", 
-    subtitle: "Bespoke mobile (iOS & Android) and cloud web applications engineered from scratch to solve your unique business needs.", 
-    iconName: "Rocket", 
-    colorHex: "#ec4899", 
-    cta: "Begin Custom App Project", 
-    features: [
-      "Cross-Platform Mobile Apps (iOS & Android)",
-      "Scalable Backend API Infrastructure & Cloud Databases",
-      "Real-Time Push Notifications, Chat & Live Tracking",
-      "User Authentication, Security Hardening & Encryption",
-      "App Store & Google Play Store Publishing Support"
-    ],
-    deliverables: [
-      "Production iOS & Android App Builds (APK & IPA)",
-      "Full Cloud Backend API Server Source Code",
-      "Admin Management Control Panel",
-      "Store Submission & Deployment Support"
-    ],
-    techStack: ["React Native", "Flutter", "Next.js", "Node.js", "PostgreSQL", "AWS"],
-    idealFor: "Tech Startups, On-Demand Platforms, SaaS Products & Enterprises",
-    turnaround: "3 to 6 Weeks Sprint"
+    techStack: ["Next.js 15", "TypeScript", "TailwindCSS", "Prisma ORM", "Razorpay", "PostgreSQL"],
+    idealFor: "D2C Brands, Retailers & High-Traffic Corporate Portals",
+    turnaround: "14 to 21 Days Production Sprint"
   },
   { 
     id: "pricing", 
@@ -1249,10 +1054,113 @@ export const INITIAL_CARDS: CardData[] = [
     cta: "Calculate Quote", 
     isPricing: true 
   },
+  { 
+    id: "crm", 
+    category: "Systems", 
+    title: "Bespoke CRM Operations", 
+    subtitle: "Stop forcing your team into generic tools. We build custom CRM platforms tailored to the exact operational workflows of your business.", 
+    iconName: "Fingerprint", 
+    colorHex: "#fbbf24", 
+    cta: "Enter CRM Dashboard", 
+    isCrm: true,
+    features: [
+      "Automated Lead Capture & Multi-Source Ingestion",
+      "Interactive Drag-and-Drop Sales Pipeline (Kanban)",
+      "Automated WhatsApp & Email Customer Triggers",
+      "Role-Based Access Control (Admin, Manager, Agent)",
+      "Real-Time Revenue Analytics & Forecasting Charts"
+    ],
+    deliverables: [
+      "Custom CRM Web Portal & Dashboard",
+      "Configured User Roles & Access Permissions",
+      "Webhook Integrations with Website Leads",
+      "Team Onboarding & Video Documentation"
+    ],
+    techStack: ["React", "TypeScript", "Fastify", "PostgreSQL", "Prisma", "TailwindCSS"],
+    idealFor: "Sales Teams, Real Estate Agencies, Service Firms & B2B Operations",
+    turnaround: "3 to 5 Weeks Engagement"
+  },
+  { 
+    id: "hrm", 
+    category: "People", 
+    title: "HRM & Talent Operations", 
+    subtitle: "Scale your workforce seamlessly. Manage payroll, attendance, leave approvals, and recruitment through a centralized human resource portal.", 
+    iconName: "Users", 
+    colorHex: "#10b981", 
+    cta: "Enter HR Dashboard", 
+    isHrm: true,
+    features: [
+      "Centralized Employee Directory & Confidential Records",
+      "Automated Attendance & Leave Request Workflows",
+      "Automated Payroll Engine with Tax Calculations & PDF Payslips",
+      "Applicant Tracking System (ATS) for Hiring Pipelines",
+      "Performance Appraisal & Goal Tracking Modules"
+    ],
+    deliverables: [
+      "Enterprise HR Control Dashboard",
+      "Employee Self-Service Portal",
+      "Automated PDF Payslip Generator",
+      "Workforce Analytics & Exportable Reports"
+    ],
+    techStack: ["Next.js", "Node.js", "PostgreSQL", "Prisma", "PDF Generation", "TailwindCSS"],
+    idealFor: "Growing Companies (10 to 500 Employees) & Multi-Branch Franchises",
+    turnaround: "3 to 4 Weeks Build"
+  },
+  { 
+    id: "grafty", 
+    category: "Proprietary Tech", 
+    title: "The Grafty Advantage (WhatsApp Tech)", 
+    subtitle: "Leverage our proprietary Meta WhatsApp Business API engine. Automate customer support, scale outreach campaigns, and connect where customers live.", 
+    iconName: "Rocket", 
+    colorHex: "#f43f5e", 
+    cta: "Deploy Grafty", 
+    projects: [{ id: 'g1', title: 'Grafty Integration Demo', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80' }],
+    features: [
+      "Official Meta WhatsApp Cloud API Integration",
+      "Visual Chatbot Flow & Automated Lead Screener",
+      "Bulk Broadcast Campaigns with Delivery Tracking",
+      "Automated Order Updates & Invoice Alerts via WhatsApp",
+      "Multi-Agent Shared Customer Support Inbox"
+    ],
+    deliverables: [
+      "Verified WhatsApp Business API Integration",
+      "Dedicated Webhook Receiver Server Instance",
+      "Custom Chatbot Workflows & Template Approvals",
+      "Multi-Agent Support Portal"
+    ],
+    techStack: ["WhatsApp Cloud API", "Node.js", "Fastify", "PostgreSQL", "Redis", "Webhooks"],
+    idealFor: "D2C Stores, E-commerce Brands, Lead-Gen Companies & Support Teams",
+    turnaround: "7 to 10 Days Deployment"
+  },
+  { 
+    id: "ecosystem", 
+    category: "Partnership", 
+    title: "Fractional CTO & Strategic Advisory", 
+    subtitle: "We don't do one-off projects. We act as your dedicated technical and creative leadership team, guiding digital strategy from inception to enterprise scale.", 
+    iconName: "Users", 
+    colorHex: "#6366f1", 
+    cta: "Request Strategic Audit",
+    features: [
+      "System Architecture Audits & Code Health Reviews",
+      "Tech Stack Selection & Cloud Infrastructure Cost Optimization",
+      "Weekly Engineering Sprints & Delivery Sprint Oversight",
+      "Security Audits, Compliance & Backup Disaster Recovery",
+      "Technical Hiring & Engineering Mentorship"
+    ],
+    deliverables: [
+      "Quarterly Strategic Technical Roadmap",
+      "Weekly CTO Advisory & Sprint Syncs",
+      "Continuous Codebase & Security Audits",
+      "Priority 24/7 Technical SLA Support"
+    ],
+    techStack: ["AWS", "Docker", "Kubernetes", "Next.js", "PostgreSQL", "CI/CD"],
+    idealFor: "Funded Startups, Non-Tech Founders & High-Growth Companies",
+    turnaround: "Monthly Retainer / Ongoing Strategic Partnership"
+  },
   { id: "contact_form", category: "Secure Link", title: "Initiate Project", subtitle: "Ready to overhaul your digital infrastructure? Submit a technical brief and our lead architects will review your operational requirements.", iconName: "Send", colorHex: "#a78bfa", cta: "Submit Brief", isContactForm: true },
+  { id: "products", category: "Our Arsenal", title: "Products & Tools", subtitle: "We build powerful platforms that redefine industry standards. Explore our suite of tools.", iconName: "Layers", colorHex: "#f43f5e", cta: "Explore Products", isProducts: true },
   { id: "portfolio", category: "Exhibition", title: "Creative Portfolio", subtitle: "A glimpse into our meticulously crafted digital experiences.", iconName: "Image", colorHex: "#3b82f6", cta: "View Portfolio", isPortfolio: true },
   { id: "academy", category: "Education", title: "Grekam Academy", subtitle: "Master the art of software engineering and design with our elite programs.", iconName: "GraduationCap", colorHex: "#eab308", cta: "Join Academy", isAcademy: true },
-  { id: "policies", category: "Legal & Governance", title: "Policies & Terms", subtitle: "Access official terms of service, privacy policy, payment terms, refund rules, and service delivery guidelines.", iconName: "Shield", colorHex: "#38bdf8", cta: "View All Policies", isPolicies: true },
 ]
 
 // Dynamic Icon Renderer Helper
@@ -1330,36 +1238,24 @@ const CustomCursor = () => {
 // --- UNIVERSAL CONTACT FORM ---
 const UniversalContactForm = ({ 
   ctaText = "Submit", 
-  defaultNotes = "",
-  onSuccess,
   inputClass = "p-3 md:p-4 w-full bg-transparent border-2 border-current rounded-xl outline-none focus:opacity-50 transition-opacity placeholder:text-current placeholder:opacity-50",
   btnClass = "p-4 w-full bg-current text-white font-bold tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 hover:opacity-80 transition-opacity mt-2 group invert mix-blend-difference"
-}: { ctaText?: string, defaultNotes?: string, onSuccess?: () => void, inputClass?: string, btnClass?: string }) => {
+}: { ctaText?: string, inputClass?: string, btnClass?: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [notes, setNotes] = useState(defaultNotes)
-
-  useEffect(() => {
-    if (defaultNotes) setNotes(defaultNotes)
-  }, [defaultNotes])
 
   if (isSubmitted) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center w-full">
-        <CheckCircle2 className="w-12 h-12 text-emerald-400 mb-4 animate-bounce" />
-        <h3 className="text-xl font-bold uppercase mb-2">Request Received!</h3>
-        <p className="opacity-70 text-sm">Our lead architect will contact you within 2 hours to begin your project.</p>
-        {onSuccess && (
-          <button onClick={onSuccess} className="mt-4 px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold uppercase tracking-wider transition-colors">
-            Close
-          </button>
-        )}
+        <CheckCircle2 className="w-12 h-12 text-current mb-4" />
+        <h3 className="text-xl font-bold uppercase mb-2">Request Sent!</h3>
+        <p className="opacity-60 text-sm">Our lead architect will be in touch shortly.</p>
       </div>
     )
   }
 
   return (
-    <form className="flex flex-col gap-4 w-full mt-4" onSubmit={async (e) => {
+    <form className="flex flex-col gap-4 w-full mt-8" onSubmit={async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
       const formData = new FormData(e.currentTarget);
@@ -1367,7 +1263,7 @@ const UniversalContactForm = ({
       const email = formData.get('email') as string;
       const countryCode = formData.get('countryCode') as string;
       const phone = formData.get('phone') as string;
-      const formNotes = formData.get('notes') as string;
+      const notes = formData.get('notes') as string;
       
       try {
         const res = await fetch('/api/v1/crm/public/leads', {
@@ -1378,14 +1274,11 @@ const UniversalContactForm = ({
             name,
             email,
             phone: `${countryCode}${phone}`,
-            notes: formNotes,
+            notes,
             projectType: 'CUSTOM'
           })
         });
-        if (res.ok) {
-          setIsSubmitted(true);
-          if (onSuccess) setTimeout(onSuccess, 3000);
-        }
+        if (res.ok) setIsSubmitted(true);
         else alert('Failed to submit. Please try again.');
       } catch (err) {
         console.error(err);
@@ -1395,8 +1288,8 @@ const UniversalContactForm = ({
       }
     }}>
       <div className="flex flex-col md:flex-row gap-4">
-        <input required name="name" type="text" placeholder="Your Full Name" className={inputClass} />
-        <input required name="email" type="email" placeholder="Your Email Address" className={inputClass} />
+        <input required name="name" type="text" placeholder="Name" className={inputClass} />
+        <input required name="email" type="email" placeholder="Email" className={inputClass} />
       </div>
       <div className="flex gap-4">
         <select name="countryCode" defaultValue="+91" className={`${inputClass} w-24 md:w-32 appearance-none text-center bg-transparent cursor-pointer [&>option]:text-black`}>
@@ -1407,84 +1300,14 @@ const UniversalContactForm = ({
           <option value="+81"> +81</option>
           <option value="+49"> +49</option>
         </select>
-        <input required name="phone" type="tel" placeholder="Mobile / Phone Number" className={inputClass} />
+        <input required name="phone" type="tel" placeholder="Phone Number" className={inputClass} />
       </div>
-      <textarea 
-        required 
-        name="notes" 
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="Technical Brief / Inquiry Details" 
-        className={`${inputClass} h-32 resize-none`} 
-      />
+      <textarea required name="notes" placeholder="Technical Brief / Inquiry Details" className={`${inputClass} h-32 resize-none`} />
       <button disabled={isSubmitting} type="submit" className={`${btnClass} disabled:opacity-50`}>
          {isSubmitting ? "Sending..." : ctaText} <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </button>
     </form>
   )
-}
-
-// --- PROJECT KICKOFF INQUIRY MODAL ---
-const ProjectInquiryModal = ({ card, onClose }: { card: CardData | null, onClose: () => void }) => {
-  if (!card) return null;
-
-  return (
-    <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 md:p-6"
-        onClick={onClose}
-      >
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          onClick={e => e.stopPropagation()}
-          className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#111116] border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl text-white"
-        >
-          <button 
-            onClick={onClose}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors flex items-center justify-center text-white/70"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0" style={{ color: card.colorHex }}>
-              {renderIcon(card.iconName, card.icon, "w-6 h-6")}
-            </div>
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400">
-                Kickoff Project Inquiry
-              </span>
-              <h2 className="text-xl md:text-2xl font-bold">{card.title}</h2>
-            </div>
-          </div>
-
-          <p className="text-xs md:text-sm text-white/70 mb-4 leading-relaxed">
-            {card.subtitle}
-          </p>
-
-          {card.turnaround && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold mb-4">
-              <Zap className="w-3.5 h-3.5" /> Turnaround: {card.turnaround}
-            </div>
-          )}
-
-          <UniversalContactForm 
-            defaultNotes={`I want to begin a project for: ${card.title}.\n\nMy Requirements / Budget / Timeline:`}
-            ctaText={card.cta || `Submit ${card.title} Brief`}
-            inputClass="p-3.5 w-full bg-black/50 border border-white/15 rounded-xl outline-none focus:border-emerald-400 transition-colors text-white text-xs placeholder:text-white/30"
-            btnClass="p-4 w-full bg-emerald-400 text-black hover:bg-emerald-300 rounded-xl font-bold tracking-widest uppercase mt-2 flex items-center justify-center gap-2 group transition-all"
-            onSuccess={onClose}
-          />
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
 }// Helper to format Cloudflare R2 images through backend CORS proxy
 function formatImageUrl(url?: string): string {
   if (!url) return '';
@@ -1619,115 +1442,32 @@ const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
       ref={ref} 
       style={{ width, height: width }} 
       onClick={() => { playSound(); onClick(); }} 
-      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] text-white"
+      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
     >
       {renderIcon(card.iconName, card.icon)}
     </motion.button>
   )
 }
 
-const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBeginProject }: any) => {
+const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
   
-  const currentIndex = cards.findIndex((c: CardData) => c.id === activeCard?.id)
-  const prevCard = currentIndex > 0 ? cards[currentIndex - 1] : cards[cards.length - 1]
-  const nextCard = currentIndex >= 0 && currentIndex < cards.length - 1 ? cards[currentIndex + 1] : cards[0]
-
-  const handlePrevCard = () => {
-    playSound?.()
-    setActiveCard(prevCard)
-  }
-  const handleNextCard = () => {
-    playSound?.()
-    setActiveCard(nextCard)
-  }
-
   return (
-    <div className="min-h-screen w-full bg-[#11110F] overflow-y-auto custom-scrollbar relative font-sans text-[#F4F1EA] pb-36">
+    <div className="h-[100dvh] w-full bg-zinc-950 overflow-hidden relative font-sans text-white">
+      {/* Dynamic Background Particles & Gradients */}
+      <AgencyCinemaParticles />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#3b0764,transparent_50%),radial-gradient(ellipse_at_bottom,#064e3b,transparent_50%)] opacity-40 blur-3xl pointer-events-none" />
       
-      {/* Asymmetric 12-Column Hero Header */}
-      <div className="pt-20 md:pt-32 pb-16 px-6 max-w-6xl mx-auto z-10 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-          <div className="lg:col-span-7">
-            <span className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold block mb-4">
-              Creative & Technology Studio
-            </span>
-            <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-[0.95] text-[#F4F1EA] uppercase">
-              WE MAKE<br />
-              BUSINESSES<br />
-              <span className="text-emerald-400">LOOK BETTER.</span>
-            </h1>
-          </div>
-          <div className="lg:col-span-5 flex flex-col justify-end pb-2">
-            <p className="text-base md:text-xl text-[#A5A29B] font-normal leading-relaxed mb-8">
-              Strategy, visual design, software engineering and digital growth — built with intention under one roof.
-            </p>
-            <div>
-              <button
-                onClick={() => {
-                  playSound?.()
-                  const contactCard = cards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
-                  if (contactCard) setActiveCard(contactCard)
-                  else if (cards.length > 0) setActiveCard(cards[0])
-                }}
-                className="px-6 py-3.5 bg-[#F4F1EA] hover:bg-white text-[#11110F] font-bold text-sm rounded-md tracking-wide transition-all inline-flex items-center gap-2 shadow-sm"
-              >
-                <span>Start a project</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10 w-full px-6 transition-opacity duration-500 ${activeCard ? 'opacity-0' : 'opacity-100'}`}>
+        <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">Do you have the courage to <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 animate-pulse">stand out?</span></h1>
+        <p className="text-xl md:text-3xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed">Or will you settle for another template? We don't build standard websites. We engineer bespoke digital experiences.</p>
       </div>
 
-      {/* Signature GreKam Divider Line */}
-      <div className="w-full max-w-6xl mx-auto px-6 my-8 flex items-center gap-4 text-xs font-mono text-[#A5A29B]">
-        <span className="text-emerald-400 font-bold">01</span>
-        <div className="h-[1px] flex-1 bg-[#302F2B]" />
-        <span className="uppercase tracking-widest text-[10px]">Capabilities & Workflow</span>
-      </div>
-
-      {/* Editorial Numbered Services List */}
-      <div className="max-w-6xl mx-auto px-6 mb-24">
-        <div className="border-t border-[#302F2B]">
-          {cards.map((card: CardData, idx: number) => (
-            <div 
-              key={card.id}
-              onClick={() => { playSound?.(); setActiveCard(card); }}
-              className="group border-b border-[#302F2B] py-8 px-4 md:px-8 hover:bg-[#171715] transition-colors cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-            >
-              <div className="flex items-start md:items-center gap-6 md:gap-10">
-                <span className="text-xs font-mono font-bold text-emerald-400">
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                <div>
-                  <h3 className="text-xl md:text-3xl font-bold text-[#F4F1EA] group-hover:text-emerald-300 transition-colors uppercase tracking-tight">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs md:text-sm text-[#A5A29B] max-w-xl mt-1 leading-relaxed">
-                    {card.subtitle}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0 self-end md:self-auto">
-                <span className="text-xs uppercase font-mono tracking-wider text-[#A5A29B] group-hover:text-[#F4F1EA] transition-colors">
-                  {card.category}
-                </span>
-                <div className="w-9 h-9 rounded-md bg-[#22211E] border border-[#302F2B] flex items-center justify-center text-[#F4F1EA] group-hover:border-emerald-500/50 group-hover:bg-emerald-500 group-hover:text-black transition-all">
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Floating Bottom Dock Bar */}
-      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-4 px-4 md:px-6 rounded-2xl bg-[#171715]/95 border border-[#302F2B] backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
+      <div className="absolute bottom-6 md:bottom-10 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
+         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-20 md:h-24 items-center gap-3 md:gap-6 px-4 md:px-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
            {cards.map((card: CardData) => (
              <DockItem 
                key={card.id} 
@@ -1740,54 +1480,36 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
            ))}
          </motion.div>
       </div>
-
-      {/* Expanded Card Details Modal */}
       <AnimatePresence>
          {activeCard && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              className="fixed inset-0 z-[10001] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 md:p-8 pt-20 md:pt-24 pb-20 md:pb-24 pointer-events-auto"
-              onClick={() => setActiveCard(null)}
-            >
-              <motion.div 
-                initial={{ scale: 0.96, y: 10 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.96, y: 10 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl max-h-[85vh] bg-[#11110F] border border-[#302F2B] rounded-xl flex flex-col overflow-hidden shadow-2xl"
-              >
-                <div className="h-14 md:h-16 border-b border-[#302F2B] flex items-center justify-between px-6 bg-[#171715] shrink-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">{activeCard.category}</span>
-                    <span className="text-xs text-[#A5A29B]">Step {currentIndex + 1} of {cards.length}</span>
-                  </div>
-                  <button 
-                    onClick={() => { playSound?.(); setActiveCard(null); }} 
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#22211E] border border-[#302F2B] hover:bg-rose-500/20 hover:text-rose-300 text-[#F4F1EA] text-xs font-semibold transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Close</span>
-                  </button>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none p-4 md:p-12 mb-24 md:mb-32">
+              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/85 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
+                <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
+                  <div className="text-[10px] md:text-xs uppercase tracking-widest text-white/50">{activeCard.category}</div>
+                  <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"><X className="w-4 h-4" /></button>
                 </div>
-                <div className="flex-1 p-6 md:p-10 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
-                  {/* Icon Frame */}
-                  <div className="relative mb-6 shrink-0">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-[#171715] border border-[#302F2B] flex items-center justify-center shadow-md" style={{ color: activeCard.colorHex }}>
-                      {renderIcon(activeCard.iconName, activeCard.icon, "w-8 h-8 md:w-10 md:h-10")}
+                <div className="flex-1 p-6 md:p-12 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
+                  {/* Glowing Icon Frame */}
+                  <div className="relative mb-6 md:mb-8 shrink-0">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                      className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500 to-indigo-500 opacity-30 blur-md" 
+                    />
+                    <div className="relative w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-black/80 border border-white/15 flex items-center justify-center shadow-xl" style={{ color: activeCard.colorHex }}>
+                      {renderIcon(activeCard.iconName, activeCard.icon)}
                     </div>
                   </div>
-                  <h1 className="text-2xl md:text-4xl font-bold mb-3 tracking-tight text-[#F4F1EA] uppercase">{activeCard.title}</h1>
-                  <p className="text-sm md:text-base text-[#A5A29B] max-w-xl mb-6 shrink-0 leading-relaxed">{activeCard.subtitle}</p>
+                  <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{activeCard.title}</h1>
+                  <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-6 shrink-0">{activeCard.subtitle}</p>
                   
-                  <ServiceDetailsSection card={activeCard} onBeginProject={onBeginProject} />
+                  <ServiceDetailsSection card={activeCard} />
                   
                   {/* Projects / Products Grid */}
                   {((activeCard.projects && activeCard.projects.length > 0) || (activeCard.isPortfolio && cmsData?.portfolio) || (activeCard.isProducts && cmsData?.products)) && (
                      <div className="w-full mt-auto">
-                        <div className="text-left text-xs uppercase tracking-widest text-emerald-400 font-mono mb-4 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <div className="text-left text-xs uppercase tracking-widest text-cyan-400/70 font-mono mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                           {activeCard.isProducts ? 'Proprietary Software' : 'Featured Client Platforms'}
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
@@ -1796,20 +1518,21 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                                 key={proj.id || pIdx} 
                                 data-cursor="VIEW" 
                                 onClick={() => onPreviewProject?.(proj)}
-                                className="w-64 md:w-80 shrink-0 snap-start bg-[#171715] border border-[#302F2B] hover:border-emerald-500/60 rounded-xl overflow-hidden group cursor-pointer transition-all duration-300 shadow-lg hover:-translate-y-1"
+                                className="w-64 md:w-80 shrink-0 snap-start bg-gradient-to-b from-white/10 to-white/5 border border-white/15 hover:border-cyan-400/60 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 shadow-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:-translate-y-1"
                               >
-                                 <div className="h-40 md:h-48 w-full bg-[#11110F] overflow-hidden relative flex items-center justify-center">
+                                 <div className="h-40 md:h-48 w-full bg-zinc-900 overflow-hidden relative flex items-center justify-center">
                                     <ShowcaseImage src={proj.image} alt={proj.title} title={proj.title} />
-                                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 bg-black/80 rounded-md text-[9px] font-mono font-bold text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 shadow-lg group-hover:bg-emerald-500 group-hover:text-black transition-colors">
+                                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-lg text-[9px] font-mono font-bold text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 shadow-lg group-hover:bg-cyan-500 group-hover:text-black transition-colors">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping group-hover:hidden" />
                                       <Eye className="w-3 h-3" /> Live Preview
                                     </div>
                                  </div>
-                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between bg-[#141412]">
+                                 <div className="p-4 text-left font-bold text-sm md:text-base truncate flex items-center justify-between bg-zinc-950/60">
                                    <div className="truncate mr-2">
-                                     <div className="truncate text-[#F4F1EA] group-hover:text-emerald-300 transition-colors">{proj.title}</div>
-                                     {proj.category && <div className="text-[10px] text-[#A5A29B] font-mono truncate">{proj.category}</div>}
+                                     <div className="truncate text-white group-hover:text-cyan-300 transition-colors">{proj.title}</div>
+                                     {proj.category && <div className="text-[10px] text-white/40 font-mono truncate">{proj.category}</div>}
                                    </div>
-                                   <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
+                                   <span className="text-xs text-cyan-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                                  </div>
                               </div>
                            ))}
@@ -1825,11 +1548,11 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                         { title: 'Growth Engine', price: '₹85,000', period: 'monthly', popular: true, features: ['Fullstack Web + API Suite', 'Automated CRM & Lead Sync', 'Custom Microservices', 'Dedicated Tech Partner'] },
                         { title: 'Enterprise Bespoke', price: 'Custom', period: 'engagement', features: ['Architectural SLA & Audits', 'Private Cloud / On-Prem Deploy', 'AI Model Fine-Tuning', '24/7 Priority Support'] }
                       ].map((tier, tIdx) => (
-                        <div key={tIdx} className={`p-5 rounded-xl border flex flex-col justify-between ${tier.popular ? 'bg-[#191916] border-emerald-500/50 shadow-lg' : 'bg-[#171715] border-[#302F2B]'}`}>
+                        <div key={tIdx} className={`p-5 rounded-2xl border flex flex-col justify-between ${tier.popular ? 'bg-gradient-to-b from-purple-900/30 to-indigo-950/40 border-purple-500/40 shadow-lg' : 'bg-white/5 border-white/10'}`}>
                           <div>
                             <div className="text-xs uppercase tracking-widest text-emerald-400 font-mono mb-1">{tier.title}</div>
-                            <div className="text-2xl font-black text-[#F4F1EA] mb-3">{tier.price} <span className="text-xs text-[#A5A29B] font-normal">/ {tier.period}</span></div>
-                            <ul className="space-y-2 mb-4 text-xs text-[#A5A29B]">
+                            <div className="text-2xl font-black mb-3">{tier.price} <span className="text-xs text-white/40 font-normal">/ {tier.period}</span></div>
+                            <ul className="space-y-2 mb-4 text-xs text-white/70">
                               {tier.features.map((f, fi) => (
                                 <li key={fi} className="flex items-center gap-2">
                                   <span className="text-emerald-400">✓</span> {f}
@@ -1839,10 +1562,10 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                           </div>
                           <button 
                             onClick={() => {
-                              const contactSection = cards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
+                              const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
                               if (contactSection) setActiveCard(contactSection)
                             }}
-                            className={`w-full py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-[#F4F1EA] text-[#11110F] hover:bg-white' : 'bg-[#22211E] text-[#F4F1EA] border border-[#302F2B] hover:bg-[#302F2B]'}`}
+                            className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
                           >
                             Get Started
                           </button>
@@ -1851,65 +1574,34 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                     </div>
                   )}
 
-                  {/* Policies Grid */}
-                  {(activeCard.isPolicies || activeCard.id === 'policies') && (
-                    <PoliciesSection />
-                  )}
-
                   {/* Contact Form */}
                   {activeCard.id === 'contact_form' && (
                      <div className="w-full max-w-2xl text-left mt-auto">
                         <UniversalContactForm 
                           ctaText={activeCard.cta} 
-                          inputClass="p-4 w-full bg-[#171715] border border-[#302F2B] rounded-md outline-none focus:border-emerald-400/50 transition-colors text-[#F4F1EA] placeholder:text-[#A5A29B]" 
-                          btnClass="p-4 w-full bg-[#F4F1EA] text-[#11110F] hover:bg-white rounded-md font-bold tracking-widest uppercase mt-4 flex items-center justify-center gap-2 group" 
+                          inputClass="p-4 w-full bg-black/50 border border-white/10 rounded-xl outline-none focus:border-white/30 transition-colors text-white placeholder:text-white/30" 
+                          btnClass="p-4 w-full bg-white text-black hover:bg-white/90 rounded-xl font-bold tracking-widest uppercase mt-4 flex items-center justify-center gap-2 group" 
                         />
-                      </div>
+                     </div>
                   )}
                   
-                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && !activeCard.isPolicies && activeCard.id !== 'policies' && (
+                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && (
                      <button onClick={() => {
-                        if (activeCard.isAcademy) window.location.href = 'https://academy.grekam.in';
+                        if (activeCard.isAcademy) window.location.href = '/academy';
                         else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
-                        else if (onBeginProject) onBeginProject(activeCard);
-                     }} className="mt-8 px-8 py-3.5 bg-[#F4F1EA] text-[#11110F] font-bold rounded-md hover:bg-white transition-all uppercase tracking-widest text-xs flex items-center gap-2">
+                     }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
                         {activeCard.cta} <ArrowRight className="w-4 h-4" />
                      </button>
                   )}
-
-                  {/* Connected Timeline Navigation Bar */}
-                  <div className="w-full mt-10 pt-6 border-t border-[#302F2B] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-                    <button 
-                      onClick={handlePrevCard}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-md bg-[#22211E] border border-[#302F2B] hover:bg-[#302F2B] text-[#F4F1EA] text-xs font-semibold flex items-center justify-center gap-2 transition-all"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      <span>Prev: {prevCard?.title}</span>
-                    </button>
-                    
-                    <div className="flex items-center gap-1.5 text-xs text-[#A5A29B] font-medium">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      <span>Step {currentIndex + 1} of {cards.length}</span>
-                    </div>
-
-                    <button 
-                      onClick={handleNextCard}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-md bg-[#F4F1EA] hover:bg-white text-[#11110F] font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
-                    >
-                      <span>Next: {nextCard?.title}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    )
-  }
+         )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 // Deterministic positions to guarantee identical SSR and client hydration
 function getGoldenPositions(count: number, isMobile: boolean) {
@@ -2893,48 +2585,14 @@ const LAYOUTS: { id: LayoutId, name: string, component: any }[] = [
 ]
 
 export default function AgencyClient({ initialCards }: { initialCards: CardData[] }) {
-  const mergedInitialCards = useMemo(() => {
-    const source = (initialCards && initialCards.length > 0) ? initialCards : INITIAL_CARDS;
-    return source.map((card: CardData) => {
-      const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id);
-      return {
-        ...defaultCard,
-        ...card,
-        features: (card.features && card.features.length > 0) ? card.features : defaultCard?.features,
-        deliverables: (card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
-        techStack: (card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
-        idealFor: card.idealFor || defaultCard?.idealFor,
-        turnaround: card.turnaround || defaultCard?.turnaround,
-      };
-    });
-  }, [initialCards]);
-
-  const [activeCard, setActiveCard] = useState<CardData>(mergedInitialCards[0] || {} as CardData)
-  const [cards, setCards] = useState<CardData[]>(mergedInitialCards)
+  const [activeCard, setActiveCard] = useState<CardData>(initialCards[0] || {} as CardData)
+  const [cards, setCards] = useState<CardData[]>(initialCards)
   const [activeLayout, setActiveLayout] = useState<LayoutId>('os')
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [activeProject, setActiveProject] = useState<ProjectData | null>(null)
-  const [inquiryCard, setInquiryCard] = useState<CardData | null>(null)
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
-
-  const handleBeginProject = (card: CardData) => {
-    if (!card) return;
-    if (card.isAcademy) {
-      window.location.href = 'https://academy.grekam.in';
-      return;
-    }
-    if (card.isCrm) {
-      window.location.href = '/dashboard/crm';
-      return;
-    }
-    if (card.isHrm) {
-      window.location.href = '/dashboard/hr';
-      return;
-    }
-    setInquiryCard(card);
-  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -2993,19 +2651,30 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       techStack: p.tags || ['Next.js', 'TailwindCSS', 'TypeScript']
     }))
     currentCards = currentCards.map(c => {
-      if (c.id === 'branding' || c.id === 'webdev' || c.id === 'web_dev' || c.id === 'ecommerce') {
+      if (c.id === 'branding' || c.id === 'webdev') {
         return { ...c, projects: portfolioProjects.slice(0, 3) }
       }
       return c
     })
   }
 
-  // Auto-inject missing cards from INITIAL_CARDS so all 8 simple services are present
-  INITIAL_CARDS.forEach(ic => {
-    if (!currentCards.find(c => c.id === ic.id)) {
-      currentCards.push(ic);
-    }
-  });
+  // Auto-inject the special cards if they are missing so changes reflect immediately
+  if (!currentCards.find(c => c.id === 'products' || c.isProducts)) {
+    const defaultProductCard = INITIAL_CARDS.find(c => c.id === 'products');
+    if (defaultProductCard) currentCards.push(defaultProductCard);
+  }
+  if (!currentCards.find(c => c.id === 'portfolio' || c.isPortfolio)) {
+    const defaultPortfolioCard = INITIAL_CARDS.find(c => c.id === 'portfolio');
+    if (defaultPortfolioCard) currentCards.push(defaultPortfolioCard);
+  }
+  if (!currentCards.find(c => c.id === 'academy' || c.isAcademy)) {
+    const defaultAcademyCard = INITIAL_CARDS.find(c => c.id === 'academy');
+    if (defaultAcademyCard) currentCards.push(defaultAcademyCard);
+  }
+  if (!currentCards.find(c => c.id === 'pricing' || c.isPricing)) {
+    const defaultPricingCard = INITIAL_CARDS.find(c => c.id === 'pricing');
+    if (defaultPricingCard) currentCards.push(defaultPricingCard);
+  }
 
   const playSound = () => {
     if (!audioCtx) return;
@@ -3065,62 +2734,101 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         const full = u.startsWith('http') ? u : `https://${u}`
         fetch(`/api/preview-proxy?url=${encodeURIComponent(full)}`, { priority: 'low' } as any).catch(() => {})
       })
-    }, 1500)
+    }, 1200)
     return () => clearTimeout(timer)
   }, [currentCards])
 
-  const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component || LayoutCreativeOS
-  const isLightMode = activeLayout === 'paper' || activeLayout === 'swiss' || activeLayout === 'editorial'
+  const ActiveComponent = LAYOUTS.find(l => l.id === activeLayout)?.component
+
+  const isLightMode = ['editorial', 'canvas', 'bento', 'organic', 'minimal', 'paper', 'swiss'].includes(activeLayout)
   const isBrutal = activeLayout === 'brutalism'
 
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false)
 
   return (
-    <div className={`w-full h-screen relative flex flex-col font-sans select-none overflow-hidden ${isBrutal ? 'bg-[#FFFDF9] text-black' : isLightMode ? 'bg-zinc-50 text-zinc-900' : 'bg-[#11110F] text-[#F4F1EA]'}`}>
-      
-      {/* Top Header Bar */}
-      <header className={`w-full py-4 px-6 md:px-12 flex items-center justify-between z-50 shrink-0 border-b ${isBrutal ? 'border-b-4 border-black bg-[#FFC900]' : isLightMode ? 'border-black/10 bg-white/70 backdrop-blur-md' : 'border-[#302F2B] bg-[#11110F]/90 backdrop-blur-md'}`}>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="font-black text-lg md:text-xl tracking-tight text-[#F4F1EA]">
-              GREKAM<span className="text-emerald-400">.</span>
-            </span>
-          </Link>
-        </div>
+    <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
+      {/* Header */}
+      <header className={`absolute top-0 left-0 right-0 z-[999] h-16 px-4 md:px-8 flex items-center justify-between pointer-events-none ${isBrutal ? 'bg-transparent' : ''}`}>
+        
+        {/* Logo / Brand */}
+        <a href="/" className={`pointer-events-auto flex items-center gap-2 text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all
+          ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white/70 hover:text-white'}`}>
+          <Orbit className="w-4 h-4" /> Grekam Visuals
+        </a>
 
-        {/* Center Quick Nav Links */}
-        <nav className="hidden lg:flex items-center gap-8">
+        {/* Nav Links (Center) */}
+        <nav className="pointer-events-auto hidden md:flex items-center gap-6">
           {[
-            { label: 'Work', href: '#work' },
-            { label: 'Services', href: '#services' },
-            { label: 'About', href: '#about' },
+            { label: 'Home', href: '/' },
             { label: 'Academy', href: 'https://academy.grekam.in', external: true },
-            { label: 'Policies', href: '#policies' },
+            { label: 'Contact', href: '/contact' },
+            { label: 'Login', href: '/auth/login' },
           ].map(({ label, href, external }) => (
             <a 
               key={label} 
               href={href} 
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className="text-xs font-semibold uppercase tracking-wider text-[#A5A29B] hover:text-[#F4F1EA] transition-colors"
+              className={`text-[10px] font-bold tracking-widest uppercase transition-all hover:opacity-100 opacity-60 flex items-center gap-1
+              ${isBrutal ? 'text-black' : isLightMode ? 'text-black' : 'text-white'}`}
             >
               {label}
+              {external && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
             </a>
           ))}
         </nav>
 
-        {/* Right Actions: Crisp 6px Start Project Button */}
+        {/* Right Actions: Academy Button + Choose Concept Dropdown */}
         <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
-           <button 
-             onClick={() => {
-               const contactSection = currentCards.find((c: CardData) => c.isContactForm || c.id === 'contact_form')
-               if (contactSection) setActiveCard(contactSection)
-             }}
-             className="px-4 py-2 bg-[#F4F1EA] hover:bg-white text-[#11110F] rounded-md text-xs font-bold tracking-wide transition-all shadow-sm flex items-center gap-1.5"
+           {/* Academy Pill Button */}
+           <a 
+             href="https://academy.grekam.in" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)] group"
            >
-             <span>Start a project</span>
-             <span>→</span>
-           </button>
+             <GraduationCap className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+             <span className="hidden sm:inline">Academy</span>
+             <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+           </a>
+
+           <div className="relative">
+             <button 
+               onClick={() => {
+                  setShowMenu(!showMenu)
+                  if(!audioCtx) setAudioCtx(new (window.AudioContext || (window as any).webkitAudioContext)())
+               }} 
+               className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-full border text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-md
+                 bg-gradient-to-r from-[#218558] to-[#0E4E7E] text-white border-none hover:opacity-90 shadow-[0_0_20px_rgba(33,133,88,0.3)]`}
+             >
+               CHOOSE THEME <ChevronDown className="w-3 h-3" />
+             </button>
+             
+             {showMenu && (
+               <div className={`absolute top-full right-0 mt-2 md:mt-4 p-2 min-w-[200px] md:min-w-[240px] flex flex-col gap-1 shadow-2xl overflow-y-auto max-h-[60vh] custom-scrollbar
+                 ${isBrutal ? 'bg-white border-[4px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : 
+                   isLightMode ? 'bg-white/95 backdrop-blur-xl border border-black/10 rounded-2xl' : 'bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl'}`}
+               >
+                 {LAYOUTS.map((layout) => (
+                   <button 
+                     key={layout.id}
+                     onClick={() => { 
+                       setActiveLayout(layout.id); 
+                       if (typeof window !== 'undefined') localStorage.setItem('grekam_agency_theme', layout.id);
+                       setShowMenu(false); 
+                       playSound(); 
+                     }}
+                     className={`text-left px-3 md:px-4 py-2 md:py-3 text-[10px] md:text-sm font-bold transition-all uppercase tracking-wider
+                       ${isBrutal ? 'text-black border-b-[2px] border-black last:border-0 hover:bg-[#FFC900]' : 
+                         isLightMode ? 'text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-xl' : 'text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl'}
+                       ${activeLayout === layout.id ? (isLightMode && !isBrutal ? 'bg-zinc-100 text-black' : !isBrutal ? 'bg-zinc-800 text-white' : 'bg-[#FF90E8]') : ''}`}
+                   >
+                     {layout.name}
+                   </button>
+                 ))}
+               </div>
+             )}
+           </div>
         </div>
 
       </header>
@@ -3134,7 +2842,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
             playSound={playSound} 
             cmsData={cmsData} 
             onPreviewProject={handlePreviewProject}
-            onBeginProject={handleBeginProject}
           />
         )}
         
@@ -3142,7 +2849,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         {cmsData && Object.entries(cmsData).map(([key, sectionContent]: [string, any]) => {
           if (key === 'cards') return null; // 'cards' is passed directly into the layouts above
           if (key === 'custom_html') return null; // ignore the legacy override section if it exists
-          if (key === 'footer' || key.includes('footer') || key === 'agency-footer' || key === 'agency-footer-section') return null; // HIDE the huge raw CMS footer!
           if (sectionContent?.type === 'html' && sectionContent?.html) {
             return (
               <div key={key} dangerouslySetInnerHTML={{ __html: sectionContent.html }} />
@@ -3156,12 +2862,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       <DevicePreviewModal 
         project={activeProject} 
         onClose={() => setActiveProject(null)} 
-      />
-
-      {/* Instant Project Kickoff Inquiry Modal */}
-      <ProjectInquiryModal
-        card={inquiryCard}
-        onClose={() => setInquiryCard(null)}
       />
 
       {/* Floating Strategy Call Widget */}
@@ -3211,7 +2911,96 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
         )}
       </AnimatePresence>
 
+      {/* ─── AGENCY FOOTER ─── */}
+      <footer className="border-t border-white/[0.06] bg-[#090909] mt-20">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
 
+            {/* Brand column */}
+            <div className="col-span-2 md:col-span-1">
+              <div className="text-xl font-black tracking-tight text-white mb-2">GREKAM<span className="text-emerald-400">.</span></div>
+              <p className="text-white/40 text-sm leading-relaxed mb-6">Premium digital experiences for brands that mean business. Based in Coimbatore, serving clients across India.</p>
+              <div className="space-y-2">
+                <a href="mailto:admin@grekam.in" className="flex items-center gap-2 text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                  <Mail className="w-3.5 h-3.5" /> admin@grekam.in
+                </a>
+                <a href="tel:+919843199556" className="flex items-center gap-2 text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                  <Phone className="w-3.5 h-3.5" /> +91 98431 99556
+                </a>
+                <div className="flex items-start gap-2 text-sm text-white/40">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Coimbatore, Tamil Nadu, India
+                </div>
+              </div>
+            </div>
+
+            {/* Services column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Services</p>
+              <ul className="space-y-2.5">
+                {[
+                  "Web Design & Development",
+                  "E-commerce Solutions",
+                  "Branding & Identity",
+                  "Digital Marketing",
+                  "WhatsApp Automation",
+                  "Video Production",
+                ].map(s => (
+                  <li key={s}><a href="#" className="text-sm text-white/40 hover:text-white transition-colors">{s}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Company</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Portfolio", href: "#portfolio" },
+                  { label: "Pricing", href: "#pricing" },
+                  { label: "Grekam Academy", href: "/academy" },
+                  { label: "Contact Us", href: "/contact" },
+                  { label: "Client Portal", href: "/portal" },
+                ].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-white/40 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Policies column */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-5">Policies</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Terms & Conditions", href: "/legal/terms" },
+                  { label: "Privacy Policy", href: "/legal/privacy" },
+                  { label: "Payment & Billing", href: "/legal/payment" },
+                  { label: "Cancellation & Refunds", href: "/legal/refunds" },
+                  { label: "Service Delivery", href: "/legal/delivery" },
+                  { label: "Revision & Scope", href: "/legal/revisions" },
+                  { label: "Intellectual Property", href: "/legal/ip" },
+                  { label: "Maintenance & Support", href: "/legal/maintenance" },
+                  { label: "Data Deletion", href: "/legal/data-deletion" },
+                ].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-white/40 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-white/25">© {new Date().getFullYear()} Grekam Visuals. All rights reserved. GST Registered. Coimbatore, Tamil Nadu, India.</p>
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+              <Link href="/legal/terms" className="text-xs text-white/25 hover:text-white/60 transition-colors">Terms</Link>
+              <Link href="/legal/privacy" className="text-xs text-white/25 hover:text-white/60 transition-colors">Privacy</Link>
+              <Link href="/legal/payment" className="text-xs text-white/25 hover:text-white/60 transition-colors">Payment Policy</Link>
+              <Link href="/legal/refunds" className="text-xs text-white/25 hover:text-white/60 transition-colors">Refunds</Link>
+            </div>
+          </div>
+
+        </div>
+      </footer>
 
     </div>
   )
