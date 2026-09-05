@@ -2179,6 +2179,10 @@ const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
             {cards.map((card: CardData, i: number) => (
               <div key={card.id} className="bg-[#FFC900] border-[4px] md:border-[6px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-6 md:p-10 flex flex-col transition-all" style={{ backgroundColor: i % 2 === 0 ? '#FFC900' : '#23A094' }}>
                  
+                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+                    <div className="w-20 h-20 md:w-32 md:h-32 bg-white border-[4px] border-black flex items-center justify-center shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] [&>svg]:w-10 [&>svg]:h-10 md:[&>svg]:w-16 md:[&>svg]:h-16">
+                      {renderIcon(card.iconName, card.icon)}
+                    </div>
                     <div className="w-full flex-1 flex flex-col text-center md:text-left">
                       <div className="text-[10px] md:text-sm font-black uppercase mb-4 border-[2px] border-black inline-block px-3 py-1 bg-white w-fit mx-auto md:mx-0">{card.category}</div>
                       <h2 className="text-3xl md:text-5xl font-black uppercase mb-4 leading-tight">{card.title}</h2>
