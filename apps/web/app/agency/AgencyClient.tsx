@@ -1846,9 +1846,11 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject, onBegin
                 </div>
               </motion.div>
             </motion.div>
-         )}
-  )
-}
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
 
 // Deterministic positions to guarantee identical SSR and client hydration
 function getGoldenPositions(count: number, isMobile: boolean) {
