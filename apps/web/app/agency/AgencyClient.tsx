@@ -1490,18 +1490,28 @@ const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
   onClick: () => void
 }) => {
   const ref = useRef<HTMLButtonElement>(null)
-  const distance = useTransform(mouseX, (val: number) => val - (ref.current?.getBoundingClientRect().x ?? 0) - 32)
-  const widthSync = useTransform(distance, [-150, 0, 150], [isMobile ? 48 : 64, isMobile ? 60 : 100, isMobile ? 48 : 64])
+  const distance = useTransform(mouseX, (val: number) => val - (ref.current?.getBoundingClientRect().x ?? 0) - 24)
+  const widthSync = useTransform(distance, [-120, 0, 120], [isMobile ? 38 : 46, isMobile ? 50 : 62, isMobile ? 38 : 46])
   const width = useSpring(widthSync, { mass: 0.1, stiffness: 200, damping: 15 })
 
   return (
     <motion.button 
       ref={ref} 
-      style={{ width, height: width }} 
+      style={{ 
+        width, 
+        height: width,
+        backgroundColor: `${card.colorHex}18`,
+        borderColor: `${card.colorHex}45`,
+        color: card.colorHex,
+        boxShadow: `0 4px 15px ${card.colorHex}25`
+      }} 
       onClick={() => { playSound(); onClick(); }} 
-      className="relative flex items-center justify-center bg-white/10 border border-white/20 hover:bg-white/20 hover:border-cyan-400/50 rounded-[1.2rem] md:rounded-[1.5rem] shrink-0 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+      className="group relative flex items-center justify-center rounded-2xl shrink-0 border transition-all hover:scale-110 shadow-lg"
     >
-      {renderIcon(card.iconName, card.icon)}
+      {renderIcon(card.iconName, card.icon, "text-sm md:text-lg")}
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900 border border-white/20 rounded-lg text-[10px] font-mono font-bold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
+        {card.category || card.title}
+      </div>
     </motion.button>
   )
 }
@@ -1523,8 +1533,8 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
         <p className="text-xl md:text-3xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed">Or will you settle for another template? We don't build standard websites. We engineer bespoke digital experiences.</p>
       </div>
 
-      <div className="absolute bottom-6 md:bottom-10 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-20 md:h-24 items-center gap-3 md:gap-6 px-4 md:px-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl overflow-x-auto max-w-full custom-scrollbar pointer-events-auto">
+      <div className="absolute bottom-4 md:bottom-8 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none">
+         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-3 px-3 md:px-5 rounded-2xl bg-zinc-950/80 border border-white/15 backdrop-blur-2xl shadow-2xl overflow-x-auto max-w-[calc(100vw-32px)] md:max-w-[65vw] custom-scrollbar pointer-events-auto">
            {cards.map((card: CardData) => (
              <DockItem 
                key={card.id} 
@@ -1826,19 +1836,18 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
 function getGoldenPositions(count: number, isMobile: boolean) {
   const positions: { x: number; y: number; rotate: number }[] = []
   
-  // Tighter scale for mobile so they stay on screen
-  const maxRadiusX = isMobile ? 120 : 280
-  const maxRadiusY = isMobile ? 160 : 180
+  const maxRadiusX = isMobile ? 160 : 420
+  const maxRadiusY = isMobile ? 220 : 280
 
   for (let i = 0; i < count; i++) {
-    const pseudoRandomAngle = ((i * 137.508) % 360) * (Math.PI / 180)
-    const pseudoRandomR = 0.35 + ((((i * 73 + 17) % 100) / 100) * 0.55)
-    const pseudoRandomRotate = (((i * 41 + 13) % 60) - 30)
+    const angle = ((i * (360 / count) + 20) % 360) * (Math.PI / 180)
+    const r = 0.7 + (((i * 41) % 40) / 100) * 0.45
+    const rotate = (((i * 29) % 24) - 12)
 
     positions.push({
-      x: Math.cos(pseudoRandomAngle) * pseudoRandomR * maxRadiusX,
-      y: Math.sin(pseudoRandomAngle) * pseudoRandomR * maxRadiusY,
-      rotate: pseudoRandomRotate,
+      x: Math.cos(angle) * r * maxRadiusX,
+      y: Math.sin(angle) * r * maxRadiusY,
+      rotate: rotate,
     })
   }
   return positions
@@ -1846,38 +1855,27 @@ function getGoldenPositions(count: number, isMobile: boolean) {
 
 import { animate } from 'framer-motion'
 
-const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardContent, zIdx, containerRef }: any) => {
-  // We only want the icon when scattered
-  const isDesktopShrunk = false
-  const isSmallSquare = true
-
-  // Start at 0 (center) and animate to scattered positions
+const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, zIdx, containerRef }: any) => {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const dragRotate = useMotionValue(0)
 
   useEffect(() => {
-    // Force reset values to 0 on mount/update to guarantee scatter animation fires
     x.set(0)
     y.set(0)
     dragRotate.set(0)
 
-    // Staggered shuffle animation when component mounts
     const delay = (zIdx - 20) * 0.04
     animate(x, pos.x, { type: "spring", stiffness: 70, damping: 14, delay })
     animate(y, pos.y, { type: "spring", stiffness: 70, damping: 14, delay })
     animate(dragRotate, pos.rotate, { type: "spring", stiffness: 70, damping: 14, delay })
   }, [pos.x, pos.y, pos.rotate])
 
-  // Simple borders and dropshadow without the glow
-  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)`
-  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.1)`
+  const customBoxShadow = `0 10px 30px -10px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08)`
+  const hoverBoxShadow = `0 15px 40px -10px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.2)`
 
-  // Removed backdrop-blur-md to massively improve drag performance
-  const baseClass = `absolute bg-zinc-900 rounded-2xl flex cursor-grab active:cursor-grabbing overflow-hidden`
-  const stateClass = 'p-0 items-center justify-center'
-
-  const size = isMobile ? '64px' : '110px'
+  const width = isMobile ? 180 : 250
+  const height = isMobile ? 110 : 130
 
   return (
     <motion.div
@@ -1889,8 +1887,7 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
         x, y, 
         rotate: dragRotate, 
         zIndex: zIdx, 
-        width: size, 
-        height: size, 
+        width, height, 
         position: 'absolute',
         boxShadow: customBoxShadow
       }}
@@ -1907,10 +1904,32 @@ const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, renderCardConte
         if (isDragging.current) return
         onTap(card.id)
       }}
-      whileHover={{ scale: 1.1, boxShadow: hoverBoxShadow }}
-      className={`${baseClass} ${stateClass}`}
+      whileHover={{ scale: 1.08, zIndex: 100, boxShadow: hoverBoxShadow }}
+      className="absolute p-4 rounded-2xl bg-zinc-950/90 border border-white/15 backdrop-blur-xl flex flex-col justify-between cursor-grab active:cursor-grabbing overflow-hidden shadow-2xl group transition-colors hover:border-white/30"
     >
-      {renderCardContent(card, false, false, isSmallSquare, isDesktopShrunk)}
+      <div className="flex items-center justify-between">
+        <div 
+          className="w-9 h-9 rounded-xl border flex items-center justify-center text-sm shadow-md"
+          style={{ 
+            backgroundColor: `${card.colorHex}20`, 
+            borderColor: `${card.colorHex}40`, 
+            color: card.colorHex 
+          }}
+        >
+          {renderIcon(card.iconName, card.icon, "text-sm")}
+        </div>
+        <span className="text-[9px] uppercase font-mono tracking-widest px-2 py-0.5 rounded bg-white/10 text-white/70">
+          {card.category}
+        </span>
+      </div>
+      <div>
+        <div className="text-xs md:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+          {card.title}
+        </div>
+        <div className="text-[10px] text-white/60 line-clamp-1 mt-0.5">
+          {card.subtitle}
+        </div>
+      </div>
     </motion.div>
   )
 }
