@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo } from "react"
-import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, animate } from "framer-motion"
 import Link from "next/link"
 import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Trash2, Wrench, ShoppingBag, Megaphone, MessageSquare, LayoutGrid, Briefcase, ShieldCheck, FileText } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
@@ -1478,7 +1478,307 @@ function AgencyCinemaParticles() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="absolute inset-0 pointer-events-none z-0 w-full h-full"
+    />
+  )
+}
+
+const CINEMATIC_POSTERS_DATA = [
+  { 
+    id: "webdesigning", 
+    title1: "WEB", 
+    title2: "DESIGNING", 
+    tag: "UI/UX LAYOUTS", 
+    color: "#F97316",
+    gradient: "from-orange-500 via-amber-500 to-red-600",
+    topTagLeft: "IDEAS INTO DIGITAL REALITY",
+    topTagRight: "DESIGN // DEVELOP // LAUNCH",
+    growth: "Turns casual visitors into paying customers with high-converting layouts.",
+    gets: "Modern mobile-friendly page designs & interactive prototypes.",
+    cards: [
+      { text: "BRANDS GROW HERE", sub: "Good design builds trust", icon: "fa-solid fa-gem" },
+      { text: "BUSINESS BEYOND BORDERS", sub: "Websites that work 24/7", icon: "fa-solid fa-globe" }
+    ],
+    portalText: "A BIGGER TOMORROW ONLINE",
+    bottomTag: "MORE THAN WEBSITES"
+  },
+  { 
+    id: "digital_marketing", 
+    title1: "DIGITAL", 
+    title2: "MARKETING", 
+    tag: "GET BUYERS DAILY", 
+    color: "#A3E635",
+    gradient: "from-lime-400 via-emerald-400 to-green-500",
+    topTagLeft: "BRANDS PEOPLE TALK ABOUT",
+    topTagRight: "STRATEGY // CREATIVE // CAMPAIGNS",
+    growth: "Brings a continuous stream of new buyers through Google & social ads.",
+    gets: "Google SEO ranking setup, ad graphics & monthly growth reports.",
+    cards: [
+      { text: "PEOPLE DISCOVER BRANDS HERE", sub: "Targeted Ads & SEO", icon: "fa-brands fa-instagram" },
+      { text: "STORIES BUILD TRUST", sub: "Communities create opportunities", icon: "fa-brands fa-youtube" }
+    ],
+    portalText: "IDEAS REACH PEOPLE",
+    bottomTag: "MORE THAN MARKETING"
+  },
+  { 
+    id: "webdev", 
+    title1: "WEB", 
+    title2: "DEVELOPMENT", 
+    tag: "FAST WEBSITES", 
+    color: "#22D3EE",
+    gradient: "from-cyan-400 via-blue-500 to-indigo-600",
+    topTagLeft: "SUB-800MS CODE",
+    topTagRight: "NEXT.JS // REACT // TYPESCRIPT",
+    growth: "Ultra-fast website loading so visitors never leave due to lag or crashes.",
+    gets: "Ready-to-use website, admin access, domain & SSL security.",
+    cards: [
+      { text: "LIGHTNING FAST LOADING", sub: "99.9% Speed Score", icon: "fa-solid fa-bolt" },
+      { text: "ENTERPRISE SCALE", sub: "PostgreSQL & Vercel VPS", icon: "fa-solid fa-server" }
+    ],
+    portalText: "FUTURE OF SPEED",
+    bottomTag: "MORE THAN CODE"
+  },
+  { 
+    id: "web_automation", 
+    title1: "WEB", 
+    title2: "AUTOMATION", 
+    tag: "SAVE HOURS DAILY", 
+    color: "#A78BFA",
+    gradient: "from-purple-400 via-violet-500 to-indigo-600",
+    topTagLeft: "24/7 AUTOPILOT",
+    topTagRight: "BOTS // SCRAPING // WORKFLOWS",
+    growth: "Replaces tedious manual work with 24/7 automated background tools.",
+    gets: "Data extraction tools, automatic lead alerts & workflow tools.",
+    cards: [
+      { text: "LEAD ALERT BOTS", sub: "Automatic Data Ingestion", icon: "fa-solid fa-robot" },
+      { text: "SAVING 20+ HOURS WEEKLY", sub: "Zero Manual Entry Errors", icon: "fa-solid fa-rotate" }
+    ],
+    portalText: "AUTOMATED EFFICIENCY",
+    bottomTag: "MORE THAN BOT SCRIPTS"
+  },
+  { 
+    id: "ecommerce", 
+    title1: "ECOMMERCE", 
+    title2: "STORES", 
+    tag: "SELL ONLINE 24/7", 
+    color: "#F59E0B",
+    gradient: "from-amber-400 via-orange-400 to-yellow-500",
+    topTagLeft: "GLOBAL STOREFRONT",
+    topTagRight: "CATALOG // PAYMENTS // ORDERS",
+    growth: "Allows customers to browse products, order & pay online 24/7.",
+    gets: "Online store, catalog manager, UPI/Card payments & order dashboard.",
+    cards: [
+      { text: "INSTANT UPI & CARDS", sub: "Razorpay & Stripe Setup", icon: "fa-solid fa-credit-card" },
+      { text: "ORDER MANAGEMENT", sub: "Live Order Status Dashboard", icon: "fa-solid fa-bag-shopping" }
+    ],
+    portalText: "COMMERCE UNBOUND",
+    bottomTag: "MORE THAN STORES"
+  },
+  { 
+    id: "crm_erp", 
+    title1: "CRM // ERP", 
+    title2: "SYSTEMS", 
+    tag: "MANAGE SALES", 
+    color: "#38BDF8",
+    gradient: "from-sky-400 via-blue-500 to-teal-500",
+    topTagLeft: "100% CONTROL",
+    topTagRight: "PIPELINES // DEALS // REVENUE",
+    growth: "Organizes sales leads and customer inquiries so no deal is forgotten.",
+    gets: "Custom sales dashboard, lead pipeline board & team roles.",
+    cards: [
+      { text: "KANBAN SALES BOARD", sub: "Drag & Drop Lead Stages", icon: "fa-solid fa-table-cells-large" },
+      { text: "ROLE PERMISSIONS", sub: "Admin, Manager & Staff Roles", icon: "fa-solid fa-users" }
+    ],
+    portalText: "TOTAL COMMAND",
+    bottomTag: "MORE THAN BOARDS"
+  },
+  { 
+    id: "graphic_designing", 
+    title1: "GRAPHIC", 
+    title2: "DESIGNING", 
+    tag: "BRAND IDENTITY", 
+    color: "#EC4899",
+    gradient: "from-pink-500 via-rose-500 to-purple-600",
+    topTagLeft: "VISUAL AUTHORITY",
+    topTagRight: "LOGOS // TYPOGRAPHY // ASSETS",
+    growth: "Builds instant trust so customers buy from you instead of competitors.",
+    gets: "Logos, brand guide, social media templates & banners.",
+    cards: [
+      { text: "VECTOR LOGO SYSTEM", sub: "Primary & Monogram Marks", icon: "fa-solid fa-palette" },
+      { text: "CAMPAIGN ASSETS", sub: "Ad Templates & Banners", icon: "fa-solid fa-layer-group" }
+    ],
+    portalText: "COMMAND RESPECT",
+    bottomTag: "MORE THAN GRAPHICS"
+  },
+  { 
+    id: "whatsapp_automation", 
+    title1: "WHATSAPP", 
+    title2: "AUTOMATION", 
+    tag: "INSTANT CHAT", 
+    color: "#22C55E",
+    gradient: "from-emerald-400 via-green-500 to-teal-600",
+    topTagLeft: "98% OPEN RATE",
+    topTagRight: "AUTO CHAT // ALERTS // META API",
+    growth: "Answers customer questions instantly on WhatsApp and boosts repeat orders.",
+    gets: "Official WhatsApp bot setup, auto-reply chat & message sender.",
+    cards: [
+      { text: "24/7 AUTO REPLIES", sub: "Zero Waiting Time for Leads", icon: "fa-brands fa-whatsapp" },
+      { text: "BROADCAST CAMPAIGNS", sub: "Direct Customer Outreach", icon: "fa-solid fa-paper-plane" }
+    ],
+    portalText: "CHAT THAT CONVERTS",
+    bottomTag: "MORE THAN MESSAGES"
+  }
+]
+
+const ServicesCinematicShowcase = () => {
+  const [viewMode, setViewMode] = useState<'posters' | 'grid'>('posters')
+
+  return (
+    <div className="w-full mt-6 text-left border-t border-white/10 pt-6">
+      {/* Top Bar: Title & View Switcher */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 flex items-center gap-2">
+            <i className="fa-solid fa-film text-emerald-400 text-xs" /> [ CINEMATIC SERVICE POSTERS ]
+          </h4>
+          <p className="text-xs text-white/50 font-mono mt-0.5">High-impact bespoke digital engineering & brand scale solutions</p>
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center p-1 bg-zinc-900 border border-white/10 rounded-xl shrink-0">
+          <button
+            type="button"
+            onClick={() => setViewMode('posters')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition-all ${
+              viewMode === 'posters' ? 'bg-emerald-500 text-black shadow-lg' : 'text-white/50 hover:text-white'
+            }`}
+          >
+            <i className="fa-solid fa-film" /> Movie Posters
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition-all ${
+              viewMode === 'grid' ? 'bg-emerald-500 text-black shadow-lg' : 'text-white/50 hover:text-white'
+            }`}
+          >
+            <i className="fa-solid fa-table-cells-large" /> Detailed Scope
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'posters' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          {CINEMATIC_POSTERS_DATA.map((poster) => (
+            <motion.div 
+              key={poster.id}
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+              className="relative aspect-[3/4.5] w-full rounded-2xl border border-white/15 overflow-hidden shadow-2xl flex flex-col justify-between p-4 md:p-5 select-none bg-[#070709] group hover:border-white/40 transition-colors"
+            >
+              {/* Background Atmosphere */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0b0c11] to-black opacity-95" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(255,255,255,0.08)_0%,transparent_75%)] pointer-events-none" />
+              
+              {/* Header: Grekam Logo + Category Tag */}
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-1 text-white font-black tracking-widest text-[10px] uppercase font-mono">
+                  <span>Grekam</span>
+                  <span style={{ color: poster.color }}>✦</span>
+                </div>
+                <span className="text-[8px] font-mono tracking-widest px-2 py-0.5 rounded bg-white/10 text-white/70 border border-white/10">
+                  {poster.tag}
+                </span>
+              </div>
+
+              {/* Center Movie Poster Typography */}
+              <div className="relative z-10 my-auto text-center py-2 flex flex-col items-center justify-center">
+                <div className="w-full flex justify-between text-[7px] font-mono uppercase tracking-[0.2em] text-white/30 mb-1">
+                  <span>{poster.topTagLeft}</span>
+                  <span>{poster.topTagRight}</span>
+                </div>
+
+                <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#EAE8E0] leading-none font-sans drop-shadow-md">
+                  {poster.title1}
+                </h3>
+                <h4 className={`text-2xl md:text-3xl font-black uppercase tracking-tight leading-none mt-0.5 bg-gradient-to-r ${poster.gradient} bg-clip-text text-transparent drop-shadow-xl`}>
+                  {poster.title2}
+                </h4>
+
+                {/* Doorway Portal / Skyline Banner */}
+                <div className="my-3 relative w-full h-20 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center bg-black/70 group-hover:border-white/30 transition-colors">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                  <div className="w-8 h-14 rounded-t-md bg-gradient-to-t from-white via-white/80 to-amber-100/40 shadow-[0_0_30px_rgba(255,255,255,0.7)] relative flex flex-col items-center justify-end pb-1">
+                    <div className="w-2 h-4 bg-black/90 rounded-full mb-1" />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center p-1 text-center pointer-events-none">
+                    <span className="text-[8px] font-mono font-bold tracking-widest text-white/90 uppercase bg-black/80 px-2 py-0.5 rounded border border-white/10">
+                      {poster.portalText}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating Cards */}
+                <div className="w-full grid grid-cols-1 gap-1.5 text-left">
+                  {poster.cards.map((c, cIdx) => (
+                    <div key={cIdx} className="p-1.5 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2">
+                      <i className={`${c.icon} text-[10px] shrink-0`} style={{ color: poster.color }} />
+                      <div className="min-w-0">
+                        <div className="text-[8px] font-mono font-bold text-white/90 truncate">{c.text}</div>
+                        <div className="text-[7px] text-white/40 truncate">{c.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom Info: How it scales business */}
+              <div className="relative z-10 pt-2 border-t border-white/10 space-y-1 text-[9px]">
+                <p className="text-white/80 leading-tight">
+                  <strong className="text-emerald-400 font-mono text-[8px] uppercase block mb-0.5">[ HOW IT SCALES ]</strong>
+                  {poster.growth}
+                </p>
+                <p className="text-white/60 leading-tight">
+                  <strong className="text-cyan-300 font-mono text-[8px] uppercase block mb-0.5">[ WHAT YOU GET ]</strong>
+                  {poster.gets}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        /* Detailed Scope Grid view */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {CINEMATIC_POSTERS_DATA.map((srv, sIdx) => (
+            <div key={sIdx} className="p-4 rounded-2xl bg-[#12141A] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-3 group">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-xl border border-white/15 bg-white/5 flex items-center justify-center transition-transform group-hover:scale-110 shadow-md" style={{ color: srv.color }}>
+                    <i className={`${srv.cards[0]?.icon || 'fa-solid fa-cubes'} text-sm`} />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold bg-white/10 text-white/70">
+                    {srv.tag}
+                  </span>
+                </div>
+                <div className="text-sm font-bold text-white mb-2">{srv.title1} {srv.title2}</div>
+                <div className="space-y-1.5 text-xs">
+                  <p className="text-white/80 leading-relaxed">
+                    <strong className="text-emerald-400 font-mono text-[10px] uppercase">[ How it scales ]:</strong> {srv.growth}
+                  </p>
+                  <p className="text-white/60 leading-relaxed">
+                    <strong className="text-cyan-300 font-mono text-[10px] uppercase">[ What you get ]:</strong> {srv.gets}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // --- 01. CREATIVE OS ---
@@ -1629,7 +1929,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                           </div>
                           <button 
                             onClick={() => {
-                              const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
+                              const contactSection = cards.find((c: any) => c.isContactForm || c.id === 'contact_form')
                               if (contactSection) setActiveCard(contactSection)
                             }}
                             className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
@@ -1641,116 +1941,9 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                     </div>
                   )}
 
-                  {/* Services Breakdown Grid */}
+                  {/* Services Cinematic Posters & Scope Showcase */}
                   {(activeCard.isServices || activeCard.id === 'intro') && (
-                    <div className="w-full mt-6 text-left border-t border-white/10 pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-xs uppercase tracking-widest font-mono font-bold text-emerald-400 flex items-center gap-2">
-                          <i className="fa-solid fa-wand-magic-sparkles text-emerald-400 text-xs" /> How We Scale Your Business
-                        </h4>
-                        <span className="text-[10px] text-white/50 font-mono">8 Core Solutions</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {[
-                          { 
-                            title: "Graphic Designing", 
-                            scales: "Builds instant trust so customers buy from you instead of competitors.", 
-                            gets: "Logos, brand guide, social media templates & banners.", 
-                            iconClass: "fa-solid fa-palette", 
-                            colorClass: "bg-purple-500/15 border-purple-500/30 text-purple-400",
-                            badgeClass: "bg-purple-500/10 text-purple-300",
-                            badge: "Brand Identity" 
-                          },
-                          { 
-                            title: "Webdesigning", 
-                            scales: "Turns casual visitors into paying customers with high-converting layouts.", 
-                            gets: "Modern mobile-friendly page designs & interactive prototypes.", 
-                            iconClass: "fa-solid fa-pen-ruler", 
-                            colorClass: "bg-sky-500/15 border-sky-500/30 text-sky-400",
-                            badgeClass: "bg-sky-500/10 text-sky-300",
-                            badge: "UI/UX Layouts" 
-                          },
-                          { 
-                            title: "Web Development", 
-                            scales: "Ultra-fast website loading so visitors never leave due to lag or crashes.", 
-                            gets: "Ready-to-use website, admin access, domain & SSL security.", 
-                            iconClass: "fa-solid fa-code", 
-                            colorClass: "bg-cyan-500/15 border-cyan-500/30 text-cyan-400",
-                            badgeClass: "bg-cyan-500/10 text-cyan-300",
-                            badge: "Fast Websites" 
-                          },
-                          { 
-                            title: "Web Automation", 
-                            scales: "Replaces tedious manual work with 24/7 automated background tools.", 
-                            gets: "Data extraction tools, automatic lead alerts & workflow tools.", 
-                            iconClass: "fa-solid fa-robot", 
-                            colorClass: "bg-violet-500/15 border-violet-500/30 text-violet-400",
-                            badgeClass: "bg-violet-500/10 text-violet-300",
-                            badge: "Save Hours" 
-                          },
-                          { 
-                            title: "Ecommerce Stores", 
-                            scales: "Allows customers to browse products, order & pay online 24/7.", 
-                            gets: "Online store, catalog manager, UPI/Card payments & order dashboard.", 
-                            iconClass: "fa-solid fa-cart-shopping", 
-                            colorClass: "bg-rose-500/15 border-rose-500/30 text-rose-400",
-                            badgeClass: "bg-rose-500/10 text-rose-300",
-                            badge: "Sell Online 24/7" 
-                          },
-                          { 
-                            title: "CRM / ERP Systems", 
-                            scales: "Organizes sales leads and customer inquiries so no deal is forgotten.", 
-                            gets: "Custom sales dashboard, lead pipeline board & team roles.", 
-                            iconClass: "fa-solid fa-chart-line", 
-                            colorClass: "bg-amber-500/15 border-amber-500/30 text-amber-400",
-                            badgeClass: "bg-amber-500/10 text-amber-300",
-                            badge: "Manage Sales" 
-                          },
-                          { 
-                            title: "Digital Marketing", 
-                            scales: "Brings a continuous stream of new buyers through Google & social ads.", 
-                            gets: "Google SEO ranking setup, ad graphics & monthly growth reports.", 
-                            iconClass: "fa-solid fa-bullhorn", 
-                            colorClass: "bg-indigo-500/15 border-indigo-500/30 text-indigo-400",
-                            badgeClass: "bg-indigo-500/10 text-indigo-300",
-                            badge: "Get Buyers" 
-                          },
-                          { 
-                            title: "WhatsApp Automation", 
-                            scales: "Answers customer questions instantly on WhatsApp and boosts repeat orders.", 
-                            gets: "Official WhatsApp bot setup, auto-reply chat & message sender.", 
-                            iconClass: "fa-brands fa-whatsapp", 
-                            colorClass: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
-                            badgeClass: "bg-emerald-500/10 text-emerald-300",
-                            badge: "Instant Chat" 
-                          },
-                        ].map((srv, sIdx) => {
-                          return (
-                            <div key={sIdx} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-3 group">
-                              <div>
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-md ${srv.colorClass}`}>
-                                    <i className={`${srv.iconClass} text-sm`} />
-                                  </div>
-                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold ${srv.badgeClass}`}>
-                                    {srv.badge}
-                                  </span>
-                                </div>
-                                <div className="text-sm font-bold text-white mb-2">{srv.title}</div>
-                                <div className="space-y-1.5 text-xs">
-                                  <p className="text-white/80 leading-relaxed">
-                                    <strong className="text-emerald-400 font-medium">How it helps grow:</strong> {srv.scales}
-                                  </p>
-                                  <p className="text-white/60 leading-relaxed">
-                                    <strong className="text-cyan-300 font-medium">What you get:</strong> {srv.gets}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
+                    <ServicesCinematicShowcase />
                   )}
 
                   {/* Legal Policies Links Grid */}
@@ -1815,7 +2008,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                         else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
                         else if (activeCard.isLegal || activeCard.id === 'legal') window.location.href = '/legal';
                         else if (activeCard.isServices || activeCard.id === 'intro') {
-                          const contactSection = cards.find(c => c.isContactForm || c.id === 'contact_form')
+                          const contactSection = cards.find((c: any) => c.isContactForm || c.id === 'contact_form')
                           if (contactSection) setActiveCard(contactSection)
                           else window.location.href = '#contact_form'
                         }
@@ -1852,8 +2045,6 @@ function getGoldenPositions(count: number, isMobile: boolean) {
   }
   return positions
 }
-
-import { animate } from 'framer-motion'
 
 const DraggableCard = ({ card, pos, isMobile, isDragging, onTap, zIdx, containerRef }: any) => {
   const x = useMotionValue(0)
@@ -2987,9 +3178,9 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
     if (typeof window === 'undefined') return
     const timer = setTimeout(() => {
       const urls: string[] = []
-      currentCards.forEach(c => {
+      currentCards.forEach((c: any) => {
         if (c.projects) {
-          c.projects.forEach(p => {
+          c.projects.forEach((p: any) => {
             const u = p.url || (p.title?.startsWith('http') ? p.title : undefined)
             if (u && !u.startsWith('/') && !urls.includes(u)) urls.push(u)
           })
