@@ -1640,21 +1640,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                      </div>
                   )}
                   
-                  {!activeCard.projects && !activeCard.isPricing && activeCard.id !== 'contact_form' && (
-                     <button onClick={() => {
-                        if (activeCard.isAcademy) window.location.href = '/academy';
-                        else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
-                        else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
-                        else if (activeCard.isLegal || activeCard.id === 'legal') window.location.href = '/legal';
-                        else if (activeCard.isServices || activeCard.id === 'intro') {
-                          const contactSection = cards.find((c: any) => c.isContactForm || c.id === 'contact_form')
-                          if (contactSection) setActiveCard(contactSection)
-                          else window.location.href = '#contact_form'
-                        }
-                     }} className="mt-8 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 shadow-lg shadow-white/10 transition-all uppercase tracking-widest text-sm flex items-center gap-2">
-                        {activeCard.cta} <ArrowRight className="w-4 h-4" />
-                     </button>
-                  )}
+
                 </div>
               </div>
             </motion.div>
@@ -1919,23 +1905,13 @@ const LayoutScatteredCards = ({ cards, playSound, cmsData, onPreviewProject }: a
          </div>
       )}
 
-      {isActive && !card.isPricing && (
+      {isActive && !card.isPricing && (card.id === 'contact_form' || card.isContactForm) && (
         <div className="mt-auto pt-8 border-t border-white/10 flex flex-col md:flex-row gap-4 mt-8">
-          {(card.id === 'contact_form' || card.isContactForm) ? (
-             <UniversalContactForm 
-                ctaText={card.cta} 
-                inputClass="p-4 w-full bg-white/5 border border-white/10 rounded-xl outline-none focus:border-white/30 text-white placeholder:text-white/30"
-                btnClass="p-4 w-full bg-white text-black font-bold uppercase tracking-widest rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 group"
-             />
-          ) : (
-             <button onClick={() => {
-                if (card.isAcademy) window.location.href = '/academy';
-                else if (card.isCrm) window.location.href = '/dashboard/crm';
-                else if (card.isHrm) window.location.href = '/dashboard/hr';
-             }} className="py-4 px-8 w-full md:w-auto bg-white text-black font-bold rounded-xl hover:bg-gray-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2">
-                {card.cta} <ArrowRight className="w-4 h-4" />
-             </button>
-          )}
+           <UniversalContactForm 
+              ctaText={card.cta} 
+              inputClass="p-4 w-full bg-white/5 border border-white/10 rounded-xl outline-none focus:border-white/30 text-white placeholder:text-white/30"
+              btnClass="p-4 w-full bg-white text-black font-bold uppercase tracking-widest rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 group"
+           />
         </div>
       )}
     </div>
@@ -2055,7 +2031,7 @@ const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
                   </div>
                )}
 
-               {(card.id === 'contact_form' || card.isContactForm) ? (
+               {(card.id === 'contact_form' || card.isContactForm) && (
                   <div className="mt-8 font-sans w-full max-w-md">
                     <UniversalContactForm 
                        ctaText={card.cta} 
@@ -2063,14 +2039,6 @@ const LayoutEditorial = ({ cards, onPreviewProject }: any) => {
                        btnClass="mt-8 px-8 py-4 bg-[#2c2a29] text-[#f4f0ea] uppercase tracking-widest text-xs hover:bg-black w-full flex items-center justify-center gap-2"
                     />
                   </div>
-               ) : (
-                  <button onClick={() => {
-                     if (card.isAcademy) window.location.href = '/academy';
-                     else if (card.isCrm) window.location.href = '/dashboard/crm';
-                     else if (card.isHrm) window.location.href = '/dashboard/hr';
-                  }} className="mt-12 w-fit border-b border-[#2c2a29] pb-2 text-[10px] md:text-xs font-sans uppercase tracking-[0.2em] hover:text-[#7a7571] hover:border-[#7a7571] transition-all flex items-center gap-2">
-                    {card.cta} <ArrowRight className="w-3 h-3" />
-                  </button>
                )}
              </div>
           </div>
@@ -2135,20 +2103,12 @@ const LayoutInfiniteCanvas = ({ cards, onPreviewProject }: any) => {
                   </div>
                )}
 
-               {(card.id === 'contact_form' || card.isContactForm) ? (
+               {(card.id === 'contact_form' || card.isContactForm) && (
                   <UniversalContactForm 
                      ctaText={card.cta} 
                      inputClass="p-3 w-full bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-zinc-400 text-zinc-800 text-sm"
                      btnClass="p-4 w-full bg-black text-white font-bold rounded-xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-4 hover:bg-zinc-800"
                   />
-               ) : (
-                  <button onClick={() => {
-                     if (card.isAcademy) window.location.href = '/academy';
-                     else if (card.isCrm) window.location.href = '/dashboard/crm';
-                     else if (card.isHrm) window.location.href = '/dashboard/hr';
-                  }} className="w-full py-4 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 font-bold rounded-xl uppercase tracking-widest text-[10px] md:text-xs transition-colors mt-auto">
-                     {card.cta}
-                  </button>
                )}
             </motion.div>
           )
@@ -2180,13 +2140,6 @@ const LayoutDigitalGallery = ({ cards, onPreviewProject }: any) => {
                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-8 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-500 flex flex-col items-center text-center">
                            <h3 className="text-white text-xl md:text-2xl uppercase tracking-[0.2em] mb-2">{card.title}</h3>
                            <p className="text-zinc-400 text-xs md:text-sm mb-6">{card.subtitle}</p>
-                           <button onClick={() => {
-                              if (card.isAcademy) window.location.href = '/academy';
-                              else if (card.isCrm) window.location.href = '/dashboard/crm';
-                              else if (card.isHrm) window.location.href = '/dashboard/hr';
-                           }} className="px-6 py-3 border border-white/30 text-white/70 hover:text-white hover:border-white uppercase tracking-widest text-[10px] transition-all">
-                              {card.cta}
-                           </button>
                         </div>
                      </div>
                      {card.projects && (
@@ -2249,20 +2202,12 @@ const LayoutNeoBrutalism = ({ cards, onPreviewProject }: any) => {
                       <p className="font-bold text-base md:text-xl mb-6">{card.subtitle}</p>
                       <ServiceDetailsSection card={card} darkText={true} />
                       
-                      {(card.id === 'contact_form' || card.isContactForm) ? (
+                      {(card.id === 'contact_form' || card.isContactForm) && (
                          <UniversalContactForm 
                             ctaText={card.cta} 
                             inputClass="p-4 w-full bg-white border-[4px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-[#FF90E8] outline-none text-black font-bold uppercase rounded-none"
                             btnClass="p-4 w-full bg-black text-white border-[4px] border-black font-black uppercase tracking-widest hover:translate-y-1 hover:translate-x-1 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all flex items-center justify-center gap-2 mt-4"
                          />
-                      ) : (
-                         <button onClick={() => {
-                            if (card.isAcademy) window.location.href = '/academy';
-                            else if (card.isCrm) window.location.href = '/dashboard/crm';
-                            else if (card.isHrm) window.location.href = '/dashboard/hr';
-                         }} className="w-full md:w-fit px-8 py-4 bg-white border-[4px] border-black font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
-                            {card.cta} <ArrowRight className="w-4 h-4" />
-                         </button>
                       )}
                     </div>
                  </div>
@@ -2346,16 +2291,12 @@ const LayoutPaperCraft = ({ cards, onPreviewProject }: any) => {
                </div>
             )}
 
-            {card.id === 'contact_form' ? (
+            {card.id === 'contact_form' && (
                <UniversalContactForm 
                   ctaText={card.cta} 
                   inputClass="p-3 w-full bg-transparent border-b-2 border-dashed border-[#dcd8c8] rounded-none outline-none focus:border-[#7a7a7a] text-[#4a4a4a] text-sm font-medium"
                   btnClass="mt-6 p-3 w-full bg-[#2c2c2c] text-white rounded-[2px_10px_3px_10px_/_10px_3px_10px_2px] font-bold uppercase tracking-widest text-[10px] hover:bg-black transition-colors"
                />
-            ) : (
-               <button className="px-6 py-2 border-2 border-[#e0dcd3] text-[#4a4a4a] font-bold uppercase tracking-widest text-[10px] rounded-[10px_2px_10px_3px_/_2px_10px_3px_10px] hover:bg-[#f0ecd6] transition-colors w-full">
-                  {card.cta}
-               </button>
             )}
           </div>
         ))}
@@ -2394,16 +2335,12 @@ const LayoutCinematic = ({ cards, onPreviewProject }: any) => {
                  <p className="text-lg md:text-2xl text-white/60 font-light mb-6 drop-shadow-md">{card.subtitle}</p>
                  <ServiceDetailsSection card={card} />
                  
-                 {card.id === 'contact_form' ? (
+                 {card.id === 'contact_form' && (
                     <UniversalContactForm 
                        ctaText={card.cta} 
                        inputClass="p-4 w-full bg-white/5 border border-white/20 rounded-none outline-none focus:bg-white/10 text-white placeholder:text-white/40 uppercase tracking-widest text-xs backdrop-blur-md"
                        btnClass="p-5 w-full bg-white text-black font-black uppercase tracking-[0.2em] text-xs hover:bg-gray-200 mt-4 flex items-center justify-center gap-2"
                     />
-                 ) : (
-                    <button className="px-10 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-xs md:text-sm hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto md:mx-0 w-full md:w-fit">
-                       {card.cta} <ArrowRight className="w-4 h-4" />
-                    </button>
                  )}
 
                  {card.projects && card.projects.length > 0 && (
@@ -2505,16 +2442,12 @@ const LayoutSwissPrecision = ({ cards, onPreviewProject }: any) => {
                     </div>
                  )}
 
-                 {card.id === 'contact_form' ? (
+                 {card.id === 'contact_form' && (
                     <UniversalContactForm 
                        ctaText={card.cta} 
                        inputClass="p-4 w-full bg-white border border-black rounded-none outline-none focus:ring-2 focus:ring-black text-black font-medium text-sm"
                        btnClass="p-4 w-full bg-black text-white font-bold uppercase tracking-widest text-xs mt-4 hover:opacity-80 flex items-center justify-center gap-2"
                     />
-                 ) : (
-                    <div className="mt-auto border-t border-current pt-4 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 opacity-50 group-hover:opacity-100 z-10">
-                       {card.cta} &rarr;
-                    </div>
                  )}
               </div>
            </div>
@@ -2606,25 +2539,12 @@ const LayoutCreativeUniverse = ({ cards, playSound, onPreviewProject }: any) => 
                     
                     <ServiceDetailsSection card={activeCard} />
                     
-                    {activeCard.id === 'contact_form' ? (
+                    {activeCard.id === 'contact_form' && (
                        <UniversalContactForm 
                           ctaText={activeCard.cta} 
                           inputClass="p-3 w-full bg-black/40 border border-white/20 rounded-xl outline-none focus:border-white/50 text-white placeholder:text-white/40 text-sm"
                           btnClass="p-4 w-full bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 mt-2 flex justify-center items-center gap-2"
                        />
-                    ) : (
-                       <button onClick={() => {
-                          if (activeCard.isAcademy) window.location.href = '/academy';
-                          else if (activeCard.isCrm) window.location.href = '/dashboard/crm';
-                          else if (activeCard.isHrm) window.location.href = '/dashboard/hr';
-                          else if (activeCard.isLegal || activeCard.id === 'legal') window.location.href = '/legal';
-                          else {
-                            const contactFormCard = cards.find((c: any) => c.isContactForm || c.id === 'contact_form')
-                            if (contactFormCard) setActiveCard(contactFormCard)
-                          }
-                       }} className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 w-full md:w-fit mx-auto md:mx-0 mt-6">
-                          {activeCard.cta} <ArrowRight className="w-4 h-4" />
-                       </button>
                     )}
                  </div>
 
