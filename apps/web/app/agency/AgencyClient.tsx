@@ -1486,7 +1486,7 @@ function AgencyCinemaParticles() {
   )
 }
 
-const CINEMATIC_POSTERS_DATA = [
+export const CINEMATIC_POSTERS_DATA = [
   { 
     id: "webdesigning", 
     title1: "WEB", 
@@ -1633,8 +1633,80 @@ const CINEMATIC_POSTERS_DATA = [
   }
 ]
 
-const ServicesCinematicShowcase = () => {
+const ServicesCinematicShowcase = ({ cards }: { cards?: any[] }) => {
   const [viewMode, setViewMode] = useState<'posters' | 'grid'>('posters')
+
+  // Combine hardcoded defaults with incoming CMS cards
+  const sourceCards = (cards && cards.length > 0) ? cards : CINEMATIC_POSTERS_DATA
+
+  // Filter out system forms/special utility cards if any
+  const serviceCards = sourceCards.filter((c: any) => !c.isContactForm && !c.isLegal)
+
+  const getPosterData = (card: any, index: number) => {
+    const rawTitle = (card.title || 'DIGITAL SOLUTION').trim()
+    const titleParts = rawTitle.split(' ')
+    const title1 = card.posterTitle1 || card.title1 || titleParts[0].toUpperCase()
+    const title2 = card.posterTitle2 || card.title2 || (titleParts.slice(1).join(' ').toUpperCase() || card.category?.toUpperCase() || 'ENGINEERING')
+    
+    const tag = card.tag || card.category?.toUpperCase() || 'BESPOKE SERVICE'
+    const color = card.colorHex || card.color || '#3b82f6'
+    
+    let defaultGrad = "from-emerald-400 via-cyan-400 to-indigo-500"
+    const cLower = String(color).toLowerCase()
+    if (cLower.includes('f97') || cLower.includes('orange')) defaultGrad = "from-orange-500 via-amber-500 to-red-600"
+    else if (cLower.includes('a3e') || cLower.includes('lime')) defaultGrad = "from-lime-400 via-emerald-400 to-green-500"
+    else if (cLower.includes('22d') || cLower.includes('cyan')) defaultGrad = "from-cyan-400 via-blue-500 to-indigo-600"
+    else if (cLower.includes('a78') || cLower.includes('purple')) defaultGrad = "from-purple-400 via-violet-500 to-indigo-600"
+    else if (cLower.includes('f59') || cLower.includes('amber')) defaultGrad = "from-amber-400 via-orange-400 to-yellow-500"
+    else if (cLower.includes('38b') || cLower.includes('sky')) defaultGrad = "from-sky-400 via-blue-500 to-teal-500"
+    else if (cLower.includes('ec4') || cLower.includes('pink')) defaultGrad = "from-pink-500 via-rose-500 to-purple-600"
+    else if (cLower.includes('22c') || cLower.includes('green') || cLower.includes('emerald')) defaultGrad = "from-emerald-400 via-green-500 to-teal-600"
+
+    const gradient = card.gradient || defaultGrad
+    const topTagLeft = card.topTagLeft || (card.idealFor ? String(card.idealFor).toUpperCase() : "IDEAS INTO DIGITAL REALITY")
+    const topTagRight = card.topTagRight || (card.turnaround ? String(card.turnaround).toUpperCase() : "DESIGN // DEVELOP // LAUNCH")
+    const growth = card.growth || card.subtitle || "Turns casual visitors into paying customers with high-converting layouts."
+    const gets = card.gets || (Array.isArray(card.deliverables) && card.deliverables.length > 0 ? card.deliverables.join(', ') : "Modern mobile-friendly page designs & interactive prototypes.")
+    const portalText = card.portalText || (card.title ? String(card.title).toUpperCase() : "A BIGGER TOMORROW ONLINE")
+    const bottomTag = card.bottomTag || "MORE THAN WEBSITES"
+
+    let subCards = card.posterCards || card.cards
+    if (!subCards || !Array.isArray(subCards) || subCards.length === 0) {
+      if (Array.isArray(card.features) && card.features.length > 0) {
+        subCards = card.features.slice(0, 2).map((feat: string, fIdx: number) => {
+          const parts = String(feat).split('—')
+          return {
+            text: parts[0]?.trim().toUpperCase() || 'CORE FEATURE',
+            sub: parts[1]?.trim() || feat,
+            icon: fIdx === 0 ? 'fa-solid fa-gem' : 'fa-solid fa-bolt'
+          }
+        })
+      } else {
+        subCards = [
+          { text: "ENTERPRISE QUALITY", sub: "Built for speed & scalability", icon: "fa-solid fa-gem" },
+          { text: "24/7 AVAILABILITY", sub: "Seamless customer experience", icon: "fa-solid fa-bolt" }
+        ]
+      }
+    }
+
+    return {
+      id: card.id || `poster-${index}`,
+      title1,
+      title2,
+      tag,
+      color,
+      gradient,
+      topTagLeft,
+      topTagRight,
+      growth,
+      gets,
+      portalText,
+      bottomTag,
+      cards: subCards
+    }
+  }
+
+  const posters = serviceCards.map((c: any, i: number) => getPosterData(c, i))
 
   return (
     <div className="w-full mt-6 text-left border-t border-white/10 pt-6">
@@ -1672,7 +1744,7 @@ const ServicesCinematicShowcase = () => {
 
       {viewMode === 'posters' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-          {CINEMATIC_POSTERS_DATA.map((poster) => (
+          {posters.map((poster: any) => (
             <motion.div 
               key={poster.id}
               whileHover={{ y: -6, scale: 1.02 }}
@@ -1696,9 +1768,9 @@ const ServicesCinematicShowcase = () => {
 
               {/* Center Movie Poster Typography */}
               <div className="relative z-10 my-auto text-center py-2 flex flex-col items-center justify-center">
-                <div className="w-full flex justify-between text-[7px] font-mono uppercase tracking-[0.2em] text-white/30 mb-1">
-                  <span>{poster.topTagLeft}</span>
-                  <span>{poster.topTagRight}</span>
+                <div className="w-full flex justify-between text-[7px] font-mono uppercase tracking-[0.2em] text-white/30 mb-1 gap-1">
+                  <span className="truncate">{poster.topTagLeft}</span>
+                  <span className="truncate">{poster.topTagRight}</span>
                 </div>
 
                 <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#EAE8E0] leading-none font-sans drop-shadow-md">
@@ -1723,9 +1795,9 @@ const ServicesCinematicShowcase = () => {
 
                 {/* Floating Cards */}
                 <div className="w-full grid grid-cols-1 gap-1.5 text-left">
-                  {poster.cards.map((c, cIdx) => (
+                  {poster.cards.map((c: any, cIdx: number) => (
                     <div key={cIdx} className="p-1.5 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2">
-                      <i className={`${c.icon} text-[10px] shrink-0`} style={{ color: poster.color }} />
+                      <i className={`${c.icon || 'fa-solid fa-check'} text-[10px] shrink-0`} style={{ color: poster.color }} />
                       <div className="min-w-0">
                         <div className="text-[8px] font-mono font-bold text-white/90 truncate">{c.text}</div>
                         <div className="text-[7px] text-white/40 truncate">{c.sub}</div>
@@ -1752,7 +1824,7 @@ const ServicesCinematicShowcase = () => {
       ) : (
         /* Detailed Scope Grid view */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {CINEMATIC_POSTERS_DATA.map((srv, sIdx) => (
+          {posters.map((srv: any, sIdx: number) => (
             <div key={sIdx} className="p-4 rounded-2xl bg-[#12141A] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-3 group">
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -1943,7 +2015,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
 
                   {/* Services Cinematic Posters & Scope Showcase */}
                   {(activeCard.isServices || activeCard.id === 'intro') && (
-                    <ServicesCinematicShowcase />
+                    <ServicesCinematicShowcase cards={cards} />
                   )}
 
                   {/* Legal Policies Links Grid */}

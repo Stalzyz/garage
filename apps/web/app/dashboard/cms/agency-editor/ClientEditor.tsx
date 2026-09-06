@@ -14,7 +14,38 @@ type ProjectData = {
   techStack?: string[]; 
   description?: string; 
 }
-type CardData = { id: string; category: string; title: string; subtitle: string; iconName?: string; colorHex: string; cta?: string; projects?: ProjectData[]; isContactForm?: boolean; isProducts?: boolean; isPortfolio?: boolean; isAcademy?: boolean; isCrm?: boolean; isHrm?: boolean; }
+
+type PosterCardItem = { text: string; sub: string; icon: string }
+
+type CardData = { 
+  id: string; 
+  category: string; 
+  title: string; 
+  subtitle: string; 
+  iconName?: string; 
+  colorHex: string; 
+  cta?: string; 
+  projects?: ProjectData[]; 
+  isContactForm?: boolean; 
+  isProducts?: boolean; 
+  isPortfolio?: boolean; 
+  isAcademy?: boolean; 
+  isCrm?: boolean; 
+  isHrm?: boolean;
+  isServices?: boolean;
+  isPricing?: boolean;
+  isLegal?: boolean;
+  // Cinematic Poster Control Fields
+  posterTitle1?: string;
+  posterTitle2?: string;
+  growth?: string;
+  gets?: string;
+  portalText?: string;
+  topTagLeft?: string;
+  topTagRight?: string;
+  gradient?: string;
+  posterCards?: PosterCardItem[];
+}
 
 export default function ClientEditor({ initialJson }: { initialJson: string }) {
   const [cards, setCards] = useState<CardData[]>(() => {
@@ -48,13 +79,25 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
 
   const addCard = () => {
     setCards([...cards, {
-      id: `new-${Date.now()}`,
-      category: "New Category",
-      title: "New Section",
-      subtitle: "Add some descriptive text here.",
+      id: `service-${Date.now()}`,
+      category: "Service",
+      title: "New Agency Solution",
+      subtitle: "Accelerate your business with bespoke technical execution.",
       iconName: "Zap",
-      colorHex: "#3b82f6",
-      cta: "Click Here"
+      colorHex: "#10b981",
+      cta: "Get Started",
+      posterTitle1: "NEW",
+      posterTitle2: "SOLUTION",
+      growth: "Turns casual visitors into long-term loyal clients.",
+      gets: "Ready-to-use production assets & technical support.",
+      portalText: "ONLINE SCALE",
+      topTagLeft: "IDEAS INTO REALITY",
+      topTagRight: "STRATEGY // CODE // LAUNCH",
+      gradient: "from-emerald-400 via-teal-400 to-cyan-500",
+      posterCards: [
+        { text: "ENTERPRISE SPEED", sub: "Sub-800ms loading performance", icon: "fa-solid fa-bolt" },
+        { text: "HIGH CONVERSION", sub: "Built for maximum trust & sales", icon: "fa-solid fa-gem" }
+      ]
     }])
   }
 
@@ -94,6 +137,29 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
   const removeProject = (cardIndex: number, projectIndex: number) => {
     const newCards = [...cards]
     newCards[cardIndex].projects!.splice(projectIndex, 1)
+    setCards(newCards)
+  }
+
+  const addPosterCard = (cardIndex: number) => {
+    const newCards = [...cards]
+    if (!newCards[cardIndex].posterCards) newCards[cardIndex].posterCards = []
+    newCards[cardIndex].posterCards!.push({
+      text: 'NEW FEATURE TAG',
+      sub: 'Short detail or benefit',
+      icon: 'fa-solid fa-gem'
+    })
+    setCards(newCards)
+  }
+
+  const updatePosterCard = (cardIndex: number, posterIndex: number, updates: Partial<PosterCardItem>) => {
+    const newCards = [...cards]
+    newCards[cardIndex].posterCards![posterIndex] = { ...newCards[cardIndex].posterCards![posterIndex], ...updates }
+    setCards(newCards)
+  }
+
+  const removePosterCard = (cardIndex: number, posterIndex: number) => {
+    const newCards = [...cards]
+    newCards[cardIndex].posterCards!.splice(posterIndex, 1)
     setCards(newCards)
   }
 
@@ -184,6 +250,136 @@ export default function ClientEditor({ initialJson }: { initialJson: string }) {
                   <input type="checkbox" checked={!!card.isPortfolio} onChange={e => updateCard(idx, { isPortfolio: e.target.checked })} className="rounded bg-black border-white/20 text-purple-500 focus:ring-purple-500 focus:ring-offset-black" />
                   Shows Portfolio
                 </label>
+              </div>
+
+              {/* Cinematic Movie Poster Controls */}
+              <div className="mt-6 pt-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <span>🎬 Cinematic Movie Poster Controls</span>
+                  </h3>
+                  <span className="text-[10px] font-mono text-white/40">Visual Showcase Options</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Poster Title Line 1</label>
+                    <input 
+                      value={card.posterTitle1 || ''} 
+                      onChange={e => updateCard(idx, { posterTitle1: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500 font-bold uppercase" 
+                      placeholder="e.g. WEB (Defaults to 1st word)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Poster Title Line 2</label>
+                    <input 
+                      value={card.posterTitle2 || ''} 
+                      onChange={e => updateCard(idx, { posterTitle2: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500 font-bold uppercase" 
+                      placeholder="e.g. DESIGNING (Defaults to 2nd word)"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">How It Scales Business</label>
+                    <input 
+                      value={card.growth || ''} 
+                      onChange={e => updateCard(idx, { growth: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-emerald-300 outline-none focus:border-emerald-500" 
+                      placeholder="e.g. Turns casual visitors into paying customers..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">What You Get (Deliverables summary)</label>
+                    <input 
+                      value={card.gets || ''} 
+                      onChange={e => updateCard(idx, { gets: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-cyan-300 outline-none focus:border-cyan-500" 
+                      placeholder="e.g. Modern mobile-friendly page designs & prototypes."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Doorway Portal Text Banner</label>
+                    <input 
+                      value={card.portalText || ''} 
+                      onChange={e => updateCard(idx, { portalText: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-amber-300 outline-none focus:border-amber-500 font-mono uppercase" 
+                      placeholder="e.g. A BIGGER TOMORROW ONLINE"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Gradient Preset / Tailwind Classes</label>
+                    <input 
+                      value={card.gradient || ''} 
+                      onChange={e => updateCard(idx, { gradient: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-purple-300 outline-none focus:border-purple-500 font-mono" 
+                      placeholder="e.g. from-orange-500 via-amber-500 to-red-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Top Micro-Tag Left</label>
+                    <input 
+                      value={card.topTagLeft || ''} 
+                      onChange={e => updateCard(idx, { topTagLeft: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/70 outline-none focus:border-emerald-500 uppercase font-mono" 
+                      placeholder="e.g. IDEAS INTO DIGITAL REALITY"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase mb-1">Top Micro-Tag Right</label>
+                    <input 
+                      value={card.topTagRight || ''} 
+                      onChange={e => updateCard(idx, { topTagRight: e.target.value })} 
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/70 outline-none focus:border-emerald-500 uppercase font-mono" 
+                      placeholder="e.g. DESIGN // DEVELOP // LAUNCH"
+                    />
+                  </div>
+                </div>
+
+                {/* Sub-cards Feature Tags */}
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[10px] font-bold text-white/50 uppercase">Poster Sub-Feature Cards (2 Highlights)</label>
+                    <button type="button" onClick={() => addPosterCard(idx)} className="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                      <Plus className="w-3 h-3" /> Add Feature Card
+                    </button>
+                  </div>
+
+                  {card.posterCards && card.posterCards.length > 0 ? (
+                    <div className="space-y-2">
+                      {card.posterCards.map((pc, pcIdx) => (
+                        <div key={pcIdx} className="bg-black/70 p-2.5 rounded-lg border border-white/10 flex flex-col sm:flex-row items-center gap-2">
+                          <input 
+                            value={pc.text} 
+                            onChange={e => updatePosterCard(idx, pcIdx, { text: e.target.value })} 
+                            className="flex-1 bg-black border border-white/10 rounded px-2 py-1 text-xs text-white font-bold uppercase" 
+                            placeholder="Heading (e.g. BRANDS GROW HERE)" 
+                          />
+                          <input 
+                            value={pc.sub} 
+                            onChange={e => updatePosterCard(idx, pcIdx, { sub: e.target.value })} 
+                            className="flex-1 bg-black border border-white/10 rounded px-2 py-1 text-xs text-white/60" 
+                            placeholder="Sub-label (e.g. Good design builds trust)" 
+                          />
+                          <input 
+                            value={pc.icon} 
+                            onChange={e => updatePosterCard(idx, pcIdx, { icon: e.target.value })} 
+                            className="w-28 bg-black border border-white/10 rounded px-2 py-1 text-xs font-mono text-amber-400" 
+                            placeholder="FontAwesome Icon" 
+                          />
+                          <button type="button" onClick={() => removePosterCard(idx, pcIdx)} className="p-1 text-red-400 hover:bg-red-500/20 rounded">
+                            <Trash2 className="w-3.5 h-3.5"/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-white/30 italic">Using default feature tags.</p>
+                  )}
+                </div>
               </div>
 
               {/* Projects List */}
