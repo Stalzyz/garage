@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
-import AgencyClient, { INITIAL_CARDS } from "./AgencyClient"
+import AgencyClient from "./AgencyClient"
+import { INITIAL_CARDS } from "./agency-data"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
