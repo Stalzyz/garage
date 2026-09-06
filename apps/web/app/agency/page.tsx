@@ -47,24 +47,31 @@ export default async function AgencyPage() {
 
     if (page?.sections?.[0]?.content && Array.isArray(page.sections[0].content) && page.sections[0].content.length > 0) {
       const dbCards = page.sections[0].content as any[]
-      initialCards = dbCards.map((card: any) => {
-        const defaultCard = INITIAL_CARDS.find(ic => ic.id === card.id)
-        const isOldIntro = card.id === 'intro' && (card.category === 'Manifesto' || card.title === 'The Digital Ecosystem')
-        const cardOverride = isOldIntro ? {} : card
+      
+      // Map over default INITIAL_CARDS and apply DB overrides if present
+      initialCards = INITIAL_CARDS.map((defaultCard: any) => {
+        const match = dbCards.find((c: any) => c.id === defaultCard.id)
+        if (!match) return defaultCard
+        const isOldIntro = defaultCard.id === 'intro' && (match.category === 'Manifesto' || match.title === 'The Digital Ecosystem')
+        const cardOverride = isOldIntro ? {} : match
         return {
           ...defaultCard,
           ...cardOverride,
-          features: (!isOldIntro && card.features && card.features.length > 0) ? card.features : defaultCard?.features,
-          deliverables: (!isOldIntro && card.deliverables && card.deliverables.length > 0) ? card.deliverables : defaultCard?.deliverables,
-          techStack: (!isOldIntro && card.techStack && card.techStack.length > 0) ? card.techStack : defaultCard?.techStack,
-          idealFor: (!isOldIntro && card.idealFor) || defaultCard?.idealFor,
-          turnaround: (!isOldIntro && card.turnaround) || defaultCard?.turnaround,
+          projects: (!isOldIntro && match.projects && match.projects.length > 0) ? match.projects : defaultCard.projects,
+          features: (!isOldIntro && match.features && match.features.length > 0) ? match.features : defaultCard.features,
+          deliverables: (!isOldIntro && match.deliverables && match.deliverables.length > 0) ? match.deliverables : defaultCard.deliverables,
+          techStack: (!isOldIntro && match.techStack && match.techStack.length > 0) ? match.techStack : defaultCard.techStack,
+          idealFor: (!isOldIntro && match.idealFor) || defaultCard.idealFor,
+          turnaround: (!isOldIntro && match.turnaround) || defaultCard.turnaround,
         }
       })
-      if (!initialCards.find(c => c.id === 'legal')) {
-        const legalCard = INITIAL_CARDS.find(c => c.id === 'legal')
-        if (legalCard) initialCards.push(legalCard)
-      }
+
+      // Append custom cards created in CMS that aren't part of default INITIAL_CARDS
+      dbCards.forEach((dbCard: any) => {
+        if (!initialCards.some((ic: any) => ic.id === dbCard.id)) {
+          initialCards.push(dbCard)
+        }
+      })
     }
   } catch (err) {
     console.error("Failed to fetch agency page from database:", err)

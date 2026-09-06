@@ -3149,6 +3149,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
     return {
       ...initialCard,
       ...finalMatch,
+      projects: (!isOldIntro && finalMatch.projects && finalMatch.projects.length > 0) ? finalMatch.projects : initialCard.projects,
       features: (finalMatch.features && finalMatch.features.length > 0) ? finalMatch.features : initialCard.features,
       deliverables: (finalMatch.deliverables && finalMatch.deliverables.length > 0) ? finalMatch.deliverables : initialCard.deliverables,
       techStack: (finalMatch.techStack && finalMatch.techStack.length > 0) ? finalMatch.techStack : initialCard.techStack,
@@ -3164,7 +3165,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   })
   let currentCards = [...baseCards];
   
-  // Dynamic CMS Portfolio Integration: If we have CMS portfolio, replace the DUMMY_PROJECTS
+  // Dynamic CMS Portfolio Integration: Only use cmsData.portfolio if a card has no explicit projects
   if (cmsData?.portfolio && cmsData.portfolio.length > 0) {
     const portfolioProjects = cmsData.portfolio.map((p: any) => ({ 
       id: p.id, 
@@ -3175,7 +3176,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
       techStack: p.tags || ['Next.js', 'TailwindCSS', 'TypeScript']
     }))
     currentCards = currentCards.map(c => {
-      if (c.id === 'branding' || c.id === 'webdev') {
+      if ((c.id === 'branding' || c.id === 'webdev') && (!c.projects || c.projects.length === 0)) {
         return { ...c, projects: portfolioProjects.slice(0, 3) }
       }
       return c
