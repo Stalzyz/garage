@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { EventBus, SystemEvents } from '../automations/event-bus';
 import { getMetaAccessToken } from '../utils/meta-enrichment';
+import { sendMetaCapiEvent, initMetaCapiEventListeners, autoSeedMetaCredentials } from '../services/meta-capi.service';
 
 // Simple scoring calculation helper
 function calculateScore(budget?: number, source?: string, projectType?: string, businessUnit?: string): number {
@@ -97,6 +98,8 @@ function parseMetaFieldData(fieldData: Array<{ name: string; values: string[] }>
 }
 
 export default async function adsWebhookRouter(app: FastifyInstance) {
+  // Initialize Meta CAPI automated event listeners & auto-seed credentials
+  initMetaCapiEventListeners(app);
 
   // ─── META / FACEBOOK LEAD ADS WEBHOOK ──────────────────────────────────────
 
@@ -265,6 +268,26 @@ export default async function adsWebhookRouter(app: FastifyInstance) {
 
   app.post('/facebook/test', handleTestMetaLead);
   app.post('/meta/test', handleTestMetaLead);
+
+  // POST: Direct Test Meta Conversions API (CAPI) Event Dispatch
+  const handleTestMetaCapi = async (req: any, reply: any) => {
+    const body = req.body || {};
+    const result = await sendMetaCapiEvent(app, {
+      eventName: body.eventName || 'Lead',
+      leadId: body.leadId || `test_${Date.now()}`,
+      email: body.email || 'test_capi_lead@grekam.in',
+      phone: body.phone || '+91 98765 43210',
+      name: body.name || 'Test CAPI Lead',
+      value: body.value || 1000,
+      businessUnit: body.businessUnit || 'AGENCY',
+      customData: body.customData || { test: true }
+    });
+    return result;
+  };
+
+  app.post('/facebook/capi/test', handleTestMetaCapi);
+  app.post('/meta/capi/test', handleTestMetaCapi);
+
 
 
   // ─── GOOGLE ADS LEAD FORM WEBHOOK ──────────────────────────────────────────
