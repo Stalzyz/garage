@@ -494,25 +494,94 @@ export default function IntegrationsDashboard() {
               </div>
 
               <div className="space-y-4 mt-5">
-                {/* Meta Flow Webhook */}
-                <div className="bg-muted/40 border border-border/60 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Share2 className="w-4 h-4 text-blue-400" />
-                      <span className="text-sm font-bold text-foreground">Meta Lead Ads & WhatsApp Flows Incoming Webhook</span>
+                {/* Meta Lead Ads & WhatsApp Flows Webhook */}
+                <div className="bg-muted/40 border border-blue-500/30 rounded-xl p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Share2 className="w-5 h-5 text-blue-400" />
+                      <div>
+                        <span className="text-base font-bold text-foreground block">Meta Lead Ads & CRM Real-Time Integration</span>
+                        <span className="text-xs text-muted-foreground">Connected to Meta Business ID: 600210996378269</span>
+                      </div>
                     </div>
-                    <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Active</span>
+                    <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live & Ready
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">Copy this callback URL into Meta Developer Dashboard &gt; Webhooks for WhatsApp Flows &amp; Facebook Lead Ads.</p>
-                  
-                  <div className="flex items-center gap-2 bg-background border border-border/60 rounded-lg p-2">
-                    <code className="flex-1 font-mono text-xs text-foreground truncate">{metaWebhookUrl}</code>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Automatically ingest Facebook &amp; Instagram Lead Ads into Grekam OS CRM using Meta Graph API &amp; Webhooks.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground font-bold block mb-1">Callback URL (Webhook Endpoint)</span>
+                      <div className="flex items-center gap-2 bg-background border border-border/60 rounded-lg p-2">
+                        <code className="flex-1 font-mono text-xs text-foreground truncate">{metaWebhookUrl}</code>
+                        <button
+                          onClick={() => copyToClipboard(metaWebhookUrl, "meta")}
+                          className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-1 rounded-md transition-all shrink-0"
+                        >
+                          {copiedUrl === "meta" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedUrl === "meta" ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground font-bold block mb-1">Verify Token (hub.verify_token)</span>
+                      <div className="flex items-center gap-2 bg-background border border-border/60 rounded-lg p-2">
+                        <code className="flex-1 font-mono text-xs text-foreground truncate">grekam_verify_token</code>
+                        <button
+                          onClick={() => copyToClipboard("grekam_verify_token", "meta_token")}
+                          className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-1 rounded-md transition-all shrink-0"
+                        >
+                          {copiedUrl === "meta_token" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedUrl === "meta_token" ? "Copied" : "Copy Token"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/40">
+                    <div className="flex items-center gap-3">
+                      <a 
+                        href="https://eventsmanager.facebook.com/events_manager2/crm_implementation_guide/1353282856878911?business_id=600210996378269" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 underline decoration-blue-400/40"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Meta Events Manager Setup Guide
+                      </a>
+                      <a 
+                        href="https://developers.facebook.com/tools/lead-ads-testing/" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-xs text-muted-foreground hover:text-foreground font-semibold flex items-center gap-1.5"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Meta Lead Ads Testing Tool
+                      </a>
+                    </div>
+
                     <button
-                      onClick={() => copyToClipboard(metaWebhookUrl, "meta")}
-                      className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold px-3 py-1.5 rounded-md transition-all shrink-0"
+                      onClick={async () => {
+                        try {
+                          await apiPost('/crm/public/webhooks/facebook/test', {
+                            name: 'Meta Ads Test Lead',
+                            email: `meta_lead_${Math.floor(Math.random() * 8999 + 1000)}@example.com`,
+                            phone: '+91 98765 43210',
+                            company: 'Meta Events Manager Lead Gen',
+                            courseInterest: 'Custom Web App Development'
+                          })
+                          setSuccess("Test Lead successfully ingested from Meta Webhook simulator!")
+                          setTimeout(() => setSuccess(""), 4000)
+                        } catch (err: any) {
+                          setError("Failed to trigger Meta test lead: " + err.message)
+                        }
+                      }}
+                      className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-md"
                     >
-                      {copiedUrl === "meta" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copiedUrl === "meta" ? "Copied!" : "Copy URL"}
+                      <Zap className="w-3.5 h-3.5 fill-white" /> Simulate Meta Lead Ingestion
                     </button>
                   </div>
                 </div>

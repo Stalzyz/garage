@@ -7,7 +7,8 @@ import {
   ArrowUpRight, Filter, IndianRupee, Globe,
   Search, BookOpen, GraduationCap, Calendar,
   MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
-  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet, MessageCircle, Clock
+  List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet, MessageCircle, Clock,
+  Share2, ExternalLink, Zap, X, Copy
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -58,6 +59,30 @@ export default function CRMDashboard() {
   const [convertLead, setConvertLead] = useState<any>(null)
 
   const [isKioskModalOpen, setIsKioskModalOpen] = useState(false)
+  const [isMetaModalOpen, setIsMetaModalOpen] = useState(false)
+  const [testingMeta, setTestingMeta] = useState(false)
+
+  const handleSimulateMetaLead = async () => {
+    setTestingMeta(true)
+    try {
+      await fetchApi('/crm/public/webhooks/facebook/test', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Meta Ads Test Lead',
+          email: `meta_lead_${Math.floor(Math.random() * 8999 + 1000)}@example.com`,
+          phone: '+91 98765 43210',
+          company: 'Meta Events Manager Lead Gen',
+          courseInterest: activeTab === 'ACADEMY' ? 'UI/UX Masterclass' : 'Custom Web App Development'
+        })
+      })
+      toast.success("Meta Lead Ingested into CRM Database!")
+      mutateLeads()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to simulate Meta lead')
+    } finally {
+      setTestingMeta(false)
+    }
+  }
 
   // Form Fields for Lead Creation / Edit
   const [leadForm, setLeadForm] = useState({
@@ -513,28 +538,40 @@ export default function CRMDashboard() {
           </div>
         </div>
 
-        {/* Business Unit Selector */}
-        <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
+        {/* Header Right Actions */}
+        <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
-            className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-              activeTab === 'AGENCY' 
-                ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
-                : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
-            }`}
+            onClick={() => setIsMetaModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all shadow-sm"
           >
-            Agency CRM
+            <Share2 className="w-4 h-4 text-blue-400" />
+            Meta Lead Ads
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
           </button>
-          <button
-            onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
-            className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-              activeTab === 'ACADEMY' 
-                ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
-                : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
-            }`}
-          >
-            Academy CRM
-          </button>
+
+          {/* Business Unit Selector */}
+          <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
+            <button
+              onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
+              className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
+                activeTab === 'AGENCY' 
+                  ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
+                  : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
+              }`}
+            >
+              Agency CRM
+            </button>
+            <button
+              onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
+              className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
+                activeTab === 'ACADEMY' 
+                  ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
+                  : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
+              }`}
+            >
+              Academy CRM
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1470,6 +1507,109 @@ export default function CRMDashboard() {
             </button>
           </div>
         </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* META LEAD ADS INTEGRATION MODAL */}
+    <AnimatePresence>
+      {isMetaModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-[#12141a] border border-blue-500/30 rounded-2xl max-w-2xl w-full p-6 md:p-8 shadow-2xl space-y-6 relative overflow-hidden"
+          >
+            <button
+              onClick={() => setIsMetaModalOpen(false)}
+              className="absolute top-5 right-5 text-white/50 hover:text-white transition-colors p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 flex items-center justify-center">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  Meta Lead Ads Connection Guide
+                </h3>
+                <p className="text-xs text-white/60">Business ID: 600210996378269 &bull; Facebook &amp; Instagram Lead Ads Webhook</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs text-white/80 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/10">
+              <p>
+                Connect your Facebook &amp; Instagram Lead Ads forms to Grekam OS CRM using Meta&apos;s Real-Time Leadgen Webhooks &amp; Graph API v21.0.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-blue-400 font-bold block mb-1">Webhook Callback URL</span>
+                  <div className="flex items-center gap-2 bg-black/60 border border-white/10 rounded-lg p-2 font-mono text-xs text-white">
+                    <span className="flex-1 truncate">https://api.grekam.in/api/v1/crm/public/webhooks/facebook</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText("https://api.grekam.in/api/v1/crm/public/webhooks/facebook")
+                        toast.success("Webhook Callback URL copied!")
+                      }}
+                      className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-sans font-bold flex items-center gap-1 shrink-0"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-blue-400 font-bold block mb-1">Verify Token (hub.verify_token)</span>
+                  <div className="flex items-center gap-2 bg-black/60 border border-white/10 rounded-lg p-2 font-mono text-xs text-white">
+                    <span className="flex-1 truncate">grekam_verify_token</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText("grekam_verify_token")
+                        toast.success("Verify Token copied!")
+                      }}
+                      className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-sans font-bold flex items-center gap-1 shrink-0"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://eventsmanager.facebook.com/events_manager2/crm_implementation_guide/1353282856878911?business_id=600210996378269"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 underline decoration-blue-400/40"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Meta Implementation Guide
+                </a>
+                <a
+                  href="https://developers.facebook.com/tools/lead-ads-testing/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-white/60 hover:text-white font-semibold flex items-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Meta Testing Tool
+                </a>
+              </div>
+
+              <button
+                onClick={handleSimulateMetaLead}
+                disabled={testingMeta}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg"
+              >
+                <Zap className="w-4 h-4 fill-white" />
+                {testingMeta ? "Simulating Lead..." : "Simulate Meta Lead Ingestion"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
 
