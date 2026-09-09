@@ -1,11 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, Sparkles, BookOpen, RefreshCw, X, Send } from "lucide-react"
-import { fetchApi } from "@/lib/useApi"
+import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, Sparkles, BookOpen, RefreshCw, X, Send, Calendar, Users, PhoneCall, Phone, UserCheck, Clock } from "lucide-react"
+import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
+import { format } from "date-fns"
 
 export default function CallIntelligenceDashboard() {
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0])
+  const { data: dailyReportData, mutate: mutateDailyReport } = useApi<any>(`/crm/telephony/daily-report?date=${selectedDate}`, { refreshInterval: 15000 })
+  const dailyReport = dailyReportData || { totalCallsToday: 0, summary: [], detailedLogs: [] }
+
   const [transcript, setTranscript] = useState(`Aisha (Sales): Hi Sarah, this is Aisha calling from Grekam. I saw Nexus Health just closed a Series B, huge congrats on that!
 Sarah (Nexus Health): Oh, thank you! It's been a crazy few weeks here. Who did you say you were with again?
 Aisha (Sales): Grekam. We're a creative and growth agency. I noticed you downloaded our SaaS Marketing whitepaper last week. I'm guessing with the new funding, you're looking to scale up your paid acquisition?
@@ -103,7 +108,108 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col xl:flex-row gap-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        
+        {/* TELECALLER DAILY CALL PERFORMANCE MONITOR */}
+        <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-4">
+            <div>
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <PhoneCall className="w-5 h-5 text-emerald-500" /> Telecaller Daily Call Performance Monitor
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Real-time daily call volume, unique leads spoken, and disposition metrics per telecaller.</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-transparent text-xs text-foreground font-mono focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={() => mutateDailyReport()}
+                className="p-2 rounded-xl bg-muted/40 hover:bg-muted/70 text-foreground transition-colors border border-border/50"
+                title="Refresh Report"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Key Call Stats Row */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Total Calls Spoken Today</span>
+              <div className="text-2xl font-bold text-foreground mt-1">{dailyReport.totalCallsToday || 0}</div>
+            </div>
+            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Active Telecallers</span>
+              <div className="text-2xl font-bold text-primary mt-1">{dailyReport.telecallersCount || 0}</div>
+            </div>
+            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Meetings Booked</span>
+              <div className="text-2xl font-bold text-emerald-500 mt-1">
+                {dailyReport.summary?.reduce((acc: number, curr: any) => acc + (curr.meetingsBooked || 0), 0) || 0}
+              </div>
+            </div>
+            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Callbacks & Follow-ups</span>
+              <div className="text-2xl font-bold text-amber-500 mt-1">
+                {dailyReport.summary?.reduce((acc: number, curr: any) => acc + (curr.callbacks || 0), 0) || 0}
+              </div>
+            </div>
+          </div>
+
+          {/* Telecaller Summary Breakdown Table */}
+          <div className="border border-border/50 rounded-xl overflow-hidden">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-muted/40 text-muted-foreground font-mono uppercase text-[10px] border-b border-border/50">
+                <tr>
+                  <th className="px-4 py-3">Telecaller Name</th>
+                  <th className="px-4 py-3 text-center">Total Calls Spoken</th>
+                  <th className="px-4 py-3 text-center">Unique Leads Dialed</th>
+                  <th className="px-4 py-3 text-center">Meetings Booked</th>
+                  <th className="px-4 py-3 text-center">Callbacks Scheduled</th>
+                  <th className="px-4 py-3 text-center">Not Interested</th>
+                  <th className="px-4 py-3 text-right">Conversion %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {(!dailyReport.summary || dailyReport.summary.length === 0) ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      No calls logged for {selectedDate}. Use Power Dialer or Log Call Activity to record calls.
+                    </td>
+                  </tr>
+                ) : (
+                  dailyReport.summary.map((st: any) => {
+                    const convRate = st.totalCalls > 0 ? Math.round((st.meetingsBooked / st.totalCalls) * 100) : 0;
+                    return (
+                      <tr key={st.userId} className="hover:bg-muted/20 transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground">
+                          <div className="font-bold">{st.userName}</div>
+                          <div className="text-[10px] text-muted-foreground">{st.email}</div>
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-foreground">{st.totalCalls}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground font-mono">{st.uniqueLeadsCount}</td>
+                        <td className="px-4 py-3 text-center font-bold text-emerald-500">{st.meetingsBooked}</td>
+                        <td className="px-4 py-3 text-center text-amber-500 font-mono">{st.callbacks}</td>
+                        <td className="px-4 py-3 text-center text-rose-400 font-mono">{st.notInterested}</td>
+                        <td className="px-4 py-3 text-right font-bold text-primary">{convRate}%</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="flex flex-col xl:flex-row gap-6">
         
         {/* Left Col: Live Call Transcript & Audit */}
         <div className="flex-1 space-y-6">
@@ -338,6 +444,7 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
