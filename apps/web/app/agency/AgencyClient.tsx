@@ -1541,12 +1541,38 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
       </motion.div>
       <AnimatePresence>
          {activeCard && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none p-4 md:p-12 mb-24 md:mb-32">
-              <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[900px] bg-zinc-950/85 backdrop-blur-3xl border border-white/15 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10">
-                <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5 shrink-0">
-                  <div className="text-[10px] md:text-xs uppercase tracking-widest text-white/50">{activeCard.category}</div>
-                  <button onClick={() => { playSound(); setActiveCard(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"><X className="w-4 h-4" /></button>
-                </div>
+           <>
+             {/* Full-screen Dark Backdrop Overlay */}
+             <motion.div 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               exit={{ opacity: 0 }} 
+               onClick={() => { playSound(); setActiveCard(null); }}
+               className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-2xl pointer-events-auto cursor-pointer"
+             />
+
+             {/* Modal Card Container */}
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+               animate={{ opacity: 1, scale: 1, y: 0 }} 
+               exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+               className="fixed inset-0 z-[2001] flex items-center justify-center pointer-events-none p-3 sm:p-4 pt-16 pb-20 md:p-12"
+             >
+               <div className="pointer-events-auto w-full max-w-5xl h-full md:h-[80vh] max-h-[850px] bg-zinc-950/95 backdrop-blur-3xl border border-white/20 rounded-[2rem] flex flex-col overflow-hidden shadow-[0_25px_80px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/10 relative">
+                 <div className="h-14 md:h-16 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-white/5 shrink-0">
+                   <div className="text-[10px] md:text-xs uppercase tracking-widest text-cyan-400 font-mono font-bold flex items-center gap-2">
+                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                     {activeCard.category || activeCard.title}
+                   </div>
+                   <button 
+                     onClick={() => { playSound(); setActiveCard(null); }} 
+                     className="px-3 py-1.5 md:w-9 md:h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/80 text-white transition-all border border-white/20 gap-1.5 shadow-lg cursor-pointer"
+                     title="Close (Esc)"
+                   >
+                     <X className="w-4 h-4" />
+                     <span className="text-[10px] font-bold uppercase md:hidden">Close</span>
+                   </button>
+                 </div>
                 <div className="flex-1 p-6 md:p-12 flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
                   {/* Glowing Icon Frame */}
                   <div className="relative mb-6 md:mb-8 shrink-0">
@@ -1697,6 +1723,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
                 </div>
               </div>
             </motion.div>
+          </>
          )}
       </AnimatePresence>
     </div>
