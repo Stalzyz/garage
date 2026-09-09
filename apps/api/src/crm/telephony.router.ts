@@ -188,7 +188,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
     const detailedLogs = callActivities.map(a => {
       const u = userMap.get(a.userId);
       const durSec = extractDurationSeconds(a.content || '');
-      const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*(https?:\/\/[^\s\]]+)\]/i) : null;
+      const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*([^\s\]]+)\]/i) : null;
       const recordingUrl = recMatch ? recMatch[1] : null;
 
       return {
@@ -229,6 +229,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
   const handleRecordings = async (req: any, reply: any) => {
     const body = req.body as {
       leadId: string;
+      userId?: string;
       recordingUrl?: string;
       durationSeconds?: number;
       disposition?: string;
@@ -252,7 +253,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
         leadId: body.leadId,
         type: 'CALL',
         content,
-        userId: (req as any).user?.id || 'system',
+        userId: body.userId || (req as any).user?.id || 'system',
       },
     });
 
