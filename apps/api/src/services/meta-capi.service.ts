@@ -3,7 +3,7 @@ import { FastifyInstance } from 'fastify';
 import { getMetaAccessToken } from '../utils/meta-enrichment';
 import { EventBus, SystemEvents } from '../automations/event-bus';
 
-const META_ACCESS_TOKEN_PROVIDED = 'EAAYE8luJYlkBSWnsI7MJrnVkXvO8mDSykSUPPUq2R6UVaG1w8H6hNCXzEBswGHwRA55rXip7aCE8FIus54dQ7y4fkna6tBuuvfDt9jeUHzJPfiYWh6BCPVb2JVguqdqZCXa0uVXr8BFqdX3yGZAJOwBrUhLOqj7atgEzi9BWlwAkJbnN1bh06jiJUULAZDZD';
+const META_ACCESS_TOKEN_PROVIDED = 'EAAYE8luJYlkBSbdlZAabJsoIiR31ZCGOE9d3kYeRIPOiMLhwtjksqLqlU2ggIZAbdoZAZCXdZAaZAO1IfJpMSZBAMyLXy8tLtPJikJmM3ZCSGuGltAMAX9NugPtjouMZBwVUM8WgEjtWhOWYlbTC80TrZBihIAHojuFGWztl2XKbhX0aDcKQV4BXMyvjagEonx9BgZDZD';
 const META_DATASET_ID_DEFAULT = '1353282856878911';
 const META_CAPI_VERSION_DEFAULT = 'v26.0';
 
@@ -71,23 +71,17 @@ export async function getMetaDatasetId(app?: FastifyInstance): Promise<string> {
  */
 export async function autoSeedMetaCredentials(app: FastifyInstance) {
   try {
-    const existingToken = await app.prisma.integrationKey.findFirst({
-      where: { service: 'META', keyName: 'META_ACCESS_TOKEN' }
+    app.log.info('[Meta CAPI] Auto-seeding Meta Access Token into IntegrationKey table...');
+    await app.prisma.integrationKey.upsert({
+      where: { service_keyName: { service: 'META', keyName: 'META_ACCESS_TOKEN' } },
+      update: { encryptedValue: META_ACCESS_TOKEN_PROVIDED, isActive: true },
+      create: {
+        service: 'META',
+        keyName: 'META_ACCESS_TOKEN',
+        encryptedValue: META_ACCESS_TOKEN_PROVIDED,
+        isActive: true
+      }
     });
-
-    if (!existingToken || !existingToken.encryptedValue) {
-      app.log.info('[Meta CAPI] Auto-seeding Meta Access Token into IntegrationKey table...');
-      await app.prisma.integrationKey.upsert({
-        where: { service_keyName: { service: 'META', keyName: 'META_ACCESS_TOKEN' } },
-        update: { encryptedValue: META_ACCESS_TOKEN_PROVIDED, isActive: true },
-        create: {
-          service: 'META',
-          keyName: 'META_ACCESS_TOKEN',
-          encryptedValue: META_ACCESS_TOKEN_PROVIDED,
-          isActive: true
-        }
-      });
-    }
 
     const existingDataset = await app.prisma.integrationKey.findFirst({
       where: { service: 'META', keyName: 'META_DATASET_ID' }
