@@ -1041,163 +1041,307 @@ export default function SplitReality() {
         </div>
       ) : (
         <>
-          <motion.div
-        className="relative overflow-hidden"
-        animate={{ 
-          width: isMobile ? "100%" : (isAgency ? "58%" : isAcademy ? "42%" : "50%"),
-          height: "100%"
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          zIndex: isAgency ? 20 : 10,
-          cursor: `url('/cursor-agency.svg') 16 16, auto`
-        }}
-        onClick={() => !isMobile && setSide("agency")}
-      >
-        <div className="absolute inset-0" style={{ background: "linear-gradient(145deg, #111114 0%, #161820 40%, #0a0a0a 100%)" }} />
-        <div className="absolute inset-0 pointer-events-none opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")` }} />
-        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`, backgroundSize: "48px 48px", opacity: isAgency ? 1 : 0.4, transition: "opacity 0.8s ease" }} />
-        <AgencyCanvas active={isAgency} mx={mousePos.x} my={mousePos.y} />
-        <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(220,210,255,0.05) 0%, transparent 70%)", opacity: isAgency ? 1 : 0.3, transition: "opacity 0.8s ease" }} />
-
-        {/* Split-Text Morphing Typography (Agency Side) */}
-        <div className="absolute top-0 left-0 h-full w-[100vw] pointer-events-none flex items-center justify-center z-[2] select-none overflow-hidden">
-          <span 
-            className="font-black text-[18vw] uppercase leading-none tracking-[0.05em] transition-all duration-700 ease-[0.16,1,0.3,1] select-none"
-            style={{ 
-              fontFamily: "var(--font-barlow, system-ui), sans-serif",
-              letterSpacing: isAgency ? "0.08em" : "0.02em",
-              color: "rgba(255, 255, 255, 0.08)"
-            }}
+          {/* ════════════════════════════════════════ */}
+          {/*  YIN-YANG CIRCLE — DESKTOP              */}
+          {/* ════════════════════════════════════════ */}
+          <div className="relative w-full h-full overflow-hidden flex items-center justify-center"
+            onMouseLeave={() => setSide(null)}
           >
-            GREKAM
-          </span>
-        </div>
 
-        <button
-          className="absolute inset-0 flex flex-col justify-between p-8 md:p-14 text-left z-10"
-          onClick={() => navigate("agency", "https://agency.grekam.in/")}
-          style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
-        >
-          <div style={{ opacity: isAgency ? 1 : 0.35, transition: "opacity 0.6s ease" }}>
-            <div className="text-[9px] font-mono tracking-[0.4em] text-white/25 uppercase mb-1">01 / AGENCY</div>
-            <div className="w-12 h-px bg-white/20" />
-          </div>
+            {/* ── Full-bleed backgrounds clipped by hover ── */}
+            {/* Agency BG — dark techy grid */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(145deg, #0d0d14 0%, #111420 50%, #0a0a0a 100%)",
+                clipPath: side === "agency" ? "inset(0 0 0 0)" : side === "academy" ? "inset(0 100% 0 0)" : "inset(0 50% 0 0)",
+                transition: "clip-path 0.7s cubic-bezier(0.16,1,0.3,1)",
+              }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(rgba(200,210,240,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,210,240,0.03) 1px, transparent 1px)`,
+                backgroundSize: "48px 48px",
+                clipPath: side === "agency" ? "inset(0 0 0 0)" : side === "academy" ? "inset(0 100% 0 0)" : "inset(0 50% 0 0)",
+                transition: "clip-path 0.7s cubic-bezier(0.16,1,0.3,1)",
+              }}
+            />
 
-          <div>
-            <motion.div animate={{ filter: isAgency ? "blur(0px)" : "blur(2px)", opacity: isAgency ? 1 : 0.3 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4">
-              <Image src="/visuals-logo.png" alt="Grekam Visuals" width={360} height={120} className="object-contain" style={{ filter: isAgency ? "none" : "brightness(0.6)", transition: "filter 0.6s ease" }} priority />
-              <div className="overflow-hidden mt-4">
-                <motion.h2 className="font-black uppercase leading-none"
+            {/* Academy BG — warm parchment */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundColor: "#f0e8d4",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)`,
+                clipPath: side === "academy" ? "inset(0 0 0 0)" : side === "agency" ? "inset(0 0 0 100%)" : "inset(0 0 0 50%)",
+                transition: "clip-path 0.7s cubic-bezier(0.16,1,0.3,1)",
+              }}
+            />
+            {/* Academy red margin line */}
+            <div className="absolute top-0 w-px h-full bg-red-300/20 pointer-events-none"
+              style={{ left: side === "academy" ? "3.5rem" : side === "agency" ? "200%" : "calc(50% + 3.5rem)", transition: "left 0.7s cubic-bezier(0.16,1,0.3,1)" }}
+            />
+
+            {/* Canvas FX layers */}
+            <div className="absolute inset-0 pointer-events-none">
+              <AgencyCanvas active={isAgency} mx={mousePos.x} my={mousePos.y} />
+            </div>
+            <div className="absolute inset-0 pointer-events-none">
+              <AcademyCanvas active={isAcademy} />
+            </div>
+            {!isMobile && <SketchAnnotations active={isAcademy} />}
+
+            {/* ── Ghost GREKAM watermark ── */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-[1]">
+              <span className="font-black text-[22vw] uppercase leading-none select-none transition-all duration-700"
+                style={{
+                  fontFamily: "var(--font-barlow, system-ui), sans-serif",
+                  color: isAgency ? "rgba(255,255,255,0.04)" : isAcademy ? "rgba(42,26,8,0.06)" : "rgba(180,180,200,0.04)",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                GREKAM
+              </span>
+            </div>
+
+            {/* ── ORBITING STAT CHIPS ── */}
+            {([
+              { label: "↑ 3.2× ROAS", angle: -55, chipSide: "agency", color: "rgba(6,182,212,0.9)", bg: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.25)" },
+              { label: "92 Leads/mo", angle: -15, chipSide: "agency", color: "rgba(99,102,241,0.9)", bg: "rgba(99,102,241,0.08)", border: "rgba(99,102,241,0.25)" },
+              { label: "47 Clients", angle: 22, chipSide: "agency", color: "rgba(255,255,255,0.6)", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)" },
+              { label: "4,200+ Students", angle: -40, chipSide: "academy", color: "rgba(180,120,40,0.9)", bg: "rgba(180,120,40,0.08)", border: "rgba(180,120,40,0.25)" },
+              { label: "18 Courses", angle: 5, chipSide: "academy", color: "rgba(139,106,58,0.9)", bg: "rgba(139,106,58,0.08)", border: "rgba(139,106,58,0.2)" },
+              { label: "Live Mentors", angle: 48, chipSide: "academy", color: "rgba(80,55,20,0.8)", bg: "rgba(255,200,80,0.12)", border: "rgba(140,100,40,0.2)" },
+            ] as const).map((chip) => {
+              const isChipAgency = chip.chipSide === "agency";
+              const baseAngleDeg = chip.angle + (isChipAgency ? 210 : 330);
+              const rad = (baseAngleDeg * Math.PI) / 180;
+              const orbitR = 37;
+              const cx = 50 + orbitR * Math.cos(rad);
+              const cy = 50 + orbitR * Math.sin(rad);
+              return (
+                <div key={chip.label} className="absolute pointer-events-none z-[5]"
                   style={{
-                    fontFamily: "var(--font-barlow, system-ui), sans-serif",
-                    fontSize: "clamp(2rem, 5vw, 6.5rem)",
-                    color: isAgency ? "#ffffff" : "rgba(255,255,255,0.25)",
-                    letterSpacing: isAgency ? "14px" : "0px",
-                    transition: "color 0.6s ease, letter-spacing 0.9s cubic-bezier(0.16,1,0.3,1)",
+                    left: `${cx}%`, top: `${cy}%`,
+                    transform: "translate(-50%, -50%)",
+                    opacity: (isChipAgency ? isAgency : isAcademy) ? 1 : side === null ? 0.35 : 0,
+                    scale: (isChipAgency ? isAgency : isAcademy) ? "1" : "0.85",
+                    transition: "opacity 0.5s ease, scale 0.5s ease",
                   }}
                 >
-                  WE BUILD<br />DIGITAL<br />EXPERIENCES
-                </motion.h2>
+                  <div className="px-3 py-1 rounded-full text-[10px] font-mono font-bold whitespace-nowrap backdrop-blur-md"
+                    style={{ color: chip.color, background: chip.bg, border: `1px solid ${chip.border}` }}>
+                    {chip.label}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* ══════════════════════════════ */}
+            {/* THE YIN-YANG CIRCLE           */}
+            {/* ══════════════════════════════ */}
+            <div className="relative z-10 flex items-center justify-center" style={{ width: "min(80vw, 80vh)", height: "min(80vw, 80vh)" }}>
+
+              {/* Rotating tick ring */}
+              <div className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  border: "1px solid",
+                  borderColor: isAgency ? "rgba(6,182,212,0.2)" : isAcademy ? "rgba(180,120,40,0.2)" : "rgba(200,200,220,0.08)",
+                  animation: "spin 40s linear infinite",
+                  transition: "border-color 0.5s ease",
+                }}
+              >
+                {Array.from({ length: 60 }).map((_, i) => {
+                  const isMajor = i % 5 === 0;
+                  return (
+                    <div key={i} className="absolute"
+                      style={{
+                        width: isMajor ? "2px" : "1px", height: isMajor ? "10px" : "5px",
+                        background: isAgency ? `rgba(6,182,212,${isMajor ? 0.4 : 0.15})` : isAcademy ? `rgba(180,120,40,${isMajor ? 0.4 : 0.15})` : `rgba(200,200,220,${isMajor ? 0.2 : 0.08})`,
+                        left: "50%", top: "0",
+                        transformOrigin: `0 calc(min(40vw, 40vh))`,
+                        transform: `translateX(-50%) rotate(${(i / 60) * 360}deg)`,
+                      }}
+                    />
+                  );
+                })}
               </div>
-            </motion.div>
-            <AnimatePresence>
-              {isAgency && (
-                <motion.div key="ui-lines" className="mt-8 space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.5, delay: 0.2 }}>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/30" /><div className="h-px flex-1 bg-white/10" /><div className="text-[8px] font-mono text-white/20 tracking-widest">STRATEGY</div></div>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/20" /><div className="h-px flex-1 bg-white/08" /><div className="text-[8px] font-mono text-white/15 tracking-widest">DESIGN</div></div>
-                  <div className="flex gap-3 items-center"><div className="w-2 h-2 rounded-full bg-white/15" /><div className="h-px flex-1 bg-white/06" /><div className="text-[8px] font-mono text-white/12 tracking-widest">TECHNOLOGY</div></div>
+
+              {/* SVG Yin-Yang */}
+              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full pointer-events-none">
+                <defs>
+                  <clipPath id="yy-agency"><path d="M 100 0 A 50 50 0 0 1 100 100 A 50 50 0 0 0 100 200 A 100 100 0 0 1 100 0 Z" /></clipPath>
+                  <clipPath id="yy-academy"><path d="M 100 0 A 100 100 0 0 0 100 200 A 50 50 0 0 1 100 100 A 50 50 0 0 0 100 0 Z" /></clipPath>
+                  <filter id="yy-glow"><feGaussianBlur stdDeviation="2.5" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+                </defs>
+                {/* Agency dark fill */}
+                <circle cx="100" cy="100" r="99" fill="#0d0d14" clipPath="url(#yy-agency)" />
+                {/* Agency dot: small warm circle in top lobe */}
+                <circle cx="100" cy="50" r="23" fill="#f0e8d4" />
+                <circle cx="100" cy="50" r="7" fill="#0d0d14" />
+                {/* Academy warm fill */}
+                <circle cx="100" cy="100" r="99" fill="#f0e8d4" clipPath="url(#yy-academy)" />
+                {/* Academy dot: small dark circle in bottom lobe */}
+                <circle cx="100" cy="150" r="23" fill="#0d0d14" />
+                <circle cx="100" cy="150" r="7" fill="#f0e8d4" />
+                {/* Outer glowing ring */}
+                <circle cx="100" cy="100" r="98.5" fill="none"
+                  stroke={isAgency ? "rgba(6,182,212,0.5)" : isAcademy ? "rgba(180,120,40,0.5)" : "rgba(200,200,220,0.12)"}
+                  strokeWidth="1" filter="url(#yy-glow)"
+                  style={{ transition: "stroke 0.5s ease" }}
+                />
+                {/* S-curve spine */}
+                <path d="M 100 0 A 50 50 0 0 1 100 100 A 50 50 0 0 0 100 200" fill="none"
+                  stroke={isAgency ? "rgba(6,182,212,0.2)" : isAcademy ? "rgba(180,120,40,0.2)" : "rgba(200,200,220,0.06)"}
+                  strokeWidth="0.8" style={{ transition: "stroke 0.5s ease" }}
+                />
+              </svg>
+
+              {/* ── AGENCY HALF CONTENT ── */}
+              <button
+                className="absolute left-0 top-0 w-1/2 h-full flex flex-col justify-between py-10 pl-6 pr-3 z-20 text-left"
+                onClick={() => navigate("agency", "https://agency.grekam.in/")}
+                onMouseEnter={() => { setSide("agency"); if (!hasInteracted.current) { hasInteracted.current = true; setTimeout(() => setNavVisible(true), 800); } }}
+                style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
+              >
+                <div style={{ opacity: isAgency ? 1 : 0.45, transition: "opacity 0.5s ease" }}>
+                  <div className="text-[7px] font-mono tracking-[0.4em] text-white/30 uppercase mb-1">01 / AGENCY</div>
+                  <div className="w-8 h-px bg-white/20" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Image src="/visuals-logo.png" alt="Grekam Visuals" width={170} height={58} className="object-contain"
+                    style={{ filter: isAgency ? "none" : "brightness(0.45)", transition: "filter 0.6s ease" }} priority />
+                  <h2 className="font-black uppercase leading-none transition-all duration-700"
+                    style={{
+                      fontFamily: "var(--font-barlow, system-ui), sans-serif",
+                      fontSize: "clamp(1.1rem, 2.6vw, 3.4rem)",
+                      color: isAgency ? "#ffffff" : "rgba(255,255,255,0.22)",
+                      letterSpacing: isAgency ? "5px" : "0px",
+                    }}
+                  >
+                    WE BUILD<br />DIGITAL<br />FUTURES
+                  </h2>
+                  <AnimatePresence>
+                    {isAgency && (
+                      <motion.div key="ag-list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col gap-1.5">
+                        {["Strategy", "Design", "Technology"].map((t) => (
+                          <div key={t} className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400/70" />
+                            <span className="text-[9px] font-mono text-white/40 tracking-widest uppercase">{t}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <motion.div animate={{ opacity: isAgency ? 1 : 0 }} transition={{ duration: 0.4 }}>
+                  <div className="px-4 py-2 border border-white/20 text-[8px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md inline-flex items-center gap-2 hover:bg-white hover:text-black transition-all duration-300">
+                    Enter Agency <span>→</span>
+                  </div>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              </button>
 
-          <motion.div className="flex items-center gap-4 mb-0" animate={{ opacity: isAgency ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <div className="px-6 py-3 border border-white/20 text-[10px] font-bold tracking-[0.3em] uppercase text-white/70 bg-white/5 backdrop-blur-md hover:bg-white hover:text-black transition-all duration-300">
-              Enter Agency
-            </div>
-            <div className="text-white/30 text-xs font-mono">→</div>
-          </motion.div>
-        </button>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(14,15,20,0.45)", opacity: isAcademy ? 1 : 0, transition: "opacity 0.7s ease" }} />
-      </motion.div>
+              {/* ── ACADEMY HALF CONTENT ── */}
+              <button
+                className="absolute right-0 top-0 w-1/2 h-full flex flex-col justify-between py-10 pr-6 pl-3 z-20 text-right"
+                onClick={() => navigate("academy", "https://academy.grekam.in/")}
+                onMouseEnter={() => { setSide("academy"); if (!hasInteracted.current) { hasInteracted.current = true; setTimeout(() => setNavVisible(true), 800); } }}
+                style={{ cursor: `url('/cursor-academy.svg') 0 32, auto` }}
+              >
+                <div style={{ opacity: isAcademy ? 1 : 0.45, transition: "opacity 0.5s ease" }} className="flex flex-col items-end">
+                  <div className="text-[7px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-1">02 / ACADEMY</div>
+                  <svg width="32" height="4" viewBox="0 0 32 4"><path d="M0 2 Q8 1 16 2 Q24 3 32 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
+                </div>
+                <div className="flex flex-col items-end gap-3">
+                  <div className="w-[140px]">
+                    <Image src="/academy-logo.png" alt="Grekam Academy" width={200} height={76} className="object-contain w-full h-auto"
+                      style={{ filter: isAcademy ? "brightness(0) contrast(1.2)" : "brightness(0) opacity(0.28)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} priority />
+                  </div>
+                  <h2 className="font-black uppercase leading-none text-right transition-all duration-700"
+                    style={{
+                      fontFamily: "var(--font-barlow, system-ui), sans-serif",
+                      fontSize: "clamp(1.1rem, 2.6vw, 3.4rem)",
+                      color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.22)",
+                      letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900,
+                    }}
+                  >
+                    MASTER<br />THE CRAFT.
+                  </h2>
+                  <AnimatePresence>
+                    {isAcademy && (
+                      <motion.div key="ac-list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col items-end gap-1.5">
+                        {["Design Thinking", "Creative Direction", "Brand Identity"].map((t, i) => (
+                          <div key={t} className="flex items-center gap-2 justify-end" style={{ transform: `rotate(${(i - 1) * 0.5}deg)` }}>
+                            <span className="text-[9px] font-mono text-[#2a1a08]/60 tracking-wider">{t}</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-700/60" />
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <motion.div animate={{ opacity: isAcademy ? 1 : 0 }} transition={{ duration: 0.4 }} className="flex justify-end">
+                  <div className="inline-flex items-center gap-2 px-4 py-2"
+                    style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
+                    <span className="text-[8px] font-mono font-bold tracking-[0.25em] uppercase text-[#3a2808]">Enter Academy</span>
+                    <span className="text-[#8b6a3a]">↗</span>
+                  </div>
+                </motion.div>
+              </button>
 
-      <ElasticBoundary side={side} mousePos={mousePos} windowSize={{ w: typeof window !== 'undefined' ? window.innerWidth : 1000, h: typeof window !== 'undefined' ? window.innerHeight : 1000 }} />
-          <motion.div
-        className="relative overflow-hidden"
-        animate={{ 
-          width: isMobile ? "100%" : (isAcademy ? "58%" : isAgency ? "42%" : "50%"),
-          height: isMobile ? "100%" : "100%"
-        }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          zIndex: isAcademy ? 20 : 10,
-          cursor: `url('/cursor-academy.svg') 0 32, auto`
-        }}
-        onClick={() => handleMobileTouch("academy")}
-      >
-        <div className="absolute inset-0" style={{ backgroundColor: "#f0e8d4", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(transparent, transparent 27px, rgba(180,200,220,0.18) 27px, rgba(180,200,220,0.18) 28px)` }} />
-        <div className="absolute top-0 left-8 md:left-16 w-px h-full bg-red-300/20 pointer-events-none" />
-        <AcademyCanvas active={isAcademy} />
-        {!isMobile && <SketchAnnotations active={isAcademy} />}
-
-        {/* Split-Text Morphing Typography (Academy Side) */}
-        <div className="absolute top-0 right-0 h-full w-[100vw] pointer-events-none flex items-center justify-center z-[2] select-none overflow-hidden">
-          <span 
-            className="font-black text-[18vw] uppercase leading-none tracking-[0.05em] transition-all duration-700 ease-[0.16,1,0.3,1] select-none"
-            style={{ 
-              fontFamily: "var(--font-serif, Georgia), serif", 
-              filter: "url(#rough-paper)",
-              letterSpacing: isAcademy ? "0.08em" : "0.02em",
-              color: "rgba(42, 26, 8, 0.12)"
-            }}
-          >
-            GREKAM
-          </span>
-        </div>
-
-        <button
-          className="absolute inset-0 flex flex-col justify-between pl-12 pr-6 py-8 md:pl-20 md:pr-10 md:py-14 text-left z-10"
-          onClick={() => isMobile ? (isAcademy ? navigate("academy", "https://academy.grekam.in/") : handleMobileTouch("academy")) : navigate("academy", "https://academy.grekam.in/")}
-          style={{ cursor: `url('/cursor-academy.svg') 0 32, auto`, filter: isAcademy ? "url(#rough-paper)" : "none" }}
-        >
-          <motion.div animate={{ opacity: (isMobile || isAcademy) ? 1 : 0.35 }} transition={{ duration: 0.6 }}>
-            <div className="text-[9px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-2">02 / ACADEMY</div>
-            <svg width="48" height="4" viewBox="0 0 48 4"><path d="M0 2 Q12 1 24 2 Q36 3 48 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
-          </motion.div>
-
-          <div className="flex flex-col items-center">
-            <motion.div animate={{ filter: (isMobile || isAcademy) ? "none" : "blur(1.5px)", opacity: (isMobile || isAcademy) ? 1 : 0.25 }} transition={{ duration: 0.7 }} className="flex flex-col items-center text-center gap-4">
-              <div className={isMobile ? "w-[220px]" : "w-[320px]"}>
-                <Image src="/academy-logo.png" alt="Grekam Academy" width={320} height={120} className="object-contain w-full h-auto" style={{ filter: isAcademy ? "brightness(0) url(#rough-paper) contrast(1.2)" : "brightness(0)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} priority />
+              {/* ── CENTER PIVOT LOGO ── */}
+              <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none select-none">
+                <div className="relative flex items-center justify-center" style={{ width: "clamp(44px, 6.5vw, 68px)", height: "clamp(44px, 6.5vw, 68px)" }}>
+                  <motion.div
+                    animate={{ scale: [0.92, 1.08, 0.92], opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute rounded-full"
+                    style={{
+                      inset: "-8px",
+                      border: isAgency ? "1px solid rgba(6,182,212,0.5)" : isAcademy ? "1px solid rgba(180,120,40,0.5)" : "1px solid rgba(200,200,220,0.15)",
+                      boxShadow: isAgency ? "0 0 20px rgba(6,182,212,0.35)" : isAcademy ? "0 0 20px rgba(180,120,40,0.35)" : "0 0 10px rgba(200,200,220,0.08)",
+                      transition: "all 0.5s ease",
+                    }}
+                  />
+                  <div className="w-full h-full rounded-full overflow-hidden shadow-2xl border border-white/10">
+                    <div className="w-full h-1/2 bg-[#0d0d14]" />
+                    <div className="w-full h-1/2 bg-[#f0e8d4]" />
+                  </div>
+                  <div className="absolute font-black text-xs tracking-wider mix-blend-difference select-none"
+                    style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", color: "#fff" }}>
+                    G
+                  </div>
+                </div>
               </div>
-              <h2 style={{ fontFamily: "var(--font-barlow, system-ui), sans-serif", fontSize: "clamp(2rem, 5vw, 6.5rem)", color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.25)", letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900, transition: "color 0.6s ease" }}>MASTER<br />THE CRAFT.</h2>
-              <div className="mt-2 text-xs font-mono" style={{ color: "#8b6a3a", opacity: isAcademy ? 0.7 : 0 }}>↓ start here</div>
-            </motion.div>
-            <AnimatePresence>
-              {isAcademy && (
-                <motion.div key="sketch-elements" className="mt-4 md:mt-6 space-y-2 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}>
-                  {["Design Thinking", "Creative Direction", "Brand Identity"].map((item, i) => (
-                    <div key={item} className="flex items-center justify-center gap-2" style={{ transform: `rotate(${(i - 1) * 0.5}deg)`, filter: "url(#rough-paper)" }}>
-                      <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 4 Q8 2 16 4" stroke="rgba(80,55,20,0.8)" strokeWidth="1.5" fill="none" /></svg>
-                      <span className="text-[12px] font-mono font-bold text-[#2a1a08]">{item}</span>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
-          <motion.div className="mb-4 md:mb-0" animate={{ opacity: isAcademy ? 1 : 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <div className="inline-flex items-center gap-3 px-5 py-3" style={{ background: "rgba(255,220,100,0.3)", border: "1px solid rgba(140,100,40,0.2)", transform: "rotate(-0.5deg)", filter: "url(#rough-paper)" }}>
-              <span className="text-[10px] font-mono font-bold tracking-[0.25em] uppercase text-[#3a2808]">Enter Academy</span>
-              <span className="text-[#8b6a3a]">↗</span>
+              {/* ── SWAP / ROTATE BUTTON ── */}
+              <button
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                style={{
+                  background: isAgency ? "rgba(6,182,212,0.12)" : isAcademy ? "rgba(180,120,40,0.12)" : "rgba(200,200,220,0.06)",
+                  border: isAgency ? "1px solid rgba(6,182,212,0.3)" : isAcademy ? "1px solid rgba(180,120,40,0.3)" : "1px solid rgba(200,200,220,0.1)",
+                  color: isAgency ? "rgba(6,182,212,0.9)" : isAcademy ? "rgba(140,90,30,0.9)" : "rgba(200,200,220,0.45)",
+                }}
+                title="Swap sides"
+                onClick={() => setSide(side === "agency" ? "academy" : side === "academy" ? null : "agency")}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 8a6 6 0 0 1 10.39-3.97" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  <path d="M14 8a6 6 0 0 1-10.39 3.97" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  <path d="M12 3.5 L13.5 4.5 L12 5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  <path d="M4 10.5 L2.5 11.5 L4 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+              </button>
             </div>
-          </motion.div>
-        </button>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(242,236,220,0.5)", filter: "grayscale(0.6)", opacity: isAgency ? 0.7 : 0, transition: "opacity 0.7s ease" }} />
-      </motion.div>
-        </>
+
+            {/* Overlay dimmer on non-hovered halves */}
+            <div className="absolute inset-0 pointer-events-none z-[4]"
+              style={{ background: "rgba(14,15,20,0.35)", opacity: isAcademy ? 1 : 0, clipPath: "inset(0 50% 0 0)", transition: "opacity 0.7s ease" }} />
+            <div className="absolute inset-0 pointer-events-none z-[4]"
+              style={{ background: "rgba(242,236,220,0.4)", filter: "grayscale(0.5)", opacity: isAgency ? 1 : 0, clipPath: "inset(0 0 0 50%)", transition: "opacity 0.7s ease" }} />
+          </div>
+        
       )}
 
 {/* ═══════════════════════════════ */}
