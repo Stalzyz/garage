@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, animate } from "framer-motion"
 import Link from "next/link"
-import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Trash2, Wrench, ShoppingBag, Megaphone, MessageSquare, LayoutGrid, Briefcase, ShieldCheck, FileText } from "lucide-react"
+import { X, Zap, Code2, Rocket, Palette, Fingerprint, Users, Volume2, VolumeX, TriangleAlert, Mail, Phone, MapPin, Send, ChevronDown, Orbit, CheckCircle2, CalendarDays, IndianRupee, Layers, Check, Monitor, Tablet, Smartphone, ExternalLink, RotateCw, Lock, Copy, Sparkles, Eye, Globe, GraduationCap, ArrowRight, Scale, Shield, CreditCard, RefreshCw, Truck, Pencil, Trash2, Wrench, ShoppingBag, Megaphone, MessageSquare, LayoutGrid, Briefcase, ShieldCheck, FileText, Waves, Sliders, Music, Radio, Disc } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 import { CardData, ProjectData, PosterCardItem, INITIAL_CARDS, CINEMATIC_POSTERS_DATA, BRANDING_PROJECTS, DUMMY_PROJECTS } from "./agency-data"
 
@@ -1558,45 +1558,55 @@ const LayoutCreativeOS = ({ cards, playSound, playDockSound, selectedInstrument,
 
            {/* Integrated Instrument Selector Switcher Button & Dropdown */}
            <div ref={menuRef} className="relative shrink-0 z-[1000]">
-             <button
-               type="button"
-               onClick={(e) => {
-                 e.stopPropagation();
-                 setMenuOpen(prev => !prev);
-                 playDockSound(0);
-               }}
-               className="flex items-center gap-1.5 px-3 md:px-3.5 py-2 md:py-2.5 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 transition-all cursor-pointer shadow-md active:scale-95"
-               title="Choose Sound Instrument"
-             >
-               <Volume2 className="w-4 h-4 text-emerald-400" />
-               <span className="text-base leading-none">{INSTRUMENTS.find((i: any) => i.id === selectedInstrument)?.icon || '🎹'}</span>
-               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
-             </button>
+             {(() => {
+               const SelectedIcon = INSTRUMENTS.find((i: any) => i.id === selectedInstrument)?.icon || Waves;
+               const selectedName = INSTRUMENTS.find((i: any) => i.id === selectedInstrument)?.name || 'Odysseus Strings';
+               return (
+                 <button
+                   type="button"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     setMenuOpen(prev => !prev);
+                     playDockSound(0);
+                   }}
+                   className="flex items-center gap-2 px-3 md:px-3.5 py-2 md:py-2.5 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 transition-all cursor-pointer shadow-md active:scale-95 text-xs font-mono font-bold"
+                   title="Choose Sound Instrument"
+                 >
+                   <SelectedIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                   <span className="hidden sm:inline tracking-wider">{selectedName}</span>
+                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
+                 </button>
+               )
+             })()}
 
              {menuOpen && (
                <div className="absolute bottom-full right-0 mb-3 p-2 bg-zinc-950 border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.95)] min-w-[220px] space-y-1 z-[9999] pointer-events-auto">
                  <div className="px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-white/50 border-b border-white/10 mb-1">
-                   Select Instrument
+                   Select Tone Instrument
                  </div>
-                 {INSTRUMENTS.map((inst: any, idx: number) => (
-                   <button
-                     key={inst.id}
-                     type="button"
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       setSelectedInstrument(inst.id);
-                       setMenuOpen(false);
-                       playDockSound(idx);
-                     }}
-                     className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${selectedInstrument === inst.id ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
-                   >
-                     <span className="flex items-center gap-2">
-                       <span>{inst.icon}</span>
-                       <span>{inst.name}</span>
-                     </span>
-                     {selectedInstrument === inst.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                   </button>
-                 ))}
+                 {INSTRUMENTS.map((inst: any, idx: number) => {
+                   const InstIcon = inst.icon
+                   const isSelected = selectedInstrument === inst.id
+                   return (
+                     <button
+                       key={inst.id}
+                       type="button"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         setSelectedInstrument(inst.id);
+                         setMenuOpen(false);
+                         playDockSound(idx);
+                       }}
+                       className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${isSelected ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                     >
+                       <span className="flex items-center gap-2.5">
+                         <InstIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-white/60'}`} />
+                         <span>{inst.name}</span>
+                       </span>
+                       {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                     </button>
+                   )
+                 })}
                </div>
              )}
            </div>
@@ -2739,27 +2749,77 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
-  const [selectedInstrument, setSelectedInstrument] = useState<'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'>('piano')
+  const [selectedInstrument, setSelectedInstrument] = useState<'odysseus' | 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'>('odysseus')
   const [showInstrumentMenu, setShowInstrumentMenu] = useState(false)
 
-  const INSTRUMENTS: { id: 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'; name: string; icon: string }[] = [
-    { id: 'piano', name: 'Grand Piano 🎹', icon: '🎹' },
-    { id: 'cello', name: 'Solo Cello 🎻', icon: '🎻' },
-    { id: 'guitar', name: 'Acoustic Guitar 🎸', icon: '🎸' },
-    { id: 'marimba', name: 'Marimba 🎵', icon: '🎵' },
-    { id: 'synth', name: 'Celestial Synth ⚡', icon: '⚡' },
+  const INSTRUMENTS: { id: 'odysseus' | 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'; name: string; icon: any }[] = [
+    { id: 'odysseus', name: 'Odysseus Strings', icon: Waves },
+    { id: 'piano', name: 'Grand Piano', icon: Sliders },
+    { id: 'cello', name: 'Solo Cello', icon: Music },
+    { id: 'guitar', name: 'Acoustic Guitar', icon: Radio },
+    { id: 'marimba', name: 'Marimba', icon: Disc },
+    { id: 'synth', name: 'Celestial Synth', icon: Zap },
   ]
 
   const PENTATONIC_SCALE = [
     261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51
   ]
 
-  const playInstrumentSound = (ctx: AudioContext, noteIndex: number, inst: 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth') => {
+  const playInstrumentSound = (ctx: AudioContext, noteIndex: number, inst: 'odysseus' | 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth') => {
     try {
       const freq = PENTATONIC_SCALE[noteIndex % PENTATONIC_SCALE.length] || 440
       const now = ctx.currentTime
 
-      if (inst === 'piano') {
+      if (inst === 'odysseus') {
+        // Soaring cinematic Odysseus string ensemble tone
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const osc3 = ctx.createOscillator()
+        const filter = ctx.createBiquadFilter()
+        const gain = ctx.createGain()
+
+        osc1.type = 'sawtooth'
+        osc1.frequency.setValueAtTime(freq / 2, now)
+
+        osc2.type = 'sawtooth'
+        osc2.frequency.setValueAtTime((freq / 2) * 1.006, now)
+
+        osc3.type = 'sawtooth'
+        osc3.frequency.setValueAtTime((freq / 2) * 0.994, now)
+
+        const lfo = ctx.createOscillator()
+        const lfoGain = ctx.createGain()
+        lfo.frequency.value = 5.0
+        lfoGain.gain.value = (freq / 2) * 0.012
+        lfo.connect(osc1.frequency)
+        lfo.connect(osc2.frequency)
+        lfo.connect(osc3.frequency)
+        lfo.start(now)
+
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(700, now)
+        filter.frequency.exponentialRampToValueAtTime(1600, now + 0.25)
+        filter.frequency.exponentialRampToValueAtTime(450, now + 1.1)
+        filter.Q.setValueAtTime(1.8, now)
+
+        gain.gain.setValueAtTime(0.001, now)
+        gain.gain.linearRampToValueAtTime(0.28, now + 0.08)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1)
+
+        osc1.connect(filter)
+        osc2.connect(filter)
+        osc3.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc1.start(now)
+        osc2.start(now)
+        osc3.start(now)
+        osc1.stop(now + 1.1)
+        osc2.stop(now + 1.1)
+        osc3.stop(now + 1.1)
+        lfo.stop(now + 1.1)
+      } else if (inst === 'piano') {
         const osc1 = ctx.createOscillator()
         const osc2 = ctx.createOscillator()
         const gain = ctx.createGain()
