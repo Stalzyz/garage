@@ -270,6 +270,7 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                       <th className="px-3 py-2">Telecaller</th>
                       <th className="px-3 py-2">Lead Name / Phone</th>
                       <th className="px-3 py-2">Call Disposition / Notes</th>
+                      <th className="px-3 py-2 text-center">Audio Recording</th>
                       <th className="px-3 py-2 text-right">Spoken Duration</th>
                     </tr>
                   </thead>
@@ -285,6 +286,13 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                           <div className="text-[10px] text-muted-foreground font-mono">{log.leadPhone}</div>
                         </td>
                         <td className="px-3 py-2 text-muted-foreground truncate max-w-xs">{log.content}</td>
+                        <td className="px-3 py-2 text-center">
+                          {log.recordingUrl ? (
+                            <audio controls src={log.recordingUrl} className="h-7 w-48 mx-auto" />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/60 italic">No audio file</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right font-mono font-bold text-emerald-400">{log.formattedDuration}</td>
                       </tr>
                     ))}

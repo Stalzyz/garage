@@ -182,6 +182,30 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
     const grandTotalDurationSeconds = telecallersSummary.reduce((acc, curr) => acc + curr.totalDurationSeconds, 0);
 
+    const detailedLogs = callActivities.map(a => {
+      const u = userMap.get(a.userId);
+      const durSec = extractDurationSeconds(a.content || '');
+      const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*(https?:\/\/[^\s\]]+)\]/i) : null;
+      const recordingUrl = recMatch ? recMatch[1] : null;
+
+      return {
+        id: a.id,
+        userId: a.userId,
+        telecallerName: u
+          ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+          : (a.userId === 'system' ? 'System' : a.userId),
+        telecallerEmail: u?.email || '',
+        leadName: a.lead?.name || 'Unknown Lead',
+        leadPhone: a.lead?.phone || 'N/A',
+        leadCompany: a.lead?.company || 'N/A',
+        content: a.content,
+        durationSeconds: durSec,
+        formattedDuration: formatTalkTime(durSec),
+        recordingUrl,
+        timestamp: a.createdAt,
+      };
+    });
+
     return {
       date: startOfDay.toISOString().split('T')[0],
       totalCallsToday: callActivities.length,
@@ -189,28 +213,44 @@ export default async function telephonyRouter(app: FastifyInstance) {
       formattedTotalTalkTime: formatTalkTime(grandTotalDurationSeconds),
       telecallersCount: telecallersSummary.length,
       summary: telecallersSummary,
-      detailedLogs: callActivities.map(a => {
-        const u = userMap.get(a.userId);
-        const durSec = extractDurationSeconds(a.content || '');
-        return {
-          id: a.id,
-          userId: a.userId,
-          telecallerName: u
-            ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
-            : (a.userId === 'system' ? 'System' : a.userId),
-          telecallerEmail: u?.email || '',
-          leadName: a.lead?.name || 'Unknown Lead',
-          leadPhone: a.lead?.phone || 'N/A',
-          leadCompany: a.lead?.company || 'N/A',
-          content: a.content,
-          durationSeconds: durSec,
-          formattedDuration: formatTalkTime(durSec),
-          timestamp: a.createdAt,
-        };
-      }),
+      detailedLogs,
     };
   };
 
   app.get('/daily-report', getDailyCallReport);
   app.get('/calls/daily-report', getDailyCallReport);
+
+  // POST /api/v1/crm/telephony/recordings — log call with audio recording URL
+  app.post('/recordings', async (req, reply) => {
+    const body = req.body as {
+      leadId: string;
+      recordingUrl?: string;
+      durationSeconds?: number;
+      disposition?: string;
+      notes?: string;
+    };
+
+    if (!body.leadId) {
+      return reply.status(400).send({ error: 'leadId is required' });
+    }
+
+    const durationSec = body.durationSeconds || 0;
+    const durStr = formatTalkTime(durationSec);
+    const audioTag = body.recordingUrl ? ` [Recording: ${body.recordingUrl}]` : '';
+    const dispositionTag = body.disposition ? ` [Disposition: ${body.disposition}]` : '';
+    const notesStr = body.notes ? ` Notes: ${body.notes}` : '';
+
+    const content = `[Call Duration: ${durStr}]${dispositionTag}${audioTag}${notesStr}`.trim();
+
+    const activity = await app.prisma.leadActivity.create({
+      data: {
+        leadId: body.leadId,
+        type: 'CALL',
+        content,
+        userId: (req as any).user?.id || 'system',
+      },
+    });
+
+    return { success: true, activity };
+  });
 }

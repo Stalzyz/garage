@@ -13,6 +13,7 @@ export default function PowerDialerDashboard() {
   const [queuePos, setQueuePos] = useState(0)
   const [sortBy, setSortBy] = useState<"score" | "name" | "recent">("score")
   const [routeThroughMobile, setRouteThroughMobile] = useState(false)
+  const [enableCallRecording, setEnableCallRecording] = useState(true)
   const { data: session } = useSession()
 
   // Fetch real leads from API
@@ -328,7 +329,7 @@ export default function PowerDialerDashboard() {
             </div>
             <label className="flex items-center justify-between md:justify-start gap-2.5 cursor-pointer bg-muted/30 px-3 py-2 md:py-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-all select-none">
               <Smartphone className={`w-4 h-4 transition-colors ${routeThroughMobile ? "text-primary" : "text-muted-foreground"}`} />
-              <span className="text-xs font-bold text-foreground">Mobile Dialer Mode</span>
+              <span className="text-xs font-bold text-foreground">Mobile Dialer</span>
               <input 
                 type="checkbox" 
                 checked={routeThroughMobile}
@@ -337,6 +338,23 @@ export default function PowerDialerDashboard() {
               />
               <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${routeThroughMobile ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
                 <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${routeThroughMobile ? 'translate-x-3.5' : 'translate-x-0'}`} />
+              </div>
+            </label>
+
+            <label className="flex items-center justify-between md:justify-start gap-2.5 cursor-pointer bg-rose-500/10 px-3 py-2 md:py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/20 transition-all select-none">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span className="text-xs font-bold text-rose-300">Auto Rec Calls</span>
+              <input 
+                type="checkbox" 
+                checked={enableCallRecording}
+                onChange={(e) => {
+                  setEnableCallRecording(e.target.checked)
+                  toast.info(e.target.checked ? "Auto Call Recording Enabled" : "Auto Call Recording Disabled")
+                }}
+                className="sr-only"
+              />
+              <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${enableCallRecording ? 'bg-rose-500' : 'bg-muted-foreground/30'}`}>
+                <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${enableCallRecording ? 'translate-x-3.5' : 'translate-x-0'}`} />
               </div>
             </label>
             <div className="flex items-center justify-between md:justify-start gap-4">
