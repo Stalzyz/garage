@@ -40,8 +40,8 @@ function formatTalkTime(totalSeconds: number): string {
 }
 
 export default async function telephonyRouter(app: FastifyInstance) {
-  app.post<{ Body: DialMobileBody }>('/dial-mobile', async (req, reply) => {
-    const { leadPhone, email } = req.body;
+  const handleDialMobile = async (req: any, reply: any) => {
+    const { leadPhone, email } = req.body || {};
 
     if (!leadPhone || !email) {
       return reply.status(400).send({ error: 'leadPhone and email are required' });
@@ -51,7 +51,10 @@ export default async function telephonyRouter(app: FastifyInstance) {
     (app as any).broadcast('MOBILE_DIAL_TRIGGER', { email, leadPhone });
 
     return { success: true };
-  });
+  };
+
+  app.post('/dial-mobile', handleDialMobile);
+  app.post('/telephony/dial-mobile', handleDialMobile);
 
   // GET /api/v1/crm/telephony/daily-report (or /calls/daily-report)
   const getDailyCallReport = async (req: any) => {
@@ -219,9 +222,11 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
   app.get('/daily-report', getDailyCallReport);
   app.get('/calls/daily-report', getDailyCallReport);
+  app.get('/telephony/daily-report', getDailyCallReport);
+  app.get('/telephony/calls/daily-report', getDailyCallReport);
 
   // POST /api/v1/crm/telephony/recordings — log call with audio recording URL
-  app.post('/recordings', async (req, reply) => {
+  const handleRecordings = async (req: any, reply: any) => {
     const body = req.body as {
       leadId: string;
       recordingUrl?: string;
@@ -252,5 +257,8 @@ export default async function telephonyRouter(app: FastifyInstance) {
     });
 
     return { success: true, activity };
-  });
+  };
+
+  app.post('/recordings', handleRecordings);
+  app.post('/telephony/recordings', handleRecordings);
 }
