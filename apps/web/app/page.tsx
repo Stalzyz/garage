@@ -1341,7 +1341,7 @@ export default function SplitReality() {
             <div className="absolute inset-0 pointer-events-none z-[4]"
               style={{ background: "rgba(242,236,220,0.4)", filter: "grayscale(0.5)", opacity: isAgency ? 1 : 0, clipPath: "inset(0 0 0 50%)", transition: "opacity 0.7s ease" }} />
           </div>
-        
+        </>
       )}
 
 {/* ═══════════════════════════════ */}
