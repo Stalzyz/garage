@@ -25,8 +25,8 @@ cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 
 cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
 cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
 
-pm2 restart grekam-os-web 2>/dev/null || pm2 restart web 2>/dev/null || echo "web process not found"
-pm2 restart grekam-os-api 2>/dev/null || pm2 restart api 2>/dev/null || echo "api process not found"
+pm2 restart grekam-os-web || pm2 restart 11 || echo "web process not found"
+pm2 restart grekam-os-api || pm2 restart 2 || echo "api process not found"
 
 if pm2 describe academy-web > /dev/null 2>&1; then
   echo "academy-web already exists — restarting..."
