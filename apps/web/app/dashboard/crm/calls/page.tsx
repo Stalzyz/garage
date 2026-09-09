@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, Sparkles, BookOpen, RefreshCw, X, Send, Calendar, Users, PhoneCall, Phone, UserCheck, Clock, Plus, Volume2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
