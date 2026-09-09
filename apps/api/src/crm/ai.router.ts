@@ -225,25 +225,34 @@ Return ONLY valid JSON matching this exact structure:
       const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
-        app.log.warn("Gemini API Key missing. Returning fallback call analysis.");
-        await new Promise(r => setTimeout(r, 700));
+        app.log.warn("Gemini API Key missing. Running dynamic heuristic call analysis.");
+        await new Promise(r => setTimeout(r, 600));
+
+        const isPositive = /bought|interested|yes|deal|demo|sign|next step|send proposal|book|agree|great|close|pricing/i.test(transcript);
+        const isSkeptical = /price|cost|expensive|competitor|budget|not sure|think about|delay|issue/i.test(transcript);
+
+        const sentiment = isPositive ? "Highly Interested" : isSkeptical ? "Skeptical" : "Neutral";
+        const score = isPositive ? 88 : isSkeptical ? 68 : 78;
+
+        const lines = transcript.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+        const extractedSignals = lines.slice(0, 3).map(l => l.replace(/^[A-Za-z0-9\s()]+:\s*/, ''));
+
         return {
           success: true,
           data: {
-            sentiment: "Highly Interested",
-            callScore: 92,
-            objectionsHandledCount: 2,
-            totalObjectionsCount: 2,
-            buyingSignals: [
-              "Asked about CPA reduction strategy",
-              "Confirmed recent funding round and Q4 demo volume goals",
-              "Agreed to 15-minute discovery call next Tuesday"
+            sentiment,
+            callScore: score,
+            objectionsHandledCount: isSkeptical ? 2 : 1,
+            totalObjectionsCount: isSkeptical ? 2 : 1,
+            buyingSignals: extractedSignals.length > 0 ? extractedSignals : [
+              `Discussed call requirements between ${repName} and ${prospectName}`,
+              `Expressed interest in Grekam solutions and follow-up steps`
             ],
-            summary: `${prospectName} confirmed recent funding and expressed high interest in demo volume scaling. ${repName} addressed CPA concerns effectively. Discovery call scheduled for next Tuesday.`,
+            summary: `Sales call between ${repName} and ${prospectName}. ${lines.length > 0 ? lines.slice(0, 2).join(' ') : 'Call logged and processed.'}`,
             suggestedCrmActions: [
-              { type: "STATUS_UPDATE", text: "Lead Status updated to Meeting Booked" },
-              { type: "TASK", text: "Send MedTech Pro case study via email before Tuesday" },
-              { type: "EVENT", text: "Discovery Call scheduled for Tue @ 2:00 PM" }
+              { type: "STATUS_UPDATE", text: `Update ${prospectName} status to ${isPositive ? 'Meeting Booked / High Intent' : 'Follow Up Required'}` },
+              { type: "TASK", text: `Send follow-up details & proposal to ${prospectName}` },
+              { type: "EVENT", text: `Schedule next call / demo with ${prospectName}` }
             ]
           }
         };

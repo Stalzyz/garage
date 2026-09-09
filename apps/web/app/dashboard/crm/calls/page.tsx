@@ -89,36 +89,17 @@ export default function CallIntelligenceDashboard() {
     userId: "ALL",
     durationSeconds: 120,
     disposition: "MEETING BOOKED",
-    recordingUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    notes: "Client interested in demo next week. Call recorded for quality audit."
+    recordingUrl: "",
+    notes: ""
   })
 
-  const [transcript, setTranscript] = useState(`Aisha (Sales): Hi Sarah, this is Aisha calling from Grekam. I saw Nexus Health just closed a Series B, huge congrats on that!
-Sarah (Nexus Health): Oh, thank you! It's been a crazy few weeks here. Who did you say you were with again?
-Aisha (Sales): Grekam. We're a creative and growth agency. I noticed you downloaded our SaaS Marketing whitepaper last week. I'm guessing with the new funding, you're looking to scale up your paid acquisition?
-Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volume by Q4. I actually was meaning to read that whitepaper but haven't gotten around to it. How exactly do you guys help with CPA?`)
-
-  const [repName, setRepName] = useState("Aisha (Sales)")
-  const [prospectName, setProspectName] = useState("Sarah (Nexus Health)")
+  const [transcript, setTranscript] = useState("")
+  const [repName, setRepName] = useState("")
+  const [prospectName, setProspectName] = useState("")
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null)
   
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<any>({
-    sentiment: "Highly Interested",
-    callScore: 92,
-    objectionsHandledCount: 2,
-    totalObjectionsCount: 2,
-    buyingSignals: [
-      "Asked about CPA reduction strategy",
-      "Confirmed recent funding round and Q4 demo volume goals",
-      "Agreed to 15-minute discovery call next Tuesday"
-    ],
-    summary: "Sarah confirmed Nexus Health just raised a Series B and needs to double demo volume by Q4. She hasn't read the whitepaper yet but was highly engaged when Aisha explained our CPA reduction strategies. She agreed to a 15-minute discovery call next Tuesday.",
-    suggestedCrmActions: [
-      { type: "STATUS_UPDATE", text: "Lead Status updated from Cold to Meeting Booked" },
-      { type: "TASK", text: "Send MedTech Pro case study via email before Tuesday." },
-      { type: "EVENT", text: "Discovery Call on Tue, Jul 12 @ 2:00 PM." }
-    ]
-  })
+  const [analysisResult, setAnalysisResult] = useState<any>(null)
 
   // Script Generator Modal State
   const [isScriptModalOpen, setIsScriptModalOpen] = useState(false)
@@ -129,6 +110,29 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
   })
   const [isGeneratingScript, setIsGeneratingScript] = useState(false)
   const [activeScript, setActiveScript] = useState<any>(null)
+
+  const triggerCallAudit = async (customTranscript?: string, customProspect?: string, customRep?: string) => {
+    const t = customTranscript !== undefined ? customTranscript : transcript
+    const p = customProspect !== undefined ? customProspect : prospectName
+    const r = customRep !== undefined ? customRep : repName
+
+    if (!t.trim()) return toast.error("Please select a call from the table or paste a call transcript")
+    setIsAnalyzing(true)
+    try {
+      const res = await fetchApi("/crm/ai/analyze-call", {
+        method: "POST",
+        body: JSON.stringify({ transcript: t, prospectName: p || "Prospect", repName: r || "Sales Rep" })
+      })
+      if (res?.data) {
+        setAnalysisResult(res.data)
+        toast.success("AI Call Intelligence audit completed!")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to analyze call")
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
 
   const handleLogCallActivity = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -150,6 +154,22 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
         toast.success("Call activity & recording logged successfully!")
         setIsLogCallModalOpen(false)
         mutateDailyReport()
+
+        // Auto-extract info for AI audit from newly logged call
+        const selectedLead = leads.find((l: any) => l.id === logCallForm.leadId)
+        const selectedStaff = allStaffOptions.find((s: any) => s.userId === logCallForm.userId)
+        
+        const rName = selectedStaff?.userName || "Telecaller"
+        const pName = selectedLead ? (`${selectedLead.firstName || ''} ${selectedLead.lastName || ''}`.trim() || selectedLead.name || selectedLead.company || "Prospect") : "Prospect"
+        const callContent = logCallForm.notes 
+          ? `${rName}: Spoke with ${pName} [Disposition: ${logCallForm.disposition}]\n${pName}: ${logCallForm.notes}`
+          : `${rName} logged a ${logCallForm.disposition} call with ${pName}. Spoken duration: ${logCallForm.durationSeconds}s.`
+
+        setRepName(rName)
+        setProspectName(pName)
+        setTranscript(callContent)
+
+        triggerCallAudit(callContent, pName, rName)
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to log call activity")
@@ -159,22 +179,7 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
   }
 
   const handleAnalyzeCall = async () => {
-    if (!transcript.trim()) return toast.error("Please enter a call transcript")
-    setIsAnalyzing(true)
-    try {
-      const res = await fetchApi("/crm/ai/analyze-call", {
-        method: "POST",
-        body: JSON.stringify({ transcript, prospectName, repName })
-      })
-      if (res?.data) {
-        setAnalysisResult(res.data)
-        toast.success("AI Call Intelligence audit completed!")
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to analyze call")
-    } finally {
-      setIsAnalyzing(false)
-    }
+    triggerCallAudit()
   }
 
   const handleGenerateScript = async (e: React.FormEvent) => {
@@ -384,7 +389,20 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                     </tr>
                   ) : (
                     activeLogs.map((log: any) => (
-                      <tr key={log.id} className="hover:bg-muted/10">
+                      <tr 
+                        key={log.id} 
+                        onClick={() => {
+                          setSelectedLogId(log.id)
+                          const rName = log.telecallerName || "Telecaller"
+                          const pName = log.leadName || "Prospect"
+                          const callNotes = log.content || `[Call Duration: ${log.formattedDuration}]`
+                          setRepName(rName)
+                          setProspectName(pName)
+                          setTranscript(callNotes)
+                          triggerCallAudit(callNotes, pName, rName)
+                        }}
+                        className={`transition-all cursor-pointer ${selectedLogId === log.id ? 'bg-primary/20 border-l-4 border-l-primary font-semibold' : 'hover:bg-muted/15'}`}
+                      >
                         <td className="px-3 py-2 font-mono text-muted-foreground">
                           {format(new Date(log.timestamp), "hh:mm a")}
                         </td>
@@ -394,7 +412,7 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                           <div className="text-[10px] text-muted-foreground font-mono">{log.leadPhone}</div>
                         </td>
                         <td className="px-3 py-2 text-muted-foreground truncate max-w-xs">{log.content}</td>
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                           {log.recordingUrl ? (
                             <audio controls src={log.recordingUrl} className="h-7 w-48 mx-auto" />
                           ) : (
@@ -472,72 +490,106 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                 <Zap className="w-5 h-5 text-primary" />
                 <h3 className="font-bold text-foreground">Gemini AI Call Audit</h3>
               </div>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
-                Score: {analysisResult.callScore || 90}/100
-              </span>
+              {analysisResult && (
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+                  Score: {analysisResult.callScore || 90}/100
+                </span>
+              )}
             </div>
             
-            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
-              
-              {/* Sentiment & Score */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/30 border border-border/50 rounded-xl p-3">
-                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Sentiment</div>
-                  <div className="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
-                    <TrendingUp className="w-3.5 h-3.5" /> {analysisResult.sentiment || "Interested"}
-                  </div>
+            {!analysisResult ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none text-muted-foreground">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3 text-primary">
+                  <Sparkles className="w-7 h-7 animate-pulse text-emerald-400" />
                 </div>
-                <div className="bg-muted/30 border border-border/50 rounded-xl p-3">
-                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Objections</div>
-                  <div className="text-foreground font-bold flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    {analysisResult.objectionsHandledCount || 2} / {analysisResult.totalObjectionsCount || 2} Handled
-                  </div>
-                </div>
+                <h4 className="font-bold text-foreground text-sm mb-1">No Call Selected for AI Audit</h4>
+                <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-4">
+                  Select a logged call from the table above or paste a transcript to run Gemini AI analysis.
+                </p>
+                <button
+                  onClick={() => {
+                    if (activeLogs.length > 0) {
+                      const first = activeLogs[0]
+                      setSelectedLogId(first.id)
+                      const rName = first.telecallerName || "Telecaller"
+                      const pName = first.leadName || "Prospect"
+                      const callNotes = first.content || `[Call Duration: ${first.formattedDuration}]`
+                      setRepName(rName)
+                      setProspectName(pName)
+                      setTranscript(callNotes)
+                      triggerCallAudit(callNotes, pName, rName)
+                    } else {
+                      setIsLogCallModalOpen(true)
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md"
+                >
+                  {activeLogs.length > 0 ? "Audit First Logged Call" : "+ Log Call Activity"}
+                </button>
               </div>
-
-              {/* Summary */}
-              <div className="space-y-2">
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">AI Executive Summary</div>
-                <div className="text-sm text-foreground/80 leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/50">
-                  {analysisResult.summary}
-                </div>
-              </div>
-
-              {/* Buying Signals */}
-              {analysisResult.buyingSignals?.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Key Buying Signals Detected</div>
-                  <ul className="space-y-1.5">
-                    {analysisResult.buyingSignals.map((sig: string, idx: number) => (
-                      <li key={idx} className="text-xs text-foreground/90 bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-lg flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                        {sig}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* CRM Injection */}
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5" /> Auto-CRM Logging Actions
-                </div>
-                
-                <div className="space-y-2.5">
-                  {analysisResult.suggestedCrmActions?.map((act: any, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs text-foreground">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <span>{act.text}</span>
+            ) : (
+              <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+                {/* Sentiment & Score */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted/30 border border-border/50 rounded-xl p-3">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Sentiment</div>
+                    <div className="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                      <TrendingUp className="w-3.5 h-3.5" /> {analysisResult.sentiment || "Interested"}
                     </div>
-                  ))}
+                  </div>
+                  <div className="bg-muted/30 border border-border/50 rounded-xl p-3">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Objections</div>
+                    <div className="text-foreground font-bold flex items-center gap-1.5 text-xs">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      {analysisResult.objectionsHandledCount || 0} / {analysisResult.totalObjectionsCount || 0} Handled
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">AI Executive Summary</div>
+                  <div className="text-sm text-foreground/80 leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/50">
+                    {analysisResult.summary}
+                  </div>
+                </div>
+
+                {/* Buying Signals */}
+                {analysisResult.buyingSignals?.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Key Buying Signals Detected</div>
+                    <ul className="space-y-1.5">
+                      {analysisResult.buyingSignals.map((sig: string, idx: number) => (
+                        <li key={idx} className="text-xs text-foreground/90 bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-lg flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                          {sig}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* CRM Injection */}
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5" /> Auto-CRM Logging Actions
+                  </div>
+                  
+                  <div className="space-y-2.5">
+                    {analysisResult.suggestedCrmActions?.map((act: any, idx: number) => (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-foreground">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>{act.text}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
+    </div>
 
       {/* Log Call Activity & Audio Recording Modal */}
       {isLogCallModalOpen && (
@@ -775,7 +827,6 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
           </div>
         </div>
       )}
-      </div>
     </div>
   )
 }
