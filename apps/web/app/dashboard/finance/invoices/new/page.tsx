@@ -25,6 +25,7 @@ export default function NewInvoicePage() {
   const contacts = contactsData?.data || []
   
   const [assignType, setAssignType] = useState<"MANUAL" | "LEAD" | "CONTACT">("MANUAL")
+  const [docType, setDocType] = useState<"TAX" | "PROFORMA">("TAX")
   
   const [invoice, setInvoice] = useState({
     invoiceNumber: `INV-${new Date().getTime().toString().slice(-6)}`,
@@ -40,6 +41,27 @@ export default function NewInvoicePage() {
     discountRate: 0,
     notes: "",
   });
+
+  const handleDocTypeChange = (type: "TAX" | "PROFORMA") => {
+    setDocType(type);
+    setInvoice(prev => {
+      let currentNum = prev.invoiceNumber;
+      if (type === "PROFORMA") {
+        if (currentNum.startsWith("INV-")) {
+          currentNum = currentNum.replace(/^INV-/, "PI-");
+        } else if (!currentNum.startsWith("PI-")) {
+          currentNum = `PI-${currentNum}`;
+        }
+      } else {
+        if (currentNum.startsWith("PI-")) {
+          currentNum = currentNum.replace(/^PI-/, "INV-");
+        } else if (!currentNum.startsWith("INV-")) {
+          currentNum = `INV-${currentNum}`;
+        }
+      }
+      return { ...prev, invoiceNumber: currentNum };
+    });
+  };
 
   const [items, setItems] = useState([
     { id: 1, description: "", quantity: 1, unitPrice: 0, discountRate: 0, taxRate: 18, hsnCode: "" }
@@ -155,7 +177,9 @@ export default function NewInvoicePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Invoice Builder</h1>
-            <p className="text-xs font-mono text-white/40 mt-1 tracking-widest uppercase">Create new tax invoice</p>
+            <p className="text-xs font-mono text-white/40 mt-1 tracking-widest uppercase">
+              {docType === 'PROFORMA' ? 'Create new proforma invoice / estimate' : 'Create new tax invoice'}
+            </p>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button 
@@ -182,11 +206,27 @@ export default function NewInvoicePage() {
               <h2 className="text-sm font-bold mb-4 font-mono uppercase tracking-widest text-white/50 border-b border-white/10 pb-2">Details</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Document Type</label>
+                  <select 
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 text-emerald-400"
+                    value={docType}
+                    onChange={e => handleDocTypeChange(e.target.value as "TAX" | "PROFORMA")}
+                  >
+                    <option value="TAX" className="bg-slate-900 text-white">📄 Tax Invoice (INV-)</option>
+                    <option value="PROFORMA" className="bg-slate-900 text-amber-400">📋 Proforma Invoice (PI-)</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Invoice Number</label>
                   <input 
                     className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500"
                     value={invoice.invoiceNumber}
-                    onChange={e => setInvoice({...invoice, invoiceNumber: e.target.value})}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setInvoice({...invoice, invoiceNumber: val});
+                      if (val.startsWith('PI-')) setDocType('PROFORMA');
+                      else if (val.startsWith('INV-')) setDocType('TAX');
+                    }}
                   />
                 </div>
                 <div>
@@ -196,8 +236,8 @@ export default function NewInvoicePage() {
                     value={invoice.businessUnit}
                     onChange={e => setInvoice({...invoice, businessUnit: e.target.value})}
                   >
-                    <option value="AGENCY">Grekam Visuals (Agency)</option>
-                    <option value="ACADEMY">Grekam Academy</option>
+                    <option value="AGENCY" className="bg-slate-900">Grekam Visuals (Agency)</option>
+                    <option value="ACADEMY" className="bg-slate-900">Grekam Academy</option>
                   </select>
                 </div>
                 <div>
@@ -569,7 +609,7 @@ export default function NewInvoicePage() {
               {/* Right Meta Column */}
               <div className="text-right space-y-3">
                 <h1 className="text-3xl font-black tracking-tight text-[#064e3b] uppercase">
-                  TAX INVOICE
+                  {docType === 'PROFORMA' || invoice.invoiceNumber.startsWith('PI-') ? 'PROFORMA INVOICE' : 'TAX INVOICE'}
                 </h1>
 
                 <div className="inline-grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-right pt-2">

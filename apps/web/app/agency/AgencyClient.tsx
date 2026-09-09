@@ -2676,6 +2676,170 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   const [cmsData, setCmsData] = useState<any>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
+  const [selectedInstrument, setSelectedInstrument] = useState<'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'>('piano')
+  const [showInstrumentMenu, setShowInstrumentMenu] = useState(false)
+
+  const INSTRUMENTS: { id: 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth'; name: string; icon: string }[] = [
+    { id: 'piano', name: 'Grand Piano 🎹', icon: '🎹' },
+    { id: 'cello', name: 'Solo Cello 🎻', icon: '🎻' },
+    { id: 'guitar', name: 'Acoustic Guitar 🎸', icon: '🎸' },
+    { id: 'marimba', name: 'Marimba 🎵', icon: '🎵' },
+    { id: 'synth', name: 'Celestial Synth ⚡', icon: '⚡' },
+  ]
+
+  const PENTATONIC_SCALE = [
+    261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51
+  ]
+
+  const playInstrumentSound = (ctx: AudioContext, noteIndex: number, inst: 'piano' | 'cello' | 'guitar' | 'marimba' | 'synth') => {
+    try {
+      const freq = PENTATONIC_SCALE[noteIndex % PENTATONIC_SCALE.length] || 440
+      const now = ctx.currentTime
+
+      if (inst === 'piano') {
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const gain = ctx.createGain()
+
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(freq, now)
+
+        osc2.type = 'triangle'
+        osc2.frequency.setValueAtTime(freq * 2, now)
+
+        gain.gain.setValueAtTime(0.001, now)
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.01)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
+
+        osc1.connect(gain)
+        osc2.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc1.start(now)
+        osc2.start(now)
+        osc1.stop(now + 0.6)
+        osc2.stop(now + 0.6)
+      } else if (inst === 'cello') {
+        const osc = ctx.createOscillator()
+        const filter = ctx.createBiquadFilter()
+        const gain = ctx.createGain()
+
+        const lfo = ctx.createOscillator()
+        const lfoGain = ctx.createGain()
+        lfo.frequency.value = 5.5
+        lfoGain.gain.value = freq * 0.015
+        lfo.connect(osc.frequency)
+        lfo.start(now)
+
+        osc.type = 'sawtooth'
+        osc.frequency.setValueAtTime(freq / 2, now)
+
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(600, now)
+        filter.Q.setValueAtTime(2, now)
+
+        gain.gain.setValueAtTime(0.001, now)
+        gain.gain.linearRampToValueAtTime(0.25, now + 0.08)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8)
+
+        osc.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc.start(now)
+        osc.stop(now + 0.8)
+        lfo.stop(now + 0.8)
+      } else if (inst === 'guitar') {
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const gain = ctx.createGain()
+
+        osc1.type = 'triangle'
+        osc1.frequency.setValueAtTime(freq * 1.005, now)
+        osc1.frequency.exponentialRampToValueAtTime(freq, now + 0.03)
+
+        osc2.type = 'sawtooth'
+        osc2.frequency.setValueAtTime(freq * 2, now)
+
+        const filter = ctx.createBiquadFilter()
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(2000, now)
+        filter.frequency.exponentialRampToValueAtTime(400, now + 0.4)
+
+        gain.gain.setValueAtTime(0.2, now)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5)
+
+        osc1.connect(filter)
+        osc2.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc1.start(now)
+        osc2.start(now);
+        osc1.stop(now + 0.5)
+        osc2.stop(now + 0.5)
+      } else if (inst === 'marimba') {
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const gain = ctx.createGain()
+
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(freq, now)
+
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(freq * 4, now)
+
+        gain.gain.setValueAtTime(0.3, now)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
+
+        osc1.connect(gain)
+        osc2.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc1.start(now)
+        osc2.start(now)
+        osc1.stop(now + 0.35)
+        osc2.stop(now + 0.35)
+      } else {
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const gain = ctx.createGain()
+
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(freq, now)
+
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(freq * 1.5, now)
+
+        gain.gain.setValueAtTime(0.001, now)
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7)
+
+        osc1.connect(gain)
+        osc2.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc1.start(now)
+        osc2.start(now)
+        osc1.stop(now + 0.7)
+        osc2.stop(now + 0.7)
+      }
+    } catch(e) {}
+  }
+
+  const playDockSound = (noteIndex: number = 0) => {
+    let ctx = audioCtx
+    if (!ctx) {
+      ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      setAudioCtx(ctx)
+    }
+    if (ctx && ctx.state === 'suspended') ctx.resume()
+    playInstrumentSound(ctx, noteIndex, selectedInstrument)
+  }
+
+  const playSound = () => {
+    playDockSound(0)
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -2772,18 +2936,7 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
     if (defaultLegalCard) currentCards.push(defaultLegalCard);
   }
 
-  const playSound = () => {
-    if (!audioCtx) return;
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    } catch(e) {}
-  }
+
 
   const handlePreviewProject = (proj: any) => {
     if (!proj) return
@@ -3102,6 +3255,71 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
         </div>
       </footer>
+
+      {/* ─── FLOATING INSTRUMENTAL SOUND DOCK ─── */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[990] pointer-events-auto flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-1.5 bg-zinc-950/85 backdrop-blur-2xl border border-white/15 px-3 py-2 rounded-full shadow-[0_15px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[95vw] overflow-x-auto custom-scrollbar">
+          {currentCards.map((card: CardData, idx: number) => (
+            <motion.button
+              key={card.id || idx}
+              whileHover={{ scale: 1.35, y: -6 }}
+              whileTap={{ scale: 0.95 }}
+              onMouseEnter={() => playDockSound(idx)}
+              onClick={() => {
+                playDockSound(idx);
+                setActiveCard(card);
+              }}
+              title={`${card.title} (Play ${selectedInstrument})`}
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/5 border border-white/10 hover:border-white/40 flex items-center justify-center transition-colors group relative shrink-0"
+              style={{ color: card.colorHex }}
+            >
+              {renderIcon(card.iconName, card.icon, "text-xs md:text-sm")}
+              
+              {/* Tooltip */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-black/95 border border-white/20 rounded-lg text-[9px] font-mono font-bold text-white tracking-widest uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
+                {card.title}
+              </div>
+            </motion.button>
+          ))}
+
+          {/* Instrument Selector Switcher Dropdown */}
+          <div className="relative border-l border-white/15 pl-2 ml-1 shrink-0">
+            <button
+              onClick={() => {
+                setShowInstrumentMenu(!showInstrumentMenu);
+                playDockSound(0);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] md:text-xs font-bold font-mono tracking-wider transition-all"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>{INSTRUMENTS.find(i => i.id === selectedInstrument)?.icon}</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+
+            {showInstrumentMenu && (
+              <div className="absolute bottom-full right-0 mb-3 p-2 bg-zinc-950/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl min-w-[190px] space-y-1 z-[1000]">
+                <div className="px-3 py-1 text-[9px] font-mono uppercase tracking-widest text-white/40 border-b border-white/10 mb-1">
+                  Hover Instrument
+                </div>
+                {INSTRUMENTS.map((inst, idx) => (
+                  <button
+                    key={inst.id}
+                    onClick={() => {
+                      setSelectedInstrument(inst.id);
+                      setShowInstrumentMenu(false);
+                      playDockSound(idx);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-all ${selectedInstrument === inst.id ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                  >
+                    <span>{inst.name}</span>
+                    {selectedInstrument === inst.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
     </div>
   )
