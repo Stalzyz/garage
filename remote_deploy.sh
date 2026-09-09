@@ -20,8 +20,13 @@ pnpm --filter=academy-web build 2>&1 | tail -5
 
 echo ""
 echo "==> [5/6] Managing PM2 processes..."
-pm2 restart web 2>/dev/null || echo "web process not found, skipping"
-pm2 restart api 2>/dev/null || echo "api process not found, skipping"
+cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
+cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 2>/dev/null || true
+cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
+cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
+
+pm2 restart grekam-os-web 2>/dev/null || pm2 restart web 2>/dev/null || echo "web process not found"
+pm2 restart grekam-os-api 2>/dev/null || pm2 restart api 2>/dev/null || echo "api process not found"
 
 if pm2 describe academy-web > /dev/null 2>&1; then
   echo "academy-web already exists — restarting..."

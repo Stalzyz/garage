@@ -2842,6 +2842,25 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
   }
 
   useEffect(() => {
+    const unlockAudio = () => {
+      let ctx = audioCtx
+      if (!ctx) {
+        ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+        setAudioCtx(ctx)
+      }
+      if (ctx && ctx.state === 'suspended') ctx.resume()
+    }
+    window.addEventListener('pointerdown', unlockAudio, { once: true })
+    window.addEventListener('click', unlockAudio, { once: true })
+    window.addEventListener('touchstart', unlockAudio, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('click', unlockAudio)
+      window.removeEventListener('touchstart', unlockAudio)
+    }
+  }, [audioCtx])
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       const themeParam = params.get('theme') as LayoutId | null
