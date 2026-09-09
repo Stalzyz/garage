@@ -1420,106 +1420,10 @@ const ServicesCinematicShowcase = ({ cards }: { cards?: any[] }) => {
   )
 }
 
-// ─────────────────────────────────────────────
-// 00. CINEMATIC LASER APERTURE INTRO ANIMATION
-// ─────────────────────────────────────────────
-function LaserApertureIntro({ onComplete }: { onComplete?: () => void }) {
-  const [stage, setStage] = useState<"laser" | "aperture" | "fade" | "done">("laser")
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setStage("aperture"), 450)
-    const t2 = setTimeout(() => setStage("fade"), 2100)
-    const t3 = setTimeout(() => {
-      setStage("done")
-      onComplete?.()
-    }, 2600)
-
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-      clearTimeout(t3)
-    }
-  }, [onComplete])
-
-  if (stage === "done") return null
-
-  return (
-    <AnimatePresence>
-      {stage !== "done" && (
-        <motion.div
-          key="laser-aperture-intro"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: stage === "fade" ? 0 : 1 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden bg-[#06070a] flex items-center justify-center select-none"
-        >
-          {/* Laser Core Dot & Radial Pulse Ring */}
-          {stage === "laser" && (
-            <div className="relative flex items-center justify-center">
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.6, 1], opacity: [0, 1, 1] }}
-                transition={{ duration: 0.4 }}
-                className="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_30px_#06b6d4,0_0_60px_#06b6d4]"
-              />
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 3.5, opacity: [0.8, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-                className="absolute w-10 h-10 rounded-full border border-cyan-400/80"
-              />
-            </div>
-          )}
-
-          {/* Aperture Iris Blade Ring Sweep */}
-          <motion.div
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: stage === "aperture" ? [0, 0.15, 3.8] : 3.8, rotate: 0 }}
-            transition={{
-              scale: { duration: 1.6, times: [0, 0.2, 1], ease: [0.16, 1, 0.3, 1] },
-              rotate: { duration: 1.6, ease: "easeOut" }
-            }}
-            className="absolute w-[100vw] h-[100vw] rounded-full border-[160px] border-cyan-500/25 bg-transparent flex items-center justify-center"
-            style={{
-              boxShadow: "0 0 140px rgba(6,182,212,0.45), inset 0 0 100px rgba(99,102,241,0.4)",
-            }}
-          >
-            {/* Concentric Blade Radial Lines */}
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-full h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent"
-                style={{ transform: `rotate(${i * 30}deg)` }}
-              />
-            ))}
-          </motion.div>
-
-          {/* Horizontal Laser Streak Flash */}
-          <motion.div
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: [0, 1.3, 0], opacity: [0, 1, 0] }}
-            transition={{ duration: 0.7, delay: 0.45, ease: "easeInOut" }}
-            className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent shadow-[0_0_25px_#38bdf8]"
-          />
-
-          {/* Watermark Flash */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: [0, 0.7, 0], scale: [0.85, 1.05, 1.15] }}
-            transition={{ duration: 1.2, delay: 0.55 }}
-            className="absolute text-[11vw] font-black uppercase tracking-tighter text-cyan-400/10 pointer-events-none font-sans"
-          >
-            GREKAM VISUALS
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
 // --- 01. CREATIVE OS ---
-const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
+const DockItem = ({ card, index, mouseX, isMobile, playSound, onClick }: {
   card: CardData
+  index: number
   mouseX: any
   isMobile: boolean
   playSound: () => void
@@ -1529,26 +1433,48 @@ const DockItem = ({ card, mouseX, isMobile, playSound, onClick }: {
   const distance = useTransform(mouseX, (val: number) => val - (ref.current?.getBoundingClientRect().x ?? 0) - 24)
   const widthSync = useTransform(distance, [-120, 0, 120], [isMobile ? 38 : 46, isMobile ? 50 : 62, isMobile ? 38 : 46])
   const width = useSpring(widthSync, { mass: 0.1, stiffness: 200, damping: 15 })
+  const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <motion.button 
-      ref={ref} 
-      style={{ 
-        width, 
-        height: width,
-        backgroundColor: `${card.colorHex}18`,
-        borderColor: `${card.colorHex}45`,
-        color: card.colorHex,
-        boxShadow: `0 4px 15px ${card.colorHex}25`
-      }} 
-      onClick={() => { playSound(); onClick(); }} 
-      className="group relative flex items-center justify-center rounded-2xl shrink-0 border transition-all hover:scale-110 shadow-lg"
-    >
-      {renderIcon(card.iconName, card.icon, "text-sm md:text-lg")}
-      <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900 border border-white/20 rounded-lg text-[10px] font-mono font-bold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
-        {card.category || card.title}
-      </div>
-    </motion.button>
+    <div style={{ perspective: "800px" }}>
+      <motion.button 
+        ref={ref} 
+        initial={{ opacity: 0, rotateX: -85, y: 30 }}
+        animate={{ opacity: 1, rotateX: 0, y: 0 }}
+        transition={{
+          duration: 0.6,
+          delay: 0.35 + index * 0.045,
+          ease: [0.16, 1, 0.3, 1]
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{ 
+          width, 
+          height: width,
+          backgroundColor: isHovered ? `${card.colorHex}33` : `${card.colorHex}18`,
+          borderColor: isHovered ? card.colorHex : `${card.colorHex}45`,
+          color: card.colorHex,
+          boxShadow: isHovered 
+            ? `0 0 25px ${card.colorHex}90, 0 4px 20px ${card.colorHex}40`
+            : `0 4px 15px ${card.colorHex}25`,
+          transformStyle: "preserve-3d",
+        }} 
+        onClick={() => { playSound(); onClick(); }} 
+        className="group relative flex items-center justify-center rounded-2xl shrink-0 border transition-colors duration-300 shadow-lg"
+      >
+        <motion.div
+          animate={isHovered ? { rotateY: 360, scale: 1.15 } : { rotateY: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          className="flex items-center justify-center w-full h-full"
+        >
+          {renderIcon(card.iconName, card.icon, "text-sm md:text-lg")}
+        </motion.div>
+
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900 border border-white/20 rounded-lg text-[10px] font-mono font-bold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
+          {card.category || card.title}
+        </div>
+      </motion.button>
+    </div>
   )
 }
 
@@ -1569,7 +1495,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
         <motion.h1 
           initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.9, delay: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
           className="text-4xl md:text-7xl font-black mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]"
         >
           Do you have the courage to <br className="hidden md:block"/>
@@ -1585,7 +1511,7 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
         <motion.p 
           initial={{ opacity: 0, y: 25, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.8, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
           className="text-xl md:text-3xl text-white/50 font-light max-w-3xl mx-auto leading-relaxed"
         >
           Or will you settle for another template? We don't build standard websites. We engineer bespoke digital experiences.
@@ -1596,14 +1522,15 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
       <motion.div 
         initial={{ opacity: 0, y: 70 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.9, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
         className="absolute bottom-4 md:bottom-8 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none"
       >
          <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-3 px-3 md:px-5 rounded-2xl bg-zinc-950/80 border border-white/15 backdrop-blur-2xl shadow-2xl overflow-x-auto max-w-[calc(100vw-32px)] md:max-w-[65vw] custom-scrollbar pointer-events-auto">
-           {cards.map((card: CardData) => (
+           {cards.map((card: CardData, index: number) => (
              <DockItem 
                key={card.id} 
                card={card} 
+               index={index}
                mouseX={mouseX} 
                isMobile={isMobile} 
                playSound={playSound} 
@@ -2889,9 +2816,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
   return (
     <div data-lenis-prevent className="relative w-full h-[100dvh] overflow-hidden bg-black">
-      {/* Laser Aperture Intro Overlay */}
-      <LaserApertureIntro />
-
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -40 }}
