@@ -25,6 +25,18 @@ cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 
 cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
 cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
 
+cat > /root/start_web.sh << 'WEBEOF'
+#!/bin/bash
+cd /root/grekam-os/apps/web/.next/standalone/apps/web
+export AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU="
+export AUTH_TRUST_HOST=true
+export NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1"
+export PORT=3000
+export HOSTNAME=0.0.0.0
+exec node server.js
+WEBEOF
+chmod +x /root/start_web.sh
+
 pm2 restart grekam-os-web || pm2 restart 11 || echo "web process not found"
 pm2 restart grekam-os-api || pm2 restart 2 || echo "api process not found"
 
