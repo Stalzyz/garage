@@ -5,6 +5,40 @@ interface DialMobileBody {
   email: string;
 }
 
+function extractDurationSeconds(content: string): number {
+  if (!content) return 0;
+  
+  // 1. Explicit [Call Duration: 120s] or [Call Duration: 2m 15s]
+  const matchMinSec = content.match(/\[(?:Call\s*)?Duration:\s*(\d+)m\s*(\d+)s\]/i);
+  if (matchMinSec) return parseInt(matchMinSec[1], 10) * 60 + parseInt(matchMinSec[2], 10);
+
+  const matchSec = content.match(/\[(?:Call\s*)?Duration:\s*(\d+)s?\]/i) || content.match(/\b(\d+)\s*sec(?:onds)?\b/i);
+  if (matchSec) return parseInt(matchSec[1], 10);
+
+  const matchMin = content.match(/\[(?:Call\s*)?Duration:\s*(\d+)m\]/i) || content.match(/\b(\d+)\s*min(?:utes)?\b/i);
+  if (matchMin) return parseInt(matchMin[1], 10) * 60;
+
+  // 2. Fallback estimate based on call disposition if not explicitly provided
+  const upper = content.toUpperCase();
+  if (upper.includes('MEETING BOOKED') || upper.includes('WON')) return 240; // ~4 minutes
+  if (upper.includes('CALL BACK') || upper.includes('CONTACTED')) return 120; // ~2 minutes
+  if (upper.includes('NOT INTERESTED') || upper.includes('LOST')) return 60; // ~1 minute
+  if (upper.includes('VOICEMAIL')) return 25; // ~25 seconds
+  return 90; // ~1.5 minutes default
+}
+
+function formatTalkTime(totalSeconds: number): string {
+  if (!totalSeconds || totalSeconds <= 0) return '0m 0s';
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}m ${secs}s`;
+}
+
 export default async function telephonyRouter(app: FastifyInstance) {
   app.post<{ Body: DialMobileBody }>('/dial-mobile', async (req, reply) => {
     const { leadPhone, email } = req.body;
@@ -38,7 +72,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
           gte: startOfDay,
           lte: endOfDay,
         },
-        ...(userId ? { userId } : {}),
+        ...(userId && userId !== 'ALL' ? { userId } : {}),
       },
       include: {
         lead: {
@@ -70,6 +104,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
       userName: string;
       email: string;
       totalCalls: number;
+      totalDurationSeconds: number;
       meetingsBooked: number;
       callbacks: number;
       notInterested: number;
@@ -92,6 +127,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
           userName,
           email,
           totalCalls: 0,
+          totalDurationSeconds: 0,
           meetingsBooked: 0,
           callbacks: 0,
           notInterested: 0,
@@ -103,6 +139,10 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
       const stat = telecallerStatsMap.get(uId)!;
       stat.totalCalls += 1;
+      
+      const durationSec = extractDurationSeconds(act.content || '');
+      stat.totalDurationSeconds += durationSec;
+
       if (act.leadId) stat.uniqueLeads.add(act.leadId);
 
       const contentUpper = (act.content || '').toUpperCase();
@@ -120,28 +160,41 @@ export default async function telephonyRouter(app: FastifyInstance) {
       stat.hourlyDistribution[hour] = (stat.hourlyDistribution[hour] || 0) + 1;
     }
 
-    const telecallersSummary = Array.from(telecallerStatsMap.values()).map(st => ({
-      userId: st.userId,
-      userName: st.userName,
-      email: st.email,
-      totalCalls: st.totalCalls,
-      uniqueLeadsCount: st.uniqueLeads.size,
-      meetingsBooked: st.meetingsBooked,
-      callbacks: st.callbacks,
-      notInterested: st.notInterested,
-      voicemails: st.voicemails,
-      hourlyDistribution: st.hourlyDistribution,
-    }));
+    const telecallersSummary = Array.from(telecallerStatsMap.values()).map(st => {
+      const avgSec = st.totalCalls > 0 ? Math.round(st.totalDurationSeconds / st.totalCalls) : 0;
+      return {
+        userId: st.userId,
+        userName: st.userName,
+        email: st.email,
+        totalCalls: st.totalCalls,
+        totalDurationSeconds: st.totalDurationSeconds,
+        formattedTalkTime: formatTalkTime(st.totalDurationSeconds),
+        avgCallDurationSeconds: avgSec,
+        formattedAvgCallDuration: formatTalkTime(avgSec),
+        uniqueLeadsCount: st.uniqueLeads.size,
+        meetingsBooked: st.meetingsBooked,
+        callbacks: st.callbacks,
+        notInterested: st.notInterested,
+        voicemails: st.voicemails,
+        hourlyDistribution: st.hourlyDistribution,
+      };
+    });
+
+    const grandTotalDurationSeconds = telecallersSummary.reduce((acc, curr) => acc + curr.totalDurationSeconds, 0);
 
     return {
       date: startOfDay.toISOString().split('T')[0],
       totalCallsToday: callActivities.length,
+      totalTalkTimeSeconds: grandTotalDurationSeconds,
+      formattedTotalTalkTime: formatTalkTime(grandTotalDurationSeconds),
       telecallersCount: telecallersSummary.length,
       summary: telecallersSummary,
       detailedLogs: callActivities.map(a => {
         const u = userMap.get(a.userId);
+        const durSec = extractDurationSeconds(a.content || '');
         return {
           id: a.id,
+          userId: a.userId,
           telecallerName: u
             ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
             : (a.userId === 'system' ? 'System' : a.userId),
@@ -150,6 +203,8 @@ export default async function telephonyRouter(app: FastifyInstance) {
           leadPhone: a.lead?.phone || 'N/A',
           leadCompany: a.lead?.company || 'N/A',
           content: a.content,
+          durationSeconds: durSec,
+          formattedDuration: formatTalkTime(durSec),
           timestamp: a.createdAt,
         };
       }),

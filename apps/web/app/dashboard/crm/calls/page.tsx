@@ -8,8 +8,30 @@ import { format } from "date-fns"
 
 export default function CallIntelligenceDashboard() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0])
-  const { data: dailyReportData, mutate: mutateDailyReport } = useApi<any>(`/crm/telephony/daily-report?date=${selectedDate}`, { refreshInterval: 15000 })
-  const dailyReport = dailyReportData || { totalCallsToday: 0, summary: [], detailedLogs: [] }
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("ALL")
+
+  const { data: dailyReportData, mutate: mutateDailyReport } = useApi<any>(`/crm/telephony/daily-report?date=${selectedDate}&userId=${selectedStaffId}`, { refreshInterval: 15000 })
+  const dailyReport = dailyReportData || { totalCallsToday: 0, formattedTotalTalkTime: "0m 0s", summary: [], detailedLogs: [] }
+
+  const activeStaffSummary = selectedStaffId === "ALL" 
+    ? dailyReport.summary 
+    : dailyReport.summary?.filter((s: any) => s.userId === selectedStaffId)
+
+  const displayTotalCalls = selectedStaffId === "ALL" 
+    ? dailyReport.totalCallsToday 
+    : (activeStaffSummary?.[0]?.totalCalls || 0)
+
+  const displayTalkTime = selectedStaffId === "ALL" 
+    ? (dailyReport.formattedTotalTalkTime || "0m 0s")
+    : (activeStaffSummary?.[0]?.formattedTalkTime || "0m 0s")
+
+  const displayAvgDuration = selectedStaffId === "ALL"
+    ? (activeStaffSummary?.length > 0 
+        ? activeStaffSummary[0]?.formattedAvgCallDuration || "0m 0s" 
+        : "0m 0s")
+    : (activeStaffSummary?.[0]?.formattedAvgCallDuration || "0m 0s")
+
+  const displayMeetingsBooked = activeStaffSummary?.reduce((acc: number, curr: any) => acc + (curr.meetingsBooked || 0), 0) || 0
 
   const [transcript, setTranscript] = useState(`Aisha (Sales): Hi Sarah, this is Aisha calling from Grekam. I saw Nexus Health just closed a Series B, huge congrats on that!
 Sarah (Nexus Health): Oh, thank you! It's been a crazy few weeks here. Who did you say you were with again?
@@ -117,10 +139,28 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <PhoneCall className="w-5 h-5 text-emerald-500" /> Telecaller Daily Call Performance Monitor
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Real-time daily call volume, unique leads spoken, and disposition metrics per telecaller.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Real-time daily call volume, total spoken talk time, and disposition metrics per telecaller.</p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Staff Selector Dropdown */}
+              <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
+                <Users className="w-4 h-4 text-primary" />
+                <select
+                  value={selectedStaffId}
+                  onChange={(e) => setSelectedStaffId(e.target.value)}
+                  className="bg-transparent text-xs text-foreground font-bold focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL">All Telecallers & Staff</option>
+                  {dailyReport.summary?.map((st: any) => (
+                    <option key={st.userId} value={st.userId}>
+                      {st.userName} ({st.totalCalls} calls)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date Picker */}
               <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <input
@@ -130,6 +170,7 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                   className="bg-transparent text-xs text-foreground font-mono focus:outline-none"
                 />
               </div>
+
               <button
                 onClick={() => mutateDailyReport()}
                 className="p-2 rounded-xl bg-muted/40 hover:bg-muted/70 text-foreground transition-colors border border-border/50"
@@ -143,24 +184,20 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
           {/* Key Call Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
-              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Total Calls Spoken Today</span>
-              <div className="text-2xl font-bold text-foreground mt-1">{dailyReport.totalCallsToday || 0}</div>
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Total Calls Spoken</span>
+              <div className="text-2xl font-bold text-foreground mt-1">{displayTotalCalls}</div>
             </div>
             <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
-              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Active Telecallers</span>
-              <div className="text-2xl font-bold text-primary mt-1">{dailyReport.telecallersCount || 0}</div>
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Total Spoken Talk Time</span>
+              <div className="text-2xl font-bold text-primary mt-1">{displayTalkTime}</div>
+            </div>
+            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
+              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Avg Call Duration</span>
+              <div className="text-2xl font-bold text-emerald-400 mt-1">{displayAvgDuration}</div>
             </div>
             <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
               <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Meetings Booked</span>
-              <div className="text-2xl font-bold text-emerald-500 mt-1">
-                {dailyReport.summary?.reduce((acc: number, curr: any) => acc + (curr.meetingsBooked || 0), 0) || 0}
-              </div>
-            </div>
-            <div className="bg-muted/20 border border-border/40 p-4 rounded-xl">
-              <span className="text-[10px] font-mono uppercase text-muted-foreground font-bold block">Callbacks & Follow-ups</span>
-              <div className="text-2xl font-bold text-amber-500 mt-1">
-                {dailyReport.summary?.reduce((acc: number, curr: any) => acc + (curr.callbacks || 0), 0) || 0}
-              </div>
+              <div className="text-2xl font-bold text-amber-500 mt-1">{displayMeetingsBooked}</div>
             </div>
           </div>
 
@@ -169,36 +206,42 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/40 text-muted-foreground font-mono uppercase text-[10px] border-b border-border/50">
                 <tr>
-                  <th className="px-4 py-3">Telecaller Name</th>
+                  <th className="px-4 py-3">Staff / Telecaller Name</th>
                   <th className="px-4 py-3 text-center">Total Calls Spoken</th>
-                  <th className="px-4 py-3 text-center">Unique Leads Dialed</th>
+                  <th className="px-4 py-3 text-center">Spoken Talk Time</th>
+                  <th className="px-4 py-3 text-center">Avg Call Duration</th>
+                  <th className="px-4 py-3 text-center">Unique Leads</th>
                   <th className="px-4 py-3 text-center">Meetings Booked</th>
-                  <th className="px-4 py-3 text-center">Callbacks Scheduled</th>
-                  <th className="px-4 py-3 text-center">Not Interested</th>
                   <th className="px-4 py-3 text-right">Conversion %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
-                {(!dailyReport.summary || dailyReport.summary.length === 0) ? (
+                {(!activeStaffSummary || activeStaffSummary.length === 0) ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                      No calls logged for {selectedDate}. Use Power Dialer or Log Call Activity to record calls.
+                      No call activities logged for {selectedDate}. Use Power Dialer or Log Call Activity to record calls.
                     </td>
                   </tr>
                 ) : (
-                  dailyReport.summary.map((st: any) => {
+                  activeStaffSummary.map((st: any) => {
                     const convRate = st.totalCalls > 0 ? Math.round((st.meetingsBooked / st.totalCalls) * 100) : 0;
                     return (
-                      <tr key={st.userId} className="hover:bg-muted/20 transition-colors">
+                      <tr 
+                        key={st.userId} 
+                        onClick={() => setSelectedStaffId(st.userId)}
+                        className={`transition-colors cursor-pointer ${selectedStaffId === st.userId ? 'bg-primary/10' : 'hover:bg-muted/20'}`}
+                      >
                         <td className="px-4 py-3 font-medium text-foreground">
-                          <div className="font-bold">{st.userName}</div>
+                          <div className="font-bold flex items-center gap-2">
+                            <UserCheck className="w-3.5 h-3.5 text-primary" /> {st.userName}
+                          </div>
                           <div className="text-[10px] text-muted-foreground">{st.email}</div>
                         </td>
                         <td className="px-4 py-3 text-center font-bold text-foreground">{st.totalCalls}</td>
-                        <td className="px-4 py-3 text-center text-muted-foreground font-mono">{st.uniqueLeadsCount}</td>
+                        <td className="px-4 py-3 text-center font-bold text-primary font-mono">{st.formattedTalkTime}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground font-mono">{st.formattedAvgCallDuration}</td>
+                        <td className="px-4 py-3 text-center font-mono">{st.uniqueLeadsCount}</td>
                         <td className="px-4 py-3 text-center font-bold text-emerald-500">{st.meetingsBooked}</td>
-                        <td className="px-4 py-3 text-center text-amber-500 font-mono">{st.callbacks}</td>
-                        <td className="px-4 py-3 text-center text-rose-400 font-mono">{st.notInterested}</td>
                         <td className="px-4 py-3 text-right font-bold text-primary">{convRate}%</td>
                       </tr>
                     );
@@ -207,6 +250,49 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
               </tbody>
             </table>
           </div>
+
+          {/* Detailed Call Logs for Selected Staff */}
+          {dailyReport.detailedLogs?.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" /> 
+                  Detailed Call Log History {selectedStaffId !== "ALL" ? `for ${activeStaffSummary?.[0]?.userName || "Selected Telecaller"}` : ""}
+                </h4>
+                <span className="text-[10px] text-muted-foreground font-mono">Total {dailyReport.detailedLogs.length} Records</span>
+              </div>
+
+              <div className="border border-border/40 rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar">
+                <table className="w-full text-left text-[11px]">
+                  <thead className="bg-muted/30 text-muted-foreground font-mono uppercase text-[9px] sticky top-0 bg-card border-b border-border/40">
+                    <tr>
+                      <th className="px-3 py-2">Time</th>
+                      <th className="px-3 py-2">Telecaller</th>
+                      <th className="px-3 py-2">Lead Name / Phone</th>
+                      <th className="px-3 py-2">Call Disposition / Notes</th>
+                      <th className="px-3 py-2 text-right">Spoken Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {dailyReport.detailedLogs.map((log: any) => (
+                      <tr key={log.id} className="hover:bg-muted/10">
+                        <td className="px-3 py-2 font-mono text-muted-foreground">
+                          {format(new Date(log.timestamp), "hh:mm a")}
+                        </td>
+                        <td className="px-3 py-2 font-bold text-foreground">{log.telecallerName}</td>
+                        <td className="px-3 py-2">
+                          <div className="font-medium text-foreground">{log.leadName}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono">{log.leadPhone}</div>
+                        </td>
+                        <td className="px-3 py-2 text-muted-foreground truncate max-w-xs">{log.content}</td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-emerald-400">{log.formattedDuration}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col xl:flex-row gap-6">
