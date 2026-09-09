@@ -1446,7 +1446,7 @@ const DockItem = ({ card, index, mouseX, isMobile, playSound, onClick }: {
           delay: 0.35 + index * 0.045,
           ease: [0.16, 1, 0.3, 1]
         }}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={() => { setIsHovered(true); playSound(); }}
         onMouseLeave={() => setIsHovered(false)}
         style={{ 
           width, 
@@ -1460,7 +1460,7 @@ const DockItem = ({ card, index, mouseX, isMobile, playSound, onClick }: {
           transformStyle: "preserve-3d",
         }} 
         onClick={() => { playSound(); onClick(); }} 
-        className="group relative flex items-center justify-center rounded-2xl shrink-0 border transition-colors duration-300 shadow-lg"
+        className="group relative flex items-center justify-center rounded-2xl shrink-0 border transition-colors duration-300 shadow-lg cursor-pointer"
       >
         <motion.div
           animate={isHovered ? { rotateY: 360, scale: 1.15 } : { rotateY: 0, scale: 1 }}
@@ -1478,11 +1478,24 @@ const DockItem = ({ card, index, mouseX, isMobile, playSound, onClick }: {
   )
 }
 
-const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) => {
+const LayoutCreativeOS = ({ cards, playSound, playDockSound, selectedInstrument, setSelectedInstrument, INSTRUMENTS, cmsData, onPreviewProject }: any) => {
   const [activeCard, setActiveCard] = useState<CardData | null>(null)
   const mouseX = useMotionValue(Infinity)
   const [isMobile, setIsMobile] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => { setIsMobile(window.innerWidth < 768) }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
   
   return (
     <div className="h-[100dvh] w-full bg-zinc-950 overflow-hidden relative font-sans text-white">
@@ -1523,21 +1536,71 @@ const LayoutCreativeOS = ({ cards, playSound, cmsData, onPreviewProject }: any) 
         initial={{ opacity: 0, y: 70 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute bottom-4 md:bottom-8 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-none"
+        className="absolute bottom-4 md:bottom-8 left-0 right-0 z-40 flex justify-center w-full px-4 pointer-events-auto"
       >
-         <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-16 md:h-20 items-center gap-2 md:gap-3 px-3 md:px-5 rounded-2xl bg-zinc-950/80 border border-white/15 backdrop-blur-2xl shadow-2xl overflow-x-auto max-w-[calc(100vw-32px)] md:max-w-[65vw] custom-scrollbar pointer-events-auto">
-           {cards.map((card: CardData, index: number) => (
-             <DockItem 
-               key={card.id} 
-               card={card} 
-               index={index}
-               mouseX={mouseX} 
-               isMobile={isMobile} 
-               playSound={playSound} 
-               onClick={() => setActiveCard(card)} 
-             />
-           ))}
-         </motion.div>
+         <div className="relative flex items-center gap-2 max-w-[95vw] px-3 md:px-4 py-2 rounded-2xl bg-zinc-950/90 border border-white/15 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.95)] shrink-0">
+           <motion.div onMouseMove={(e) => mouseX.set(e.clientX)} onMouseLeave={() => mouseX.set(Infinity)} className="flex h-14 md:h-16 items-center gap-2 md:gap-3 px-1 overflow-x-auto max-w-[calc(100vw-150px)] md:max-w-[65vw] custom-scrollbar pointer-events-auto shrink">
+             {cards.map((card: CardData, index: number) => (
+               <DockItem 
+                 key={card.id} 
+                 card={card} 
+                 index={index}
+                 mouseX={mouseX} 
+                 isMobile={isMobile} 
+                 playSound={() => playDockSound(index)} 
+                 onClick={() => setActiveCard(card)} 
+               />
+             ))}
+           </motion.div>
+
+           {/* Vertical Separator */}
+           <div className="w-[1px] h-8 bg-white/20 shrink-0 mx-1" />
+
+           {/* Integrated Instrument Selector Switcher Button & Dropdown */}
+           <div ref={menuRef} className="relative shrink-0 z-[1000]">
+             <button
+               type="button"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setMenuOpen(prev => !prev);
+                 playDockSound(0);
+               }}
+               className="flex items-center gap-1.5 px-3 md:px-3.5 py-2 md:py-2.5 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 transition-all cursor-pointer shadow-md active:scale-95"
+               title="Choose Sound Instrument"
+             >
+               <Volume2 className="w-4 h-4 text-emerald-400" />
+               <span className="text-base leading-none">{INSTRUMENTS.find((i: any) => i.id === selectedInstrument)?.icon || '🎹'}</span>
+               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
+             </button>
+
+             {menuOpen && (
+               <div className="absolute bottom-full right-0 mb-3 p-2 bg-zinc-950 border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.95)] min-w-[220px] space-y-1 z-[9999] pointer-events-auto">
+                 <div className="px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-white/50 border-b border-white/10 mb-1">
+                   Select Instrument
+                 </div>
+                 {INSTRUMENTS.map((inst: any, idx: number) => (
+                   <button
+                     key={inst.id}
+                     type="button"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       setSelectedInstrument(inst.id);
+                       setMenuOpen(false);
+                       playDockSound(idx);
+                     }}
+                     className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${selectedInstrument === inst.id ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                   >
+                     <span className="flex items-center gap-2">
+                       <span>{inst.icon}</span>
+                       <span>{inst.name}</span>
+                     </span>
+                     {selectedInstrument === inst.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                   </button>
+                 ))}
+               </div>
+             )}
+           </div>
+         </div>
       </motion.div>
       <AnimatePresence>
          {activeCard && (
@@ -3113,6 +3176,12 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
           <ActiveComponent 
             cards={currentCards} 
             playSound={playSound} 
+            playDockSound={playDockSound}
+            selectedInstrument={selectedInstrument}
+            setSelectedInstrument={setSelectedInstrument}
+            showInstrumentMenu={showInstrumentMenu}
+            setShowInstrumentMenu={setShowInstrumentMenu}
+            INSTRUMENTS={INSTRUMENTS}
             cmsData={cmsData} 
             onPreviewProject={handlePreviewProject}
           />
@@ -3274,71 +3343,6 @@ export default function AgencyClient({ initialCards }: { initialCards: CardData[
 
         </div>
       </footer>
-
-      {/* ─── FLOATING INSTRUMENTAL SOUND DOCK ─── */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[990] pointer-events-auto flex items-center gap-3">
-        <div className="flex items-center gap-1 md:gap-1.5 bg-zinc-950/85 backdrop-blur-2xl border border-white/15 px-3 py-2 rounded-full shadow-[0_15px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[95vw] overflow-x-auto custom-scrollbar">
-          {currentCards.map((card: CardData, idx: number) => (
-            <motion.button
-              key={card.id || idx}
-              whileHover={{ scale: 1.35, y: -6 }}
-              whileTap={{ scale: 0.95 }}
-              onMouseEnter={() => playDockSound(idx)}
-              onClick={() => {
-                playDockSound(idx);
-                setActiveCard(card);
-              }}
-              title={`${card.title} (Play ${selectedInstrument})`}
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/5 border border-white/10 hover:border-white/40 flex items-center justify-center transition-colors group relative shrink-0"
-              style={{ color: card.colorHex }}
-            >
-              {renderIcon(card.iconName, card.icon, "text-xs md:text-sm")}
-              
-              {/* Tooltip */}
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-black/95 border border-white/20 rounded-lg text-[9px] font-mono font-bold text-white tracking-widest uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl z-50">
-                {card.title}
-              </div>
-            </motion.button>
-          ))}
-
-          {/* Instrument Selector Switcher Dropdown */}
-          <div className="relative border-l border-white/15 pl-2 ml-1 shrink-0">
-            <button
-              onClick={() => {
-                setShowInstrumentMenu(!showInstrumentMenu);
-                playDockSound(0);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] md:text-xs font-bold font-mono tracking-wider transition-all"
-            >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>{INSTRUMENTS.find(i => i.id === selectedInstrument)?.icon}</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-
-            {showInstrumentMenu && (
-              <div className="absolute bottom-full right-0 mb-3 p-2 bg-zinc-950/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl min-w-[190px] space-y-1 z-[1000]">
-                <div className="px-3 py-1 text-[9px] font-mono uppercase tracking-widest text-white/40 border-b border-white/10 mb-1">
-                  Hover Instrument
-                </div>
-                {INSTRUMENTS.map((inst, idx) => (
-                  <button
-                    key={inst.id}
-                    onClick={() => {
-                      setSelectedInstrument(inst.id);
-                      setShowInstrumentMenu(false);
-                      playDockSound(idx);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-all ${selectedInstrument === inst.id ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
-                  >
-                    <span>{inst.name}</span>
-                    {selectedInstrument === inst.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
     </div>
   )
