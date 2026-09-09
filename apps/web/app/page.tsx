@@ -1205,18 +1205,30 @@ export default function SplitReality() {
                 onMouseEnter={() => { setSide("agency"); if (!hasInteracted.current) { hasInteracted.current = true; setTimeout(() => setNavVisible(true), 800); } }}
                 style={{ cursor: `url('/cursor-agency.svg') 16 16, auto` }}
               >
-                <div style={{ opacity: isAgency ? 1 : 0.45, transition: "opacity 0.5s ease" }}>
-                  <div className="text-[7px] font-mono tracking-[0.4em] text-white/30 uppercase mb-1">01 / AGENCY</div>
-                  <div className="w-8 h-px bg-white/20" />
+                <div style={{ opacity: isAgency ? 1 : 0.55, transition: "opacity 0.5s ease" }}>
+                  <div className="text-[7px] font-mono tracking-[0.4em] uppercase mb-1"
+                    style={{
+                      color: isAcademy ? "rgba(42,26,8,0.5)" : "rgba(255,255,255,0.6)",
+                      transition: "color 0.5s ease",
+                    }}
+                  >
+                    01 / AGENCY
+                  </div>
+                  <div className="w-8 h-px"
+                    style={{
+                      background: isAcademy ? "rgba(42,26,8,0.25)" : "rgba(255,255,255,0.25)",
+                      transition: "background 0.5s ease",
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col gap-3">
                   <Image src="/visuals-logo.png" alt="Grekam Visuals" width={170} height={58} className="object-contain"
-                    style={{ filter: isAgency ? "none" : "brightness(0.45)", transition: "filter 0.6s ease" }} priority />
+                    style={{ filter: isAgency ? "none" : isAcademy ? "brightness(0) opacity(0.35)" : "brightness(0.85)", transition: "filter 0.6s ease" }} priority />
                   <h2 className="font-black uppercase leading-none transition-all duration-700"
                     style={{
                       fontFamily: "var(--font-barlow, system-ui), sans-serif",
                       fontSize: "clamp(1.1rem, 2.6vw, 3.4rem)",
-                      color: isAgency ? "#ffffff" : "rgba(255,255,255,0.22)",
+                      color: isAgency ? "#ffffff" : isAcademy ? "rgba(20,20,30,0.45)" : "rgba(255,255,255,0.85)",
                       letterSpacing: isAgency ? "5px" : "0px",
                     }}
                   >
@@ -1249,20 +1261,27 @@ export default function SplitReality() {
                 onMouseEnter={() => { setSide("academy"); if (!hasInteracted.current) { hasInteracted.current = true; setTimeout(() => setNavVisible(true), 800); } }}
                 style={{ cursor: `url('/cursor-academy.svg') 0 32, auto` }}
               >
-                <div style={{ opacity: isAcademy ? 1 : 0.45, transition: "opacity 0.5s ease" }} className="flex flex-col items-end">
-                  <div className="text-[7px] font-mono tracking-[0.4em] text-[#8b6a3a]/60 uppercase mb-1">02 / ACADEMY</div>
-                  <svg width="32" height="4" viewBox="0 0 32 4"><path d="M0 2 Q8 1 16 2 Q24 3 32 2" stroke="rgba(80,55,20,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 1" /></svg>
+                <div style={{ opacity: isAcademy ? 1 : 0.55, transition: "opacity 0.5s ease" }} className="flex flex-col items-end">
+                  <div className="text-[7px] font-mono tracking-[0.4em] uppercase mb-1"
+                    style={{
+                      color: isAgency ? "rgba(240,232,212,0.5)" : "#8b6a3a",
+                      transition: "color 0.5s ease",
+                    }}
+                  >
+                    02 / ACADEMY
+                  </div>
+                  <svg width="32" height="4" viewBox="0 0 32 4"><path d="M0 2 Q8 1 16 2 Q24 3 32 2" stroke={isAgency ? "rgba(240,232,212,0.3)" : "rgba(80,55,20,0.3)"} strokeWidth="1.2" fill="none" strokeDasharray="3 1" style={{ transition: "stroke 0.5s ease" }} /></svg>
                 </div>
                 <div className="flex flex-col items-end gap-3">
                   <div className="w-[140px]">
                     <Image src="/academy-logo.png" alt="Grekam Academy" width={200} height={76} className="object-contain w-full h-auto"
-                      style={{ filter: isAcademy ? "brightness(0) contrast(1.2)" : "brightness(0) opacity(0.28)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} priority />
+                      style={{ filter: isAcademy ? "brightness(0) contrast(1.2)" : isAgency ? "brightness(0) invert(1) opacity(0.35)" : "brightness(0) opacity(0.45)", transition: "filter 0.6s ease", transform: "rotate(-1deg)" }} priority />
                   </div>
                   <h2 className="font-black uppercase leading-none text-right transition-all duration-700"
                     style={{
                       fontFamily: "var(--font-barlow, system-ui), sans-serif",
                       fontSize: "clamp(1.1rem, 2.6vw, 3.4rem)",
-                      color: isAcademy ? "#2a1a08" : "rgba(42,26,8,0.22)",
+                      color: isAcademy ? "#2a1a08" : isAgency ? "rgba(240,232,212,0.45)" : "rgba(42,26,8,0.75)",
                       letterSpacing: "-0.02em", lineHeight: 0.9, fontWeight: 900,
                     }}
                   >
