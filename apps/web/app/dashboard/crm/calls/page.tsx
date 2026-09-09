@@ -16,7 +16,8 @@ export default function CallIntelligenceDashboard() {
 
   const dailyReport = dailyReportData || { totalCallsToday: 0, formattedTotalTalkTime: "0m 0s", summary: [], detailedLogs: [] }
   const employees = employeesData?.employees || []
-  const leads = leadsData?.leads || []
+  // Leads API returns { data: Lead[], total: number }
+  const leads = leadsData?.data || []
 
   // Master list of system staff / telecallers
   const allStaffOptions = employees.map((emp: any) => {
@@ -209,9 +210,12 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                if (leads.length > 0 && !logCallForm.leadId) {
-                  setLogCallForm(prev => ({ ...prev, leadId: leads[0].id }))
-                }
+                // Always pre-fill first lead and first staff when opening the modal
+                setLogCallForm(prev => ({
+                  ...prev,
+                  leadId: prev.leadId || (leads.length > 0 ? leads[0].id : ""),
+                  userId: prev.userId === "ALL" && allStaffOptions.length > 0 ? allStaffOptions[0].userId : prev.userId
+                }))
                 setIsLogCallModalOpen(true)
               }}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md"
@@ -629,10 +633,10 @@ Sarah (Nexus Health): Yeah, exactly. Our Board wants us to double our demo volum
                   </button>
                 </div>
                 <input
-                  type="url"
+                  type="text"
                   value={logCallForm.recordingUrl}
                   onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
-                  placeholder="https://your-server.com/recordings/call_123.mp3"
+                  placeholder="https://your-server.com/recordings/call_123.mp3 (optional)"
                   className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary"
                 />
               </div>

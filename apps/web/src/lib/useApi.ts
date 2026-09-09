@@ -40,7 +40,11 @@ async function apiFetch(url: string): Promise<any> {
   return promise;
 }
 
-export function useApi<T>(endpoint: string | null, options?: RequestInit) {
+interface UseApiOptions extends RequestInit {
+  refreshInterval?: number; // milliseconds — if provided, poll on this interval
+}
+
+export function useApi<T>(endpoint: string | null, options?: UseApiOptions) {
   const cacheKey = endpoint ? `${API_BASE_URL}${endpoint}` : null;
   const cached = cacheKey ? swrCache.get(cacheKey) : null;
 
@@ -100,6 +104,16 @@ export function useApi<T>(endpoint: string | null, options?: RequestInit) {
       isMounted = false;
     };
   }, [endpoint, version]);
+
+  // Background polling via refreshInterval
+  useEffect(() => {
+    if (!options?.refreshInterval || !endpoint || !cacheKey) return;
+    const interval = setInterval(() => {
+      swrCache.delete(cacheKey);
+      setVersion(v => v + 1);
+    }, options.refreshInterval);
+    return () => clearInterval(interval);
+  }, [endpoint, options?.refreshInterval, cacheKey]);
 
   return { data, isLoading, error, mutate };
 }
