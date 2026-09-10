@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, Sparkles, BookOpen, RefreshCw, X, Send, Calendar, Users, PhoneCall, Phone, UserCheck, Clock, Plus, Volume2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -115,6 +115,79 @@ export default function CallIntelligenceDashboard() {
       toast.error(err.message || "Failed to upload audio recording")
     } finally {
       setIsUploadingAudio(false)
+    }
+  }
+
+  // Live Browser Microphone Recording State
+  const [isRecordingLive, setIsRecordingLive] = useState(false)
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const recordingTimerRef = useRef<any>(null)
+
+  const startLiveRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      audioChunksRef.current = []
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop())
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        if (audioBlob.size === 0) return
+
+        const file = new File([audioBlob], `recorded_call_${Date.now()}.webm`, { type: 'audio/webm' })
+        setIsUploadingAudio(true)
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+          const res = await fetchApi<any>('/storage/upload-local', {
+            method: 'POST',
+            body: formData
+          })
+          if (res?.downloadUrl) {
+            setLogCallForm(prev => ({
+              ...prev,
+              recordingUrl: res.downloadUrl,
+              durationSeconds: recordingSeconds > 0 ? recordingSeconds : prev.durationSeconds
+            }))
+            toast.success(`Call audio recorded & saved automatically!`)
+          }
+        } catch (err: any) {
+          toast.error(err.message || "Failed to auto-upload recorded audio")
+        } finally {
+          setIsUploadingAudio(false)
+        }
+      }
+
+      mediaRecorder.start()
+      setIsRecordingLive(true)
+      setRecordingSeconds(0)
+
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(prev => prev + 1)
+      }, 1000)
+
+      toast.info("Live microphone recording started...")
+    } catch (err: any) {
+      toast.error("Microphone access failed: " + err.message)
+    }
+  }
+
+  const stopLiveRecording = () => {
+    if (mediaRecorderRef.current && isRecordingLive) {
+      mediaRecorderRef.current.stop()
+      setIsRecordingLive(false)
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current)
+      }
     }
   }
 
@@ -711,18 +784,42 @@ export default function CallIntelligenceDashboard() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Live Auto Record Microphone Button */}
+                    {!isRecordingLive ? (
+                      <button
+                        type="button"
+                        onClick={startLiveRecording}
+                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+                      >
+                        <Mic className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+                        Auto Record Call
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={stopLiveRecording}
+                        className="bg-red-600 hover:bg-red-700 text-white border border-red-400 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 animate-pulse"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                        Stop Recording ({recordingSeconds}s)
+                      </button>
+                    )}
+
+                    {/* File Upload Button */}
                     <label className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0">
                       <Mic className="w-3.5 h-3.5" />
-                      {isUploadingAudio ? "Uploading..." : "Upload Audio File"}
-                      <input type="file" accept="audio/*" onChange={handleAudioFileUpload} className="hidden" disabled={isUploadingAudio} />
+                      {isUploadingAudio ? "Uploading..." : "Upload File"}
+                      <input type="file" accept="audio/*" onChange={handleAudioFileUpload} className="hidden" disabled={isUploadingAudio || isRecordingLive} />
                     </label>
+
+                    {/* Audio URL Input */}
                     <input
                       type="text"
                       value={logCallForm.recordingUrl}
                       onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
-                      placeholder="https://... or click Upload Audio File"
-                      className="flex-1 bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary"
+                      placeholder="https://... or auto-record call above"
+                      className="flex-1 bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary min-w-[200px]"
                     />
                   </div>
 

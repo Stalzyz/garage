@@ -73,7 +73,7 @@ export async function generateJsonFromGemini(
 ): Promise<any> {
   const genAI = await getGeminiClient(app);
 
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-lite'];
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
   let lastError: any;
 
   for (const modelName of models) {
@@ -109,7 +109,7 @@ export async function generateTextFromGemini(
 ): Promise<string> {
   const genAI = await getGeminiClient(app);
 
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-lite'];
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
   let lastError: any;
 
   for (const modelName of models) {
