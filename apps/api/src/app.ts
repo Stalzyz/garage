@@ -13,6 +13,7 @@ import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fast
 import { prisma } from './db';
 import dotenv from 'dotenv';
 import authPlugin from './plugins/auth.plugin';
+import storagePlugin from './plugins/storage.plugin';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
 import { startCronJobs } from './cron/invoice-jobs';
