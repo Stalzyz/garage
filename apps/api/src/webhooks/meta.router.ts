@@ -122,7 +122,7 @@ export default async function metaRouter(app: FastifyInstance) {
           }
         }
 
-        // 2. Meta WhatsApp Flows (nfm_reply Interactive Submissions)
+        // 2. Meta WhatsApp Flows & Messages
         if (change.field === 'messages') {
           const val = change.value as MetaNfmReplyValue;
           if (val?.messages) {
@@ -133,6 +133,13 @@ export default async function metaRouter(app: FastifyInstance) {
                   await processWhatsAppFlowLead(app, msg, val.contacts);
                 } catch (error: any) {
                   app.log.error({ err: error }, `Failed to process WhatsApp Flow lead from ${msg.from}`);
+                }
+              } else {
+                app.log.info(`Received Meta WhatsApp reply from ${msg.from} (type: ${msg.type})`);
+                try {
+                  await processIncomingWhatsAppReply(app, msg, val.contacts);
+                } catch (error: any) {
+                  app.log.error({ err: error }, `Failed to process incoming WhatsApp reply from ${msg.from}`);
                 }
               }
             }
@@ -348,4 +355,94 @@ async function processWhatsAppFlowLead(
     (app as any).broadcast('LEAD_CREATED', { lead, source: 'WHATSAPP_FLOW' });
   }
 }
+
+/**
+ * Process general incoming Meta WhatsApp message/reply (Text, Buttons, Interactive)
+ */
+async function processIncomingWhatsAppReply(
+  app: FastifyInstance,
+  msg: any,
+  contacts?: MetaNfmReplyValue['contacts']
+) {
+  const fromPhone = msg.from;
+  if (!fromPhone) return;
+
+  const textContent =
+    msg.text?.body ||
+    msg.button?.text ||
+    msg.interactive?.button_reply?.title ||
+    msg.interactive?.list_reply?.title ||
+    `[${msg.type?.toUpperCase() || 'ATTACHMENT'}]`;
+
+  const waContact = contacts?.find((c) => c.wa_id === fromPhone);
+  const waName = waContact?.profile?.name;
+
+  const cleanDigits = fromPhone.replace(/\D/g, '').slice(-10);
+
+  // Search lead by phone
+  let existingLead: any = null;
+  if (cleanDigits) {
+    existingLead = await app.prisma.lead.findFirst({
+      where: { phone: { contains: cleanDigits } },
+    });
+  }
+
+  let lead;
+  if (existingLead) {
+    lead = await app.prisma.lead.update({
+      where: { id: existingLead.id },
+      data: {
+        notes: `${existingLead.notes || ''}\n[${new Date().toISOString()}] WhatsApp Reply: ${textContent}`,
+      },
+    });
+
+    await app.prisma.leadActivity.create({
+      data: {
+        leadId: lead.id,
+        type: 'WHATSAPP',
+        content: `[INBOUND WHATSAPP] ${waName || lead.name}: ${textContent}`,
+        userId: 'SYSTEM',
+      },
+    });
+
+    app.log.info(`Logged incoming WhatsApp reply for existing lead ${lead.id} (${lead.name})`);
+  } else {
+    const senderName = waName || `WhatsApp Contact (${fromPhone})`;
+    lead = await app.prisma.lead.create({
+      data: {
+        name: senderName,
+        phone: fromPhone,
+        source: 'WHATSAPP',
+        status: 'NEW',
+        notes: `Incoming WhatsApp message: ${textContent}`,
+      },
+    });
+
+    await app.prisma.leadActivity.create({
+      data: {
+        leadId: lead.id,
+        type: 'WHATSAPP',
+        content: `[INBOUND WHATSAPP] ${senderName}: ${textContent}`,
+        userId: 'SYSTEM',
+      },
+    });
+
+    app.log.info(`Created new CRM lead from incoming WhatsApp message: ${lead.id}`);
+
+    if (typeof (app as any).broadcast === 'function') {
+      (app as any).broadcast('LEAD_CREATED', { lead, source: 'WHATSAPP_INBOUND' });
+    }
+  }
+
+  if (typeof (app as any).broadcast === 'function') {
+    (app as any).broadcast('WHATSAPP_REPLY_RECEIVED', {
+      leadId: lead.id,
+      leadName: lead.name,
+      fromPhone,
+      message: textContent,
+      receivedAt: new Date().toISOString(),
+    });
+  }
+}
+
 
