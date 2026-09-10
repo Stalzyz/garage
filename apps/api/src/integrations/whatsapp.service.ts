@@ -99,24 +99,75 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
 export class WhatsAppService {
   async getCredentials() {
     const keys = await prisma.integrationKey.findMany({
-      where: { service: 'WHATSAPP', isActive: true }
+      where: { service: { in: ['WHATSAPP', 'META'] }, isActive: true }
     });
 
     let url = process.env.GRAFTY_API_URL || 'https://grafty.pro';
     let key = process.env.GRAFTY_API_KEY || '';
+    let metaToken = process.env.META_ACCESS_TOKEN || '';
 
     for (const k of keys) {
       if (k.keyName === 'GRAFTY_API_KEY') key = decrypt(k.encryptedValue);
       if (k.keyName === 'GRAFTY_API_URL') url = decrypt(k.encryptedValue);
+      if (k.keyName === 'META_ACCESS_TOKEN') metaToken = decrypt(k.encryptedValue);
     }
 
-    return { url, key };
+    return { url, key, metaToken };
   }
 
   async getTemplates() {
-    const { url, key } = await this.getCredentials();
+    const { url, key, metaToken } = await this.getCredentials();
     let cloudTemplates: WhatsAppTemplateDef[] = [];
 
+    // 1. Direct Meta Graph API Template Fetch (Official WABA Meta Templates)
+    if (metaToken) {
+      try {
+        const res = await fetch(
+          `https://graph.facebook.com/v19.0/me/whatsapp_business_accounts?fields=id,name,message_templates{id,name,status,category,language,components}&access_token=${metaToken}`
+        ).catch(() => null);
+
+        if (res && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.data)) {
+            for (const waba of data.data) {
+              if (waba.message_templates?.data) {
+                for (const t of waba.message_templates.data) {
+                  if (t.status === 'APPROVED' || !t.status) {
+                    const bodyComp = (t.components || []).find((c: any) => c.type === 'BODY');
+                    const headerComp = (t.components || []).find((c: any) => c.type === 'HEADER');
+                    const bodyText = bodyComp?.text || '{{1}}';
+
+                    const varMatches = bodyText.match(/\{\{\d+\}\}/g) || [];
+                    const vars = varMatches.map((_: string, idx: number) => ({
+                      name: `param_${idx + 1}`,
+                      label: `Parameter ${idx + 1}`,
+                      placeholder: `Value ${idx + 1}`
+                    }));
+
+                    cloudTemplates.push({
+                      id: t.id || t.name,
+                      name: t.name ? t.name.replace(/_/g, ' ').toUpperCase() : 'Meta Cloud Template',
+                      templateName: t.name,
+                      category: (t.category || 'CRM') as any,
+                      event: 'META_CLOUD_TEMPLATE',
+                      description: `Official Meta Cloud Template (${t.language || 'en'}) — Status: ${t.status || 'APPROVED'}`,
+                      variables: vars,
+                      bodyPattern: bodyText,
+                      headerType: headerComp?.format || 'NONE',
+                      buttons: []
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Meta Graph API] Message templates fetch notice:', err);
+      }
+    }
+
+    // 2. Grafty Engine Template Fetch (Grafty Workspace Templates)
     if (url && key) {
       try {
         const res = await fetch(`${url}/api/templates`, {
@@ -126,29 +177,31 @@ export class WhatsAppService {
         if (res && res.ok) {
           const raw = await res.json();
           const items = Array.isArray(raw) ? raw : (raw.data || []);
-          cloudTemplates = items.map((t: any) => ({
-            id: t.id || t.name,
-            name: t.name ? t.name.replace(/_/g, ' ').toUpperCase() : 'Meta Cloud Template',
-            templateName: t.name || t.id,
-            category: (t.category || 'CRM') as any,
-            event: t.event || 'META_CLOUD_TEMPLATE',
-            description: t.description || `Meta Cloud API Template (${t.language || 'en'})`,
-            variables: (t.variables || []).map((v: any, idx: number) => ({
-              name: typeof v === 'string' ? v : (v.name || `param_${idx + 1}`),
-              label: typeof v === 'string' ? v : (v.label || `Parameter ${idx + 1}`),
-              placeholder: typeof v === 'string' ? v : (v.placeholder || `Value ${idx + 1}`)
-            })),
-            bodyPattern: t.body || t.bodyPattern || '{{1}}',
-            headerType: t.headerType || 'NONE',
-            buttons: t.buttons || []
-          }));
+          items.forEach((t: any) => {
+            cloudTemplates.push({
+              id: t.id || t.name,
+              name: t.name ? t.name.replace(/_/g, ' ').toUpperCase() : 'Grafty Workspace Template',
+              templateName: t.name || t.id,
+              category: (t.category || 'CRM') as any,
+              event: t.event || 'GRAFTY_TEMPLATE',
+              description: t.description || `Grafty Meta Cloud Template (${t.language || 'en'})`,
+              variables: (t.variables || []).map((v: any, idx: number) => ({
+                name: typeof v === 'string' ? v : (v.name || `param_${idx + 1}`),
+                label: typeof v === 'string' ? v : (v.label || `Parameter ${idx + 1}`),
+                placeholder: typeof v === 'string' ? v : (v.placeholder || `Value ${idx + 1}`)
+              })),
+              bodyPattern: t.body || t.bodyPattern || '{{1}}',
+              headerType: t.headerType || 'NONE',
+              buttons: t.buttons || []
+            });
+          });
         }
       } catch (err) {
-        console.warn('[Grafty] Dynamic Meta Cloud API template fetch notice:', err);
+        console.warn('[Grafty] Workspace template fetch notice:', err);
       }
     }
 
-    // Merge default templates with cloud API templates (avoid duplicates)
+    // Merge default built-in templates with Meta Cloud & Grafty templates (deduplicate)
     const existingNames = new Set(WHATSAPP_TEMPLATES.map(t => t.templateName));
     const uniqueCloud = cloudTemplates.filter(t => !existingNames.has(t.templateName));
     return [...WHATSAPP_TEMPLATES, ...uniqueCloud];
