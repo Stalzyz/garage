@@ -11,6 +11,10 @@ echo "==> [2/6] Installing dependencies..."
 pnpm install --frozen-lockfile 2>&1 | tail -3
 
 echo ""
+echo "==> [2.5/6] Building apps/api (TypeScript -> dist)..."
+pnpm --filter=@grekam/api build 2>&1 | tail -5
+
+echo ""
 echo "==> [3/6] Building apps/web..."
 pnpm --filter=web build 2>&1 | tail -5
 
