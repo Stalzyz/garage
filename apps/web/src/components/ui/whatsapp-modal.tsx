@@ -256,9 +256,26 @@ export function WhatsAppModal({
 
             {/* Template Selector */}
             <div>
-              <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1.5 font-mono">
-                Select WhatsApp Template
-              </label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+                  Select WhatsApp Template
+                </label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetchApi<any>('/integrations/whatsapp/templates');
+                      toast.success('Meta Cloud API templates refreshed from Grafty!');
+                    } catch (e: any) {
+                      toast.error('Failed to sync templates from Meta Cloud API');
+                    }
+                  }}
+                  className="text-[10px] font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 transition-all"
+                  title="Sync newly created templates from Meta Cloud API / Grafty workspace"
+                >
+                  <Sparkles className="w-3 h-3" /> Sync Meta Cloud Templates
+                </button>
+              </div>
               <select
                 className="w-full bg-black/60 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-sm font-semibold outline-none focus:border-emerald-500 text-emerald-300"
                 value={selectedTemplateId}

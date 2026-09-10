@@ -11,7 +11,7 @@ export default async function whatsappRouter(app: FastifyInstance) {
 
   // GET /api/v1/integrations/whatsapp/templates — Get standard WhatsApp templates & metadata
   server.get('/templates', async (req, reply) => {
-    const templates = whatsappService.getTemplates();
+    const templates = await whatsappService.getTemplates();
     return { data: templates };
   });
 

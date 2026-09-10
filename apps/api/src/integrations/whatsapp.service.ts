@@ -113,8 +113,45 @@ export class WhatsAppService {
     return { url, key };
   }
 
-  getTemplates() {
-    return WHATSAPP_TEMPLATES;
+  async getTemplates() {
+    const { url, key } = await this.getCredentials();
+    let cloudTemplates: WhatsAppTemplateDef[] = [];
+
+    if (url && key) {
+      try {
+        const res = await fetch(`${url}/api/templates`, {
+          headers: { 'Authorization': `Bearer ${key}` }
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const raw = await res.json();
+          const items = Array.isArray(raw) ? raw : (raw.data || []);
+          cloudTemplates = items.map((t: any) => ({
+            id: t.id || t.name,
+            name: t.name ? t.name.replace(/_/g, ' ').toUpperCase() : 'Meta Cloud Template',
+            templateName: t.name || t.id,
+            category: (t.category || 'CRM') as any,
+            event: t.event || 'META_CLOUD_TEMPLATE',
+            description: t.description || `Meta Cloud API Template (${t.language || 'en'})`,
+            variables: (t.variables || []).map((v: any, idx: number) => ({
+              name: typeof v === 'string' ? v : (v.name || `param_${idx + 1}`),
+              label: typeof v === 'string' ? v : (v.label || `Parameter ${idx + 1}`),
+              placeholder: typeof v === 'string' ? v : (v.placeholder || `Value ${idx + 1}`)
+            })),
+            bodyPattern: t.body || t.bodyPattern || '{{1}}',
+            headerType: t.headerType || 'NONE',
+            buttons: t.buttons || []
+          }));
+        }
+      } catch (err) {
+        console.warn('[Grafty] Dynamic Meta Cloud API template fetch notice:', err);
+      }
+    }
+
+    // Merge default templates with cloud API templates (avoid duplicates)
+    const existingNames = new Set(WHATSAPP_TEMPLATES.map(t => t.templateName));
+    const uniqueCloud = cloudTemplates.filter(t => !existingNames.has(t.templateName));
+    return [...WHATSAPP_TEMPLATES, ...uniqueCloud];
   }
 
   async sendTemplateMessage({

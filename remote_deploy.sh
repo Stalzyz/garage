@@ -24,10 +24,10 @@ pnpm --filter=academy-web build 2>&1 | tail -5
 
 echo ""
 echo "==> [5/6] Managing PM2 processes..."
+rm -rf apps/web/.next/standalone/apps/web/.next/static
+mkdir -p apps/web/.next/standalone/apps/web/.next/
 cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ 2>/dev/null || true
-cp -r apps/web/.next/static apps/web/.next/standalone/grekam-os/apps/web/.next/ 2>/dev/null || true
 cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || true
-cp -r apps/web/public apps/web/.next/standalone/grekam-os/apps/web/ 2>/dev/null || true
 
 cat > /root/start_web.sh << 'WEBEOF'
 #!/bin/bash
