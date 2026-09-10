@@ -1,11 +1,22 @@
 "use client"
 
-import React, { useMemo } from 'react';
-import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import React, { useMemo, useState, useEffect } from 'react';
+import { 
+  DndContext, 
+  DragOverlay, 
+  closestCorners, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors, 
+  useDroppable,
+  DragStartEvent, 
+  DragEndEvent 
+} from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreVertical, Phone, Mail, Calendar, ClipboardList, IndianRupee, GraduationCap, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
+import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
@@ -36,7 +47,7 @@ const ACADEMY_COLUMNS = [
   { id: 'DROPPED', title: 'Dropped' }
 ];
 
-// Individual Card
+// Individual Lead Card
 function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
   const { symbol } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -78,13 +89,13 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
       style={style}
       className={`bg-[var(--dash-bg-surface,#111)] border ${
         isDragging 
-          ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] opacity-50' 
+          ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)] opacity-40 z-50' 
           : isHighRisk
           ? 'border-red-500/40 bg-red-950/10 hover:border-red-500/60'
           : isStale
           ? 'border-amber-500/30 hover:border-amber-500/50'
           : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-white/20'
-      } rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-all relative group`}
+      } rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-all relative group touch-none select-none`}
       {...attributes}
       {...listeners}
     >
@@ -95,7 +106,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
             {aiBadge.label}
           </span>
           <div className="flex items-center gap-0.5 bg-black/40 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-blue-400 border border-white/10">
-            {lead.score}
+            {lead.score || 50}
           </div>
         </div>
       </div>
@@ -109,7 +120,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
           </div>
         ) : lead.businessUnit === 'ACADEMY' && lead.courseInterest ? (
           <div className="flex items-center gap-1.5 text-xs text-violet-400 font-mono">
-            <GraduationCap className="w-3 h-3" /> <span className="truncate">{lead.courseInterest}</span>
+            <GraduationCap className="w-3.5 h-3.5" /> <span className="truncate">{lead.courseInterest}</span>
           </div>
         ) : <div />}
 
@@ -126,42 +137,50 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
       </div>
 
       <div className="flex items-center justify-between mt-3 border-t border-white/5 pt-2.5">
-        <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">{lead.source}</span>
-        <div className="flex gap-2">
+        <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">{lead.source || 'DIRECT'}</span>
+        <div className="flex gap-2.5 items-center">
           {lead.phone && (
             <button 
-              onPointerDown={(e) => { 
-                e.stopPropagation(); 
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
                 if (onWhatsapp) onWhatsapp(lead);
                 else {
                   const cleanPhone = lead.phone.replace(/\D/g, '');
                   window.open(`https://wa.me/${cleanPhone}`, '_blank');
                 }
               }}
-              title="Send WhatsApp Template Message (Grafty Hub)"
-              className="text-emerald-400/80 hover:text-emerald-400 transition-colors p-2 -m-2"
+              title="Send WhatsApp Message (Grafty Hub)"
+              className="text-emerald-400/80 hover:text-emerald-400 hover:scale-110 transition-all p-1"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <MessageCircle className="w-3.5 h-3.5" />
             </button>
           )}
           <button 
-            onPointerDown={(e) => { e.stopPropagation(); onSchedule(lead); }}
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onSchedule(lead); }}
             title="Schedule Meeting"
-            className="text-blue-400/70 hover:text-blue-400 transition-colors p-2 -m-2"
+            className="text-blue-400/70 hover:text-blue-400 hover:scale-110 transition-all p-1"
           >
             <Calendar className="w-3.5 h-3.5" />
           </button>
           <button 
-            onPointerDown={(e) => { e.stopPropagation(); onLogActivity(lead); }}
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onLogActivity(lead); }}
             title="Log Activity"
-            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2 -m-2"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
             <ClipboardList className="w-3.5 h-3.5" />
           </button>
           <button 
-            onPointerDown={(e) => { e.stopPropagation(); onOpenLead(lead); }}
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onOpenLead(lead); }}
             title="View Details"
-            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors p-2 -m-2"
+            className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
             <MoreVertical className="w-3.5 h-3.5" />
           </button>
@@ -171,10 +190,10 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
   );
 }
 
-// Column Container
+// Droppable Column Container
 function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
   const { symbol } = useCurrency();
-  const { setNodeRef } = useSortable({
+  const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: 'Column', id }
   });
@@ -182,7 +201,12 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule,
   const columnValue = leads.reduce((sum, l) => sum + (Number(l.estimatedBudget) || 0), 0);
 
   return (
-    <div className="flex flex-col min-w-[285px] w-[285px] bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-white/5 rounded-2xl h-full flex-shrink-0">
+    <div 
+      ref={setNodeRef}
+      className={`flex flex-col min-w-[285px] w-[285px] bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border ${
+        isOver ? 'border-blue-500/60 bg-blue-500/5 ring-1 ring-blue-500/30' : 'border-white/5'
+      } rounded-2xl h-full flex-shrink-0 transition-all duration-150`}
+    >
       <div className="p-4 border-b border-white/5 flex items-center justify-between">
         <div>
           <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">{title}</h3>
@@ -194,15 +218,23 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule,
         </div>
         <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono">{leads.length}</span>
       </div>
-      <div ref={setNodeRef} className="p-3 flex-1 overflow-y-auto custom-scrollbar">
+      
+      <div className="p-3 flex-1 overflow-y-auto custom-scrollbar min-h-[150px]">
         <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
           {leads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} onWhatsapp={onWhatsapp} />
+            <LeadCard 
+              key={lead.id} 
+              lead={lead} 
+              onOpenLead={onOpenLead} 
+              onLogActivity={onLogActivity} 
+              onSchedule={onSchedule} 
+              onWhatsapp={onWhatsapp} 
+            />
           ))}
         </SortableContext>
         {leads.length === 0 && (
-          <div className="h-full min-h-[100px] border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-[var(--dash-text-primary)]/20 text-xs font-mono">
-            Drop here
+          <div className="h-32 border-2 border-dashed border-white/5 hover:border-blue-500/30 rounded-xl flex items-center justify-center text-[var(--dash-text-primary)]/20 text-xs font-mono transition-all">
+            Drop lead here
           </div>
         )}
       </div>
@@ -212,12 +244,18 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule,
 
 export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: KanbanBoardProps) {
   const columns = activeTab === 'AGENCY' ? AGENCY_COLUMNS : ACADEMY_COLUMNS;
-  const [activeLead, setActiveLead] = React.useState<any>(null);
+  const [activeLead, setActiveLead] = useState<any>(null);
+  const [localLeads, setLocalLeads] = useState<any[]>(leads);
+
+  // Sync props leads to local state
+  useEffect(() => {
+    setLocalLeads(leads);
+  }, [leads]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8, // Require dragging 8px before activation to prevent accidental clicks
       },
     }),
     useSensor(KeyboardSensor, {
@@ -229,7 +267,7 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const lead = leads.find(l => l.id === active.id);
+    const lead = localLeads.find(l => l.id === active.id);
     if (lead) setActiveLead(lead);
   };
 
@@ -238,22 +276,31 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
     const { active, over } = event;
     if (!over) return;
 
-    const activeId = active.id;
-    const overId = over.id;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
-    // Check if dropping on a column
-    const isOverColumn = columnIds.includes(overId as string);
-    if (isOverColumn) {
-      onStatusChange(activeId as string, overId as string);
-      return;
+    if (activeId === overId) return;
+
+    let targetStatus: string | null = null;
+
+    // Direct column target
+    if (columnIds.includes(overId)) {
+      targetStatus = overId;
+    } else {
+      // Over another lead target
+      const overLead = localLeads.find(l => l.id === overId);
+      if (overLead && overLead.status) {
+        targetStatus = overLead.status;
+      }
     }
 
-    // Check if dropping on another lead
-    const overLead = leads.find(l => l.id === overId);
-    if (overLead && overLead.status) {
-      const activeLead = leads.find(l => l.id === activeId);
-      if (activeLead && activeLead.status !== overLead.status) {
-        onStatusChange(activeId as string, overLead.status);
+    if (targetStatus) {
+      const activeLeadObj = localLeads.find(l => l.id === activeId);
+      if (activeLeadObj && activeLeadObj.status !== targetStatus) {
+        // Optimistic UI Update immediately
+        setLocalLeads(prev => prev.map(l => l.id === activeId ? { ...l, status: targetStatus, updatedAt: new Date().toISOString() } : l));
+        // Call parent handler (API patch)
+        onStatusChange(activeId, targetStatus);
       }
     }
   };
@@ -265,9 +312,9 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 h-[600px] overflow-x-auto custom-scrollbar pb-4">
+      <div className="flex gap-4 h-[650px] overflow-x-auto custom-scrollbar pb-4">
         {columns.map(col => {
-          const colLeads = leads.filter(l => l.status === col.id);
+          const colLeads = localLeads.filter(l => l.status === col.id);
           return (
             <KanbanColumn 
               key={col.id} 
@@ -283,9 +330,9 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
         })}
       </div>
       
-      <DragOverlay>
+      <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeLead ? (
-          <div className="opacity-80 rotate-3 scale-105">
+          <div className="opacity-90 rotate-2 scale-105 pointer-events-none shadow-2xl">
             <LeadCard lead={activeLead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} />
           </div>
         ) : null}
@@ -293,3 +340,4 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
     </DndContext>
   );
 }
+
