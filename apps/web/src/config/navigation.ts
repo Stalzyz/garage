@@ -139,6 +139,7 @@ export const navigation: NavItem[] = [
       { title: "Content Scheduler",href: "/dashboard/marketing/scheduler" },
       { title: "Email Campaigns",  href: "/dashboard/marketing/email" },
       { title: "Ad Campaigns",     href: "/dashboard/marketing/campaigns" },
+      { title: "AI Backlink Hub",  href: "/dashboard/marketing/backlinks" },
     ],
   },
   {
