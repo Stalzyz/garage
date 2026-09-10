@@ -47,7 +47,7 @@ export default async function whatsappRouter(app: FastifyInstance) {
     });
 
     if (!result.success) {
-      return reply.code(400).send({ error: 'WhatsApp delivery failed', message: result.error });
+      return reply.code(400).send({ error: 'WhatsApp delivery failed', message: (result as any).error || 'Failed to dispatch message' });
     }
 
     return reply.send({ message: 'WhatsApp notification sent successfully', data: result.data });
