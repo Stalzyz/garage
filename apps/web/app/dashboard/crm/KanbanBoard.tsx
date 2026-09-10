@@ -47,21 +47,25 @@ const ACADEMY_COLUMNS = [
   { id: 'DROPPED', title: 'Dropped' }
 ];
 
-// Individual Lead Card
-function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
+// Pure Visual Lead Card Component (No dnd hooks - used for both column list & DragOverlay)
+function LeadCardContent({ 
+  lead, 
+  isDragging = false, 
+  isOverlay = false, 
+  onOpenLead, 
+  onLogActivity, 
+  onSchedule, 
+  onWhatsapp 
+}: { 
+  lead: any; 
+  isDragging?: boolean; 
+  isOverlay?: boolean; 
+  onOpenLead?: any; 
+  onLogActivity?: any; 
+  onSchedule?: any; 
+  onWhatsapp?: any; 
+}) {
   const { symbol } = useCurrency();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: lead.id,
-    data: {
-      type: 'Lead',
-      lead
-    }
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
 
   // Calculate Lead Inactivity (Stale SLA)
   const lastActiveDate = new Date(lead.updatedAt || lead.createdAt || Date.now());
@@ -85,19 +89,17 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       className={`bg-[var(--dash-bg-surface,#111)] border ${
-        isDragging 
-          ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)] opacity-40 z-50' 
+        isOverlay
+          ? 'border-blue-500 shadow-[0_10px_30px_rgba(59,130,246,0.4)] ring-2 ring-blue-500/40 bg-[#161616]'
+          : isDragging 
+          ? 'border-blue-500/50 opacity-20' 
           : isHighRisk
           ? 'border-red-500/40 bg-red-950/10 hover:border-red-500/60'
           : isStale
           ? 'border-amber-500/30 hover:border-amber-500/50'
           : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-white/20'
-      } rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-all relative group touch-none select-none`}
-      {...attributes}
-      {...listeners}
+      } rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-colors relative group touch-none select-none`}
     >
       <div className="flex justify-between items-start mb-2 gap-2">
         <h4 className="font-bold text-sm text-[var(--dash-text-primary)] truncate flex-1">{lead.name}</h4>
@@ -160,7 +162,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
           <button 
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onSchedule(lead); }}
+            onClick={(e) => { e.stopPropagation(); if (onSchedule) onSchedule(lead); }}
             title="Schedule Meeting"
             className="text-blue-400/70 hover:text-blue-400 hover:scale-110 transition-all p-1"
           >
@@ -169,7 +171,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
           <button 
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onLogActivity(lead); }}
+            onClick={(e) => { e.stopPropagation(); if (onLogActivity) onLogActivity(lead); }}
             title="Log Activity"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
@@ -178,7 +180,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
           <button 
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onOpenLead(lead); }}
+            onClick={(e) => { e.stopPropagation(); if (onOpenLead) onOpenLead(lead); }}
             title="View Details"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
@@ -186,6 +188,35 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Sortable Lead Card Wrapper for Column Lists
+function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: lead.id,
+    data: {
+      type: 'Lead',
+      lead
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <LeadCardContent 
+        lead={lead} 
+        isDragging={isDragging} 
+        onOpenLead={onOpenLead} 
+        onLogActivity={onLogActivity} 
+        onSchedule={onSchedule} 
+        onWhatsapp={onWhatsapp} 
+      />
     </div>
   );
 }
@@ -255,7 +286,7 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Require dragging 8px before activation to prevent accidental clicks
+        distance: 5, // 5px movement to trigger drag
       },
     }),
     useSensor(KeyboardSensor, {
@@ -332,12 +363,11 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
       
       <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeLead ? (
-          <div className="opacity-90 rotate-2 scale-105 pointer-events-none shadow-2xl">
-            <LeadCard lead={activeLead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} />
+          <div className="w-[260px] pointer-events-none cursor-grabbing">
+            <LeadCardContent lead={activeLead} isOverlay />
           </div>
         ) : null}
       </DragOverlay>
     </DndContext>
   );
 }
-

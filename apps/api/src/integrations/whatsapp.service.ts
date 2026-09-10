@@ -102,7 +102,7 @@ export class WhatsAppService {
       where: { service: 'WHATSAPP', isActive: true }
     });
 
-    let url = process.env.GRAFTY_API_URL || 'https://send.grafty.pro';
+    let url = process.env.GRAFTY_API_URL || 'https://grafty.pro';
     let key = process.env.GRAFTY_API_KEY || '';
 
     for (const k of keys) {
