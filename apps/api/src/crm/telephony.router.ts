@@ -188,8 +188,9 @@ export default async function telephonyRouter(app: FastifyInstance) {
     const detailedLogs = callActivities.map(a => {
       const u = userMap.get(a.userId);
       const durSec = extractDurationSeconds(a.content || '');
-      const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*([^\s\]]+)\]/i) : null;
-      const recordingUrl = recMatch ? recMatch[1] : null;
+      // Use a greedy match (all chars up to the closing bracket) to capture full URLs including query strings
+      const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*([^\]]+?)\s*\]/i) : null;
+      const recordingUrl = recMatch ? recMatch[1].trim() : null;
 
       return {
         id: a.id,
@@ -242,18 +243,26 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
     const durationSec = body.durationSeconds || 0;
     const durStr = formatTalkTime(durationSec);
-    const audioTag = body.recordingUrl ? ` [Recording: ${body.recordingUrl}]` : '';
+    const audioTag = body.recordingUrl ? ` [Recording: ${body.recordingUrl.trim()}]` : '';
     const dispositionTag = body.disposition ? ` [Disposition: ${body.disposition}]` : '';
     const notesStr = body.notes ? ` Notes: ${body.notes}` : '';
 
     const content = `[Call Duration: ${durStr}]${dispositionTag}${audioTag}${notesStr}`.trim();
+
+    // Resolve the actual userId:
+    // - If frontend sends a real staff userId (not "ALL" or blank), use it.
+    // - Otherwise fall back to the currently logged-in user (sub = NextAuth JWT user ID) or 'system'.
+    const resolvedUserId =
+      body.userId && body.userId !== 'ALL'
+        ? body.userId
+        : ((req as any).user?.sub || (req as any).user?.id || 'system');
 
     const activity = await app.prisma.leadActivity.create({
       data: {
         leadId: body.leadId,
         type: 'CALL',
         content,
-        userId: body.userId || (req as any).user?.id || 'system',
+        userId: resolvedUserId,
       },
     });
 
