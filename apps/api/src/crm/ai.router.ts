@@ -26,36 +26,42 @@ Return ONLY valid JSON matching this exact schema:
 }
 Make the summary and deliverables specific to the client's industry and goals. Use INR for budget.`;
 
+      const getFallbackProposal = () => ({
+        success: true,
+        data: {
+          title: `${clientName} — Custom Digital Growth Proposal`,
+          summary: `Based on your brief: "${brief}". We propose a comprehensive digital strategy designed to elevate your brand presence, drive qualified leads, and deliver measurable ROI within 60 days.`,
+          deliverables: [
+            "Brand Identity Audit & Competitor Analysis",
+            "1x Hero Video Production (60 seconds, 4K)",
+            "3x Social Media Cutdowns (15s Reels/Shorts)",
+            "Performance Ad Creatives (Meta + Google)",
+            "Raw Project Files & Revision-Ready Assets"
+          ],
+          budget: 55000,
+          timelineWeeks: 5
+        }
+      });
+
       const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
         app.log.warn("Gemini API Key is not set. Returning mock AI proposal.");
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return {
-          success: true,
-          data: {
-            title: `${clientName} — Custom Digital Growth Proposal`,
-            summary: `Based on your brief: "${brief}". We propose a comprehensive digital strategy designed to elevate your brand presence, drive qualified leads, and deliver measurable ROI within 60 days.`,
-            deliverables: [
-              "Brand Identity Audit & Competitor Analysis",
-              "1x Hero Video Production (60 seconds, 4K)",
-              "3x Social Media Cutdowns (15s Reels/Shorts)",
-              "Performance Ad Creatives (Meta + Google)",
-              "Raw Project Files & Revision-Ready Assets"
-            ],
-            budget: 55000,
-            timelineWeeks: 5
-          }
-        };
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return getFallbackProposal();
       }
 
-      const data = await generateJsonFromGemini(
-        app,
-        systemPrompt,
-        `Generate a proposal for:\nClient: ${clientName}\nBrief: ${brief}`
-      );
-
-      return { success: true, data };
+      try {
+        const data = await generateJsonFromGemini(
+          app,
+          systemPrompt,
+          `Generate a proposal for:\nClient: ${clientName}\nBrief: ${brief}`
+        );
+        return { success: true, data };
+      } catch (geminiErr: any) {
+        app.log.warn({ err: geminiErr?.message }, "Gemini API proposal generation failed. Returning fallback proposal.");
+        return getFallbackProposal();
+      }
     } catch (error: any) {
       app.log.error({ err: error }, "Error generating proposal via Gemini AI");
       return reply.code(500).send({
@@ -222,12 +228,7 @@ Return ONLY valid JSON matching this exact structure:
   ]
 }`;
 
-      const apiKey = await getGeminiApiKey(app);
-
-      if (!apiKey) {
-        app.log.warn("Gemini API Key missing. Running dynamic heuristic call analysis.");
-        await new Promise(r => setTimeout(r, 600));
-
+      const runHeuristicAnalysis = () => {
         const isPositive = /bought|interested|yes|deal|demo|sign|next step|send proposal|book|agree|great|close|pricing/i.test(transcript);
         const isSkeptical = /price|cost|expensive|competitor|budget|not sure|think about|delay|issue/i.test(transcript);
 
@@ -256,15 +257,27 @@ Return ONLY valid JSON matching this exact structure:
             ]
           }
         };
+      };
+
+      const apiKey = await getGeminiApiKey(app);
+
+      if (!apiKey) {
+        app.log.warn("Gemini API Key missing. Running dynamic heuristic call analysis.");
+        await new Promise(r => setTimeout(r, 300));
+        return runHeuristicAnalysis();
       }
 
-      const analysis = await generateJsonFromGemini(
-        app,
-        systemPrompt,
-        `Transcript:\n${transcript}`
-      );
-
-      return { success: true, data: analysis };
+      try {
+        const analysis = await generateJsonFromGemini(
+          app,
+          systemPrompt,
+          `Transcript:\n${transcript}`
+        );
+        return { success: true, data: analysis };
+      } catch (geminiErr: any) {
+        app.log.warn({ err: geminiErr?.message }, "Gemini AI execution failed. Falling back to dynamic heuristic analyzer.");
+        return runHeuristicAnalysis();
+      }
     } catch (err: any) {
       app.log.error({ err }, "Error analyzing call transcript via Gemini");
       return reply.code(500).send({ success: false, error: err.message });
@@ -301,38 +314,44 @@ Return ONLY valid JSON matching this exact structure:
   "closingCta": "Strong closing call to action to lock in a meeting."
 }`;
 
+      const getFallbackScript = () => ({
+        success: true,
+        data: {
+          title: `${productService} Cold Outreach Script`,
+          openingHook: `Hi [Prospect Name], this is [Your Name] from Grekam. I saw [Company] recently expanded your [Target Area] — congrats on the growth!`,
+          valueProposition: `We specialize in helping ${targetAudience} cut customer acquisition costs by up to 40% using automated AI workflow infrastructure.`,
+          qualifyingQuestions: [
+            "What is your primary bottleneck right now when scaling lead acquisition?",
+            "How are your reps currently managing follow-ups after initial inquiry?",
+            "If we could double demo conversions in 30 days without increasing ad spend, would that fit into your Q3 goals?"
+          ],
+          commonObjections: [
+            { objection: "Send me an email first", rebuttal: "Happy to! To make sure I send over only what's relevant to your team, are you currently focused more on lead volume or conversion rates?" },
+            { objection: "We already have an in-house team", rebuttal: "That's great — we actually partner directly with in-house teams to handle the technical automation so your team can focus purely on closing." }
+          ],
+          closingCta: "Do you have 10 minutes next Tuesday morning for a quick live demo to see how this works in action?"
+        }
+      });
+
       const apiKey = await getGeminiApiKey(app);
 
       if (!apiKey) {
         app.log.warn("Gemini API Key missing. Returning fallback call script.");
-        await new Promise(r => setTimeout(r, 600));
-        return {
-          success: true,
-          data: {
-            title: `${productService} Cold Outreach Script`,
-            openingHook: `Hi [Prospect Name], this is [Your Name] from Grekam. I saw [Company] recently expanded your [Target Area] — congrats on the growth!`,
-            valueProposition: `We specialize in helping ${targetAudience} cut customer acquisition costs by up to 40% using automated AI workflow infrastructure.`,
-            qualifyingQuestions: [
-              "What is your primary bottleneck right now when scaling lead acquisition?",
-              "How are your reps currently managing follow-ups after initial inquiry?",
-              "If we could double demo conversions in 30 days without increasing ad spend, would that fit into your Q3 goals?"
-            ],
-            commonObjections: [
-              { objection: "Send me an email first", rebuttal: "Happy to! To make sure I send over only what's relevant to your team, are you currently focused more on lead volume or conversion rates?" },
-              { objection: "We already have an in-house team", rebuttal: "That's great — we actually partner directly with in-house teams to handle the technical automation so your team can focus purely on closing." }
-            ],
-            closingCta: "Do you have 10 minutes next Tuesday morning for a quick live demo to see how this works in action?"
-          }
-        };
+        await new Promise(r => setTimeout(r, 300));
+        return getFallbackScript();
       }
 
-      const scriptData = await generateJsonFromGemini(
-        app,
-        systemPrompt,
-        `Product/Service: ${productService}\nTarget Audience: ${targetAudience}\nTone: ${tone}`
-      );
-
-      return { success: true, data: scriptData };
+      try {
+        const scriptData = await generateJsonFromGemini(
+          app,
+          systemPrompt,
+          `Product/Service: ${productService}\nTarget Audience: ${targetAudience}\nTone: ${tone}`
+        );
+        return { success: true, data: scriptData };
+      } catch (geminiErr: any) {
+        app.log.warn({ err: geminiErr?.message }, "Gemini API script generation failed. Returning fallback call script.");
+        return getFallbackScript();
+      }
     } catch (err: any) {
       app.log.error({ err }, "Error generating call script via Gemini");
       return reply.code(500).send({ success: false, error: err.message });
