@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchApi, useApi } from "@/lib/useApi";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Trash2, Save, Calculator, Users, Eye } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Save, Calculator, Users, Eye, Building2, BookmarkPlus } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency"
@@ -11,8 +11,7 @@ import { useOrganization } from "@/context/OrganizationContext"
 import { Modal } from "@/components/ui/modal"
 import { numberToWordsIN } from "@/lib/utils"
 import { Phone, Mail, Globe } from "lucide-react";
-
-
+import { toast } from "sonner";
 
 export default function NewInvoicePage() {
   const { symbol } = useCurrency()
@@ -23,9 +22,13 @@ export default function NewInvoicePage() {
 
   const { data: contactsData } = useApi<any>("/crm/contacts")
   const contacts = contactsData?.data || []
+
+  const { data: companiesData, mutate: mutateCompanies } = useApi<any>("/crm/companies")
+  const companies = companiesData?.data || []
   
-  const [assignType, setAssignType] = useState<"MANUAL" | "LEAD" | "CONTACT">("MANUAL")
+  const [assignType, setAssignType] = useState<"MANUAL" | "LEAD" | "CONTACT" | "COMPANY">("MANUAL")
   const [docType, setDocType] = useState<"TAX" | "PROFORMA">("TAX")
+  const [isSavingCompany, setIsSavingCompany] = useState(false)
   
   const [invoice, setInvoice] = useState({
     invoiceNumber: `INV-${new Date().getTime().toString().slice(-6)}`,
@@ -38,7 +41,9 @@ export default function NewInvoicePage() {
     businessUnit: "AGENCY",
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     currency: "INR",
+    discountType: "PERCENT" as "PERCENT" | "FLAT",
     discountRate: 0,
+    discountFlat: 0,
     notes: "",
   });
 
@@ -69,14 +74,19 @@ export default function NewInvoicePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-calculated totals
+  // Auto-calculated totals (supporting percentage and flat amount discount)
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100)), 0);
-  const overallDiscountAmt = subtotal * ((invoice.discountRate || 0) / 100);
-  const taxableAmount = subtotal - overallDiscountAmt;
+
+  const overallDiscountAmt = invoice.discountType === "FLAT"
+    ? Math.min(subtotal, Math.max(0, Number(invoice.discountFlat || 0)))
+    : subtotal * (Math.min(100, Math.max(0, Number(invoice.discountRate || 0))) / 100);
+
+  const effectiveDiscountRate = subtotal > 0 ? (overallDiscountAmt / subtotal) * 100 : 0;
+  const taxableAmount = Math.max(0, subtotal - overallDiscountAmt);
 
   const totalTax = items.reduce((sum, item) => {
     const itemSubtotal = item.quantity * item.unitPrice * (1 - (item.discountRate || 0) / 100);
-    const finalItemTaxable = itemSubtotal * (1 - (invoice.discountRate || 0) / 100);
+    const finalItemTaxable = itemSubtotal * (1 - (effectiveDiscountRate / 100));
     return sum + (finalItemTaxable * ((item.taxRate || 0) / 100));
   }, 0);
   const grandTotal = taxableAmount + totalTax;
@@ -99,9 +109,9 @@ export default function NewInvoicePage() {
 
   const handleSave = async () => {
     if (!invoice.companyName && !invoice.contactName) {
-      return alert("Please enter either a Company Name or Contact Person Name");
+      return toast.error("Please enter either a Company Name or Contact Person Name");
     }
-    if (items.some(i => !i.description)) return alert("All items must have a description");
+    if (items.some(i => !i.description)) return toast.error("All items must have a description");
     
     setIsSubmitting(true);
     try {
@@ -117,7 +127,7 @@ export default function NewInvoicePage() {
           clientEmail: invoice.clientEmail.trim() || undefined,
           clientGst: invoice.clientGst.trim() || undefined,
           businessUnit: invoice.businessUnit,
-          discountRate: Number(invoice.discountRate || 0),
+          discountRate: Number(effectiveDiscountRate.toFixed(4)),
           dueDate: new Date(invoice.dueDate).toISOString(),
           notes: invoice.notes || (invoice.clientPhone ? `Contact Phone: ${invoice.clientPhone}` : undefined),
           items: items.map(i => ({
@@ -130,10 +140,11 @@ export default function NewInvoicePage() {
           }))
         })
       });
+      toast.success("Invoice saved successfully!");
       router.push(`/dashboard/finance/invoices/${res.id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to create invoice");
+      toast.error(err.message || "Failed to create invoice");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,23 +156,68 @@ export default function NewInvoicePage() {
       if (lead) {
         setInvoice(prev => ({
           ...prev,
-          companyName: lead.company || "",
+          companyName: lead.company || prev.companyName,
           contactName: lead.name || "",
           clientEmail: lead.email || prev.clientEmail,
           clientPhone: lead.phone || prev.clientPhone,
+          clientAddress: lead.address || prev.clientAddress,
+          clientGst: lead.gstin || prev.clientGst,
         }))
+        toast.success(`Populated from Lead: ${lead.name}`);
       }
     } else if (assignType === "CONTACT") {
       const contact = contacts.find((c: any) => c.id === id)
       if (contact) {
         setInvoice(prev => ({
           ...prev,
-          companyName: contact.company?.name || "",
+          companyName: contact.company?.name || contact.newCompanyName || prev.companyName,
           contactName: `${contact.firstName} ${contact.lastName}`.trim(),
           clientEmail: contact.email || prev.clientEmail,
           clientPhone: contact.phone || contact.whatsapp || prev.clientPhone,
+          clientAddress: contact.billingAddress || contact.company?.billingAddress || prev.clientAddress,
+          clientGst: contact.company?.gstin || contact.pan || prev.clientGst,
         }))
+        toast.success(`Populated from Contact: ${contact.firstName} ${contact.lastName}`);
       }
+    } else if (assignType === "COMPANY") {
+      const comp = companies.find((c: any) => c.id === id)
+      if (comp) {
+        const primaryContact = comp.contacts?.find((c: any) => c.isPrimary) || comp.contacts?.[0]
+        const fullAddress = [comp.billingAddress, comp.city, comp.state, comp.pinCode].filter(Boolean).join(", ")
+        setInvoice(prev => ({
+          ...prev,
+          companyName: comp.name || comp.legalName || comp.tradeName || "",
+          clientGst: comp.gstin || "",
+          clientAddress: fullAddress || prev.clientAddress,
+          contactName: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : prev.contactName,
+          clientEmail: primaryContact?.email || prev.clientEmail,
+          clientPhone: primaryContact?.phone || prev.clientPhone,
+        }))
+        toast.success(`Populated from Company: ${comp.name}`);
+      }
+    }
+  }
+
+  const handleSaveCompanyToCrm = async () => {
+    if (!invoice.companyName?.trim()) {
+      return toast.error("Please enter a Company Legal Name first");
+    }
+    setIsSavingCompany(true);
+    try {
+      const newComp = await fetchApi<any>("/crm/companies", {
+        method: "POST",
+        body: JSON.stringify({
+          name: invoice.companyName.trim(),
+          gstin: invoice.clientGst.trim() || undefined,
+          billingAddress: invoice.clientAddress.trim() || undefined,
+        })
+      });
+      toast.success(`Company "${newComp.name}" saved to CRM!`);
+      if (mutateCompanies) mutateCompanies();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save company to CRM");
+    } finally {
+      setIsSavingCompany(false);
     }
   }
 
@@ -261,20 +317,23 @@ export default function NewInvoicePage() {
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-1"><Users className="w-3 h-3"/> Auto-fill:</span>
                   <select
-                    className="bg-black/40 border border-white/10 rounded text-xs px-2 py-1 outline-none focus:border-emerald-500"
+                    className="bg-black/40 border border-white/10 rounded text-xs px-2 py-1 outline-none focus:border-emerald-500 text-emerald-400 font-semibold"
                     value={assignType}
                     onChange={(e) => setAssignType(e.target.value as any)}
                   >
-                    <option value="MANUAL">Manual Entry</option>
-                    <option value="LEAD">From Leads</option>
-                    <option value="CONTACT">From Contacts</option>
+                    <option value="MANUAL" className="bg-slate-900 text-white">Manual Entry</option>
+                    <option value="CONTACT" className="bg-slate-900 text-emerald-400">From Contacts ({contacts.length})</option>
+                    <option value="LEAD" className="bg-slate-900 text-blue-400">From Leads ({leads.length})</option>
+                    <option value="COMPANY" className="bg-slate-900 text-indigo-400">From Saved Companies ({companies.length})</option>
                   </select>
                 </div>
               </div>
 
               {assignType !== "MANUAL" && (
                 <div className="mb-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg">
-                  <label className="block text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Select {assignType === "LEAD" ? "Lead" : "Contact"}</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-emerald-400 mb-1">
+                    Select {assignType === "LEAD" ? "Lead" : assignType === "CONTACT" ? "Contact" : "Saved Company"}
+                  </label>
                   <select
                     className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
                     onChange={(e) => handleCrmSelect(e.target.value)}
@@ -283,8 +342,10 @@ export default function NewInvoicePage() {
                     <option value="" disabled>Select...</option>
                     {assignType === "LEAD" ? (
                       leads.map((l: any) => <option key={l.id} value={l.id}>{l.name} ({l.company || 'No Company'})</option>)
-                    ) : (
+                    ) : assignType === "CONTACT" ? (
                       contacts.map((c: any) => <option key={c.id} value={c.id}>{c.firstName} {c.lastName} ({c.company?.name || 'No Company'})</option>)
+                    ) : (
+                      companies.map((comp: any) => <option key={comp.id} value={comp.id}>{comp.name} {comp.gstin ? `(GST: ${comp.gstin})` : ''}</option>)
                     )}
                   </select>
                 </div>
@@ -293,8 +354,19 @@ export default function NewInvoicePage() {
               <div className="space-y-4">
                 {/* 🏢 Company Particulars */}
                 <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400 font-mono uppercase tracking-wider">
-                    <span>🏢 Company / Organization (Legal Entity)</span>
+                  <div className="flex items-center justify-between text-xs font-bold text-blue-400 font-mono uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5"><Building2 className="w-4 h-4 text-blue-400" /> Company / Organization (Legal Entity)</span>
+                    {invoice.companyName.trim() && (
+                      <button
+                        type="button"
+                        onClick={handleSaveCompanyToCrm}
+                        disabled={isSavingCompany}
+                        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all disabled:opacity-50"
+                        title="Save this company name & GSTIN to CRM database for future invoices"
+                      >
+                        <BookmarkPlus className="w-3 h-3" /> {isSavingCompany ? "Saving..." : "Save to CRM"}
+                      </button>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
@@ -309,7 +381,7 @@ export default function NewInvoicePage() {
                     <div>
                       <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Company GSTIN</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-blue-500 placeholder:text-white/20"
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-blue-500 placeholder:text-white/20 uppercase"
                         placeholder="33AAAAA0000A1Z5"
                         value={invoice.clientGst}
                         onChange={e => setInvoice({...invoice, clientGst: e.target.value})}
@@ -534,20 +606,75 @@ export default function NewInvoicePage() {
               <div className="space-y-4 text-sm mb-6">
                 <div className="flex justify-between items-center text-white/60">
                   <span>Subtotal</span>
-                  <span className="font-mono">{subtotal.toLocaleString()}</span>
+                  <span className="font-mono text-white font-semibold">{symbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
+
+                {/* Discount Control Block */}
+                <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/10">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white/70 font-medium">Overall Discount</span>
+                    <div className="flex items-center bg-black/60 rounded-lg p-0.5 border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setInvoice({ ...invoice, discountType: 'PERCENT' })}
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${invoice.discountType === 'PERCENT' ? 'bg-emerald-500 text-black shadow' : 'text-white/50 hover:text-white'}`}
+                      >
+                        %
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInvoice({ ...invoice, discountType: 'FLAT' })}
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${invoice.discountType === 'FLAT' ? 'bg-emerald-500 text-black shadow' : 'text-white/50 hover:text-white'}`}
+                      >
+                        {symbol} Flat
+                      </button>
+                    </div>
+                  </div>
+
+                  {invoice.discountType === 'PERCENT' ? (
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-[11px] text-white/40">Discount Rate</span>
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="number" min="0" max="100" step="0.5"
+                          className="w-20 bg-black/60 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono focus:border-emerald-400"
+                          value={invoice.discountRate}
+                          onChange={e => setInvoice({...invoice, discountRate: Number(e.target.value)})}
+                        />
+                        <span className="text-xs font-mono text-emerald-400">%</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-[11px] text-white/40">Flat Off Amount</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-mono text-emerald-400">{symbol}</span>
+                        <input 
+                          type="number" min="0" step="100"
+                          className="w-24 bg-black/60 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono focus:border-emerald-400"
+                          value={invoice.discountFlat}
+                          onChange={e => setInvoice({...invoice, discountFlat: Number(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {overallDiscountAmt > 0 && (
+                    <div className="flex justify-between items-center pt-1.5 border-t border-white/5 text-xs text-emerald-400 font-medium">
+                      <span>Discount Applied</span>
+                      <span className="font-mono font-bold">-{symbol}{overallDiscountAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between items-center text-white/60">
-                  <span>Overall Discount %</span>
-                  <input 
-                    type="number" min="0" max="100"
-                    className="w-16 bg-black/40 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono"
-                    value={invoice.discountRate}
-                    onChange={e => setInvoice({...invoice, discountRate: Number(e.target.value)})}
-                  />
+                  <span>Taxable Amount</span>
+                  <span className="font-mono text-white/80">{symbol}{taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
+
                 <div className="flex justify-between items-center text-white/60">
                   <span>Estimated Tax</span>
-                  <span className="font-mono">{totalTax.toLocaleString()}</span>
+                  <span className="font-mono text-white/80">{symbol}{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
               
@@ -706,10 +833,24 @@ export default function NewInvoicePage() {
                     <span className="text-slate-600 font-medium">Subtotal</span>
                     <span className="font-bold text-slate-900 font-mono">{symbol} {subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
+
+                  {overallDiscountAmt > 0 && (
+                    <div className="flex justify-between py-2.5 px-4 text-emerald-700 bg-emerald-50/50 font-medium">
+                      <span>Discount ({invoice.discountType === 'FLAT' ? `Flat ${symbol}${Number(invoice.discountFlat).toLocaleString('en-IN')}` : `${invoice.discountRate}%`})</span>
+                      <span className="font-bold font-mono">-{symbol} {overallDiscountAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between py-2.5 px-4">
+                    <span className="text-slate-600 font-medium">Taxable Amount</span>
+                    <span className="font-bold text-slate-900 font-mono">{symbol} {taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
                   <div className="flex justify-between py-2.5 px-4">
                     <span className="text-slate-600 font-medium">Estimated Tax</span>
                     <span className="font-bold text-slate-900 font-mono">{symbol} {totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
+
                   <div className="flex justify-between py-3 px-4 bg-[#f0fdf4] text-[#064e3b] font-bold border-t border-[#dcfce7]">
                     <span className="text-sm">Total Amount ({symbol})</span>
                     <span className="text-base font-black font-mono">{symbol} {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
