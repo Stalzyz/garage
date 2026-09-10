@@ -1617,6 +1617,8 @@ export default function CRMDashboard() {
                 {testingMeta ? "Simulating Lead..." : "Simulate Meta Lead Ingestion"}
               </button>
             </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
 
