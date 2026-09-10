@@ -1,21 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useEffect } from 'react';
-import { 
-  DndContext, 
-  DragOverlay, 
-  closestCorners, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
-  useSensors, 
-  useDroppable,
-  DragStartEvent, 
-  DragEndEvent 
-} from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import React, { useState, useEffect } from 'react';
 import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
@@ -47,23 +32,25 @@ const ACADEMY_COLUMNS = [
   { id: 'DROPPED', title: 'Dropped' }
 ];
 
-// Pure Visual Lead Card Component (No dnd hooks - used for both column list & DragOverlay)
-function LeadCardContent({ 
-  lead, 
-  isDragging = false, 
-  isOverlay = false, 
-  onOpenLead, 
-  onLogActivity, 
-  onSchedule, 
-  onWhatsapp 
-}: { 
-  lead: any; 
-  isDragging?: boolean; 
-  isOverlay?: boolean; 
-  onOpenLead?: any; 
-  onLogActivity?: any; 
-  onSchedule?: any; 
-  onWhatsapp?: any; 
+// Single Lead Card Component with Native Drag Handlers
+function LeadCard({
+  lead,
+  isDragged,
+  onOpenLead,
+  onLogActivity,
+  onSchedule,
+  onWhatsapp,
+  onDragStart,
+  onDragEnd,
+}: {
+  lead: any;
+  isDragged: boolean;
+  onOpenLead: (lead: any) => void;
+  onLogActivity: (lead: any) => void;
+  onSchedule: (lead: any) => void;
+  onWhatsapp?: (lead: any) => void;
+  onDragStart: (e: React.DragEvent, leadId: string) => void;
+  onDragEnd: () => void;
 }) {
   const { symbol } = useCurrency();
 
@@ -89,20 +76,24 @@ function LeadCardContent({
 
   return (
     <div
-      className={`bg-[var(--dash-bg-surface,#111)] border ${
-        isOverlay
-          ? 'border-blue-500 shadow-[0_10px_30px_rgba(59,130,246,0.4)] ring-2 ring-blue-500/40 bg-[#161616]'
-          : isDragging 
-          ? 'border-blue-500/50 opacity-20' 
+      draggable
+      onDragStart={(e) => onDragStart(e, lead.id)}
+      onDragEnd={onDragEnd}
+      onClick={() => onOpenLead(lead)}
+      className={`bg-[var(--dash-bg-surface,#111)] border rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-all relative group select-none ${
+        isDragged
+          ? 'opacity-40 scale-95 border-dashed border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
           : isHighRisk
           ? 'border-red-500/40 bg-red-950/10 hover:border-red-500/60'
           : isStale
           ? 'border-amber-500/30 hover:border-amber-500/50'
-          : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-white/20'
-      } rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-colors relative group touch-none select-none`}
+          : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-blue-500/40 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:-translate-y-0.5'
+      }`}
     >
       <div className="flex justify-between items-start mb-2 gap-2">
-        <h4 className="font-bold text-sm text-[var(--dash-text-primary)] truncate flex-1">{lead.name}</h4>
+        <h4 className="font-bold text-sm text-[var(--dash-text-primary)] truncate flex-1 group-hover:text-blue-400 transition-colors">
+          {lead.name}
+        </h4>
         <div className="flex items-center gap-1.5 shrink-0">
           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${aiBadge.color}`}>
             {aiBadge.label}
@@ -139,12 +130,13 @@ function LeadCardContent({
       </div>
 
       <div className="flex items-center justify-between mt-3 border-t border-white/5 pt-2.5">
-        <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">{lead.source || 'DIRECT'}</span>
+        <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">
+          {lead.source || 'DIRECT'}
+        </span>
         <div className="flex gap-2.5 items-center">
           {lead.phone && (
             <button 
               type="button"
-              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 if (onWhatsapp) onWhatsapp(lead);
@@ -161,8 +153,7 @@ function LeadCardContent({
           )}
           <button 
             type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); if (onSchedule) onSchedule(lead); }}
+            onClick={(e) => { e.stopPropagation(); onSchedule(lead); }}
             title="Schedule Meeting"
             className="text-blue-400/70 hover:text-blue-400 hover:scale-110 transition-all p-1"
           >
@@ -170,8 +161,7 @@ function LeadCardContent({
           </button>
           <button 
             type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); if (onLogActivity) onLogActivity(lead); }}
+            onClick={(e) => { e.stopPropagation(); onLogActivity(lead); }}
             title="Log Activity"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
@@ -179,8 +169,7 @@ function LeadCardContent({
           </button>
           <button 
             type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); if (onOpenLead) onOpenLead(lead); }}
+            onClick={(e) => { e.stopPropagation(); onOpenLead(lead); }}
             title="View Details"
             className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] hover:scale-110 transition-all p-1"
           >
@@ -192,182 +181,130 @@ function LeadCardContent({
   );
 }
 
-// Sortable Lead Card Wrapper for Column Lists
-function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: lead.id,
-    data: {
-      type: 'Lead',
-      lead
-    }
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <LeadCardContent 
-        lead={lead} 
-        isDragging={isDragging} 
-        onOpenLead={onOpenLead} 
-        onLogActivity={onLogActivity} 
-        onSchedule={onSchedule} 
-        onWhatsapp={onWhatsapp} 
-      />
-    </div>
-  );
-}
-
-// Droppable Column Container
-function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
-  const { symbol } = useCurrency();
-  const { setNodeRef, isOver } = useDroppable({
-    id,
-    data: { type: 'Column', id }
-  });
-
-  const columnValue = leads.reduce((sum, l) => sum + (Number(l.estimatedBudget) || 0), 0);
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className={`flex flex-col min-w-[285px] w-[285px] bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border ${
-        isOver ? 'border-blue-500/60 bg-blue-500/5 ring-1 ring-blue-500/30' : 'border-white/5'
-      } rounded-2xl h-full flex-shrink-0 transition-all duration-150`}
-    >
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">{title}</h3>
-          {columnValue > 0 && (
-            <p className="text-[10px] font-mono text-emerald-400 font-bold mt-0.5">
-              {symbol}{columnValue.toLocaleString('en-IN')}
-            </p>
-          )}
-        </div>
-        <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono">{leads.length}</span>
-      </div>
-      
-      <div className="p-3 flex-1 overflow-y-auto custom-scrollbar min-h-[150px]">
-        <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
-          {leads.map(lead => (
-            <LeadCard 
-              key={lead.id} 
-              lead={lead} 
-              onOpenLead={onOpenLead} 
-              onLogActivity={onLogActivity} 
-              onSchedule={onSchedule} 
-              onWhatsapp={onWhatsapp} 
-            />
-          ))}
-        </SortableContext>
-        {leads.length === 0 && (
-          <div className="h-32 border-2 border-dashed border-white/5 hover:border-blue-500/30 rounded-xl flex items-center justify-center text-[var(--dash-text-primary)]/20 text-xs font-mono transition-all">
-            Drop lead here
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: KanbanBoardProps) {
+export function KanbanBoard({ 
+  leads, 
+  activeTab, 
+  onStatusChange, 
+  onOpenLead, 
+  onLogActivity, 
+  onSchedule, 
+  onWhatsapp 
+}: KanbanBoardProps) {
   const columns = activeTab === 'AGENCY' ? AGENCY_COLUMNS : ACADEMY_COLUMNS;
-  const [activeLead, setActiveLead] = useState<any>(null);
+  const { symbol } = useCurrency();
+
   const [localLeads, setLocalLeads] = useState<any[]>(leads);
+  const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   // Sync props leads to local state
   useEffect(() => {
     setLocalLeads(leads);
   }, [leads]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // 5px movement to trigger drag
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const columnIds = useMemo(() => columns.map(c => c.id), [columns]);
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const lead = localLeads.find(l => l.id === active.id);
-    if (lead) setActiveLead(lead);
+  const handleDragStart = (e: React.DragEvent, leadId: string) => {
+    setDraggedLeadId(leadId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveLead(null);
-    const { active, over } = event;
-    if (!over) return;
+  const handleDragOver = (e: React.DragEvent, columnId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverColumn(columnId);
+  };
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
+  const handleDrop = (e: React.DragEvent, targetStatus: string) => {
+    e.preventDefault();
+    if (!draggedLeadId) return;
 
-    if (activeId === overId) return;
-
-    let targetStatus: string | null = null;
-
-    // Direct column target
-    if (columnIds.includes(overId)) {
-      targetStatus = overId;
-    } else {
-      // Over another lead target
-      const overLead = localLeads.find(l => l.id === overId);
-      if (overLead && overLead.status) {
-        targetStatus = overLead.status;
-      }
+    const lead = localLeads.find((l) => l.id === draggedLeadId);
+    if (lead && lead.status !== targetStatus) {
+      // Optimistic UI update immediately
+      setLocalLeads((prev) =>
+        prev.map((l) =>
+          l.id === draggedLeadId
+            ? { ...l, status: targetStatus, updatedAt: new Date().toISOString() }
+            : l
+        )
+      );
+      // Trigger API status update
+      onStatusChange(draggedLeadId, targetStatus);
     }
 
-    if (targetStatus) {
-      const activeLeadObj = localLeads.find(l => l.id === activeId);
-      if (activeLeadObj && activeLeadObj.status !== targetStatus) {
-        // Optimistic UI Update immediately
-        setLocalLeads(prev => prev.map(l => l.id === activeId ? { ...l, status: targetStatus, updatedAt: new Date().toISOString() } : l));
-        // Call parent handler (API patch)
-        onStatusChange(activeId, targetStatus);
-      }
-    }
+    setDraggedLeadId(null);
+    setDragOverColumn(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedLeadId(null);
+    setDragOverColumn(null);
   };
 
   return (
-    <DndContext 
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-4 h-[650px] overflow-x-auto custom-scrollbar pb-4">
-        {columns.map(col => {
-          const colLeads = localLeads.filter(l => l.status === col.id);
-          return (
-            <KanbanColumn 
-              key={col.id} 
-              id={col.id} 
-              title={col.title} 
-              leads={colLeads} 
-              onOpenLead={onOpenLead}
-              onLogActivity={onLogActivity}
-              onSchedule={onSchedule}
-              onWhatsapp={onWhatsapp}
-            />
-          );
-        })}
-      </div>
-      
-      <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
-        {activeLead ? (
-          <div className="w-[260px] pointer-events-none cursor-grabbing">
-            <LeadCardContent lead={activeLead} isOverlay />
+    <div className="flex gap-4 h-[650px] overflow-x-auto custom-scrollbar pb-4 items-start">
+      {columns.map((col) => {
+        const colLeads = localLeads.filter((l) => l.status === col.id);
+        const columnValue = colLeads.reduce((sum, l) => sum + (Number(l.estimatedBudget) || 0), 0);
+        const isColumnHovered = dragOverColumn === col.id;
+
+        return (
+          <div
+            key={col.id}
+            onDragOver={(e) => handleDragOver(e, col.id)}
+            onDrop={(e) => handleDrop(e, col.id)}
+            onDragLeave={() => setDragOverColumn(null)}
+            className={`flex flex-col min-w-[285px] w-[285px] border rounded-2xl h-full flex-shrink-0 transition-all duration-150 ${
+              isColumnHovered
+                ? 'bg-blue-500/10 border-blue-500/50 border-dashed ring-2 ring-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
+                : 'bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border-white/5'
+            }`}
+          >
+            {/* Column Header */}
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">
+                  {col.title}
+                </h3>
+                {columnValue > 0 && (
+                  <p className="text-[10px] font-mono text-emerald-400 font-bold mt-0.5">
+                    {symbol}{columnValue.toLocaleString('en-IN')}
+                  </p>
+                )}
+              </div>
+              <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+                {colLeads.length}
+              </span>
+            </div>
+
+            {/* Column Cards Container */}
+            <div className="p-3 flex-1 overflow-y-auto custom-scrollbar min-h-[150px] space-y-3">
+              {colLeads.map((lead) => (
+                <LeadCard
+                  key={lead.id}
+                  lead={lead}
+                  isDragged={draggedLeadId === lead.id}
+                  onOpenLead={onOpenLead}
+                  onLogActivity={onLogActivity}
+                  onSchedule={onSchedule}
+                  onWhatsapp={onWhatsapp}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                />
+              ))}
+
+              {colLeads.length === 0 && (
+                <div className={`h-32 border-2 border-dashed rounded-xl flex items-center justify-center text-[var(--dash-text-primary)]/30 text-xs font-mono transition-all ${
+                  isColumnHovered
+                    ? 'border-blue-500/60 bg-blue-500/10 text-blue-300'
+                    : 'border-white/5'
+                }`}>
+                  Drop lead here
+                </div>
+              )}
+            </div>
           </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        );
+      })}
+    </div>
   );
 }
