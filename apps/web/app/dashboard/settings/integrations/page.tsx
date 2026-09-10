@@ -25,12 +25,12 @@ interface WebhookItem {
 }
 
 const SERVICE_META: Record<Service, { label: string; icon: any; color: string; bg: string; border: string; desc: string }> = {
-  META:      { label: "Meta (FB & WhatsApp Flows)", icon: Share2,    color: "text-blue-400",   bg: "bg-blue-500/10",    border: "border-blue-500/20",    desc: "Meta Lead Ads & WhatsApp Flows webhook verification and Graph API access" },
+  META:      { label: "Meta (WhatsApp Cloud API)", icon: Share2,    color: "text-blue-400",   bg: "bg-blue-500/10",    border: "border-blue-500/20",    desc: "WhatsApp Cloud API direct messaging + Lead Ads. Add META_ACCESS_TOKEN, META_PHONE_NUMBER_ID (from Meta Business → WhatsApp → Phone Numbers), and META_WABA_ID (WhatsApp Business Account ID)." },
   RAZORPAY:  { label: "Razorpay",  icon: CreditCard, color: "text-indigo-400", bg: "bg-indigo-500/10",  border: "border-indigo-500/20",  desc: "Payment gateway for Invoices & SaaS" },
   PHONEPE:   { label: "PhonePe",   icon: CreditCard, color: "text-violet-400", bg: "bg-violet-500/10",  border: "border-violet-500/20",  desc: "UPI payment collection" },
   STRIPE:    { label: "Stripe",    icon: CreditCard, color: "text-blue-400",   bg: "bg-blue-500/10",    border: "border-blue-500/20",    desc: "International card payments" },
   SMTP:      { label: "SMTP",      icon: Mail,       color: "text-cyan-400",   bg: "bg-cyan-500/10",    border: "border-cyan-500/20",    desc: "Transactional email delivery" },
-  WHATSAPP:  { label: "WhatsApp",  icon: MessageSquare, color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "WhatsApp Business Autopilot messages" },
+  WHATSAPP:  { label: "WhatsApp (Grafty)",  icon: MessageSquare, color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "Optional: Grafty.pro workspace for advanced WhatsApp flows. Add GRAFTY_API_KEY from your Grafty dashboard. If Meta keys above are configured, Meta Cloud API is used directly." },
   GOOGLE:    { label: "Google",    icon: Video,      color: "text-red-400",    bg: "bg-red-500/10",     border: "border-red-500/20",     desc: "OAuth, Meet & Calendar integrations" },
   OPENAI:    { label: "OpenAI",    icon: Cpu,        color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "Integrations for proposals, CRM notes, and email copy" },
   GEMINI:    { label: "Google Gemini", icon: Cpu,    color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", desc: "Gemini Flash — Key for proposal templates, curriculum generation & executive assistant." },
@@ -95,7 +95,7 @@ export default function IntegrationsDashboard() {
   }, [])
 
   const KEY_SUGGESTIONS: Record<Service, string[]> = {
-    META: ["META_APP_ID", "META_APP_SECRET", "META_ACCESS_TOKEN", "META_VERIFY_TOKEN", "META_ACADEMY_FORM_IDS"],
+    META: ["META_ACCESS_TOKEN", "META_PHONE_NUMBER_ID", "META_WABA_ID", "META_APP_ID", "META_APP_SECRET", "META_VERIFY_TOKEN"],
     SMTP: ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM"],
     WHATSAPP: ["GRAFTY_API_KEY", "GRAFTY_INSTANCE_ID", "WEBHOOK_VERIFY_TOKEN"],
     RAZORPAY: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"],

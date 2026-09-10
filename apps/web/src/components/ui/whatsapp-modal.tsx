@@ -121,6 +121,7 @@ export function WhatsAppModal({
   onSuccess,
 }: WhatsAppModalProps) {
   const { data: serverTemplates } = useApi<any>('/integrations/whatsapp/templates');
+  const { data: statusData } = useApi<any>('/integrations/whatsapp/status');
   const templates: TemplateDef[] = serverTemplates?.data || FALLBACK_TEMPLATES;
 
   const [phone, setPhone] = useState(defaultPhone);
@@ -198,7 +199,9 @@ export function WhatsAppModal({
       onClose();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Failed to send WhatsApp message via Grafty');
+      // Show exact error message from server
+      const errMsg = err?.response?.message || err?.response?.error || err?.message || 'Failed to send WhatsApp message';
+      toast.error(errMsg, { duration: 8000 });
     } finally {
       setIsSending(false);
     }
@@ -218,8 +221,28 @@ export function WhatsAppModal({
               <h2 className="text-lg font-bold flex items-center gap-2">
                 Send WhatsApp Template <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono uppercase">Grafty Hub</span>
               </h2>
-              <p className="text-xs text-white/50">Send 1-click official WhatsApp template to client via Grafty WABA engine</p>
+              <p className="text-xs text-white/50">Send 1-click official WhatsApp template to client via Meta Cloud API or Grafty WABA engine</p>
             </div>
+          </div>
+          {/* Connection Status */}
+          <div className="flex items-center gap-2">
+            {statusData ? (
+              statusData.overallReady ? (
+                <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {statusData.meta?.ready ? 'Meta Cloud API' : 'Grafty'} Connected
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded-full" title="Go to Settings → Integrations → META and add META_ACCESS_TOKEN + META_PHONE_NUMBER_ID">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Not Connected — See Settings
+                </span>
+              )
+            ) : (
+              <span className="flex items-center gap-1.5 text-[10px] font-mono text-white/40">
+                <Loader2 className="w-3 h-3 animate-spin" /> Checking...
+              </span>
+            )}
           </div>
         </div>
 
