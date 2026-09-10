@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ChevronLeft, Send, Download, Loader2, Phone, Mail, Globe } from "lucide-react"
+import { ChevronLeft, Send, Download, Loader2, Phone, Mail, Globe, MessageSquare } from "lucide-react"
 
 import Link from "next/link"
 import { useOrganization } from "@/context/OrganizationContext"
@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { useCurrency } from "@/hooks/useCurrency"
 import { Modal } from "@/components/ui/modal"
+import { WhatsAppModal } from "@/components/ui/whatsapp-modal"
 import { numberToWordsIN } from "@/lib/utils"
 
 export default function InvoiceDetailsPage() {
@@ -20,6 +21,7 @@ export default function InvoiceDetailsPage() {
   const { data: invoice, isLoading, mutate } = useApi<any>(`/finance/invoices/${params.id}`)
   const [isSending, setIsSending] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [paymentData, setPaymentData] = useState({ amount: '', method: 'BANK_TRANSFER', transactionId: '', notes: '' })
   const [isRecordingPayment, setIsRecordingPayment] = useState(false)
 
@@ -120,12 +122,18 @@ export default function InvoiceDetailsPage() {
             <Download className="w-4 h-4" /> Download PDF
           </button>
           <button 
+            onClick={() => setShowWhatsAppModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-xs bg-emerald-500/20 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/30 transition-all border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+          >
+            <MessageSquare className="w-4 h-4 text-emerald-400" /> Send via WhatsApp
+          </button>
+          <button 
             onClick={handleSend}
             disabled={isSending || invoice.status === 'PAID'}
             className="flex items-center gap-2 px-5 py-2 text-xs bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
           >
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            {invoice.status === 'SENT' ? 'Resend to Client' : invoice.status === 'PAID' ? 'Already Paid' : 'Send to Client'}
+            {invoice.status === 'SENT' ? 'Resend Email' : invoice.status === 'PAID' ? 'Already Paid' : 'Send Email'}
           </button>
         </div>
       </div>
@@ -396,6 +404,22 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {showWhatsAppModal && (
+        <WhatsAppModal
+          isOpen={showWhatsAppModal}
+          onClose={() => setShowWhatsAppModal(false)}
+          defaultPhone={invoice.notes?.includes('Contact Phone:') ? invoice.notes.split('Contact Phone:')[1].trim() : ''}
+          defaultName={invoice.clientName}
+          defaultTemplateId="invoice_generated_v1"
+          defaultVariables={{
+            clientName: invoice.clientName,
+            invoiceNumber: invoice.invoiceNumber,
+            totalAmount: `${symbol}${invoice.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+          }}
+          onSuccess={() => mutate()}
+        />
       )}
 
     </div>

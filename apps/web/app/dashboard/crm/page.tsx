@@ -16,6 +16,7 @@ import { toast } from "sonner"
 import { KanbanBoard } from "./KanbanBoard"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
 import { useCurrency } from "@/hooks/useCurrency"
+import { WhatsAppModal } from "@/components/ui/whatsapp-modal"
 
 export default function CRMDashboard() {
   const { data: session } = useSession()
@@ -37,6 +38,7 @@ export default function CRMDashboard() {
   const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN')
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
   const [groupBy, setGroupBy] = useState<'NONE' | 'STATUS' | 'SOURCE' | 'ASSIGNEE'>('NONE')
+  const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
   
   // Modals
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
@@ -793,6 +795,13 @@ export default function CRMDashboard() {
             onSchedule={(lead: any) => { 
               handleOpenActivityModal(lead);
               setActivityType("MEETING");
+            }}
+            onWhatsapp={(lead: any) => {
+              if (lead.phone) {
+                setWhatsappTarget({ phone: lead.phone, name: lead.name });
+              } else {
+                toast.error("Lead does not have a phone number saved");
+              }
             }}
           />
         ) : (
@@ -1608,10 +1617,23 @@ export default function CRMDashboard() {
                 {testingMeta ? "Simulating Lead..." : "Simulate Meta Lead Ingestion"}
               </button>
             </div>
-          </motion.div>
-        </div>
       )}
     </AnimatePresence>
+
+    {whatsappTarget && (
+      <WhatsAppModal
+        isOpen={!!whatsappTarget}
+        onClose={() => setWhatsappTarget(null)}
+        defaultPhone={whatsappTarget.phone}
+        defaultName={whatsappTarget.name}
+        defaultTemplateId="lead_welcome_v1"
+        defaultVariables={{
+          leadName: whatsappTarget.name,
+          serviceInterest: 'Software & Digital Agency Services',
+        }}
+        onSuccess={() => mutateLeads()}
+      />
+    )}
 
   </div>
 )

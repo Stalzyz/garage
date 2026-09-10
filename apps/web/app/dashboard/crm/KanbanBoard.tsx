@@ -15,6 +15,7 @@ interface KanbanBoardProps {
   onOpenLead: (lead: any) => void;
   onLogActivity: (lead: any) => void;
   onSchedule: (lead: any) => void;
+  onWhatsapp?: (lead: any) => void;
 }
 
 const AGENCY_COLUMNS = [
@@ -35,8 +36,8 @@ const ACADEMY_COLUMNS = [
   { id: 'DROPPED', title: 'Dropped' }
 ];
 
-// Individual Draggable Card
-function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any }) {
+// Individual Card
+function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { lead: any, onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
   const { symbol } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lead.id,
@@ -88,13 +89,16 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule }: { lead: any, 
             <button 
               onPointerDown={(e) => { 
                 e.stopPropagation(); 
-                const cleanPhone = lead.phone.replace(/\D/g, '');
-                window.open(`https://grafty.pro/dashboard/chat?phone=${cleanPhone}`, '_blank');
+                if (onWhatsapp) onWhatsapp(lead);
+                else {
+                  const cleanPhone = lead.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                }
               }}
-              title="Open Grafty WhatsApp Chat"
-              className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-2.5 -m-2.5"
+              title="Send WhatsApp Template Message (Grafty Hub)"
+              className="text-emerald-400/80 hover:text-emerald-400 transition-colors p-2.5 -m-2.5"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
             </button>
           )}
           <button 
@@ -125,7 +129,7 @@ function LeadCard({ lead, onOpenLead, onLogActivity, onSchedule }: { lead: any, 
 }
 
 // Column Container
-function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any, onSchedule: any }) {
+function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: { id: string, title: string, leads: any[], onOpenLead: any, onLogActivity: any, onSchedule: any, onWhatsapp?: any }) {
   const { setNodeRef } = useSortable({
     id,
     data: { type: 'Column', id }
@@ -140,7 +144,7 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule 
       <div ref={setNodeRef} className="p-3 flex-1 overflow-y-auto custom-scrollbar">
         <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
           {leads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} />
+            <LeadCard key={lead.id} lead={lead} onOpenLead={onOpenLead} onLogActivity={onLogActivity} onSchedule={onSchedule} onWhatsapp={onWhatsapp} />
           ))}
         </SortableContext>
         {leads.length === 0 && (
@@ -153,7 +157,7 @@ function KanbanColumn({ id, title, leads, onOpenLead, onLogActivity, onSchedule 
   );
 }
 
-export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity, onSchedule }: KanbanBoardProps) {
+export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLogActivity, onSchedule, onWhatsapp }: KanbanBoardProps) {
   const columns = activeTab === 'AGENCY' ? AGENCY_COLUMNS : ACADEMY_COLUMNS;
   const [activeLead, setActiveLead] = React.useState<any>(null);
 
@@ -220,6 +224,7 @@ export function KanbanBoard({ leads, activeTab, onStatusChange, onOpenLead, onLo
               onOpenLead={onOpenLead}
               onLogActivity={onLogActivity}
               onSchedule={onSchedule}
+              onWhatsapp={onWhatsapp}
             />
           );
         })}

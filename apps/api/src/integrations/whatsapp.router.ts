@@ -9,6 +9,21 @@ export default async function whatsappRouter(app: FastifyInstance) {
   // Ensure only authenticated internal users can trigger bulk notifications
   server.addHook('preHandler', app.requireAuth);
 
+  // GET /api/v1/integrations/whatsapp/templates — Get standard WhatsApp templates & metadata
+  server.get('/templates', async (req, reply) => {
+    const templates = whatsappService.getTemplates();
+    return { data: templates };
+  });
+
+  // POST /api/v1/integrations/whatsapp/test — Test Grafty connection
+  server.post('/test', async (req, reply) => {
+    const creds = await whatsappService.getCredentials();
+    if (!creds.key) {
+      return reply.code(400).send({ success: false, error: 'GRAFTY_API_KEY is not configured in Settings -> Integrations' });
+    }
+    return { success: true, message: 'Grafty credentials found & ready' };
+  });
+
   server.post('/send-template', {
     schema: {
       body: z.object({
@@ -38,3 +53,4 @@ export default async function whatsappRouter(app: FastifyInstance) {
     return reply.send({ message: 'WhatsApp notification sent successfully', data: result.data });
   });
 }
+

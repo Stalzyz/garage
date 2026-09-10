@@ -24,11 +24,13 @@ import {
   LayoutGrid,
   List as ListIcon,
   ExternalLink,
-  PlusCircle
+  PlusCircle,
+  MessageSquare
 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
+import { WhatsAppModal } from "@/components/ui/whatsapp-modal"
 
 export const GST_STATE_CODES: { [key: string]: string } = {
   '01': 'Jammu and Kashmir',
@@ -83,6 +85,9 @@ export default function ContactsAndCompaniesPage() {
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("")
+
+  // WhatsApp Modal State
+  const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
 
   // Contact Modal State
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
@@ -626,6 +631,23 @@ export default function ContactsAndCompaniesPage() {
                         >
                           <Edit3 className="w-3 h-3" /> Edit
                         </button>
+
+                        {(contact.phone || contact.whatsapp) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWhatsappTarget({
+                                phone: contact.whatsapp || contact.phone || '',
+                                name: `${contact.firstName} ${contact.lastName}`.trim(),
+                              });
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold rounded-lg transition-colors text-[11px] border border-emerald-500/20"
+                            title="Send WhatsApp Template Message via Grafty"
+                          >
+                            <MessageSquare className="w-3 h-3 text-emerald-400" /> WhatsApp
+                          </button>
+                        )}
 
                         <button
                           type="button"
@@ -1339,6 +1361,20 @@ export default function ContactsAndCompaniesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {whatsappTarget && (
+        <WhatsAppModal
+          isOpen={!!whatsappTarget}
+          onClose={() => setWhatsappTarget(null)}
+          defaultPhone={whatsappTarget.phone}
+          defaultName={whatsappTarget.name}
+          defaultTemplateId="lead_welcome_v1"
+          defaultVariables={{
+            leadName: whatsappTarget.name,
+            serviceInterest: 'Software Development & AI Automation',
+          }}
+        />
       )}
     </div>
   )
