@@ -13,9 +13,6 @@ import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fast
 import { prisma } from './db';
 import dotenv from 'dotenv';
 import authPlugin from './plugins/auth.plugin';
-import storagePlugin from './plugins/storage.plugin';
-import notificationsModule from './notifications';
-import settingsModule from './settings';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
 import { startCronJobs } from './cron/invoice-jobs';
@@ -253,8 +250,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const emailRouter = (await import('./integrations/email.router')).default;
   await app.register(emailRouter, { prefix: '/api/v1/email' });
 
-  // WhatsApp
+  // WhatsApp Integration
   const whatsappRouter = (await import('./integrations/whatsapp.router')).default;
+  await app.register(whatsappRouter, { prefix: '/api/v1/integrations/whatsapp' });
   await app.register(whatsappRouter, { prefix: '/api/v1/whatsapp' });
 
   // Payments
