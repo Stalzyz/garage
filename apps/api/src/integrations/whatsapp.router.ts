@@ -65,7 +65,8 @@ export default async function whatsappRouter(app: FastifyInstance) {
         templateName: z.string().min(1),
         variables: z.array(z.string()),
         buttonVariables: z.array(z.string()).optional(),
-        language: z.string().optional()
+        language: z.string().optional(),
+        provider: z.enum(['auto', 'grafty', 'meta']).optional()
       })
     }
   }, async (req, reply) => {
@@ -79,7 +80,8 @@ export default async function whatsappRouter(app: FastifyInstance) {
         templateName: data.templateName,
         variables: data.variables,
         buttonVariables: data.buttonVariables,
-        language: data.language || 'en'
+        language: data.language || 'en',
+        provider: data.provider || 'auto'
       });
 
       return reply.send({

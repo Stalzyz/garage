@@ -348,6 +348,7 @@ export class WhatsAppService {
     variables,
     buttonVariables = [],
     language = 'en',
+    provider = 'auto',
   }: {
     phone: string;
     name: string;
@@ -356,6 +357,7 @@ export class WhatsAppService {
     variables: string[];
     buttonVariables?: string[];
     language?: string;
+    provider?: 'auto' | 'grafty' | 'meta';
   }) {
     const { graftyUrl, graftyKey, metaToken, metaPhoneNumberId } = await this.getCredentials();
     const cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -366,8 +368,11 @@ export class WhatsAppService {
       error: 'No messaging provider configured'
     };
 
+    const tryMeta = (provider === 'auto' || provider === 'meta') && metaToken && metaPhoneNumberId;
+    const tryGrafty = (provider === 'auto' || provider === 'grafty') || (!sendResult.success && provider === 'auto');
+
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
-    if (metaToken && metaPhoneNumberId) {
+    if (tryMeta) {
       console.log(`[WhatsApp] Sending via Meta Cloud API — Phone Number ID: ${metaPhoneNumberId}, To: ${cleanPhone}, Template: ${templateName}`);
       try {
         const metaPayload = {
@@ -408,7 +413,6 @@ export class WhatsAppService {
           const errMsg = metaData.error?.message || `Meta API returned status ${metaRes.status}`;
           console.error(`[WhatsApp] Meta Cloud API error:`, metaData.error || metaRes.status);
           sendResult = { success: false, provider: 'meta_cloud_api', error: errMsg, data: metaData };
-          // Fall through to Grafty if Meta fails
         }
       } catch (err: any) {
         console.error(`[WhatsApp] Meta Cloud API network error:`, err.message);
@@ -416,70 +420,92 @@ export class WhatsAppService {
       }
     }
 
-    // ===== METHOD 2: Grafty API (fallback or primary if no Meta direct) =====
-    if (!sendResult.success && graftyKey) {
-      console.log(`[WhatsApp] Sending via Grafty API — URL: ${graftyUrl}, Template: ${templateName}, To: ${cleanPhone}`);
+    // ===== METHOD 2: Grafty API =====
+    if ((!sendResult.success && tryGrafty) || provider === 'grafty') {
+      if (!graftyKey) {
+        if (provider === 'grafty') {
+          throw new Error('GRAFTY_API_KEY is not configured in Settings → Integrations → WHATSAPP');
+        }
+      } else {
+        console.log(`[WhatsApp] Sending via Grafty API — URL: ${graftyUrl}, Template: ${templateName}, To: ${cleanPhone}`);
 
-      const graftyPayload = {
-        phone: cleanPhone,
-        to: cleanPhone,
-        recipient: { phone: cleanPhone, name },
-        event,
-        templateName,
-        template: {
-          name: templateName,
-          language: language,
-          variables: {
-            header: [],
-            body: variables,
-            buttons: buttonVariables,
-          },
-        },
-      };
-
-      try {
-        // Try Grafty send-template endpoint
-        let graftyRes = await fetch(`${graftyUrl}/api/v1/messages/send-template`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${graftyKey}`,
-          },
-          body: JSON.stringify(graftyPayload),
-        }).catch(() => null);
-
-        if (!graftyRes || !graftyRes.ok) {
-          // Fallback to live-chat/send
-          const tplDef = WHATSAPP_TEMPLATES.find(t => t.templateName === templateName || t.id === templateName);
-          let formattedText = tplDef?.bodyPattern || '';
-          variables.forEach((val, idx) => {
-            formattedText = formattedText.replace(new RegExp(`\\{\\{${idx + 1}\\}\\}`, 'g'), val || '');
-          });
-
-          graftyRes = await fetch(`${graftyUrl}/api/live-chat/send`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${graftyKey}`,
+        const graftyPayload = {
+          phone: cleanPhone,
+          to: cleanPhone,
+          recipient: { phone: cleanPhone, name },
+          event,
+          templateName,
+          template: {
+            name: templateName,
+            language: language,
+            variables: {
+              header: [],
+              body: variables,
+              buttons: buttonVariables,
             },
-            body: JSON.stringify({ phone: cleanPhone, body: formattedText || `Hello ${name}` }),
-          }).catch(() => null);
-        }
+          },
+        };
 
-        if (graftyRes && graftyRes.ok) {
-          let graftyData = {};
-          try { graftyData = await graftyRes.json(); } catch (e) {}
-          sendResult = { success: true, provider: 'grafty', data: graftyData };
-        } else {
-          const statusCode = graftyRes?.status || 'unreachable';
-          let errorBody = '';
-          try { errorBody = await graftyRes?.text() || ''; } catch(e) {}
-          console.error(`[WhatsApp] Grafty send failed (${statusCode}):`, errorBody);
-          sendResult = { success: false, provider: 'grafty', error: `Grafty returned ${statusCode}: ${errorBody}` };
+        try {
+          const endpointsToTry = [
+            `${graftyUrl}/api/v1/messages/send-template`,
+            `${graftyUrl}/api/messages/send-template`,
+            `${graftyUrl}/api/v1/send-template`
+          ];
+
+          let graftyRes: Response | null = null;
+          let lastErrText = '';
+
+          for (const url of endpointsToTry) {
+            try {
+              graftyRes = await fetch(url, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${graftyKey}`,
+                  'x-api-key': graftyKey,
+                },
+                body: JSON.stringify(graftyPayload),
+              });
+              if (graftyRes.ok) break;
+              lastErrText = await graftyRes.text().catch(() => '');
+            } catch (e) {
+              graftyRes = null;
+            }
+          }
+
+          if (!graftyRes || !graftyRes.ok) {
+            // Fallback to live-chat/send
+            const tplDef = WHATSAPP_TEMPLATES.find(t => t.templateName === templateName || t.id === templateName);
+            let formattedText = tplDef?.bodyPattern || '';
+            variables.forEach((val, idx) => {
+              formattedText = formattedText.replace(new RegExp(`\\{\\{${idx + 1}\\}\\}`, 'g'), val || '');
+            });
+
+            graftyRes = await fetch(`${graftyUrl}/api/live-chat/send`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${graftyKey}`,
+                'x-api-key': graftyKey,
+              },
+              body: JSON.stringify({ phone: cleanPhone, body: formattedText || `Hello ${name}` }),
+            }).catch(() => null);
+          }
+
+          if (graftyRes && graftyRes.ok) {
+            let graftyData = {};
+            try { graftyData = await graftyRes.json(); } catch (e) {}
+            sendResult = { success: true, provider: 'grafty', data: graftyData };
+          } else {
+            const statusCode = graftyRes?.status || 'unreachable';
+            console.error(`[WhatsApp] Grafty send failed (${statusCode}):`, lastErrText);
+            sendResult = { success: false, provider: 'grafty', error: `Grafty API (${statusCode}): ${lastErrText || 'Endpoint unreachable'}` };
+          }
+        } catch (err: any) {
+          console.error(`[WhatsApp] Grafty network error:`, err.message);
+          sendResult = { success: false, provider: 'grafty', error: err.message };
         }
-      } catch (err: any) {
-        console.error(`[WhatsApp] Grafty network error:`, err.message);
-        sendResult = { success: false, provider: 'grafty', error: err.message };
       }
     }
 

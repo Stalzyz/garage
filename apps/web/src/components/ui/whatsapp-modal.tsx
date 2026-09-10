@@ -128,6 +128,7 @@ export function WhatsAppModal({
   const [name, setName] = useState(defaultName);
   const [selectedTemplateId, setSelectedTemplateId] = useState(defaultTemplateId);
   const [variableValues, setVariableValues] = useState<Record<string, string>>(defaultVariables);
+  const [provider, setProvider] = useState<'grafty' | 'meta' | 'auto'>('grafty');
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
@@ -191,6 +192,7 @@ export function WhatsAppModal({
           event: selectedTemplate.event,
           templateName: selectedTemplate.templateName,
           variables: formattedVars,
+          provider,
         }),
       });
 
@@ -274,6 +276,48 @@ export function WhatsAppModal({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* Provider Selection */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1.5 font-mono">
+                Sending Provider Engine
+              </label>
+              <div className="grid grid-cols-3 gap-2 bg-black/40 p-1.5 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setProvider('grafty')}
+                  className={`py-1.5 px-2 rounded-lg text-xs font-semibold font-mono flex items-center justify-center gap-1 transition-all ${
+                    provider === 'grafty'
+                      ? 'bg-emerald-500 text-black shadow'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Grafty WABA
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvider('meta')}
+                  className={`py-1.5 px-2 rounded-lg text-xs font-semibold font-mono flex items-center justify-center gap-1 transition-all ${
+                    provider === 'meta'
+                      ? 'bg-emerald-500 text-black shadow'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Meta Direct
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvider('auto')}
+                  className={`py-1.5 px-2 rounded-lg text-xs font-semibold font-mono flex items-center justify-center gap-1 transition-all ${
+                    provider === 'auto'
+                      ? 'bg-emerald-500 text-black shadow'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Auto Fallback
+                </button>
               </div>
             </div>
 
