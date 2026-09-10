@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set timeout 600
-spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "ls -la /root/grekam-os/apps/web/.next/standalone /root/grekam-os/apps/web/.next/standalone/apps/web 2>/dev/null"
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "bash /root/grekam-os/remote_deploy.sh"
 expect {
   "assword:" {
     send "Photoshop09@\r"

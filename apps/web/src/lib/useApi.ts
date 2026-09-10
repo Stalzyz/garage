@@ -126,7 +126,9 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
 
   let body = options?.body;
 
-  if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
+  if (options?.body instanceof FormData) {
+    delete headers['Content-Type'];
+  } else if (options?.body || (options?.method && !['GET', 'DELETE'].includes(options.method.toUpperCase()))) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     if (!body && headers['Content-Type'] === 'application/json') {
       body = "{}";

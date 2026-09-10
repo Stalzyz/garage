@@ -84,6 +84,7 @@ export default function CallIntelligenceDashboard() {
   // Log Call Activity Modal State
   const [isLogCallModalOpen, setIsLogCallModalOpen] = useState(false)
   const [isSubmittingCall, setIsSubmittingCall] = useState(false)
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false)
   const [logCallForm, setLogCallForm] = useState({
     leadId: "",
     userId: "ALL",
@@ -92,6 +93,30 @@ export default function CallIntelligenceDashboard() {
     recordingUrl: "",
     notes: ""
   })
+
+  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setIsUploadingAudio(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetchApi<any>('/storage/upload-local', {
+        method: 'POST',
+        body: formData
+      })
+      if (res?.downloadUrl) {
+        setLogCallForm(prev => ({ ...prev, recordingUrl: res.downloadUrl }))
+        toast.success("Audio recording uploaded successfully!")
+      } else {
+        toast.error("Upload failed: No audio URL returned")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload audio recording")
+    } finally {
+      setIsUploadingAudio(false)
+    }
+  }
 
   const [transcript, setTranscript] = useState("")
   const [repName, setRepName] = useState("")
@@ -675,7 +700,7 @@ export default function CallIntelligenceDashboard() {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Audio Recording File URL</label>
+                  <label className="text-xs font-bold uppercase text-muted-foreground">Audio Recording File / URL</label>
                   <button
                     type="button"
                     onClick={() => setLogCallForm({ ...logCallForm, recordingUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" })}
@@ -684,13 +709,38 @@ export default function CallIntelligenceDashboard() {
                     + Use Demo Audio URL
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={logCallForm.recordingUrl}
-                  onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
-                  placeholder="https://your-server.com/recordings/call_123.mp3 (optional)"
-                  className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary"
-                />
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0">
+                      <Mic className="w-3.5 h-3.5" />
+                      {isUploadingAudio ? "Uploading..." : "Upload Audio File"}
+                      <input type="file" accept="audio/*" onChange={handleAudioFileUpload} className="hidden" disabled={isUploadingAudio} />
+                    </label>
+                    <input
+                      type="text"
+                      value={logCallForm.recordingUrl}
+                      onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
+                      placeholder="https://... or click Upload Audio File"
+                      className="flex-1 bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  {logCallForm.recordingUrl && (
+                    <div className="bg-muted/30 border border-border/40 p-2 rounded-xl flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono text-emerald-400 font-bold shrink-0">Audio Preview:</span>
+                      <audio controls src={logCallForm.recordingUrl} className="h-7 w-64" />
+                      <button
+                        type="button"
+                        onClick={() => setLogCallForm({ ...logCallForm, recordingUrl: "" })}
+                        className="text-xs text-muted-foreground hover:text-destructive px-1"
+                        title="Remove audio"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

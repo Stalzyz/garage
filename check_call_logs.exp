@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Photoshop09@"
+set host "root@72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host
+
+expect {
+    "password:" { send "$password\r" }
+}
+
+expect "# " { send "export PAGER=cat\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -d grekam_os -c \"select count(*) from lead_activities where type='CALL';\"\r" }
+expect "# " { send "PGPASSWORD='Photoshop09@' psql -h 127.0.0.1 -U postgres -d grekam_os -c \"select id, \\\"leadId\\\", \\\"userId\\\", content, \\\"createdAt\\\" from lead_activities where type='CALL' order by \\\"createdAt\\\" desc limit 5;\"\r" }
+expect "# " { send "exit\r" }
+expect eof
