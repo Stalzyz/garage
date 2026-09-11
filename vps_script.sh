@@ -4,7 +4,8 @@ set -e
 echo ""
 echo "==> [1/6] Pulling latest code..."
 cd /root/grekam-os
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 
 echo ""
 echo "==> [2/6] Installing dependencies..."
