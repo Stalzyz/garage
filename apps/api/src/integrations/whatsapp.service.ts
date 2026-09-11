@@ -432,7 +432,11 @@ export class WhatsAppService {
     provider?: 'auto' | 'grafty' | 'meta';
   }) {
     const { graftyUrl, graftyKey, graftyInstanceId, metaToken, metaPhoneNumberId } = await this.getCredentials();
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+    // Standardize 10-digit numbers to E.164 (defaulting to India country code +91)
+    if (cleanPhone.length === 10) {
+      cleanPhone = '91' + cleanPhone;
+    }
 
     // Auto-detect matching template language and schema from synced template list
     let targetLanguage = language || 'en_US';
@@ -517,11 +521,8 @@ export class WhatsAppService {
     }
 
     // 3. Only add Body Component if template actually expects body parameters (expectedVarCount > 0)
-    if (expectedVarCount > 0) {
-      const activeVars = variables.slice(0, expectedVarCount);
-      while (activeVars.length < expectedVarCount) {
-        activeVars.push(`Val_${activeVars.length + 1}`);
-      }
+    const activeVars = variables.slice(0, Math.max(expectedVarCount, variables.length));
+    if (activeVars.length > 0) {
       templateComponents.push({
         type: 'body',
         parameters: activeVars.map(v => ({ type: 'text', text: String(v || '') }))
@@ -562,9 +563,7 @@ export class WhatsAppService {
             { desc: `Full components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents },
             { desc: `Full components (${altLang})`, lang: altLang, comps: templateComponents },
             { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-            { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-            { desc: `Empty components [] (${targetLanguage})`, lang: targetLanguage, comps: [] },
-            { desc: `Empty components [] (${altLang})`, lang: altLang, comps: [] }
+            { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
           ];
 
           for (const cand of metaCandidates) {
@@ -685,26 +684,6 @@ export class WhatsAppService {
               }
             },
             {
-              desc: `Empty components [] (${targetLanguage})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: [] }
-              }
-            },
-            {
-              desc: `Empty components [] (${altLang})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: altLang, components: [] }
-              }
-            },
-            {
               desc: `Flat parameters list`,
               payload: {
                 ...instObj,
@@ -714,8 +693,10 @@ export class WhatsAppService {
                 templateName: tName,
                 template_name: tName,
                 language: targetLanguage,
-                variables,
-                parameters: variables,
+                params: activeVars,
+                variables: activeVars,
+                parameters: activeVars,
+                media_url: mediaUrl || undefined,
                 mediaUrl: mediaUrl || undefined
               }
             }
