@@ -539,16 +539,14 @@ export class WhatsAppService {
     const tryMeta = (isAuto || provider === 'meta') && Boolean(metaToken && metaPhoneNumberId);
     const tryGrafty = (isAuto || provider === 'grafty') || (tryMeta && !sendResult.success);
 
-    // List of candidate template names to try if the requested templateName gets #132012 parameter mismatch
+    // List of candidate template names to try if the requested templateName gets #132012 parameter mismatch.
+    // CRITICAL: If mediaUrl is absent, text-only templates (grafty_welcome) MUST be prioritized over document templates (grafty_proposals).
+    // Sending a document template (grafty_proposals) without a document header causes Meta API to accept the HTTP call but drop delivery at the handset level.
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
-    const templateNamesToTry = Array.from(new Set([
-      templateName,
-      sanitizedName,
-      'grafty_proposals',
-      'grafty_welcome',
-      'proposal_sent_v1',
-      'lead_welcome_v1'
-    ]));
+    const hasMedia = Boolean(mediaUrl && mediaUrl.trim());
+    const templateNamesToTry = hasMedia
+      ? Array.from(new Set([templateName, sanitizedName, 'grafty_proposals', 'proposal_sent_v1', 'grafty_welcome', 'lead_welcome_v1']))
+      : Array.from(new Set([templateName, sanitizedName, 'grafty_welcome', 'lead_welcome_v1', 'grafty_proposals', 'proposal_sent_v1']));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {
