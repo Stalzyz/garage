@@ -147,8 +147,22 @@ export default async function storageRouter(app: FastifyInstance) {
 
     await pipeline(data.file, fs.createWriteStream(destinationPath));
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-    const downloadUrl = `${API_URL}/uploads/${key}`;
+    // Build a download URL that Meta's servers can actually reach.
+    // Priority: explicit env var → x-forwarded-host (public domain set by reverse proxy) → hardcoded fallback.
+    // Never use req.headers.host directly — behind a proxy it resolves to the internal API host.
+    let publicBase = process.env.NEXT_PUBLIC_API_URL || '';
+    if (!publicBase || publicBase.includes('localhost') || publicBase.includes('127.0.0.1')) {
+      const forwardedProto = (req.headers['x-forwarded-proto'] as string)?.split(',')[0].trim() || 'https';
+      const forwardedHost  = (req.headers['x-forwarded-host']  as string)?.split(',')[0].trim();
+      if (forwardedHost) {
+        publicBase = `${forwardedProto}://${forwardedHost}/api/v1`;
+      } else {
+        // Last resort: use a known production domain rather than an internal one
+        publicBase = 'https://agency.grekam.in/api/v1';
+      }
+    }
+    // Ensure no trailing slash before appending path
+    const downloadUrl = `${publicBase.replace(/\/$/, '')}/uploads/${key}`;
 
     return { downloadUrl, key, success: true };
   });

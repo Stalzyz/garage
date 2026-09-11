@@ -66,6 +66,9 @@ export default async function whatsappRouter(app: FastifyInstance) {
         variables: z.array(z.string()),
         buttonVariables: z.array(z.string()).optional(),
         language: z.string().optional(),
+        headerType: z.string().optional(),
+        mediaUrl: z.string().optional(),
+        filename: z.string().optional(),
         provider: z.enum(['auto', 'grafty', 'meta']).optional()
       })
     }
@@ -81,6 +84,9 @@ export default async function whatsappRouter(app: FastifyInstance) {
         variables: data.variables,
         buttonVariables: data.buttonVariables,
         language: data.language || 'en',
+        headerType: data.headerType,
+        mediaUrl: data.mediaUrl,
+        filename: data.filename,
         provider: data.provider || 'auto'
       });
 
@@ -89,11 +95,17 @@ export default async function whatsappRouter(app: FastifyInstance) {
         data: result.data
       });
     } catch (error: any) {
-      console.error('[WhatsApp Router] Send failed:', error.message);
+      const msg: string = error.message || 'WhatsApp delivery failed';
+      const is132012 = msg.includes('132012') || msg.toLowerCase().includes('parameter format does not match');
+      console.error('[WhatsApp Router] Send failed:', msg);
       return reply.code(400).send({
-        error: 'WhatsApp delivery failed',
-        message: error.message,
-        hint: 'Go to Settings → Integrations → META and add META_ACCESS_TOKEN + META_PHONE_NUMBER_ID. Or add GRAFTY_API_KEY under WHATSAPP service.'
+        error: is132012 ? 'WhatsApp API Rejection' : 'WhatsApp delivery failed',
+        details: msg,
+        // Legacy fields kept for backward-compat
+        message: msg,
+        hint: is132012
+          ? 'The selected template has rigid/fixed parameters in Meta. Switch to "Grafty Proposals" or "grafty_welcome" template, or clear the media attachment and retry.'
+          : 'Go to Settings → Integrations → META and add META_ACCESS_TOKEN + META_PHONE_NUMBER_ID. Or add GRAFTY_API_KEY under WHATSAPP service.'
       });
     }
   });

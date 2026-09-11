@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Modal } from './modal';
-import { MessageSquare, Send, CheckCircle2, AlertCircle, Loader2, Phone, User, FileText, ExternalLink, Sparkles, CheckCheck } from 'lucide-react';
+import { MessageSquare, Send, CheckCircle2, AlertCircle, Loader2, Phone, User, FileText, ExternalLink, Sparkles, CheckCheck, Upload, Image as ImageIcon, Paperclip, FileUp, X } from 'lucide-react';
 import { fetchApi, useApi } from '@/lib/useApi';
 import { toast } from 'sonner';
 
@@ -30,6 +30,37 @@ export interface TemplateDef {
 }
 
 const FALLBACK_TEMPLATES: TemplateDef[] = [
+  {
+    id: 'grafty_proposals',
+    name: 'Grafty Proposals (Recommended)',
+    templateName: 'grafty_proposals',
+    category: 'CRM',
+    event: 'PROPOSAL_SHARED',
+    description: 'Official Grafty Proposal & Quote template with PDF document header attachment',
+    headerType: 'DOCUMENT',
+    variables: [
+      { name: 'clientName', label: 'Client / Lead Name', placeholder: 'Stalin Kumar' },
+      { name: 'projectName', label: 'Project Name', placeholder: 'Custom E-Commerce Platform' },
+      { name: 'amount', label: 'Proposal Value', placeholder: '₹75,000.00' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nWe have prepared the proposal for your project *{{2}}* valued at {{3}}.\n\nPlease review the proposal document attached above and let us know your thoughts!',
+    buttons: ['Review Proposal']
+  },
+  {
+    id: 'grafty_welcome',
+    name: 'Grafty Welcome & Inquiry Response',
+    templateName: 'grafty_welcome',
+    category: 'CRM',
+    event: 'LEAD_CREATED',
+    description: 'Welcome & introduction template without header attachment',
+    headerType: 'NONE',
+    variables: [
+      { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
+      { name: 'serviceInterest', label: 'Service Interested', placeholder: 'Shopify / Web Development' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
+    buttons: ['Call Support', 'View Portfolio']
+  },
   {
     id: 'invoice_generated_v1',
     name: 'Tax Invoice Notification',
@@ -116,7 +147,7 @@ export function WhatsAppModal({
   onClose,
   defaultPhone = '',
   defaultName = '',
-  defaultTemplateId = 'invoice_generated_v1',
+  defaultTemplateId = 'grafty_proposals',
   defaultVariables = {},
   onSuccess,
 }: WhatsAppModalProps) {
@@ -124,20 +155,40 @@ export function WhatsAppModal({
   const { data: statusData } = useApi<any>('/integrations/whatsapp/status');
   const templates: TemplateDef[] = serverTemplates?.data || FALLBACK_TEMPLATES;
 
+  // Sort templates so verified active ones appear at the top
+  const verifiedList = ['grafty_proposals', 'grafty_welcome', 'proposal_sent_v1', 'invoice_generated_v1', 'lead_welcome_v1', 'quick_call', 'welcome', 'test'];
+  const sortedTemplates = [...templates].sort((a, b) => {
+    const aVer = verifiedList.includes(a.templateName || a.id) ? 0 : 1;
+    const bVer = verifiedList.includes(b.templateName || b.id) ? 0 : 1;
+    return aVer - bVer;
+  });
+
   const [phone, setPhone] = useState(defaultPhone);
   const [name, setName] = useState(defaultName);
   const [selectedTemplateId, setSelectedTemplateId] = useState(defaultTemplateId);
   const [variableValues, setVariableValues] = useState<Record<string, string>>(defaultVariables);
-  const [provider, setProvider] = useState<'grafty' | 'meta' | 'auto'>('grafty');
+  const [mediaUrl, setMediaUrl] = useState<string>('');
+  const [mediaSourceMode, setMediaSourceMode] = useState<'upload' | 'url'>('upload');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string>('');
+  const [provider, setProvider] = useState<'grafty' | 'meta' | 'auto'>('auto');
   const [isSending, setIsSending] = useState(false);
+  const [mismatchErrorNotice, setMismatchErrorNotice] = useState<string | null>(null);
 
   useEffect(() => {
     setPhone(defaultPhone);
     setName(defaultName);
-    if (defaultTemplateId) setSelectedTemplateId(defaultTemplateId);
+    if (defaultTemplateId) {
+      setSelectedTemplateId(defaultTemplateId);
+    } else if (sortedTemplates.length > 0) {
+      setSelectedTemplateId(sortedTemplates[0].id);
+    }
   }, [defaultPhone, defaultName, defaultTemplateId]);
 
   useEffect(() => {
+    // Reset any error notice when switching templates
+    setMismatchErrorNotice(null);
     // When selected template changes, pre-populate default variables if available
     const template = templates.find((t) => t.id === selectedTemplateId) || templates[0];
     if (template) {
@@ -152,12 +203,58 @@ export function WhatsAppModal({
         }
       });
       setVariableValues(initialVars);
+      // Do NOT pre-populate mediaUrl with a hardcoded placeholder — it causes Meta URL-access errors.
+      // The upload zone / URL field is already visible and clearly prompts the user.
     }
   }, [selectedTemplateId, name]);
 
   if (!isOpen) return null;
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) || templates[0];
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Local preview URL for instant UI response
+    const localUrl = URL.createObjectURL(file);
+    setLocalPreviewUrl(localUrl);
+    setUploadedFileName(file.name);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      const res = await fetch(`${API_BASE}/storage/upload-local`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.downloadUrl) {
+        setMediaUrl(data.downloadUrl);
+        toast.success(`Uploaded "${file.name}" from local drive!`);
+      } else {
+        throw new Error('No download URL returned');
+      }
+    } catch (err: any) {
+      console.error('File upload error:', err);
+      toast.error(err.message || 'Failed to upload local file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Helper to render preview body with variables replaced
   const renderPreviewBody = () => {
@@ -177,8 +274,13 @@ export function WhatsAppModal({
     if (!name.trim()) {
       return toast.error('Please enter the recipient name');
     }
+    if (selectedTemplate?.headerType && selectedTemplate.headerType !== 'NONE' && !mediaUrl.trim()) {
+      return toast.error(`Please provide or upload a ${selectedTemplate.headerType} file from your local drive`);
+    }
 
     setIsSending(true);
+    setMismatchErrorNotice(null);
+
     try {
       const formattedVars = selectedTemplate.variables.map(
         (v) => variableValues[v.name] || v.placeholder
@@ -192,6 +294,8 @@ export function WhatsAppModal({
           event: selectedTemplate.event,
           templateName: selectedTemplate.templateName,
           variables: formattedVars,
+          headerType: selectedTemplate.headerType,
+          mediaUrl: mediaUrl.trim() || undefined,
           provider,
         }),
       });
@@ -201,9 +305,29 @@ export function WhatsAppModal({
       onClose();
     } catch (err: any) {
       console.error(err);
-      // Show exact error message from server
-      const errMsg = err?.response?.message || err?.response?.error || err?.message || 'Failed to send WhatsApp message';
-      toast.error(errMsg, { duration: 8000 });
+      // Read structured error from API: { error, details, message }
+      const responseBody = err?.response || {};
+      let errMsg =
+        responseBody?.details ||
+        responseBody?.message ||
+        responseBody?.error ||
+        err?.message ||
+        'Failed to send WhatsApp message';
+
+      const is132012 =
+        errMsg.includes('132012') ||
+        errMsg.toLowerCase().includes('parameter format does not match') ||
+        errMsg.toLowerCase().includes('param count') ||
+        errMsg.toLowerCase().includes('whatsapp api rejection');
+
+      if (is132012) {
+        setMismatchErrorNotice(
+          `The template "${selectedTemplate?.name || 'Selected Template'}" in Meta WhatsApp Manager has rigid/fixed parameters that do not match the request (#132012). ` +
+          `Switch to "Grafty Proposals" or clear the media attachment and retry.`
+        );
+        errMsg = `Meta Template Mismatch (#132012): "${selectedTemplate?.name}" has rigid parameters. Use the quick-fix actions below.`;
+      }
+      toast.error(errMsg, { duration: 9000 });
     } finally {
       setIsSending(false);
     }
@@ -348,16 +472,201 @@ export function WhatsAppModal({
                 value={selectedTemplateId}
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
               >
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-slate-900 text-white">
-                    [{t.category}] {t.name}
-                  </option>
-                ))}
+                {sortedTemplates.map((t) => {
+                  const isVerified = ['grafty_proposals', 'grafty_welcome', 'proposal_sent_v1', 'invoice_generated_v1', 'lead_welcome_v1', 'quick_call', 'welcome', 'test'].includes(t.templateName || t.id);
+                  return (
+                    <option key={t.id} value={t.id} className="bg-slate-900 text-white">
+                      {isVerified ? '⚡ [VERIFIED LIVE] ' : ''}[{t.category}] {t.name}
+                    </option>
+                  );
+                })}
               </select>
               {selectedTemplate && (
                 <p className="text-[11px] text-white/40 mt-1 italic">{selectedTemplate.description}</p>
               )}
+              {mismatchErrorNotice && (
+                <div className="mt-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-amber-200 text-xs space-y-2 font-sans">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-amber-300">Meta Template Parameter Mismatch (#132012)</p>
+                      <p className="text-[11px] text-amber-200/80 mt-0.5">{mismatchErrorNotice}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 font-mono">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTemplateId('grafty_proposals');
+                        setMismatchErrorNotice(null);
+                        toast.info('Switched template to "Grafty Proposals"!');
+                      }}
+                      className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
+                    >
+                      <Sparkles className="w-3 h-3" /> Select "Grafty Proposals"
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaUrl('');
+                        setLocalPreviewUrl('');
+                        setUploadedFileName('');
+                        setMismatchErrorNotice(null);
+                        toast.info('Cleared media attachment. Try sending again!');
+                      }}
+                      className="px-3 py-1 bg-white/10 text-white rounded-lg text-[11px] hover:bg-white/20 transition-all"
+                    >
+                      Send Without Attachment
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Header Media Input (IMAGE / DOCUMENT / VIDEO) */}
+            {selectedTemplate && selectedTemplate.headerType && selectedTemplate.headerType !== 'NONE' && (
+              <div className="bg-emerald-500/10 p-3.5 rounded-xl border border-emerald-500/30 space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest text-emerald-400 font-mono font-bold flex items-center gap-1.5">
+                    <FileUp className="w-3.5 h-3.5 text-emerald-400" />
+                    Header {selectedTemplate.headerType} Attachment
+                  </label>
+
+                  <div className="flex items-center gap-1 bg-black/50 p-1 rounded-lg border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setMediaSourceMode('upload')}
+                      className={`text-[9px] font-mono px-2 py-0.5 rounded transition-all ${
+                        mediaSourceMode === 'upload'
+                          ? 'bg-emerald-500 text-black font-bold'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                    >
+                      Local Drive File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMediaSourceMode('url')}
+                      className={`text-[9px] font-mono px-2 py-0.5 rounded transition-all ${
+                        mediaSourceMode === 'url'
+                          ? 'bg-emerald-500 text-black font-bold'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                    >
+                      Public Link URL
+                    </button>
+                  </div>
+                </div>
+
+                {mediaSourceMode === 'upload' ? (
+                  <div className="space-y-2">
+                    <label className="relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-emerald-500/40 hover:border-emerald-400 bg-black/40 hover:bg-black/60 rounded-xl cursor-pointer transition-all group">
+                      <input
+                        type="file"
+                        accept={
+                          selectedTemplate.headerType === 'IMAGE'
+                            ? 'image/*'
+                            : 'application/pdf,image/*,application/msword'
+                        }
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      {isUploading ? (
+                        <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono">
+                          <Loader2 className="w-4 h-4 animate-spin" /> Uploading file from local drive to server...
+                        </div>
+                      ) : uploadedFileName ? (
+                        <div className="flex items-center gap-2 text-emerald-300 text-xs font-mono">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <span className="font-bold underline truncate max-w-[240px]">{uploadedFileName}</span>
+                          <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded">
+                            Ready
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-center space-y-1">
+                          <Upload className="w-6 h-6 text-emerald-400 mx-auto group-hover:scale-110 transition-transform" />
+                          <p className="text-xs font-semibold text-white">Click to Choose {selectedTemplate.headerType} from Local Drive</p>
+                          <p className="text-[10px] text-white/40">PNG, JPG, WEBP, or PDF up to 50MB</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="url"
+                      className="w-full bg-black/70 border border-emerald-500/40 rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-400 text-white"
+                      placeholder={
+                        selectedTemplate.headerType === 'DOCUMENT'
+                          ? 'https://agency.grekam.in/sample_proposal.pdf'
+                          : 'https://agency.grekam.in/portfolio_showcase.png'
+                      }
+                      value={mediaUrl}
+                      onChange={(e) => {
+                        setMediaUrl(e.target.value);
+                        setLocalPreviewUrl('');
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[9px] text-white/40 font-mono">Presets:</span>
+                  {selectedTemplate.headerType === 'DOCUMENT' ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaUrl('https://agency.grekam.in/sample_proposal.pdf');
+                          setLocalPreviewUrl('');
+                          setUploadedFileName('sample_proposal.pdf');
+                        }}
+                        className="text-[9px] font-mono text-emerald-300 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+                      >
+                        Proposal PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaUrl('https://agency.grekam.in/sample_invoice.pdf');
+                          setLocalPreviewUrl('');
+                          setUploadedFileName('sample_invoice.pdf');
+                        }}
+                        className="text-[9px] font-mono text-emerald-300 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+                      >
+                        Tax Invoice PDF
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaUrl('https://agency.grekam.in/portfolio_showcase.png');
+                          setLocalPreviewUrl('');
+                          setUploadedFileName('portfolio_showcase.png');
+                        }}
+                        className="text-[9px] font-mono text-emerald-300 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+                      >
+                        Portfolio Image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaUrl('https://grafty.pro/grafty.svg');
+                          setLocalPreviewUrl('');
+                          setUploadedFileName('grafty.svg');
+                        }}
+                        className="text-[9px] font-mono text-emerald-300 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+                      >
+                        Grafty Logo
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Variable Inputs */}
             {selectedTemplate && selectedTemplate.variables.length > 0 && (
@@ -413,9 +722,31 @@ export function WhatsAppModal({
                     <div className="bg-black/30 p-2 rounded-lg flex items-center gap-2 border border-white/10">
                       <FileText className="w-5 h-5 text-emerald-300 shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-bold truncate">Attachment_Document.pdf</p>
-                        <p className="text-[8px] text-white/50">PDF Document • 1.2 MB</p>
+                        <p className="text-[10px] font-bold truncate">
+                          {uploadedFileName || (mediaUrl ? mediaUrl.split('/').pop()?.split('?')[0] : 'Attachment_Document.pdf')}
+                        </p>
+                        <p className="text-[8px] text-white/50">PDF Document • Click to View</p>
                       </div>
+                    </div>
+                  )}
+
+                  {selectedTemplate?.headerType === 'IMAGE' && (
+                    <div className="bg-black/40 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center min-h-[90px]">
+                      {(localPreviewUrl || mediaUrl) ? (
+                        <img
+                          src={localPreviewUrl || mediaUrl}
+                          alt="Header Image Preview"
+                          className="w-full max-h-32 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="p-3 text-center">
+                          <Sparkles className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+                          <p className="text-[9px] text-white/50">Header Image Attachment</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -462,7 +793,7 @@ export function WhatsAppModal({
             </button>
             <button
               onClick={handleSend}
-              disabled={isSending}
+              disabled={isSending || isUploading}
               className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold uppercase tracking-wider text-xs rounded-xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
             >
               {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -475,3 +806,4 @@ export function WhatsAppModal({
     </Modal>
   );
 }
+

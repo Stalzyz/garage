@@ -16,16 +16,28 @@ export default function GlobalError({
     console.error("Uncaught application error:", error)
     if (error?.message) {
       setErrorMessage(error.message)
+      const msg = error.message.toLowerCase()
+      if (msg.includes('chunk') || msg.includes('dynamically imported')) {
+        if (typeof window !== "undefined") {
+          const key = 'last_error_chunk_reload'
+          const lastReload = parseInt(sessionStorage.getItem(key) || '0', 10)
+          if (Date.now() - lastReload > 5000) {
+            sessionStorage.setItem(key, Date.now().toString())
+            window.location.href = window.location.pathname + '?_ts=' + Date.now()
+          }
+        }
+      }
     }
   }, [error])
 
-  const handleCleanReload = () => {
+  const handleHardReload = () => {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.clear()
         localStorage.removeItem("last_chunk_reload")
+        localStorage.removeItem("last_error_chunk_reload")
       } catch (e) {}
-      window.location.href = "/portal"
+      window.location.href = window.location.pathname + '?_ts=' + Date.now()
     } else {
       reset()
     }
@@ -49,19 +61,13 @@ export default function GlobalError({
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button
-          onClick={() => reset()}
+          onClick={handleHardReload}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-violet-500/20 cursor-pointer"
         >
           <RefreshCw className="w-4 h-4" /> Try Again
         </button>
         <button
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              window.location.reload()
-            } else {
-              reset()
-            }
-          }}
+          onClick={handleHardReload}
           className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 font-medium text-sm border border-white/10 transition-all cursor-pointer"
         >
           Reload Page

@@ -143,14 +143,22 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
   });
 
   if (!response.ok) {
-    let errorBody;
+    let errorBody: any;
     try { errorBody = await response.json(); } catch {}
 
-    if (response.status === 404 || response.status === 401) {
-      if (errorBody) return errorBody as unknown as T;
-      return null as unknown as T;
-    }
-    throw new Error(errorBody?.message || errorBody?.error || `Error ${response.status}: ${response.statusText}`);
+    // Always throw on error — never silently return an error body as a success value.
+    // Attach the full errorBody as `err.response` so callers can read any field
+    // (error, details, message, hint) without us having to predict which one is present.
+    const humanMessage =
+      errorBody?.details ||
+      errorBody?.message ||
+      errorBody?.error ||
+      `Error ${response.status}: ${response.statusText}`;
+
+    const err = new Error(humanMessage) as any;
+    err.response = errorBody;   // full structured body, always available
+    err.status   = response.status;
+    throw err;
   }
 
   if (response.status === 204) {

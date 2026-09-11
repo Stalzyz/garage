@@ -99,13 +99,14 @@ export default function RootLayout({
           (function() {
             try {
               window.addEventListener('error', function(e) {
-                var msg = e && e.message ? e.message : '';
-                if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('CSS_CHUNK_LOAD_FAILED') !== -1) {
+                var msg = (e && e.message ? e.message : '').toLowerCase();
+                var target = e && e.target ? (e.target.src || e.target.href || '') : '';
+                if (msg.indexOf('chunk') !== -1 || msg.indexOf('dynamically imported') !== -1 || target.indexOf('_next/static') !== -1) {
                   var key = 'last_chunk_reload';
                   var lastReload = parseInt(sessionStorage.getItem(key) || '0', 10);
-                  if (Date.now() - lastReload > 10000) {
+                  if (Date.now() - lastReload > 5000) {
                     sessionStorage.setItem(key, Date.now().toString());
-                    window.location.reload();
+                    window.location.href = window.location.pathname + '?_ts=' + Date.now();
                   }
                 }
               }, true);
