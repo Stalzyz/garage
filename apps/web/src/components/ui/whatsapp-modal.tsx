@@ -156,12 +156,20 @@ export function WhatsAppModal({
   const templates: TemplateDef[] = serverTemplates?.data || FALLBACK_TEMPLATES;
 
   // Sort templates so verified active ones appear at the top
-  const verifiedList = ['grafty_welcome', 'quick_call', 'grafty_proposals', 'welcome', 'grafty_image_proposal'];
+  const verifiedList = ['grafty_welcome', 'quick_call', 'grafty_proposals'];
+  const lockedList = ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'];
+
   const sortedTemplates = [...templates].sort((a, b) => {
-    const aVer = verifiedList.indexOf(a.templateName || a.id);
-    const bVer = verifiedList.indexOf(b.templateName || b.id);
-    const aScore = aVer >= 0 ? aVer : 99;
-    const bScore = bVer >= 0 ? bVer : 99;
+    const aName = a.templateName || a.id;
+    const bName = b.templateName || b.id;
+    const aVer = verifiedList.indexOf(aName);
+    const bVer = verifiedList.indexOf(bName);
+    const aLock = lockedList.indexOf(aName);
+    const bLock = lockedList.indexOf(bName);
+
+    // Verified first (0, 1, 2), normal middle (50), locked last (100+)
+    const aScore = aVer >= 0 ? aVer : (aLock >= 0 ? 100 + aLock : 50);
+    const bScore = bVer >= 0 ? bVer : (bLock >= 0 ? 100 + bLock : 50);
     return aScore - bScore;
   });
 
@@ -475,16 +483,30 @@ export function WhatsAppModal({
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
               >
                 {sortedTemplates.map((t) => {
-                  const isVerified = ['grafty_proposals', 'grafty_welcome', 'proposal_sent_v1', 'invoice_generated_v1', 'lead_welcome_v1', 'quick_call', 'welcome', 'test'].includes(t.templateName || t.id);
+                  const tName = t.templateName || t.id;
+                  const isVerified = ['grafty_welcome', 'quick_call', 'grafty_proposals'].includes(tName);
+                  const isLocked = ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(tName);
                   return (
                     <option key={t.id} value={t.id} className="bg-slate-900 text-white">
-                      {isVerified ? '⚡ [VERIFIED LIVE] ' : ''}[{t.category}] {t.name}
+                      {isVerified ? '⚡ [VERIFIED LIVE] ' : isLocked ? '⚠️ [META CONFIG LOCKED] ' : ''}[{t.category}] {t.name}
                     </option>
                   );
                 })}
               </select>
               {selectedTemplate && (
                 <p className="text-[11px] text-white/40 mt-1 italic">{selectedTemplate.description}</p>
+              )}
+              {selectedTemplate && ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(selectedTemplate.templateName || selectedTemplate.id) && (
+                <div className="mt-2 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-amber-200 text-xs flex items-center justify-between gap-2">
+                  <span className="text-[11px]">⚠️ This template has rigid parameters in Meta Manager (#132012). Recommended: <strong>Grafty Welcome</strong>.</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplateId('grafty_welcome')}
+                    className="px-2 py-0.5 bg-emerald-500 text-black font-bold rounded text-[10px] shrink-0"
+                  >
+                    Switch to Welcome
+                  </button>
+                </div>
               )}
               {mismatchErrorNotice && (
                 <div className="mt-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-amber-200 text-xs space-y-2 font-sans">

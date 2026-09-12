@@ -521,7 +521,7 @@ export class WhatsAppService {
     }
 
     // 3. Only add Body Component if template actually expects body parameters (expectedVarCount > 0)
-    const activeVars = variables.slice(0, Math.max(expectedVarCount, variables.length));
+    const activeVars = expectedVarCount > 0 ? variables.slice(0, expectedVarCount) : [];
     if (activeVars.length > 0) {
       templateComponents.push({
         type: 'body',
