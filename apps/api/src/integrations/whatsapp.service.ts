@@ -593,13 +593,16 @@ export class WhatsAppService {
             }
 
             const errSub = d?.error?.error_subcode ?? d?.error?.code;
-            const isParamMismatch =
+            const isRetryableError =
               errSub === 132012 ||
+              errSub === 132001 ||
               String(d?.error?.message || '').includes('132012') ||
+              String(d?.error?.message || '').includes('132001') ||
+              String(d?.error?.message || '').toLowerCase().includes('translation') ||
               String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match') ||
               String(d?.error?.message || '').toLowerCase().includes('does not exist');
 
-            if (!isParamMismatch) break;
+            if (!isRetryableError) break;
           }
 
           if (metaRes && metaRes.ok && metaData?.messages) break;
@@ -842,10 +845,19 @@ export class WhatsAppService {
       // Surface the actual error — include raw details so the router & frontend can present actionable info
       const errDetail = sendResult.error || 'WhatsApp message delivery failed.';
       const is132012 = errDetail.includes('132012') || errDetail.toLowerCase().includes('parameter format does not match');
+      const is132001 = errDetail.includes('132001') || errDetail.toLowerCase().includes('translation');
+
+      if (is132001) {
+        throw new Error(
+          `WhatsApp API Rejection (#132001): The template "${templateName}" does not exist in Meta Manager for the requested language. ` +
+          `Please check template approval status/language in Meta WABA or switch to a verified template like "grafty_welcome". ` +
+          `Details: ${errDetail}`
+        );
+      }
       if (is132012) {
         throw new Error(
           `WhatsApp API Rejection (#132012): The template "${templateName}" was created in Meta with rigid/fixed parameters that do not match the request. ` +
-          `Please switch to a flexible template like "grafty_proposals" or "grafty_welcome", or send without a media attachment. ` +
+          `Please switch to a flexible template like "grafty_welcome" or "grafty_proposals", or send without a media attachment. ` +
           `Details: ${errDetail}`
         );
       }
