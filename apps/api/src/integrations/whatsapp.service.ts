@@ -662,6 +662,26 @@ export class WhatsAppService {
               }
             },
             {
+              desc: `Zero-variable components [] (${targetLanguage})`,
+              payload: {
+                ...instObj,
+                recipient: { phone: cleanPhone, name },
+                to: cleanPhone,
+                phone: cleanPhone,
+                template: { name: tName, language: targetLanguage, components: [] }
+              }
+            },
+            {
+              desc: `Zero-variable components [] (${altLang})`,
+              payload: {
+                ...instObj,
+                recipient: { phone: cleanPhone, name },
+                to: cleanPhone,
+                phone: cleanPhone,
+                template: { name: tName, language: altLang, components: [] }
+              }
+            },
+            {
               desc: `Body-only components (${targetLanguage})`,
               payload: {
                 ...instObj,

@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "python3 -c \"
+import urllib.request, json
+url = 'https://grafty.pro'
+print('Testing Grafty endpoints...')
+for ep in ['/api/v1/instances', '/api/v1/channels', '/api/v1/phone-numbers', '/api/v1/whatsapp/instances', '/api/v1/templates']:
+    try:
+        req = urllib.request.Request(url + ep, headers={'x-api-key': 'test'})
+        with urllib.request.urlopen(req) as response:
+            print(ep, '-> Status:', response.status)
+    except Exception as e:
+        print(ep, '-> Error:', e)
+\""
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

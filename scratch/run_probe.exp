@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && NODE_ENV=production node -e '
+async function run() {
+  const { prisma } = require(\"./apps/api/dist/db\");
+  const { decrypt } = require(\"./apps/api/dist/settings/integrations.router\");
+  const keys = await prisma.integrationKey.findMany({ where: { service: { in: [\"WHATSAPP\", \"META\"] } } });
+  console.log(\"--- DB KEYS ---\");
+  let graftyKey = \"\", graftyUrl = \"https://grafty.pro\";
+  for (const k of keys) {
+    console.log(k.keyName, \"->\", decrypt(k.encryptedValue));
+    if (k.keyName === \"GRAFTY_API_KEY\") graftyKey = decrypt(k.encryptedValue);
+    if (k.keyName === \"GRAFTY_API_URL\") graftyUrl = decrypt(k.encryptedValue);
+  }
+
+  const eps = [\"/api/v1/instances\", \"/api/v1/channels\", \"/api/v1/phone-numbers\", \"/api/v1/whatsapp/instances\", \"/api/v1/templates\", \"/api/v1/me\"];
+  for (const ep of eps) {
+    try {
+      const res = await fetch(graftyUrl + ep, {
+        headers: { \"Authorization\": \"Bearer \" + graftyKey, \"x-api-key\": graftyKey }
+      });
+      const txt = await res.text();
+      console.log(ep, \"->\", res.status, txt.slice(0, 300));
+    } catch(e) {
+      console.log(ep, e.message);
+    }
+  }
+}
+run().then(() => process.exit(0));
+'"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof

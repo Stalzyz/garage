@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn scp -o StrictHostKeyChecking=no -o PubkeyAuthentication=no scratch/probe.js root@72.61.231.187:/root/grekam-os/probe.js
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cd /root/grekam-os && NODE_ENV=production node probe.js"
+expect "assword:"
+send "Photoshop09@\r"
+expect eof
