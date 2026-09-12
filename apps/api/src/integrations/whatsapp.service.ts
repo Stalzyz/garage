@@ -646,7 +646,14 @@ export class WhatsAppService {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: templateComponents }
+                template: { name: tName, language: targetLanguage, components: templateComponents },
+                templateName: tName,
+                template_name: tName,
+                media_url: mediaUrl || undefined,
+                mediaUrl: mediaUrl || undefined,
+                params: activeVars,
+                variables: activeVars,
+                parameters: activeVars
               }
             },
             {
@@ -656,27 +663,14 @@ export class WhatsAppService {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: altLang, components: templateComponents }
-              }
-            },
-            {
-              desc: `Zero-variable components [] (${targetLanguage})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: [] }
-              }
-            },
-            {
-              desc: `Zero-variable components [] (${altLang})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: altLang, components: [] }
+                template: { name: tName, language: altLang, components: templateComponents },
+                templateName: tName,
+                template_name: tName,
+                media_url: mediaUrl || undefined,
+                mediaUrl: mediaUrl || undefined,
+                params: activeVars,
+                variables: activeVars,
+                parameters: activeVars
               }
             },
             {
@@ -686,7 +680,14 @@ export class WhatsAppService {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') }
+                template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                templateName: tName,
+                template_name: tName,
+                media_url: mediaUrl || undefined,
+                mediaUrl: mediaUrl || undefined,
+                params: activeVars,
+                variables: activeVars,
+                parameters: activeVars
               }
             },
             {
@@ -696,22 +697,40 @@ export class WhatsAppService {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') }
+                template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                templateName: tName,
+                template_name: tName,
+                media_url: mediaUrl || undefined,
+                mediaUrl: mediaUrl || undefined,
+                params: activeVars,
+                variables: activeVars,
+                parameters: activeVars
               }
             },
             {
-              desc: `Flat parameters list`,
+              desc: `Zero-variable components [] (${targetLanguage})`,
               payload: {
                 ...instObj,
-                phone: cleanPhone,
+                recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
-                name,
+                phone: cleanPhone,
+                template: { name: tName, language: targetLanguage, components: [] },
                 templateName: tName,
                 template_name: tName,
-                language: targetLanguage,
-                params: activeVars,
-                variables: activeVars,
-                parameters: activeVars,
+                media_url: mediaUrl || undefined,
+                mediaUrl: mediaUrl || undefined
+              }
+            },
+            {
+              desc: `Zero-variable components [] (${altLang})`,
+              payload: {
+                ...instObj,
+                recipient: { phone: cleanPhone, name },
+                to: cleanPhone,
+                phone: cleanPhone,
+                template: { name: tName, language: altLang, components: [] },
+                templateName: tName,
+                template_name: tName,
                 media_url: mediaUrl || undefined,
                 mediaUrl: mediaUrl || undefined
               }
@@ -760,6 +779,8 @@ export class WhatsAppService {
                                lastErrText.toLowerCase().includes('parameter format does not match') ||
                                lastErrText.toLowerCase().includes('param count') ||
                                lastErrText.toLowerCase().includes('template parameter mismatch') ||
+                               lastErrText.toLowerCase().includes('missing recipient') ||
+                               lastErrText.toLowerCase().includes('missing template') ||
                                lastErrText.toLowerCase().includes('whatsapp api rejection') ||
                                lastErrText.toLowerCase().includes('does not exist');
             if (!isMismatch) break;
