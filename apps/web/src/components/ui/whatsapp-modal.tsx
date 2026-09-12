@@ -31,22 +31,6 @@ export interface TemplateDef {
 
 const FALLBACK_TEMPLATES: TemplateDef[] = [
   {
-    id: 'grafty_proposals',
-    name: 'Grafty Proposals (Recommended)',
-    templateName: 'grafty_proposals',
-    category: 'CRM',
-    event: 'PROPOSAL_SHARED',
-    description: 'Official Grafty Proposal & Quote template with PDF document header attachment',
-    headerType: 'DOCUMENT',
-    variables: [
-      { name: 'clientName', label: 'Client / Lead Name', placeholder: 'Stalin Kumar' },
-      { name: 'projectName', label: 'Project Name', placeholder: 'Custom E-Commerce Platform' },
-      { name: 'amount', label: 'Proposal Value', placeholder: '₹75,000.00' }
-    ],
-    bodyPattern: 'Hi {{1}},\n\nWe have prepared the proposal for your project *{{2}}* valued at {{3}}.\n\nPlease review the proposal document attached above and let us know your thoughts!',
-    buttons: ['Review Proposal']
-  },
-  {
     id: 'grafty_welcome',
     name: 'Grafty Welcome & Inquiry Response',
     templateName: 'grafty_welcome',
@@ -60,6 +44,22 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     ],
     bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
+  },
+  {
+    id: 'grafty_proposals',
+    name: 'Grafty Proposals & Scope Breakdown',
+    templateName: 'grafty_proposals',
+    category: 'CRM',
+    event: 'PROPOSAL_SHARED',
+    description: 'Official Grafty Proposal & Quote template with PDF document header attachment',
+    headerType: 'DOCUMENT',
+    variables: [
+      { name: 'clientName', label: 'Client / Lead Name', placeholder: 'Stalin Kumar' },
+      { name: 'projectName', label: 'Project Name', placeholder: 'Custom E-Commerce Platform' },
+      { name: 'amount', label: 'Proposal Value', placeholder: '₹75,000.00' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nWe have prepared the proposal for your project *{{2}}* valued at {{3}}.\n\nPlease review the proposal document attached above and let us know your thoughts!',
+    buttons: ['Review Proposal']
   },
   {
     id: 'invoice_generated_v1',
@@ -147,7 +147,7 @@ export function WhatsAppModal({
   onClose,
   defaultPhone = '',
   defaultName = '',
-  defaultTemplateId = 'grafty_proposals',
+  defaultTemplateId = 'grafty_welcome',
   defaultVariables = {},
   onSuccess,
 }: WhatsAppModalProps) {
@@ -499,13 +499,13 @@ export function WhatsAppModal({
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedTemplateId('grafty_proposals');
+                        setSelectedTemplateId('grafty_welcome');
                         setMismatchErrorNotice(null);
-                        toast.info('Switched template to "Grafty Proposals"!');
+                        toast.info('Switched template to "Grafty Welcome"!');
                       }}
                       className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
                     >
-                      <Sparkles className="w-3 h-3" /> Select "Grafty Proposals"
+                      <Sparkles className="w-3 h-3" /> Select "Grafty Welcome"
                     </button>
                     <button
                       type="button"

@@ -17,22 +17,6 @@ export interface WhatsAppTemplateDef {
 
 export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
   {
-    id: 'grafty_proposals',
-    name: 'Grafty Proposals (Recommended)',
-    templateName: 'grafty_proposals',
-    category: 'CRM',
-    event: 'PROPOSAL_SHARED',
-    description: 'Official Grafty Proposal & Quote template with PDF document header attachment',
-    headerType: 'DOCUMENT',
-    variables: [
-      { name: 'clientName', label: 'Client / Lead Name', placeholder: 'Stalin Kumar' },
-      { name: 'projectName', label: 'Project Name', placeholder: 'Custom E-Commerce Platform' },
-      { name: 'amount', label: 'Proposal Value', placeholder: '₹75,000.00' }
-    ],
-    bodyPattern: 'Hi {{1}},\n\nWe have prepared the proposal for your project *{{2}}* valued at {{3}}.\n\nPlease review the proposal document attached above and let us know your thoughts!',
-    buttons: ['Review Proposal']
-  },
-  {
     id: 'grafty_welcome',
     name: 'Grafty Welcome & Inquiry Response',
     templateName: 'grafty_welcome',
@@ -46,6 +30,22 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
     ],
     bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
+  },
+  {
+    id: 'grafty_proposals',
+    name: 'Grafty Proposals & Scope Breakdown',
+    templateName: 'grafty_proposals',
+    category: 'CRM',
+    event: 'PROPOSAL_SHARED',
+    description: 'Official Grafty Proposal & Quote template with PDF document header attachment',
+    headerType: 'DOCUMENT',
+    variables: [
+      { name: 'clientName', label: 'Client / Lead Name', placeholder: 'Stalin Kumar' },
+      { name: 'projectName', label: 'Project Name', placeholder: 'Custom E-Commerce Platform' },
+      { name: 'amount', label: 'Proposal Value', placeholder: '₹75,000.00' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nWe have prepared the proposal for your project *{{2}}* valued at {{3}}.\n\nPlease review the proposal document attached above and let us know your thoughts!',
+    buttons: ['Review Proposal']
   },
   {
     id: 'invoice_generated_v1',
@@ -543,10 +543,8 @@ export class WhatsAppService {
     // CRITICAL: If mediaUrl is absent, text-only templates (grafty_welcome) MUST be prioritized over document templates (grafty_proposals).
     // Sending a document template (grafty_proposals) without a document header causes Meta API to accept the HTTP call but drop delivery at the handset level.
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
-    const hasMedia = Boolean(mediaUrl && mediaUrl.trim());
-    const templateNamesToTry = hasMedia
-      ? Array.from(new Set([templateName, sanitizedName, 'grafty_proposals', 'grafty_image_proposal', 'grafty_welcome', 'quick_call']))
-      : Array.from(new Set([templateName, sanitizedName, 'grafty_welcome', 'quick_call', 'welcome', 'grafty_proposals']));
+    // Only target requested templateName or sanitized lowercase identifier — strictly prevent unwanted fallback to grafty_proposals
+    const templateNamesToTry = Array.from(new Set([templateName, sanitizedName]));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {
