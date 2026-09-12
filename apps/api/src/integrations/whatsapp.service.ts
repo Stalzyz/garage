@@ -12,6 +12,7 @@ export interface WhatsAppTemplateDef {
   variables: { name: string; label: string; placeholder: string }[];
   bodyPattern: string;
   headerType?: 'DOCUMENT' | 'IMAGE' | 'NONE';
+  defaultMediaUrl?: string;
   buttons?: string[];
 }
 
@@ -262,6 +263,7 @@ export class WhatsAppService {
               if (t.status === 'APPROVED') {
                 const bodyComp = (t.components || []).find((c: any) => c.type === 'BODY');
                 const headerComp = (t.components || []).find((c: any) => c.type === 'HEADER');
+                const defaultMedia = headerComp?.example?.header_handle?.[0] || '';
                 const bodyText = bodyComp?.text || '';
                 const varMatches = bodyText.match(/\{\{\d+\}\}/g) || [];
                 const vars = varMatches.map((_: string, idx: number) => ({
@@ -279,6 +281,7 @@ export class WhatsAppService {
                   variables: vars,
                   bodyPattern: bodyText,
                   headerType: headerComp?.format === 'TEXT' ? 'NONE' : (headerComp?.format || 'NONE'),
+                  defaultMediaUrl: defaultMedia,
                   buttons: []
                 });
               }
@@ -304,6 +307,7 @@ export class WhatsAppService {
                   if (t.status === 'APPROVED' || !t.status) {
                     const bodyComp = (t.components || []).find((c: any) => c.type === 'BODY');
                     const headerComp = (t.components || []).find((c: any) => c.type === 'HEADER');
+                    const defaultMedia = headerComp?.example?.header_handle?.[0] || '';
                     const bodyText = bodyComp?.text || '{{1}}';
                     const varMatches = bodyText.match(/\{\{\d+\}\}/g) || [];
                     const vars = varMatches.map((_: string, idx: number) => ({
@@ -321,6 +325,7 @@ export class WhatsAppService {
                       variables: vars,
                       bodyPattern: bodyText,
                       headerType: headerComp?.format || 'NONE',
+                      defaultMediaUrl: defaultMedia,
                       buttons: []
                     });
                   }
@@ -357,6 +362,7 @@ export class WhatsAppService {
             if (t.status === 'APPROVED' || !t.status) {
               const bodyComp = (t.components || []).find((c: any) => c.type === 'BODY');
               const headerComp = (t.components || []).find((c: any) => c.type === 'HEADER');
+              const defaultMedia = headerComp?.example?.header_handle?.[0] || headerComp?.media_url || t.mediaUrl || t.media_url || '';
               const bodyText = bodyComp?.text || t.body || t.bodyPattern || '';
               const varMatches = bodyText.match(/\{\{\d+\}\}/g) || [];
               const vars = (t.variables && t.variables.length > 0)
@@ -382,6 +388,7 @@ export class WhatsAppService {
                 variables: vars,
                 bodyPattern: bodyText,
                 headerType: headerComp?.format || t.headerType || 'NONE',
+                defaultMediaUrl: defaultMedia,
                 buttons: (t.buttons || []).map((b: any) => typeof b === 'string' ? b : (b.text || b.url || 'Action'))
               });
             }
@@ -468,27 +475,35 @@ export class WhatsAppService {
     // Build components array for Meta Cloud API & Grafty
     const templateComponents: any[] = [];
 
+    // Resolve effective media URL:
+    // If the caller provided a mediaUrl, use it.
+    // If the template requires an IMAGE, DOCUMENT, or VIDEO header and no mediaUrl was supplied,
+    // automatically fall back to the template's approved defaultMediaUrl (e.g. Meta sample image header_handle)!
+    const activeMediaUrl = (mediaUrl && mediaUrl.trim())
+      ? mediaUrl.trim()
+      : (['IMAGE', 'DOCUMENT', 'VIDEO'].includes(effectiveHeaderType) ? (matchedTpl?.defaultMediaUrl || '') : '');
+
     // 1. Add Header Component if media URL is provided and header type requires media
-    if (mediaUrl && ['IMAGE', 'DOCUMENT', 'VIDEO'].includes(effectiveHeaderType)) {
+    if (activeMediaUrl && ['IMAGE', 'DOCUMENT', 'VIDEO'].includes(effectiveHeaderType)) {
       if (effectiveHeaderType === 'IMAGE') {
         templateComponents.push({
           type: 'header',
           parameters: [
             {
               type: 'image',
-              image: { link: mediaUrl }
+              image: { link: activeMediaUrl }
             }
           ]
         });
       } else if (effectiveHeaderType === 'DOCUMENT') {
-        const docName = filename || mediaUrl.split('/').pop()?.split('?')[0] || 'Attachment.pdf';
+        const docName = filename || activeMediaUrl.split('/').pop()?.split('?')[0] || 'Attachment.pdf';
         templateComponents.push({
           type: 'header',
           parameters: [
             {
               type: 'document',
               document: {
-                link: mediaUrl,
+                link: activeMediaUrl,
                 filename: docName
               }
             }
@@ -500,7 +515,7 @@ export class WhatsAppService {
           parameters: [
             {
               type: 'video',
-              video: { link: mediaUrl }
+              video: { link: activeMediaUrl }
             }
           ]
         });
@@ -555,12 +570,16 @@ export class WhatsAppService {
         let metaData: any = null;
 
         for (const tName of templateNamesToTry) {
-          const metaCandidates = [
+          const metaCandidates: { desc: string; lang: string; comps: any[] }[] = [
             { desc: `Full components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents },
             { desc: `Full components (${altLang})`, lang: altLang, comps: templateComponents },
-            { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-            { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
           ];
+          if (effectiveHeaderType === 'NONE') {
+            metaCandidates.push(
+              { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
+              { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
+            );
+          }
 
           for (const cand of metaCandidates) {
             const payload = {
@@ -652,8 +671,8 @@ export class WhatsAppService {
                 template: { name: tName, language: targetLanguage, components: templateComponents },
                 templateName: tName,
                 template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined,
+                media_url: activeMediaUrl || undefined,
+                mediaUrl: activeMediaUrl || undefined,
                 params: activeVars,
                 variables: activeVars,
                 parameters: activeVars
@@ -669,76 +688,81 @@ export class WhatsAppService {
                 template: { name: tName, language: altLang, components: templateComponents },
                 templateName: tName,
                 template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined,
+                media_url: activeMediaUrl || undefined,
+                mediaUrl: activeMediaUrl || undefined,
                 params: activeVars,
                 variables: activeVars,
                 parameters: activeVars
-              }
-            },
-            {
-              desc: `Body-only components (${targetLanguage})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') },
-                templateName: tName,
-                template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined,
-                params: activeVars,
-                variables: activeVars,
-                parameters: activeVars
-              }
-            },
-            {
-              desc: `Body-only components (${altLang})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') },
-                templateName: tName,
-                template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined,
-                params: activeVars,
-                variables: activeVars,
-                parameters: activeVars
-              }
-            },
-            {
-              desc: `Zero-variable components [] (${targetLanguage})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: [] },
-                templateName: tName,
-                template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined
-              }
-            },
-            {
-              desc: `Zero-variable components [] (${altLang})`,
-              payload: {
-                ...instObj,
-                recipient: { phone: cleanPhone, name },
-                to: cleanPhone,
-                phone: cleanPhone,
-                template: { name: tName, language: altLang, components: [] },
-                templateName: tName,
-                template_name: tName,
-                media_url: mediaUrl || undefined,
-                mediaUrl: mediaUrl || undefined
               }
             }
           ];
+
+          if (effectiveHeaderType === 'NONE') {
+            candidatePayloads.push(
+              {
+                desc: `Body-only components (${targetLanguage})`,
+                payload: {
+                  ...instObj,
+                  recipient: { phone: cleanPhone, name },
+                  to: cleanPhone,
+                  phone: cleanPhone,
+                  template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  templateName: tName,
+                  template_name: tName,
+                  media_url: activeMediaUrl || undefined,
+                  mediaUrl: activeMediaUrl || undefined,
+                  params: activeVars,
+                  variables: activeVars,
+                  parameters: activeVars
+                }
+              },
+              {
+                desc: `Body-only components (${altLang})`,
+                payload: {
+                  ...instObj,
+                  recipient: { phone: cleanPhone, name },
+                  to: cleanPhone,
+                  phone: cleanPhone,
+                  template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  templateName: tName,
+                  template_name: tName,
+                  media_url: activeMediaUrl || undefined,
+                  mediaUrl: activeMediaUrl || undefined,
+                  params: activeVars,
+                  variables: activeVars,
+                  parameters: activeVars
+                }
+              },
+              {
+                desc: `Zero-variable components [] (${targetLanguage})`,
+                payload: {
+                  ...instObj,
+                  recipient: { phone: cleanPhone, name },
+                  to: cleanPhone,
+                  phone: cleanPhone,
+                  template: { name: tName, language: targetLanguage, components: [] },
+                  templateName: tName,
+                  template_name: tName,
+                  media_url: activeMediaUrl || undefined,
+                  mediaUrl: activeMediaUrl || undefined
+                }
+              },
+              {
+                desc: `Zero-variable components [] (${altLang})`,
+                payload: {
+                  ...instObj,
+                  recipient: { phone: cleanPhone, name },
+                  to: cleanPhone,
+                  phone: cleanPhone,
+                  template: { name: tName, language: altLang, components: [] },
+                  templateName: tName,
+                  template_name: tName,
+                  media_url: activeMediaUrl || undefined,
+                  mediaUrl: activeMediaUrl || undefined
+                }
+              }
+            );
+          }
 
           for (const candidate of candidatePayloads) {
             const urlsToTry = workingEndpoint ? [workingEndpoint] : endpointsToTry;
@@ -857,7 +881,7 @@ export class WhatsAppService {
       if (is132012) {
         throw new Error(
           `WhatsApp API Rejection (#132012): The template "${templateName}" was created in Meta with rigid/fixed parameters that do not match the request. ` +
-          `Please switch to a flexible template like "grafty_welcome" or "grafty_proposals", or send without a media attachment. ` +
+          `Please switch to a verified template like "grafty_welcome", or check the required media attachment format. ` +
           `Details: ${errDetail}`
         );
       }

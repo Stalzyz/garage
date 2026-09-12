@@ -158,7 +158,7 @@ export default async function storageRouter(app: FastifyInstance) {
         publicBase = `${forwardedProto}://${forwardedHost}/api/v1`;
       } else {
         // Last resort: use a known production domain rather than an internal one
-        publicBase = 'https://agency.grekam.in/api/v1';
+        publicBase = 'https://garage.grekam.in/api/v1';
       }
     }
     // Ensure no trailing slash before appending path

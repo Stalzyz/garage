@@ -26,10 +26,37 @@ export interface TemplateDef {
   variables: { name: string; label: string; placeholder: string }[];
   bodyPattern: string;
   headerType?: 'DOCUMENT' | 'IMAGE' | 'NONE';
+  defaultMediaUrl?: string;
   buttons?: string[];
 }
 
 const FALLBACK_TEMPLATES: TemplateDef[] = [
+  {
+    id: 'shopify_to_ecommerce',
+    name: 'Shopify to Custom E-Commerce Assessment',
+    templateName: 'shopify_to_ecommerce',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'Shopify store migration assessment pitch with image banner and quick reply button',
+    headerType: 'IMAGE',
+    defaultMediaUrl: 'https://scontent.whatsapp.net/v/t61.29466-34/642678768_850317051240573_175361912867767487_n.png?ccb=1-7&_nc_sid=8b1bef&_nc_ohc=CDkvmhkUMagQ7kNvwHOX_8z&_nc_oc=AdpkwzbRCw6w_gB2AZwpW5bujnQJPnjqwa2bUEME4fDsQCFGQlEGamdYkYMK8CZ1swk&_nc_zt=3&_nc_ht=scontent.whatsapp.net&edm=AH51TzQEAAAA&_nc_gid=Yx9IAnyyOgb6iTpRKAgrEA&_nc_tpa=Q5bMBQIBsEJ3uz2kFVS9w82KRYo-ADZOtgqCFI3Yy_n7JlSehl2KpoAE-HV73ippszZqKBvSEfu-EU4psg&oh=01_Q5Aa5gF2O7PQ39GRKgCMNKLDJWxEZvcFRv8pcr6GD9Vm0bV2qQ&oe=6ACA58B0',
+    variables: [],
+    bodyPattern: 'Stop Renting Your Shopify Store.\n\nOwn your platform. Save thousands every month.\n\nFind out if your Shopify store is eligible for a FREE Migration Assessment.',
+    buttons: ['Check Eligibility']
+  },
+  {
+    id: 'grafty_common_template_all_industries',
+    name: 'Grafty WhatsApp Automation Overview',
+    templateName: 'grafty_common_template_all_industries',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'All industries WhatsApp API overview with image banner and link',
+    headerType: 'IMAGE',
+    defaultMediaUrl: 'https://scontent.whatsapp.net/v/t61.29466-34/719633934_1256828006528059_7342898372785317285_n.png?ccb=1-7&_nc_sid=8b1bef&_nc_ohc=efWWcxqoSIsQ7kNvwGlVAEG&_nc_oc=AdqrK9QSyEPO1lVR1acz3m4Y3cpxWAMFQHxLpFfQjQ5fdaZzl8S5DVcnC0_nvhOou-U&_nc_zt=3&_nc_ht=scontent.whatsapp.net&edm=AH51TzQEAAAA&_nc_gid=Yx9IAnyyOgb6iTpRKAgrEA&_nc_tpa=Q5bMBQK_FkKViCXxHTKzejNZeZA-hBpWfwWIzRNsDXUKmTo9L7ZY05dMl15vm6egTFjYAtnz4tEHN8Mrjg&oh=01_Q5Aa5gGkOiwdPbupThZ3BUcJkVS6Y0lfdQcIKEt8TXJwSjw0gQ&oe=6ACA671E',
+    variables: [],
+    bodyPattern: 'Grow Your Business with WhatsApp\n\nConnect with your customers instantly using WhatsApp API.\n\n• Send notifications & updates\n• Automate customer conversations\n• Follow up with leads\n• Send offers & campaigns\n• Manage customer communication',
+    buttons: ['Free Login']
+  },
   {
     id: 'grafty_welcome',
     name: 'Grafty Welcome & Inquiry Response',
@@ -156,8 +183,8 @@ export function WhatsAppModal({
   const templates: TemplateDef[] = serverTemplates?.data || FALLBACK_TEMPLATES;
 
   // Sort templates so verified active ones appear at the top
-  const verifiedList = ['grafty_welcome', 'quick_call', 'grafty_proposals'];
-  const lockedList = ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'];
+  const verifiedList = ['grafty_welcome', 'shopify_to_ecommerce', 'grafty_common_template_all_industries', 'quick_call', 'grafty_proposals'];
+  const lockedList = ['grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'];
 
   const sortedTemplates = [...templates].sort((a, b) => {
     const aName = a.templateName || a.id;
@@ -284,7 +311,7 @@ export function WhatsAppModal({
     if (!name.trim()) {
       return toast.error('Please enter the recipient name');
     }
-    if (selectedTemplate?.headerType && selectedTemplate.headerType !== 'NONE' && !mediaUrl.trim()) {
+    if (selectedTemplate?.headerType && selectedTemplate.headerType !== 'NONE' && !mediaUrl.trim() && !selectedTemplate.defaultMediaUrl) {
       return toast.error(`Please provide or upload a ${selectedTemplate.headerType} file from your local drive`);
     }
 
@@ -332,10 +359,10 @@ export function WhatsAppModal({
 
       if (is132012) {
         setMismatchErrorNotice(
-          `The template "${selectedTemplate?.name || 'Selected Template'}" in Meta WhatsApp Manager has rigid/fixed parameters that do not match the request (#132012). ` +
-          `Switch to "Grafty Proposals" or clear the media attachment and retry.`
+          `The template "${selectedTemplate?.name || 'Selected Template'}" parameter format did not match (#132012). ` +
+          `Switch to "Grafty Welcome" or verify the header media attachment and retry.`
         );
-        errMsg = `Meta Template Mismatch (#132012): "${selectedTemplate?.name}" has rigid parameters. Use the quick-fix actions below.`;
+        errMsg = `Meta Template Mismatch (#132012): "${selectedTemplate?.name}" parameters did not match. Use the quick-fix actions below.`;
       }
       toast.error(errMsg, { duration: 9000 });
     } finally {
@@ -484,8 +511,8 @@ export function WhatsAppModal({
               >
                 {sortedTemplates.map((t) => {
                   const tName = t.templateName || t.id;
-                  const isVerified = ['grafty_welcome', 'quick_call', 'grafty_proposals'].includes(tName);
-                  const isLocked = ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(tName);
+                  const isVerified = ['grafty_welcome', 'shopify_to_ecommerce', 'grafty_common_template_all_industries', 'quick_call', 'grafty_proposals'].includes(tName);
+                  const isLocked = ['grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(tName);
                   return (
                     <option key={t.id} value={t.id} className="bg-slate-900 text-white">
                       {isVerified ? '⚡ [VERIFIED LIVE] ' : isLocked ? '⚠️ [META CONFIG LOCKED] ' : ''}[{t.category}] {t.name}
@@ -496,7 +523,7 @@ export function WhatsAppModal({
               {selectedTemplate && (
                 <p className="text-[11px] text-white/40 mt-1 italic">{selectedTemplate.description}</p>
               )}
-              {selectedTemplate && ['grafty_common_template_all_industries', 'grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(selectedTemplate.templateName || selectedTemplate.id) && (
+              {selectedTemplate && ['grafty_partnership_intro', 'ecommerce_webdevelopment', 'grafty_image_proposal'].includes(selectedTemplate.templateName || selectedTemplate.id) && (
                 <div className="mt-2 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-lg text-amber-200 text-xs flex items-center justify-between gap-2">
                   <span className="text-[11px]">⚠️ This template has rigid parameters in Meta Manager (#132012). Recommended: <strong>Grafty Welcome</strong>.</span>
                   <button
@@ -756,9 +783,9 @@ export function WhatsAppModal({
 
                   {selectedTemplate?.headerType === 'IMAGE' && (
                     <div className="bg-black/40 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center min-h-[90px]">
-                      {(localPreviewUrl || mediaUrl) ? (
+                      {(localPreviewUrl || mediaUrl || selectedTemplate.defaultMediaUrl) ? (
                         <img
-                          src={localPreviewUrl || mediaUrl}
+                          src={localPreviewUrl || mediaUrl || selectedTemplate.defaultMediaUrl}
                           alt="Header Image Preview"
                           className="w-full max-h-32 object-cover"
                           onError={(e) => {
