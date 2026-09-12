@@ -545,8 +545,8 @@ export class WhatsAppService {
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
     const hasMedia = Boolean(mediaUrl && mediaUrl.trim());
     const templateNamesToTry = hasMedia
-      ? Array.from(new Set([templateName, sanitizedName, 'grafty_proposals', 'proposal_sent_v1', 'grafty_welcome', 'lead_welcome_v1']))
-      : Array.from(new Set([templateName, sanitizedName, 'grafty_welcome', 'lead_welcome_v1', 'grafty_proposals', 'proposal_sent_v1']));
+      ? Array.from(new Set([templateName, sanitizedName, 'grafty_proposals', 'grafty_image_proposal', 'grafty_welcome', 'quick_call']))
+      : Array.from(new Set([templateName, sanitizedName, 'grafty_welcome', 'quick_call', 'welcome', 'grafty_proposals']));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {

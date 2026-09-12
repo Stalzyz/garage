@@ -156,11 +156,13 @@ export function WhatsAppModal({
   const templates: TemplateDef[] = serverTemplates?.data || FALLBACK_TEMPLATES;
 
   // Sort templates so verified active ones appear at the top
-  const verifiedList = ['grafty_proposals', 'grafty_welcome', 'proposal_sent_v1', 'invoice_generated_v1', 'lead_welcome_v1', 'quick_call', 'welcome', 'test'];
+  const verifiedList = ['grafty_welcome', 'quick_call', 'grafty_proposals', 'welcome', 'grafty_image_proposal'];
   const sortedTemplates = [...templates].sort((a, b) => {
-    const aVer = verifiedList.includes(a.templateName || a.id) ? 0 : 1;
-    const bVer = verifiedList.includes(b.templateName || b.id) ? 0 : 1;
-    return aVer - bVer;
+    const aVer = verifiedList.indexOf(a.templateName || a.id);
+    const bVer = verifiedList.indexOf(b.templateName || b.id);
+    const aScore = aVer >= 0 ? aVer : 99;
+    const bScore = bVer >= 0 ? bVer : 99;
+    return aScore - bScore;
   });
 
   const [phone, setPhone] = useState(defaultPhone);
