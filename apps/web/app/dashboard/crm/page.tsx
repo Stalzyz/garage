@@ -8,7 +8,7 @@ import {
   Search, BookOpen, GraduationCap, Calendar,
   MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
   List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet, MessageCircle, Clock,
-  Share2, ExternalLink, Zap, X, Copy
+  Share2, ExternalLink, Zap, X, Copy, SlidersHorizontal
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -39,6 +39,22 @@ export default function CRMDashboard() {
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
   const [groupBy, setGroupBy] = useState<'NONE' | 'STATUS' | 'SOURCE' | 'ASSIGNEE'>('NONE')
   const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
+
+  // Custom Columns Manager State
+  const [isColumnPickerOpen, setIsColumnPickerOpen] = useState(false)
+  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+    name: true,
+    company: true,
+    contact: true,
+    nextFollowUp: true,
+    stage: true,
+    budget: true,
+    assignee: true,
+    source: true,
+    score: true,
+    createdDate: true,
+    actions: true,
+  })
   
   // Modals
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
@@ -154,6 +170,53 @@ export default function CRMDashboard() {
     }
     return `ID: ${userId}`
   }
+
+  // Helper for Follow-up SLA Badges
+  const getFollowUpSlaBadge = (lead: any) => {
+    if (lead.status === 'WON' || lead.status === 'LOST' || lead.status === 'DROPPED' || lead.status === 'ENROLLED_ACADEMY') {
+      return { label: 'Closed', color: 'bg-white/5 text-slate-400 border-white/10' }
+    }
+
+    const nextDateStr = lead.nextFollowUpAt || lead.meetingTime
+    if (nextDateStr) {
+      const nextDate = new Date(nextDateStr)
+      const now = new Date()
+      const diffHours = (nextDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+
+      if (diffHours < 0) {
+        return { label: '🔴 Overdue', color: 'bg-red-500/10 text-red-400 border-red-500/20' }
+      } else if (diffHours <= 24) {
+        return { label: '🟡 Due Today', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20' }
+      } else {
+        return { label: `🟢 ${nextDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`, color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' }
+      }
+    }
+
+    const lastActiveDate = new Date(lead.updatedAt || lead.createdAt || Date.now())
+    const daysInactive = Math.floor((Date.now() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysInactive >= 7) {
+      return { label: '🔴 Overdue (7d+)', color: 'bg-red-500/10 text-red-400 border-red-500/20' }
+    } else if (daysInactive >= 3) {
+      return { label: '🟡 Follow-up Due', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20' }
+    }
+
+    return { label: '🟢 On Track', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
+  }
+
+  const ALL_COLUMNS = [
+    { id: 'name', label: 'Lead Name' },
+    { id: 'company', label: 'Company / Course Interest' },
+    { id: 'contact', label: 'Contact Info' },
+    { id: 'nextFollowUp', label: 'Next Follow-Up SLA' },
+    { id: 'stage', label: 'Stage / Status' },
+    { id: 'budget', label: 'Deal Value / Budget' },
+    { id: 'assignee', label: 'Assignee' },
+    { id: 'source', label: 'Source' },
+    { id: 'score', label: 'Lead Score' },
+    { id: 'createdDate', label: 'Created Date' },
+    { id: 'actions', label: 'Actions' },
+  ]
 
   // Dynamic Grouping Logic for List View
   const groupedLeads = useMemo(() => {
@@ -761,6 +824,45 @@ export default function CRMDashboard() {
 
           {viewMode === 'LIST' && (
             <div className="flex items-center gap-3">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsColumnPickerOpen(!isColumnPickerOpen)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] text-[var(--dash-text-primary)] hover:border-blue-500/50 hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+                  Manage Columns
+                </button>
+
+                {isColumnPickerOpen && (
+                  <div className="absolute right-0 mt-2 w-60 p-3.5 bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.15))] rounded-2xl shadow-2xl z-30 space-y-2.5 backdrop-blur-xl">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-400">Toggle Visible Columns</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsColumnPickerOpen(false)} 
+                        className="text-white/40 hover:text-white text-xs font-mono"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="space-y-1.5 max-h-60 overflow-y-auto custom-scrollbar">
+                      {ALL_COLUMNS.map((col) => (
+                        <label key={col.id} className="flex items-center gap-2.5 text-xs text-white/80 cursor-pointer hover:text-white py-1 px-1 rounded hover:bg-white/5 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={!!visibleColumns[col.id]}
+                            onChange={(e) => setVisibleColumns({ ...visibleColumns, [col.id]: e.target.checked })}
+                            className="rounded border-white/20 bg-transparent text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                          />
+                          <span className="font-medium">{col.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <label className="text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/45">Group By</label>
               <select
                 value={groupBy}
@@ -837,22 +939,47 @@ export default function CRMDashboard() {
                             className="rounded border-white/10 bg-transparent text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                           />
                         </th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Lead Name</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">
-                          {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
-                        </th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Contact Info</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Stage</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Assignee</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Source</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-center">Score</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Created Date</th>
-                        <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-right">Actions</th>
+                        {visibleColumns.name && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Lead Name</th>
+                        )}
+                        {visibleColumns.company && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">
+                            {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
+                          </th>
+                        )}
+                        {visibleColumns.contact && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Contact Info</th>
+                        )}
+                        {visibleColumns.nextFollowUp && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Next Follow-Up SLA</th>
+                        )}
+                        {visibleColumns.stage && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Stage</th>
+                        )}
+                        {visibleColumns.budget && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Deal Value</th>
+                        )}
+                        {visibleColumns.assignee && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Assignee</th>
+                        )}
+                        {visibleColumns.source && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Source</th>
+                        )}
+                        {visibleColumns.score && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-center">Score</th>
+                        )}
+                        {visibleColumns.createdDate && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Created Date</th>
+                        )}
+                        {visibleColumns.actions && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 text-right">Actions</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {group.list.map((lead: any) => {
                         const isSelected = selectedLeadIds.includes(lead.id);
+                        const slaBadge = getFollowUpSlaBadge(lead);
                         return (
                           <tr 
                             key={lead.id} 
@@ -872,87 +999,117 @@ export default function CRMDashboard() {
                                 className="rounded border-white/10 bg-transparent text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                               />
                             </td>
-                            <td className="p-4 font-semibold text-sm">
-                              <span>{lead.name}</span>
-                            </td>
-                            <td className="p-4 text-sm text-[var(--dash-text-primary)]/60">
-                              {activeTab === 'AGENCY' ? (
-                                lead.company || <span className="text-white/20">—</span>
-                              ) : (
-                                lead.courseInterest || <span className="text-white/20">—</span>
-                              )}
-                            </td>
-                            <td className="p-4 text-xs font-mono space-y-0.5">
-                              {lead.email && <div className="text-[var(--dash-text-primary)]/60">{lead.email}</div>}
-                              {lead.phone && <div className="text-[var(--dash-text-primary)]/40">{lead.phone}</div>}
-                              {!lead.email && !lead.phone && <span className="text-white/20">—</span>}
-                            </td>
-                            <td className="p-4">
-                              <span className="text-[10px] font-mono tracking-widest uppercase bg-white/5 border border-white/10 px-2 py-1 rounded text-white/70">
-                                {lead.status.replace(/_/g, ' ')}
-                              </span>
-                            </td>
-                            <td className="p-4 text-sm font-medium">
-                              <span className={lead.assignedToId ? 'text-white/80' : 'text-white/20 font-normal italic'}>
-                                {getAssigneeName(lead.assignedToId)}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono uppercase text-white/50">
-                              {lead.source}
-                            </td>
-                            <td className="p-4 text-center font-bold font-mono text-xs text-blue-400">
-                              {lead.score}
-                            </td>
-                            <td className="p-4 text-xs text-[var(--dash-text-primary)]/40 font-mono">
-                              {new Date(lead.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="p-4 text-right">
-                              <div className="flex gap-2 justify-end">
-                                {lead.phone && (
-                                  <button
-                                    onClick={() => {
-                                      const cleanPhone = lead.phone.replace(/\D/g, '');
-                                      window.open(`https://grafty.pro/dashboard/chat?phone=${cleanPhone}`, '_blank');
-                                    }}
-                                    className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-1.5 hover:bg-emerald-500/10 rounded-lg"
-                                    title="Open Grafty WhatsApp Chat"
-                                  >
-                                    <MessageCircle className="w-3.5 h-3.5" />
-                                  </button>
+                            {visibleColumns.name && (
+                              <td className="p-4 font-semibold text-sm">
+                                <span>{lead.name}</span>
+                              </td>
+                            )}
+                            {visibleColumns.company && (
+                              <td className="p-4 text-sm text-[var(--dash-text-primary)]/60">
+                                {activeTab === 'AGENCY' ? (
+                                  lead.company || <span className="text-white/20">—</span>
+                                ) : (
+                                  lead.courseInterest || <span className="text-white/20">—</span>
                                 )}
-                                <button 
-                                  onClick={() => handleOpenActivityModal(lead)}
-                                  className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
-                                  title="Log Activity"
-                                >
-                                  <ClipboardList className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  onClick={() => { 
-                                    handleOpenActivityModal(lead);
-                                    setActivityType("MEETING");
-                                  }}
-                                  className="text-blue-400/70 hover:text-blue-400 transition-colors p-1.5 hover:bg-blue-500/10 rounded-lg"
-                                  title="Schedule Meeting"
-                                >
-                                  <Calendar className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  onClick={() => handleOpenEditLead(lead)}
-                                  className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
-                                  title="Edit Lead"
-                                >
-                                  <MoreVertical className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteSingleLead(lead.id, lead.name)}
-                                  className="text-red-400/50 hover:text-red-400 transition-colors p-1.5 hover:bg-red-500/10 rounded-lg"
-                                  title="Delete Lead"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
+                              </td>
+                            )}
+                            {visibleColumns.contact && (
+                              <td className="p-4 text-xs font-mono space-y-0.5">
+                                {lead.email && <div className="text-[var(--dash-text-primary)]/60">{lead.email}</div>}
+                                {lead.phone && <div className="text-[var(--dash-text-primary)]/40">{lead.phone}</div>}
+                                {!lead.email && !lead.phone && <span className="text-white/20">—</span>}
+                              </td>
+                            )}
+                            {visibleColumns.nextFollowUp && (
+                              <td className="p-4">
+                                <span className={`text-[10px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border ${slaBadge.color}`}>
+                                  {slaBadge.label}
+                                </span>
+                              </td>
+                            )}
+                            {visibleColumns.stage && (
+                              <td className="p-4">
+                                <span className="text-[10px] font-mono tracking-widest uppercase bg-white/5 border border-white/10 px-2 py-1 rounded text-white/70">
+                                  {lead.status.replace(/_/g, ' ')}
+                                </span>
+                              </td>
+                            )}
+                            {visibleColumns.budget && (
+                              <td className="p-4 text-xs font-mono font-bold text-emerald-400">
+                                {lead.estimatedBudget ? `${symbol}${Number(lead.estimatedBudget).toLocaleString('en-IN')}` : <span className="text-white/20">—</span>}
+                              </td>
+                            )}
+                            {visibleColumns.assignee && (
+                              <td className="p-4 text-sm font-medium">
+                                <span className={lead.assignedToId ? 'text-white/80' : 'text-white/20 font-normal italic'}>
+                                  {getAssigneeName(lead.assignedToId)}
+                                </span>
+                              </td>
+                            )}
+                            {visibleColumns.source && (
+                              <td className="p-4 text-xs font-mono uppercase text-white/50">
+                                {lead.source}
+                              </td>
+                            )}
+                            {visibleColumns.score && (
+                              <td className="p-4 text-center font-bold font-mono text-xs text-blue-400">
+                                {lead.score}
+                              </td>
+                            )}
+                            {visibleColumns.createdDate && (
+                              <td className="p-4 text-xs text-[var(--dash-text-primary)]/40 font-mono">
+                                {new Date(lead.createdAt).toLocaleDateString()}
+                              </td>
+                            )}
+                            {visibleColumns.actions && (
+                              <td className="p-4 text-right">
+                                <div className="flex gap-2 justify-end">
+                                  {lead.phone && (
+                                    <button
+                                      onClick={() => {
+                                        const cleanPhone = lead.phone.replace(/\D/g, '');
+                                        window.open(`https://grafty.pro/dashboard/chat?phone=${cleanPhone}`, '_blank');
+                                      }}
+                                      className="text-emerald-400/70 hover:text-emerald-400 transition-colors p-1.5 hover:bg-emerald-500/10 rounded-lg"
+                                      title="Open Grafty WhatsApp Chat"
+                                    >
+                                      <MessageCircle className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <button 
+                                    onClick={() => handleOpenActivityModal(lead)}
+                                    className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
+                                    title="Log Activity"
+                                  >
+                                    <ClipboardList className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => { 
+                                      handleOpenActivityModal(lead);
+                                      setActivityType("MEETING");
+                                    }}
+                                    className="text-blue-400/70 hover:text-blue-400 transition-colors p-1.5 hover:bg-blue-500/10 rounded-lg"
+                                    title="Schedule Meeting"
+                                  >
+                                    <Calendar className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleOpenEditLead(lead)}
+                                    className="text-[var(--dash-text-primary)]/40 hover:text-white transition-colors p-1.5 hover:bg-white/5 rounded-lg"
+                                    title="Edit Lead"
+                                  >
+                                    <MoreVertical className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteSingleLead(lead.id, lead.name)}
+                                    className="text-red-400/50 hover:text-red-400 transition-colors p-1.5 hover:bg-red-500/10 rounded-lg"
+                                    title="Delete Lead"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
                           </tr>
                         )
                       })}
@@ -1251,6 +1408,44 @@ export default function CRMDashboard() {
                           className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] [color-scheme:dark]"
                           required={activityType === "MEETING"}
                         />
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 1);
+                            d.setHours(10, 0, 0, 0);
+                            setMeetingTime(d.toISOString().slice(0, 16));
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-mono font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg transition-all"
+                        >
+                          +1 Day (Tomorrow)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 3);
+                            d.setHours(10, 0, 0, 0);
+                            setMeetingTime(d.toISOString().slice(0, 16));
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-mono font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg transition-all"
+                        >
+                          +3 Days
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 7);
+                            d.setHours(10, 0, 0, 0);
+                            setMeetingTime(d.toISOString().slice(0, 16));
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-mono font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg transition-all"
+                        >
+                          +1 Week
+                        </button>
                       </div>
                     </div>
                   </div>
