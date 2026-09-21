@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle } from 'lucide-react';
+import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle, Plus, Trash2, X } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
@@ -14,22 +14,22 @@ interface KanbanBoardProps {
   onWhatsapp?: (lead: any) => void;
 }
 
-const AGENCY_COLUMNS = [
-  { id: 'NEW', title: 'New Leads' },
-  { id: 'CONTACTED', title: 'Contacted' },
-  { id: 'QUALIFIED', title: 'Qualified' },
-  { id: 'PROPOSAL_SENT', title: 'Proposal Sent' },
-  { id: 'NEGOTIATION', title: 'Negotiation' },
-  { id: 'WON', title: 'Won' },
-  { id: 'LOST', title: 'Lost' }
+const DEFAULT_AGENCY_COLUMNS = [
+  { id: 'NEW', title: 'New Leads', isDefault: true },
+  { id: 'CONTACTED', title: 'Contacted', isDefault: true },
+  { id: 'QUALIFIED', title: 'Qualified', isDefault: true },
+  { id: 'PROPOSAL_SENT', title: 'Proposal Sent', isDefault: true },
+  { id: 'NEGOTIATION', title: 'Negotiation', isDefault: true },
+  { id: 'WON', title: 'Won', isDefault: true },
+  { id: 'LOST', title: 'Lost', isDefault: true }
 ];
 
-const ACADEMY_COLUMNS = [
-  { id: 'ENQUIRY', title: 'New Enquiry' },
-  { id: 'COUNSELLING', title: 'Counselling' },
-  { id: 'TRIAL', title: 'Trial Class' },
-  { id: 'ENROLLED_ACADEMY', title: 'Enrolled' },
-  { id: 'DROPPED', title: 'Dropped' }
+const DEFAULT_ACADEMY_COLUMNS = [
+  { id: 'ENQUIRY', title: 'New Enquiry', isDefault: true },
+  { id: 'COUNSELLING', title: 'Counselling', isDefault: true },
+  { id: 'TRIAL', title: 'Trial Class', isDefault: true },
+  { id: 'ENROLLED_ACADEMY', title: 'Enrolled', isDefault: true },
+  { id: 'DROPPED', title: 'Dropped', isDefault: true }
 ];
 
 // Single Lead Card Component with Native Drag Handlers
@@ -190,8 +190,28 @@ export function KanbanBoard({
   onSchedule, 
   onWhatsapp 
 }: KanbanBoardProps) {
-  const columns = activeTab === 'AGENCY' ? AGENCY_COLUMNS : ACADEMY_COLUMNS;
   const { symbol } = useCurrency();
+
+  const [agencyCols, setAgencyCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('grekam_crm_agency_cols');
+      if (saved) { try { return JSON.parse(saved); } catch {} }
+    }
+    return DEFAULT_AGENCY_COLUMNS;
+  });
+
+  const [academyCols, setAcademyCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('grekam_crm_academy_cols');
+      if (saved) { try { return JSON.parse(saved); } catch {} }
+    }
+    return DEFAULT_ACADEMY_COLUMNS;
+  });
+
+  const columns = activeTab === 'AGENCY' ? agencyCols : academyCols;
+
+  const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [newColumnTitle, setNewColumnTitle] = useState('');
 
   const [localLeads, setLocalLeads] = useState<any[]>(leads);
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
@@ -201,6 +221,39 @@ export function KanbanBoard({
   useEffect(() => {
     setLocalLeads(leads);
   }, [leads]);
+
+  const handleAddColumn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newColumnTitle.trim()) return;
+
+    const newId = newColumnTitle.trim().toUpperCase().replace(/\s+/g, '_');
+    const newColObj = { id: newId, title: newColumnTitle.trim(), isDefault: false };
+
+    if (activeTab === 'AGENCY') {
+      const updated = [...agencyCols, newColObj];
+      setAgencyCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_agency_cols', JSON.stringify(updated));
+    } else {
+      const updated = [...academyCols, newColObj];
+      setAcademyCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_academy_cols', JSON.stringify(updated));
+    }
+
+    setNewColumnTitle('');
+    setIsAddingColumn(false);
+  };
+
+  const handleRemoveColumn = (colId: string) => {
+    if (activeTab === 'AGENCY') {
+      const updated = agencyCols.filter((c) => c.id !== colId);
+      setAgencyCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_agency_cols', JSON.stringify(updated));
+    } else {
+      const updated = academyCols.filter((c) => c.id !== colId);
+      setAcademyCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_academy_cols', JSON.stringify(updated));
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, leadId: string) => {
     setDraggedLeadId(leadId);
@@ -260,7 +313,7 @@ export function KanbanBoard({
             }`}
           >
             {/* Column Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <div className="p-4 border-b border-white/5 flex items-center justify-between group/hdr">
               <div>
                 <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">
                   {col.title}
@@ -271,9 +324,21 @@ export function KanbanBoard({
                   </p>
                 )}
               </div>
-              <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
-                {colLeads.length}
-              </span>
+              <div className="flex items-center gap-1.5">
+                {!col.isDefault && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveColumn(col.id)}
+                    className="opacity-0 group-hover/hdr:opacity-100 text-red-400/60 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition-all"
+                    title="Remove Custom Stage Column"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+                <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+                  {colLeads.length}
+                </span>
+              </div>
             </div>
 
             {/* Column Cards Container */}
@@ -305,6 +370,46 @@ export function KanbanBoard({
           </div>
         );
       })}
+
+      {/* Add New Stage Column Card */}
+      <div className="flex flex-col min-w-[285px] w-[285px] border border-dashed border-white/10 hover:border-blue-500/40 rounded-2xl h-full flex-shrink-0 bg-[var(--dash-bg-card,rgba(255,255,255,0.02))] hover:bg-white/[0.04] transition-all p-4">
+        {isAddingColumn ? (
+          <form onSubmit={handleAddColumn} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-xs font-mono uppercase tracking-widest text-blue-400">Add Stage Column</h4>
+              <button type="button" onClick={() => setIsAddingColumn(false)} className="text-white/40 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="text"
+              value={newColumnTitle}
+              onChange={(e) => setNewColumnTitle(e.target.value)}
+              placeholder="Stage Name (e.g. Demo Scheduled)"
+              className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--dash-text-primary)] focus:outline-none focus:border-blue-500"
+              autoFocus
+              required
+            />
+            <button
+              type="submit"
+              className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all shadow-md"
+            >
+              Save Stage
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsAddingColumn(true)}
+            className="flex flex-col items-center justify-center h-full w-full gap-2 text-white/40 hover:text-blue-400 transition-colors py-12"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-blue-400" />
+            </div>
+            <span className="text-xs font-mono font-bold uppercase tracking-widest">+ Add Stage Column</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
