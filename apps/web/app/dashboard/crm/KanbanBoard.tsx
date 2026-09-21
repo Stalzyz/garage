@@ -104,7 +104,16 @@ function LeadCard({
         </div>
       </div>
       
-      {lead.company && <p className="text-xs text-[var(--dash-text-primary)]/60 mb-2 truncate">{lead.company}</p>}
+      {lead.company && (
+        <div className="flex items-center justify-between text-xs text-[var(--dash-text-primary)]/60 mb-2 gap-2">
+          <span className="truncate">{lead.company}</span>
+          {lead.industry && (
+            <span className="text-[9px] font-mono font-bold text-blue-300 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0">
+              {lead.industry}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-2 mb-2">
         {lead.businessUnit === 'AGENCY' && lead.estimatedBudget ? (

@@ -307,6 +307,7 @@ model Lead {
   email           String?
   phone           String?
   company         String?
+  industry        String?
   status          LeadStatus @default(NEW)
   source          LeadSource
   score           Int        @default(0)

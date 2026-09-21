@@ -41,6 +41,7 @@ const CreateLeadSchema = z.object({
   email: z.union([z.string().email(), z.literal("")]).optional(),
   phone: z.union([z.string(), z.literal("")]).optional(),
   company: z.string().optional(),
+  industry: z.string().optional(),
   source: z.enum(LeadSourceValues).optional().default('WEBSITE'),
   status: z.enum(LeadStatusValues).optional(),
   estimatedBudget: z.number().optional(),
@@ -370,6 +371,7 @@ export default async function leadsRouter(app: FastifyInstance) {
           leadData.batchId = row.batchId || row.BatchId;
         } else {
           leadData.company = row.company || row.Company;
+          leadData.industry = row.industry || row.Industry || row.sector || row.Sector || undefined;
           leadData.estimatedBudget = row.estimatedBudget ? parseFloat(row.estimatedBudget) : undefined;
           leadData.projectType = row.projectType || row.ProjectType;
         }

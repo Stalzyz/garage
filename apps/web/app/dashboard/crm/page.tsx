@@ -35,9 +35,10 @@ export default function CRMDashboard() {
   const [activeTab, setActiveTab] = useState<'AGENCY' | 'ACADEMY'>('AGENCY')
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
+  const [industryFilter, setIndustryFilter] = useState("ALL")
   const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN')
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
-  const [groupBy, setGroupBy] = useState<'NONE' | 'STATUS' | 'SOURCE' | 'ASSIGNEE'>('NONE')
+  const [groupBy, setGroupBy] = useState<'NONE' | 'STATUS' | 'SOURCE' | 'ASSIGNEE' | 'INDUSTRY'>('NONE')
   const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
 
   // Custom Columns Manager State
@@ -45,6 +46,7 @@ export default function CRMDashboard() {
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     name: true,
     company: true,
+    industry: true,
     contact: true,
     nextFollowUp: true,
     stage: true,
@@ -108,6 +110,7 @@ export default function CRMDashboard() {
     email: "",
     phone: "",
     company: "",
+    industry: "",
     source: "WEBSITE",
     estimatedBudget: "",
     projectType: "",
@@ -116,6 +119,15 @@ export default function CRMDashboard() {
     courseInterest: "",
     batchId: ""
   })
+
+  // Unique Industry list for filtering
+  const availableIndustries = useMemo(() => {
+    const set = new Set<string>()
+    leads.forEach((l: any) => {
+      if (l.industry && l.industry.trim()) set.add(l.industry.trim())
+    })
+    return Array.from(set).sort()
+  }, [leads])
 
   // Form Fields for Student Conversion
   const [convertForm, setConvertForm] = useState({
@@ -133,6 +145,9 @@ export default function CRMDashboard() {
     
     // Status filter
     if (statusFilter !== "ALL" && lead.status !== statusFilter) return false
+
+    // Industry filter
+    if (industryFilter !== "ALL" && (lead.industry || "Unspecified").toUpperCase() !== industryFilter.toUpperCase()) return false
     
     // Search query
     const query = searchQuery.toLowerCase()
@@ -140,6 +155,7 @@ export default function CRMDashboard() {
       lead.name.toLowerCase().includes(query) ||
       (lead.email || "").toLowerCase().includes(query) ||
       (lead.company || "").toLowerCase().includes(query) ||
+      (lead.industry || "").toLowerCase().includes(query) ||
       (lead.courseInterest || "").toLowerCase().includes(query)
     )
   })
@@ -207,6 +223,7 @@ export default function CRMDashboard() {
   const ALL_COLUMNS = [
     { id: 'name', label: 'Lead Name' },
     { id: 'company', label: 'Company / Course Interest' },
+    { id: 'industry', label: 'Industry Sector' },
     { id: 'contact', label: 'Contact Info' },
     { id: 'nextFollowUp', label: 'Next Follow-Up SLA' },
     { id: 'stage', label: 'Stage / Status' },
@@ -233,6 +250,8 @@ export default function CRMDashboard() {
         groupKey = lead.source
       } else if (groupBy === 'ASSIGNEE') {
         groupKey = lead.assignedToId || 'Unassigned'
+      } else if (groupBy === 'INDUSTRY') {
+        groupKey = lead.industry || 'Unspecified Industry'
       }
       
       if (!groups[groupKey]) {
@@ -328,7 +347,7 @@ export default function CRMDashboard() {
   const handleDownloadSampleCsv = () => {
     const isAgency = activeTab === 'AGENCY'
     const csvContent = isAgency
-      ? `name,email,phone,company,estimatedBudget,projectType,source,notes\nAcme Corp,contact@acme.com,+919876543210,Acme Industries,150000,WEBSITE,WEBSITE,Looking for a full website redesign\nStark Media,hello@starkmedia.com,+919812345678,Stark Media,300000,BRAND_IDENTITY,REFERRAL,Wants brand identity and logo guidelines`
+      ? `name,email,phone,company,industry,estimatedBudget,projectType,source,notes\nAcme Corp,contact@acme.com,+919876543210,Acme Industries,Healthcare,150000,WEBSITE,WEBSITE,Looking for a full website redesign\nStark Media,hello@starkmedia.com,+919812345678,Stark Media,E-Commerce,300000,BRAND_IDENTITY,REFERRAL,Wants brand identity and logo guidelines`
       : `name,email,phone,courseInterest,source,notes\nRahul Sharma,rahul@gmail.com,+919876543210,Fullstack Web Development,WEBSITE,Interested in weekend batch\nPriya Patel,priya@gmail.com,+919812345678,UI/UX Design,REFERRAL,Enquired about course fees`
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -350,6 +369,7 @@ export default function CRMDashboard() {
       email: "",
       phone: "",
       company: "",
+      industry: "",
       source: "WEBSITE",
       estimatedBudget: "",
       projectType: "",
@@ -368,6 +388,7 @@ export default function CRMDashboard() {
       email: lead.email || "",
       phone: lead.phone || "",
       company: lead.company || "",
+      industry: lead.industry || "",
       source: lead.source,
       estimatedBudget: lead.estimatedBudget ? String(lead.estimatedBudget) : "",
       projectType: lead.projectType || "",
@@ -394,6 +415,7 @@ export default function CRMDashboard() {
 
       if (activeTab === 'AGENCY') {
         payload.company = leadForm.company || undefined
+        payload.industry = leadForm.industry || undefined
         payload.estimatedBudget = leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined
         payload.projectType = leadForm.projectType || undefined
       } else {
@@ -762,6 +784,17 @@ export default function CRMDashboard() {
                 </>
               )}
             </select>
+
+            <select
+              value={industryFilter}
+              onChange={(e) => setIndustryFilter(e.target.value)}
+              className="bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2 text-sm text-[var(--dash-text-primary)] focus:outline-none focus:border-blue-500/50 cursor-pointer"
+            >
+              <option value="ALL">All Industries</option>
+              {availableIndustries.map((ind) => (
+                <option key={ind} value={ind}>{ind}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
@@ -871,6 +904,7 @@ export default function CRMDashboard() {
               >
                 <option value="NONE">None</option>
                 <option value="STATUS">Stage</option>
+                <option value="INDUSTRY">Industry Sector</option>
                 <option value="SOURCE">Source</option>
                 <option value="ASSIGNEE">Staff Assignee</option>
               </select>
@@ -947,6 +981,9 @@ export default function CRMDashboard() {
                             {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
                           </th>
                         )}
+                        {visibleColumns.industry && (
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Industry</th>
+                        )}
                         {visibleColumns.contact && (
                           <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Contact Info</th>
                         )}
@@ -1010,6 +1047,17 @@ export default function CRMDashboard() {
                                   lead.company || <span className="text-white/20">—</span>
                                 ) : (
                                   lead.courseInterest || <span className="text-white/20">—</span>
+                                )}
+                              </td>
+                            )}
+                            {visibleColumns.industry && (
+                              <td className="p-4 text-xs font-mono">
+                                {lead.industry ? (
+                                  <span className="bg-blue-500/10 text-blue-300 border border-blue-500/20 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                                    {lead.industry}
+                                  </span>
+                                ) : (
+                                  <span className="text-white/20">—</span>
                                 )}
                               </td>
                             )}
@@ -1219,6 +1267,15 @@ export default function CRMDashboard() {
                           value={leadForm.company}
                           onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
                           placeholder="e.g. Acme Tech Inc."
+                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Industry Sector</label>
+                        <input
+                          value={leadForm.industry}
+                          onChange={(e) => setLeadForm({ ...leadForm, industry: e.target.value })}
+                          placeholder="e.g. Healthcare, E-Commerce, SaaS, EdTech, Real Estate, FinTech"
                           className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                         />
                       </div>
