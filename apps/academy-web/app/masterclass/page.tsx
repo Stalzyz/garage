@@ -7,7 +7,7 @@ import {
   Sparkles, CheckCircle2, ArrowRight, Calendar, Clock, Award, 
   BookOpen, Video, ShieldCheck, Zap, Layers, Palette, Megaphone, 
   Film, Code2, Users, IndianRupee, HelpCircle, Star, ChevronDown, 
-  ChevronUp, MessageCircle, Send, FileCheck, Check, Search, Download
+  ChevronUp, MessageCircle, Send, FileCheck, Check, Search, Download, Briefcase, ExternalLink, Phone
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -64,37 +64,37 @@ const CURRICULUM_DATA = [
         day: 4,
         title: "Photoshop Fundamentals",
         topics: [
-          "Photoshop UI & workspace customization",
-          "Layers, layer masks & non-destructive editing",
-          "Selection tools (Lasso, Pen, Quick Selection)",
-          "Smart objects & smart filters",
-          "Adjustment layers & blend modes"
+          "Photoshop interface, workspaces & shortcuts",
+          "Layer management, groups & layer styles",
+          "Selection tools (Lasso, Pen tool, Object selection)",
+          "Layer masks & non-destructive editing",
+          "Smart objects, custom brushes & adjustment layers"
         ],
-        practical: "Design a high-converting social media creative"
+        practical: "Create a multi-layered social media creative"
       },
       {
         day: 5,
-        title: "Photoshop Advanced Compositing & Retouching",
+        title: "Photoshop Advanced Manipulation",
         topics: [
-          "High-end photo manipulation & retouching",
-          "Clean background removal & hair masking",
-          "Blending multiple images seamlessly",
-          "Realistic shadows & studio lighting effects",
-          "Color grading & color correction"
+          "Creative photo manipulation & surreal compositing",
+          "High-end portrait retouching & frequency separation",
+          "Advanced background removal & hair masking",
+          "Blending modes, shadow creation & realistic lighting",
+          "Color grading & camera raw filter adjustments"
         ],
-        practical: "Create a surreal creative photo manipulation poster"
+        practical: "Design a creative photo manipulation artwork"
       },
       {
         day: 6,
-        title: "Adobe Illustrator Vector Art",
+        title: "Adobe Illustrator Vector Mastery",
         topics: [
-          "Vector vs raster graphics demystified",
-          "Shapes, Pathfinder & Shape Builder tools",
-          "Pen tool mastery & bezier curve control",
-          "Strokes, fills, gradients & mesh basics",
-          "Designing scalable vector icons"
+          "Vector graphics vs raster graphics explained",
+          "Geometric shapes, anchor points & handle controls",
+          "Pen tool precision & curvature tool",
+          "Pathfinder panel & shape builder tool",
+          "Custom stroke, fills, gradients & icon design"
         ],
-        practical: "Design a custom vector illustration set"
+        practical: "Illustrate a set of custom vector icons"
       },
       {
         day: 7,
@@ -181,25 +181,26 @@ const CURRICULUM_DATA = [
       },
       {
         day: 14,
-        title: "Portfolio Development & Case Studies",
+        title: "Portfolio Development & Positioning",
         topics: [
-          "Selecting your best 5-7 design projects",
-          "Setting up a Behance & Dribbble portfolio",
-          "Instagram portfolio curation for freelancers",
-          "Structuring design case studies (Problem → Concept → Result)",
-          "Client pitch decks & proposal techniques"
+          "Selecting & curating your best 5 projects",
+          "Setting up a Behance portfolio & case studies",
+          "Instagram creator portfolio layout strategy",
+          "Writing project briefs, rationale & deliverables",
+          "Freelance rate cards & pitch deck templates"
         ],
-        practical: "Publish a complete case study on Behance"
+        practical: "Publish your first Behance portfolio case study"
       },
       {
         day: 15,
-        title: "Graphic Design Capstone Project",
+        title: "Graphic Design Final Capstone",
         topics: [
-          "Final Project Execution: Full Branding Campaign",
-          "Deliverables: Logo, Color Guide, Typography, Social Campaign, Ad Creatives & Print Stationery",
-          "Live peer review & mentor evaluation"
+          "End-to-end full branding campaign execution",
+          "Final deliverable audit: Logo, Guidelines, Social, Print",
+          "Exporting print-ready & web-optimized assets",
+          "Live project presentation & peer feedback review"
         ],
-        practical: "Present your complete Graphic Design Capstone Campaign"
+        practical: "Submit & present your complete Brand Identity Campaign"
       }
     ]
   },
@@ -213,181 +214,178 @@ const CURRICULUM_DATA = [
     days: [
       {
         day: 16,
-        title: "Digital Marketing Fundamentals",
+        title: "Digital Marketing Ecosystem & Career Paths",
         topics: [
-          "Overview of modern digital marketing ecosystem",
-          "Marketing funnel architecture (TOFU, MOFU, BOFU)",
-          "Mapping the customer journey & touchpoints",
+          "What is digital marketing & core channels?",
+          "Understanding the digital marketing funnel (AIDA model)",
+          "Customer journey mapping (Awareness to Conversion)",
           "B2B vs B2C marketing strategies",
-          "Organic vs Paid growth channels",
-          "Career paths: Agency, In-House & Freelance"
+          "Organic vs Paid marketing channels",
+          "Digital marketing career roadmaps & freelance models"
         ],
-        practical: "Map out a 3-stage customer funnel for a business"
+        practical: "Map out a complete customer journey funnel for a business"
       },
       {
         day: 17,
         title: "Market & Competitor Research",
         topics: [
-          "Defining target audience demographics & psychographics",
-          "Building Buyer Personas with detailed pain points",
-          "Competitor ad library & content analysis",
-          "Keyword & trend research tools",
-          "Identifying market positioning gaps"
+          "Identifying target audience demographics & psychographics",
+          "Creating detailed Customer Personas",
+          "Competitor social media & ad audit techniques",
+          "Keyword intent research & search volume analysis",
+          "Content gap analysis for competitive edge"
         ],
-        practical: "Create a detailed 360° Customer Buyer Persona card"
+        practical: "Create 2 detailed ICP (Ideal Customer Persona) profiles"
       },
       {
         day: 18,
-        title: "Social Media Marketing Strategy",
+        title: "Social Media Strategy (IG, FB, LinkedIn, YT)",
         topics: [
-          "Platform strategies: Instagram, Facebook, LinkedIn & YouTube",
-          "Content pillars (Educational, Entertaining, Promotional)",
-          "Posting frequency & timing optimization",
-          "Community engagement & comment strategies",
-          "Algorithm breakdown for organic reach"
+          "Platform demographics: Instagram vs LinkedIn vs YouTube",
+          "Defining content pillars (Educational, Promotional, Viral)",
+          "Content posting schedules & frequency rules",
+          "Community engagement & comment handling tactics"
         ],
-        practical: "Formulate social media platform strategies & content pillars"
+        practical: "Develop a content pillar framework for a brand"
       },
       {
         day: 19,
-        title: "Content Planning & AI Content Systems",
+        title: "Content Strategy & AI Content Creation",
         topics: [
-          "Short-form video strategy (Reels, Shorts)",
-          "Carousel post copywriting & visual hooks",
-          "Prompt engineering for ChatGPT & AI copy tools",
-          "Creating 30-day content calendars in Notion/Excel",
-          "Batch content production workflow"
+          "Short-form video scriptwriting (Reels/Shorts)",
+          "Carousel copywriting & hooks to increase swipe-throughs",
+          "AI-assisted content ideation & copy generation (ChatGPT/Claude)",
+          "Building a 30-day content calendar spreadsheet"
         ],
-        practical: "Build a complete 30-day social media content calendar"
+        practical: "Create a complete 30-day content calendar"
       },
       {
         day: 20,
-        title: "Instagram Marketing Mastery",
+        title: "Instagram Marketing & Growth Hacking",
         topics: [
-          "Profile optimization for maximum conversion",
-          "High-converting bio & link-in-bio setups",
-          "Reels hook scripting & trending audio strategy",
-          "Instagram Search & SEO keyword optimization",
-          "DM automation & lead generation strategies"
+          "Profile optimization & high-converting bio structure",
+          "Reels algorithm triggers & audio trend discovery",
+          "Hashtag research & topic tagging strategy",
+          "Instagram SEO: Keywords in name, bio & captions",
+          "Lead generation via DMs & link-in-bio funnels"
         ],
-        practical: "Optimize a live Instagram business profile"
+        practical: "Audit and optimize an Instagram profile for lead generation"
       },
       {
         day: 21,
-        title: "Facebook Organic & Community Growth",
+        title: "Facebook Business & Lead Generation",
         topics: [
           "Facebook Business Page setup & optimization",
-          "Community management with Facebook Groups",
-          "Organic lead generation strategies",
-          "Combining organic posting with paid strategies"
+          "Leveraging Facebook Groups for organic lead capture",
+          "Organic engagement tactics & video distribution",
+          "Introduction to Meta Business Suite tools"
         ],
-        practical: "Create a Facebook Business Page & Group growth plan"
+        practical: "Set up a Facebook Business Page optimized for conversions"
       },
       {
         day: 22,
-        title: "Google Search & SEO Fundamentals",
+        title: "Google & SEO Fundamentals",
         topics: [
-          "How Google crawler & indexer work",
-          "Keyword research & search intent analysis",
-          "On-Page SEO: Meta titles, descriptions, H1-H3 headers",
-          "Technical SEO essentials (Page speed, mobile responsiveness)",
-          "Internal linking & content cluster strategy"
+          "How Google Search crawlers & indexers work",
+          "Keyword types: Short-tail, Long-tail & Commercial Intent",
+          "On-page SEO: Title tags, H1s, Meta descriptions, Alt text",
+          "Technical SEO basics: Site speed, mobile responsiveness",
+          "Off-page SEO: Backlinks & domain authority basics"
         ],
-        practical: "Perform full On-Page SEO audit for a web page"
+        practical: "Perform on-page SEO optimization for a landing page"
       },
       {
         day: 23,
         title: "Local SEO & Google Business Profile",
         topics: [
-          "Setting up & verifying Google Business Profile",
-          "Local keyword targeting & GMB optimization",
-          "Local citations, NAPs & customer review strategy",
-          "Ranking in Google 3-Pack map results",
-          "Geotagged content & local link building"
+          "Google Business Profile (GBP) creation & verification",
+          "Local keyword optimization & NAP consistency",
+          "Local citation building & directory listings",
+          "Review generation strategies & reputation management",
+          "Geotagged photos & local posts optimization"
         ],
-        practical: "Build a complete Local SEO ranking strategy"
+        practical: "Setup & optimize a local Google Business Profile listing"
       },
       {
         day: 24,
-        title: "Website & Landing Page Marketing",
+        title: "Landing Page Marketing & Conversions",
         topics: [
-          "Landing page layout structure for high conversions",
-          "Crafting irresistible headlines & subheadings",
-          "Lead form design & Call-To-Action optimization",
-          "WhatsApp lead integration & click-to-chat setups",
+          "Anatomy of a high-converting landing page",
+          "Hook headlines, sub-headlines & benefit bullet points",
+          "Lead intake forms, pop-ups & CTA placements",
+          "Direct WhatsApp integration & click-to-chat triggers",
           "Conversion Rate Optimization (CRO) best practices"
         ],
-        practical: "Wireframe a high-converting landing page structure"
+        practical: "Design the wireframe structure of a high-converting landing page"
       },
       {
         day: 25,
         title: "Meta Ads Manager Architecture",
         topics: [
-          "Meta Ads Manager account structure & setup",
-          "Campaign objectives (Leads, Traffic, Engagement, Sales)",
-          "Audience targeting (Core, Custom, Lookalike audiences)",
-          "Placement selection & budget bidding strategies",
-          "Creative strategy for Meta Ads"
+          "Meta Ads Manager interface & business settings",
+          "Campaign hierarchy: Campaign → Ad Set → Ad Creative",
+          "Campaign objectives: Leads, Sales, Traffic, Awareness",
+          "Audience targeting: Detailed interest, Lookalike & Custom audiences",
+          "Placements, budgets (CBO vs ABO) & bidding strategies"
         ],
-        practical: "Setup Meta Ads Manager structure & audience personas"
+        practical: "Build a campaign structure plan for Meta Ads"
       },
       {
         day: 26,
-        title: "Meta Ads Practical — Lead Generation",
+        title: "Meta Lead Generation Ad Campaign",
         topics: [
-          "Creating instant lead forms in Meta Ads",
-          "Drafting high-converting ad copy & headlines",
-          "A/B testing creatives & headlines",
-          "Setting up custom questions & lead filters",
-          "Launching a live lead generation campaign"
+          "Setting up Instant Lead Forms in Meta Ads",
+          "Writing compelling ad copy & headline variations",
+          "Creative ad selection: Single image vs Video vs Carousel",
+          "Form question setup & privacy policy integration",
+          "Testing audiences & creative splits"
         ],
-        practical: "Build a complete Meta Lead Generation Ad campaign"
+        practical: "Create a live draft Meta Lead Generation campaign"
       },
       {
         day: 27,
-        title: "Google Ads (Search Campaigns)",
+        title: "Google Search Ads Essentials",
         topics: [
-          "Google Search Ads campaign structure",
-          "Keyword match types (Exact, Phrase, Broad)",
-          "Negative keyword management",
-          "Responsive Search Ad headlines & descriptions",
-          "Bidding strategies & Quality Score improvement"
+          "Google Ads interface & account setup",
+          "Search Ads campaign setup & network settings",
+          "Keyword match types: Broad, Phrase, Exact match",
+          "Writing responsive search ads & ad extensions (sitelinks, callouts)",
+          "Budget allocation & Quality Score optimization"
         ],
-        practical: "Setup a Google Search Ad campaign mock"
+        practical: "Set up a Google Search Ad campaign draft with match types"
       },
       {
         day: 28,
-        title: "Analytics, Metrics & Performance Tracking",
+        title: "Analytics, Metrics & Campaign Reporting",
         topics: [
-          "Google Analytics 4 (GA4) dashboard overview",
-          "Google Search Console performance metrics",
-          "Understanding key metrics: CTR, CPC, CPL, CPM, ROAS",
-          "Conversion tracking & UTM parameter tagging",
-          "Creating client monthly marketing performance reports"
+          "Google Analytics 4 (GA4) basics & metric tracking",
+          "Understanding performance metrics: CPC, CPM, CTR, CPL, ROAS",
+          "Meta Ads insights & ad fatigue identification",
+          "Building client reporting dashboards & performance summaries"
         ],
-        practical: "Generate a marketing analytics performance dashboard"
+        practical: "Calculate ROAS, CPL, and CTR from a sample campaign report"
       },
       {
         day: 29,
-        title: "Lead Nurturing, CRM & Automation",
+        title: "Lead Management & Automation Funnels",
         topics: [
-          "Automating lead capture from Meta Ads to CRM",
-          "WhatsApp automated greeting & auto-reply workflows",
-          "Email marketing sequences for lead nurturing",
-          "CRM lead status management & SLA follow-ups",
-          "Building automated sales funnels"
+          "Connecting ad lead forms to CRM database",
+          "Instant WhatsApp lead notification alerts",
+          "Basic lead scoring & follow-up automated emails",
+          "Customer relationship management (CRM) workflows"
         ],
-        practical: "Design an automated lead follow-up CRM flow"
+        practical: "Map out an automated lead follow-up sequence"
       },
       {
         day: 30,
-        title: "Digital Marketing Capstone Project",
+        title: "Digital Marketing Final Capstone",
         topics: [
-          "Final Project Execution: 360° Digital Marketing Campaign",
-          "Deliverables: Persona, 30-Day Content Plan, SEO Strategy, Meta Lead Ad Campaign, Landing Page & Analytics Report",
-          "Live peer review & campaign audit"
+          "Building a complete end-to-end marketing strategy",
+          "Deliverable compilation: Personas, Content Calendar, SEO & Ads",
+          "Final performance forecast & budget allocation report",
+          "Campaign presentation to mentors"
         ],
-        practical: "Present complete 360° Digital Marketing Strategy"
+        practical: "Submit & present your 30-Day Digital Marketing Strategy"
       }
     ]
   },
@@ -401,49 +399,50 @@ const CURRICULUM_DATA = [
     days: [
       {
         day: 31,
-        title: "Motion Design Fundamentals",
+        title: "Motion Design Fundamentals & Storyboarding",
         topics: [
-          "What is motion graphics & industry applications",
-          "12 principles of animation overview",
-          "Timing, spacing, keyframe concepts",
-          "Storyboarding & animatics preparation",
-          "Analyzing award-winning motion references"
+          "What is motion graphics & industry applications?",
+          "12 Principles of Animation adapted for motion design",
+          "Timing, spacing & keyframe interpolation",
+          "Storyboarding motion sequences & visual references",
+          "Preparing graphic assets for animation"
         ],
-        practical: "Create a 6-frame motion storyboard concept"
+        practical: "Create a 4-frame motion storyboard"
       },
       {
         day: 32,
-        title: "After Effects Core Workflow",
+        title: "After Effects Core Interface & Keyframes",
         topics: [
-          "After Effects interface, panels & composition setup",
-          "Layer types (Solid, Shape, Text, Adjustment, Null)",
-          "Timeline navigation & keyframing basics",
-          "Transform properties: Position, Scale, Rotation, Opacity, Anchor Point",
-          "Rendering & MP4 export settings"
+          "After Effects interface, composition settings & frame rates",
+          "Layer types: Vector, Solid, Text, Null, Adjustment layer",
+          "Transform properties: Position, Scale, Rotation, Opacity, Anchor point",
+          "Setting basic keyframes & timeline navigation",
+          "Pre-composing layers & project organization"
         ],
-        practical: "Create your first multi-layer After Effects composition"
+        practical: "Animate a multi-layer composite using basic transform keyframes"
       },
       {
         day: 33,
-        title: "Animation Principles & Velocity Graphs",
+        title: "Animation Principles & Graph Editor",
         topics: [
-          "Easy Ease (F9) & keyframe interpolation",
-          "Speed Graph & Value Graph Editor deep dive",
-          "Anticipation, overshoot & follow-through motion",
-          "Creating fluid, natural kinetic movements"
+          "Easy Ease (F9) & keyframe velocity controls",
+          "Mastering the Speed Graph & Value Graph",
+          "Anticipation, overshoot & follow-through techniques",
+          "Creating fluid, organic motion curves",
+          "Motion blur activation & rendering settings"
         ],
-        practical: "Animate a realistic bouncing ball with squash & stretch"
+        practical: "Animate a realistic bouncing ball with squanch and stretch"
       },
       {
         day: 34,
         title: "Kinetic Typography & Text Animation",
         topics: [
-          "Text layers & text animators (Range Selector, Wiggly)",
-          "Kinetic typography for social media & commercials",
-          "Text reveal effects & mask transitions",
-          "Custom text presets & expression controls"
+          "Text layers, animators & selectors (Range, Wiggly)",
+          "Tracking, opacity, scale & position text reveals",
+          "Kinetic typography timing to voiceover/music beats",
+          "Creating animated lower thirds & title cards"
         ],
-        practical: "Design an animated kinetic typography quote video"
+        practical: "Create a 10-second kinetic typography video quote"
       },
       {
         day: 35,
@@ -598,30 +597,29 @@ const CURRICULUM_DATA = [
           "User authentication & session management overview",
           "Connecting frontend UI to backend API endpoints"
         ],
-        practical: "Connect an AI-generated UI form to a live database API"
+        practical: "Connect a frontend form to a backend API endpoint using AI"
       },
       {
         day: "Bonus 3",
-        title: "Full-Stack Project & Live Deployment",
+        title: "Full-Stack Web App Project & Deployment",
         topics: [
-          "Combining Frontend + API + Database into a mini web app",
-          "AI-assisted code debugging & refactoring",
-          "Deploying applications live on Vercel / Netlify",
-          "Custom domain connection & SSL configuration"
+          "Building a mini web application using AI coding workflow",
+          "Landing Page → Login → Dashboard → Database → API → Live Deploy",
+          "Deploying web apps to Vercel/Netlify in one click",
+          "Debugging errors with AI assistant prompts"
         ],
-        practical: "Deploy a live working mini web application using AI-assisted coding"
+        practical: "Build and deploy a live working mini web application"
       }
     ]
   }
 ]
 
-export default function MasterclassLandingPage() {
+export default function MasterclassPage() {
   const [selectedModule, setSelectedModule] = useState<number | 'ALL'>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeFaq, setActiveFaq] = useState<number | null>(null)
+  const [activeFaq, setActiveFaq] = useState<number | null>(0)
   
-  // Lead Intake Form State
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Lead Intake State
   const [leadForm, setLeadForm] = useState({
     name: '',
     email: '',
@@ -630,6 +628,7 @@ export default function MasterclassLandingPage() {
     preferredBatch: 'MORNING',
     notes: ''
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   // Filtered Days
@@ -638,15 +637,15 @@ export default function MasterclassLandingPage() {
       if (selectedModule !== 'ALL' && mod.module !== selectedModule) {
         return null
       }
-      const matchingDays = mod.days.filter(d => {
-        if (!searchQuery.trim()) return true
-        const q = searchQuery.toLowerCase()
-        return (
-          d.title.toLowerCase().includes(q) ||
-          d.practical.toLowerCase().includes(q) ||
-          d.topics.some(t => t.toLowerCase().includes(q))
-        )
-      })
+      if (!searchQuery.trim()) return mod
+
+      const query = searchQuery.toLowerCase()
+      const matchingDays = mod.days.filter(d => 
+        d.title.toLowerCase().includes(query) ||
+        d.practical.toLowerCase().includes(query) ||
+        d.topics.some(t => t.toLowerCase().includes(query))
+      )
+
       if (matchingDays.length === 0) return null
       return { ...mod, days: matchingDays }
     }).filter(Boolean) as typeof CURRICULUM_DATA
@@ -670,7 +669,7 @@ export default function MasterclassLandingPage() {
           phone: leadForm.phone,
           company: `Masterclass (${leadForm.mode} - ${leadForm.preferredBatch})`,
           courseInterest: "3-in-1 Masterclass (Graphic + Digital Marketing + Motion)",
-          estimatedBudget: 24000,
+          estimatedBudget: 24999,
           source: "WEBSITE",
           notes: `Masterclass Lead Intake | Mode: ${leadForm.mode} | Batch: ${leadForm.preferredBatch} | Notes: ${leadForm.notes}`
         })
@@ -698,35 +697,46 @@ export default function MasterclassLandingPage() {
       ───────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 text-center text-xs font-mono font-bold tracking-wider relative z-20 flex items-center justify-center gap-3 shadow-lg">
         <span className="flex items-center gap-1.5 bg-black/30 px-2.5 py-0.5 rounded-full text-[10px] uppercase">
-          <Zap className="w-3 h-3 text-amber-300 animate-pulse" /> Limited Batch Offer
+          <Zap className="w-3 h-3 text-amber-300 animate-pulse" /> Launch Batch Offer
         </span>
-        <span className="hidden md:inline">Save ₹6,000 + Get FREE AI Vibe Coding Full-Stack Development Bonus (Worth ₹7,500)!</span>
-        <span className="md:hidden">Save ₹6,000 + FREE Vibe Coding Bonus!</span>
+        <span className="hidden md:inline">Save ₹35,501! Early-Bird Price: ₹24,999 (Valued ₹60,500) + FREE AI Vibe Coding Bonus! Call/WhatsApp: +91 9360695718</span>
+        <span className="md:hidden">Offer Price: ₹24,999 + FREE AI Bonus!</span>
         <a href="#enroll" className="underline hover:text-amber-200 transition-colors ml-1">
           Claim Offer Now →
         </a>
       </div>
 
       {/* ─────────────────────────────────────────────
-          NAVBAR
+          NAVBAR (COLLABORATION BRANDING)
       ───────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-40 bg-[#0A0D14]/80 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-4 transition-all">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 p-0.5 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-              <div className="w-full h-full bg-[#0A0D14] rounded-[10px] flex items-center justify-center font-black font-mono text-lg text-white">
-                G
-              </div>
-            </div>
-            <div>
-              <span className="font-bold text-lg tracking-tight text-white block leading-none">GREKAM ACADEMY</span>
-              <span className="text-[10px] font-mono tracking-widest text-blue-400 uppercase font-bold">3-in-1 Masterclass</span>
-            </div>
-          </Link>
+      <nav className="sticky top-0 z-40 bg-[#0A0D14]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3.5 transition-all">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          
+          {/* Dual Brand Logos */}
+          <div className="flex items-center gap-3 md:gap-5">
+            <a href="https://academy.grekam.in" target="_blank" rel="noreferrer" className="flex items-center gap-2 group">
+              <img 
+                src="/images/logos/grekam-academy-logo.png" 
+                alt="Grekam Academy" 
+                className="h-7 md:h-9 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
+              />
+            </a>
+            
+            <span className="text-white/30 font-mono text-sm md:text-base font-bold">×</span>
+
+            <a href="https://www.layartacademy.in/" target="_blank" rel="noreferrer" className="flex items-center gap-2 group">
+              <img 
+                src="/images/logos/layart-academy-logo.webp" 
+                alt="Layart Academy" 
+                className="h-7 md:h-9 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
+              />
+            </a>
+          </div>
 
           <div className="hidden lg:flex items-center gap-8 text-xs font-mono uppercase tracking-widest text-white/70">
             <a href="#overview" className="hover:text-blue-400 transition-colors">Program</a>
             <a href="#curriculum" className="hover:text-blue-400 transition-colors">45-Day Syllabus</a>
+            <a href="#agency" className="hover:text-amber-400 transition-colors">Agency Internship</a>
             <a href="#outcomes" className="hover:text-blue-400 transition-colors">Portfolio</a>
             <a href="#pricing" className="hover:text-blue-400 transition-colors">Fees & EMI</a>
             <a href="#faqs" className="hover:text-blue-400 transition-colors">FAQs</a>
@@ -734,17 +744,17 @@ export default function MasterclassLandingPage() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://wa.me/919876543210?text=Hi!%20I%20want%20to%20know%20more%20about%20the%203-in-1%20Masterclass%20Program"
+              href="https://wa.me/919360695718?text=Hi!%20I%20want%20to%20know%20more%20about%20the%203-in-1%20Masterclass%20Program"
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono font-bold tracking-wider uppercase hover:bg-emerald-500/20 transition-all"
+              className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono font-bold tracking-wider uppercase hover:bg-emerald-500/20 transition-all"
             >
               <MessageCircle className="w-4 h-4 text-emerald-400" />
-              WhatsApp
+              +91 9360695718
             </a>
             <a
               href="#enroll"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:scale-105 transition-all"
+              className="px-4 md:px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:scale-105 transition-all"
             >
               Enroll Now
             </a>
@@ -755,17 +765,17 @@ export default function MasterclassLandingPage() {
       {/* ─────────────────────────────────────────────
           HERO SECTION
       ───────────────────────────────────────────── */}
-      <section id="overview" className="relative pt-12 md:pt-20 pb-20 px-4 md:px-8 max-w-7xl mx-auto z-10">
+      <section id="overview" className="relative pt-10 md:pt-16 pb-20 px-4 md:px-8 max-w-7xl mx-auto z-10">
         <div className="flex flex-col items-center text-center space-y-8">
           
-          {/* Hero Header Pill */}
+          {/* Joint Collaboration Pill Banner */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-mono font-bold uppercase tracking-widest text-blue-400 shadow-xl"
+            className="inline-flex items-center gap-2 md:gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-blue-950/60 via-purple-950/60 to-slate-900/60 border border-white/15 backdrop-blur-md text-xs font-mono font-bold uppercase tracking-widest text-amber-400 shadow-2xl"
           >
             <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
-            <span>3-in-1 Creative Career Program • 45 Days Intensive</span>
+            <span>JOINT COLLABORATION: GREKAM ACADEMY × LAYART ACADEMY</span>
           </motion.div>
 
           {/* Main Title */}
@@ -791,17 +801,49 @@ export default function MasterclassLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="text-sm md:text-base text-white/70 max-w-2xl leading-relaxed"
+            className="text-sm md:text-base text-white/70 max-w-3xl leading-relaxed"
           >
-            Learn. Create. Market. Animate. Build. Position yourself as a job-ready or freelance-ready creative professional with 10+ real-world projects, AI workflows, and personalized career mentorship.
+            Learn. Create. Market. Animate. Build. Position yourself as a job-ready creative professional with 10+ real projects, live agency client briefs from <strong className="text-white underline">agency.grekam.in</strong>, and official Internship Certification.
           </motion.p>
+
+          {/* Collaborative Logos Banner Card */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.28 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 bg-white/[0.03] border border-white/10 rounded-2xl p-4 md:px-8 w-full max-w-2xl"
+          >
+            <div className="flex items-center gap-3">
+              <img src="/images/logos/grekam-academy-logo.png" alt="Grekam Academy" className="h-8 md:h-10 w-auto object-contain" />
+              <div className="text-left">
+                <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider font-bold">Partner 1</p>
+                <a href="https://academy.grekam.in" target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-400 hover:underline flex items-center gap-1">
+                  academy.grekam.in <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            <span className="text-amber-400 font-mono text-xs font-bold uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+              Joint Program
+            </span>
+
+            <div className="flex items-center gap-3">
+              <img src="/images/logos/layart-academy-logo.webp" alt="Layart Academy" className="h-8 md:h-10 w-auto object-contain" />
+              <div className="text-left">
+                <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider font-bold">Partner 2</p>
+                <a href="https://www.layartacademy.in/" target="_blank" rel="noreferrer" className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1">
+                  layartacademy.in <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Feature Badges Grid */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl pt-4"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl pt-2"
           >
             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-left hover:border-blue-500/40 transition-all">
               <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2">
@@ -834,7 +876,7 @@ export default function MasterclassLandingPage() {
             </div>
           </motion.div>
 
-          {/* Pricing Highlight Card */}
+          {/* Pricing Highlight Hero Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -844,25 +886,31 @@ export default function MasterclassLandingPage() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-left space-y-1">
                 <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" /> Special Batch Launch Offer
+                  <Sparkles className="w-3.5 h-3.5" /> Early-Bird Launch Offer
                 </span>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl md:text-5xl font-black text-white">₹24,000</span>
-                  <span className="text-lg md:text-xl text-white/40 line-through font-mono">₹30,000</span>
-                  <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold px-2.5 py-1 rounded-full uppercase">Save ₹6,000</span>
+                  <span className="text-3xl md:text-5xl font-black text-white">₹24,999</span>
+                  <span className="text-lg md:text-xl text-white/40 line-through font-mono">₹60,500</span>
                 </div>
-                <p className="text-xs text-white/60 font-mono">
-                  Flexible EMI available: <strong className="text-white">₹12,000 × 2 Months</strong> (or ₹7,000/mo)
+                <p className="text-xs text-emerald-400 font-mono font-bold">
+                  Save ₹35,501! Complete 3-in-1 Training + Agency Live Projects
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto">
                 <a
                   href="#enroll"
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-mono font-bold tracking-wider uppercase text-sm shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center gap-2 group"
+                  className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-mono font-bold tracking-wider uppercase text-xs text-center shadow-[0_0_25px_rgba(59,130,246,0.4)] hover:scale-105 transition-all"
                 >
-                  Enroll Now
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  Enroll at ₹24,999 →
+                </a>
+                <a
+                  href="https://wa.me/919360695718?text=Hi!%20I%20want%20to%20enquire%20about%20the%202-Month%20EMI%20option%20for%20the%20Masterclass"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-5 py-3 rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-mono text-xs text-center font-bold"
+                >
+                  EMI Option: ₹12,500 × 2
                 </a>
               </div>
             </div>
@@ -872,80 +920,133 @@ export default function MasterclassLandingPage() {
       </section>
 
       {/* ─────────────────────────────────────────────
-          PROGRAM DETAILS & SYLLABUS DISCOVERY
+          GREKAM AGENCY INTERNSHIP & LIVE PROJECTS BANNER
+      ───────────────────────────────────────────── */}
+      <section id="agency" className="py-12 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-r from-amber-950/40 via-purple-950/40 to-blue-950/40 border border-amber-500/30 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl backdrop-blur-xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            
+            <div className="space-y-4 text-center lg:text-left max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold uppercase tracking-wider">
+                <Briefcase className="w-4 h-4" /> Real Agency Exposure
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                Live Agency Projects & Official Internship Certification
+              </h2>
+
+              <p className="text-sm md:text-base text-white/80 leading-relaxed font-mono">
+                Work directly on live client briefs provided by <strong className="text-amber-300 underline">agency.grekam.in</strong>. Graduate not just with classroom learning, but with verified agency experience and an official <span className="text-emerald-400 font-bold">Agency Internship Certificate</span>.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-left font-mono text-xs">
+                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                  <p className="text-amber-400 font-bold">✓ Real Client Briefs</p>
+                  <p className="text-white/60 text-[11px]">Work on actual marketing & design assets for live brands.</p>
+                </div>
+                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                  <p className="text-emerald-400 font-bold">✓ Internship Certificate</p>
+                  <p className="text-white/60 text-[11px]">Issued directly by Grekam Agency to boost your resume.</p>
+                </div>
+                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                  <p className="text-blue-400 font-bold">✓ Agency Mentorship</p>
+                  <p className="text-white/60 text-[11px]">Get feedback from working agency creative directors.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full lg:w-auto flex flex-col items-center justify-center shrink-0 space-y-3">
+              <div className="w-64 p-6 bg-black/60 border border-amber-500/40 rounded-2xl text-center space-y-3 shadow-xl">
+                <Award className="w-10 h-10 text-amber-400 mx-auto" />
+                <div>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">POWERED BY</p>
+                  <p className="font-bold text-base text-white">Grekam Agency</p>
+                  <a href="https://agency.grekam.in" target="_blank" rel="noreferrer" className="text-xs font-mono text-blue-400 hover:underline flex items-center justify-center gap-1 mt-1">
+                    agency.grekam.in <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          45-DAY CURRICULUM SYLLABUS SECTION
       ───────────────────────────────────────────── */}
       <section id="curriculum" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
         
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-            Intensive 45-Day Syllabus
+            Day-By-Day Breakdown
           </span>
           <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-            Comprehensive Practical Curriculum
+            Complete 45-Day Curriculum
           </h2>
           <p className="text-sm md:text-base text-white/60 font-mono">
-            Explore every single day of hands-on training, real client briefs, and practical projects.
+            Every day combines theoretical principles with an immediate practical project task.
           </p>
         </div>
 
-        {/* Filter Toolbar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+        {/* Filter Bar & Search */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 bg-white/[0.02] border border-white/10 p-3 rounded-2xl">
           
           {/* Module Selector Tabs */}
-          <div className="flex flex-wrap items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10 w-full md:w-auto">
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
             <button
               onClick={() => setSelectedModule('ALL')}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
                 selectedModule === 'ALL'
                   ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              All 45 Days
+              All Modules (45 Days)
             </button>
             <button
               onClick={() => setSelectedModule(1)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
                 selectedModule === 1
                   ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              Graphic Design (D1-15)
+              Graphic Design (15d)
             </button>
             <button
               onClick={() => setSelectedModule(2)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
                 selectedModule === 2
                   ? 'bg-purple-600 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              Digital Marketing (D16-30)
+              Digital Marketing (15d)
             </button>
             <button
               onClick={() => setSelectedModule(3)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
                 selectedModule === 3
                   ? 'bg-emerald-600 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              Motion Graphics (D31-45)
+              Motion Graphics (15d)
             </button>
             <button
               onClick={() => setSelectedModule(4)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
                 selectedModule === 4
                   ? 'bg-amber-600 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
-              🎁 Bonus: Vibe Coding
+              🎁 Vibe Coding Bonus
             </button>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Box */}
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input
@@ -1119,16 +1220,16 @@ export default function MasterclassLandingPage() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="space-y-4 text-center lg:text-left max-w-2xl">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 flex items-center justify-center lg:justify-start gap-1.5">
-                <Award className="w-4 h-4" /> Earn Industry Recognized Credentials
+                <Award className="w-4 h-4" /> Joint Certification & Internship Credentials
               </span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-                4 Official Certifications Included
+                5 Official Certifications Included
               </h2>
               <p className="text-sm text-white/70 leading-relaxed font-mono">
-                Upon program completion, receive specialized module certificates plus the Master 3-in-1 Career Credential to showcase on LinkedIn & resume.
+                Upon completion, receive individual module certificates, the Joint Grekam × Layart Master Credential, plus an official <strong className="text-white underline">Grekam Agency Internship Certificate</strong>.
               </p>
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-left">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4 text-left">
                 <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-xs font-mono font-bold text-blue-300">
                   ✓ Graphic Design Specialist
                 </div>
@@ -1139,17 +1240,27 @@ export default function MasterclassLandingPage() {
                   ✓ Motion Graphics Specialist
                 </div>
                 <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-xs font-mono font-bold text-amber-300">
-                  ✓ 3-in-1 Master Credential
+                  ✓ Joint 3-in-1 Master Credential
+                </div>
+                <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-xs font-mono font-bold text-emerald-400">
+                  ✓ Official Agency Internship Cert
+                </div>
+                <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-xs font-mono font-bold text-amber-400">
+                  ✓ AI Vibe Coding Certificate
                 </div>
               </div>
             </div>
 
             <div className="w-full lg:w-auto flex justify-center">
-              <div className="w-64 h-44 bg-gradient-to-tr from-amber-500/20 to-purple-600/20 border-2 border-amber-500/40 rounded-2xl p-6 flex flex-col justify-between shadow-[0_0_40px_rgba(245,158,11,0.2)] relative group hover:scale-105 transition-transform">
-                <Award className="w-10 h-10 text-amber-400" />
+              <div className="w-72 h-48 bg-gradient-to-tr from-amber-500/20 via-purple-600/20 to-blue-600/20 border-2 border-amber-500/40 rounded-2xl p-6 flex flex-col justify-between shadow-[0_0_40px_rgba(245,158,11,0.2)] relative group hover:scale-105 transition-transform">
+                <div className="flex justify-between items-center">
+                  <Award className="w-8 h-8 text-amber-400" />
+                  <span className="text-[9px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Verified</span>
+                </div>
                 <div>
-                  <p className="text-[10px] font-mono tracking-widest uppercase text-amber-400 font-bold">GREKAM ACADEMY CREDENTIAL</p>
-                  <p className="font-bold text-sm text-white">3-in-1 Masterclass Career Program</p>
+                  <p className="text-[9px] font-mono tracking-widest uppercase text-amber-400 font-bold">GREKAM ACADEMY × LAYART ACADEMY</p>
+                  <p className="font-bold text-sm text-white">3-in-1 Creative Masterclass</p>
+                  <p className="text-[10px] text-emerald-400 font-mono mt-0.5">+ Grekam Agency Internship</p>
                 </div>
               </div>
             </div>
@@ -1158,7 +1269,7 @@ export default function MasterclassLandingPage() {
       </section>
 
       {/* ─────────────────────────────────────────────
-          PRICING & EMI BREAKDOWN SECTION
+          PRICING & COST BREAKDOWN SECTION
       ───────────────────────────────────────────── */}
       <section id="pricing" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
         
@@ -1167,10 +1278,10 @@ export default function MasterclassLandingPage() {
             Transparent Pricing & Offers
           </span>
           <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-            Program Fee & Value Breakdown
+            Suggested Standard Value & Offer Fee
           </h2>
           <p className="text-sm md:text-base text-white/60 font-mono">
-            Invest in a bundled career program worth ₹60,500 at an exclusive batch launch offer.
+            Invest in a bundled career program worth ₹60,500 at an exclusive batch offer price of ₹24,999.
           </p>
         </div>
 
@@ -1179,28 +1290,28 @@ export default function MasterclassLandingPage() {
           {/* Itemized Value Table Card */}
           <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 space-y-6 flex flex-col justify-between">
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Itemized Standard Value</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Itemized Standard Pricing</h3>
               <p className="text-xs text-white/50 font-mono mb-6">Standard individual module values before bundle discount:</p>
               
               <div className="space-y-4 divide-y divide-white/5 font-mono text-xs">
                 <div className="flex justify-between pt-2">
-                  <span className="text-white/80">Graphic Design (15 Days)</span>
+                  <span className="text-white/80">Graphic Designing – 15 Days</span>
                   <span className="font-bold text-white">₹15,000</span>
                 </div>
                 <div className="flex justify-between pt-3">
-                  <span className="text-white/80">Digital Marketing (15 Days)</span>
+                  <span className="text-white/80">Digital Marketing – 15 Days</span>
                   <span className="font-bold text-white">₹15,000</span>
                 </div>
                 <div className="flex justify-between pt-3">
-                  <span className="text-white/80">Motion Graphics (15 Days)</span>
+                  <span className="text-white/80">Motion Graphics – 15 Days</span>
                   <span className="font-bold text-white">₹18,000</span>
                 </div>
                 <div className="flex justify-between pt-3 text-amber-400">
-                  <span>AI Vibe Coding Bonus</span>
+                  <span>Vibe Coding Bonus</span>
                   <span className="font-bold">₹7,500</span>
                 </div>
                 <div className="flex justify-between pt-3 text-blue-400">
-                  <span>Portfolio & Mentorship</span>
+                  <span>Portfolio & Career Support</span>
                   <span className="font-bold">₹5,000</span>
                 </div>
                 <div className="flex justify-between pt-4 text-base font-bold border-t-2 border-white/10 text-white">
@@ -1211,14 +1322,14 @@ export default function MasterclassLandingPage() {
             </div>
 
             <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-mono text-white/60">
-              💡 Bundle Offer saves you over 60% compared to individual modules!
+              💡 Bundle Offer gives you ₹60,500 worth of training for just ₹24,999!
             </div>
           </div>
 
           {/* Featured Launch Offer Card */}
           <div className="bg-gradient-to-b from-blue-900/40 via-purple-900/40 to-slate-900/60 border-2 border-blue-500/50 rounded-3xl p-8 space-y-6 relative overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.25)] flex flex-col justify-between">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-orange-500 text-black font-mono font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-bl-2xl shadow-lg">
-              POPULAR BATCH OFFER
+              EARLY-BIRD BATCH OFFER
             </div>
 
             <div>
@@ -1229,18 +1340,18 @@ export default function MasterclassLandingPage() {
 
               <div className="space-y-1 mb-6">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-5xl font-black text-white tracking-tight">₹24,000</span>
-                  <span className="text-xl text-white/40 line-through font-mono">₹30,000</span>
+                  <span className="text-5xl font-black text-white tracking-tight">₹24,999</span>
+                  <span className="text-xl text-white/40 line-through font-mono">₹60,500</span>
                 </div>
-                <p className="text-xs text-emerald-400 font-mono font-bold">Instant ₹6,000 Direct Discount</p>
+                <p className="text-xs text-emerald-400 font-mono font-bold">Save ₹35,501 off Regular Value!</p>
               </div>
 
               <ul className="space-y-3 text-xs font-mono text-white/80 mb-8 border-t border-white/10 pt-6">
                 <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 45 Days Intensive Practical Training</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 10+ Real Portfolio Projects</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Live Agency Client Briefs (agency.grekam.in)</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Official Agency Internship Certificate</li>
                 <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> FREE AI Vibe Coding Bonus (Worth ₹7,500)</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 4 Official Certifications</li>
-                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Freelance & Job Placement Mentorship</li>
+                <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Joint Grekam × Layart Certifications</li>
               </ul>
             </div>
 
@@ -1248,7 +1359,7 @@ export default function MasterclassLandingPage() {
               href="#enroll"
               className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-mono font-bold tracking-wider uppercase text-center text-sm shadow-xl hover:scale-105 transition-all block"
             >
-              Enroll at ₹24,000
+              Enroll at ₹24,999
             </a>
           </div>
 
@@ -1262,21 +1373,21 @@ export default function MasterclassLandingPage() {
 
               <div className="space-y-4 font-mono text-xs mb-6">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1">
-                  <p className="text-amber-400 font-bold text-sm">2-Month No-Cost EMI</p>
-                  <p className="text-2xl font-black text-white">₹12,000 × 2 Months</p>
-                  <p className="text-[10px] text-white/50">Total Payable: ₹24,000 (0% Interest)</p>
+                  <p className="text-amber-400 font-bold text-sm">2-Month Easy EMI</p>
+                  <p className="text-2xl font-black text-white">₹12,500 × 2 Months</p>
+                  <p className="text-[10px] text-white/50">Pay in 2 easy installments</p>
                 </div>
 
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1">
                   <p className="text-blue-400 font-bold text-sm">Early-Bird Single Payment</p>
-                  <p className="text-2xl font-black text-white">₹21,999</p>
-                  <p className="text-[10px] text-white/50">Limited to first 15 seats of upcoming batch</p>
+                  <p className="text-2xl font-black text-white">₹24,999</p>
+                  <p className="text-[10px] text-white/50">Limited seats for the upcoming batch</p>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://wa.me/919876543210?text=Hi!%20I%20want%20to%20apply%20for%20the%20₹12,000%20x%202%20Months%20EMI%20option%20for%20the%20Masterclass"
+              href="https://wa.me/919360695718?text=Hi!%20I%20want%20to%20apply%20for%20the%202-Month%20EMI%20option%20for%20the%20Masterclass"
               target="_blank"
               rel="noreferrer"
               className="w-full py-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono font-bold tracking-wider uppercase text-center text-xs hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2"
@@ -1301,10 +1412,10 @@ export default function MasterclassLandingPage() {
               Limited Batch Registration
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Reserve Your Seat for ₹24,000 Offer
+              Reserve Your Seat for ₹24,999 Offer
             </h2>
             <p className="text-xs md:text-sm text-white/60 font-mono">
-              Fill in your details below. Our career counselor will call you within 2 hours to confirm batch timing and enrollment setup.
+              Fill in your details below. Our counselor will call you within 2 hours or connect with you on WhatsApp at <strong className="text-emerald-400">+91 9360695718</strong>.
             </p>
           </div>
 
@@ -1357,7 +1468,7 @@ export default function MasterclassLandingPage() {
                     required
                     value={leadForm.phone}
                     onChange={e => setLeadForm({ ...leadForm, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
+                    placeholder="+91 93606 95718"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 placeholder:text-white/30"
                   />
                 </div>
@@ -1432,6 +1543,14 @@ export default function MasterclassLandingPage() {
         <div className="space-y-4">
           {[
             {
+              q: "Who conducts this 3-in-1 Masterclass?",
+              a: "This program is handcrafted in joint collaboration between Grekam Academy (academy.grekam.in) and Layart Academy (layartacademy.in), combining top industry mentors from both institutions."
+            },
+            {
+              q: "How do I get Internship Certification from Grekam Agency?",
+              a: "During the program, you will execute real client briefs supplied by agency.grekam.in. Upon successful completion of your projects, you receive an official Internship Certificate from Grekam Agency."
+            },
+            {
               q: "Do I need prior design or coding experience to join?",
               a: "No prior experience is required! The program is structured step-by-step from beginner to job-ready level. We start with fundamental principles before moving into advanced Adobe tools, campaign setup, and AI tools."
             },
@@ -1440,16 +1559,12 @@ export default function MasterclassLandingPage() {
               a: "You will master Adobe Photoshop, Adobe Illustrator, Adobe After Effects, Adobe Premiere Pro, Canva Pro, Meta Ads Manager, Google Search Ads, Google Analytics 4 (GA4), Google Business Profile, and AI Coding tools (Cursor/v0)."
             },
             {
-              q: "How does the 2-Month EMI payment plan work?",
-              a: "You can enroll by paying ₹12,000 as the 1st installment, and the remaining ₹12,000 in Month 2. We also have flexible monthly options starting from ₹7,000/month."
+              q: "How does the EMI payment plan work?",
+              a: "You can enroll by paying ₹12,500 as the 1st installment, and the remaining ₹12,500 in Month 2. You can also connect via WhatsApp at +91 9360695718 for customized options."
             },
             {
               q: "What is included in the FREE AI Vibe Coding Bonus?",
               a: "The Vibe Coding bonus teaches you how to use AI coding assistants to build live web applications without writing raw code from scratch. You will build and deploy a working mini web app."
-            },
-            {
-              q: "Will I get certificates after completing the course?",
-              a: "Yes! You receive 3 Module Certificates (Graphic Design, Digital Marketing, Motion Graphics), 1 Master Program Credential, and 1 Vibe Coding Bonus Certificate."
             },
             {
               q: "What are the class timings and modes?",
@@ -1483,15 +1598,17 @@ export default function MasterclassLandingPage() {
           FOOTER & MOBILE ACTION BAR
       ───────────────────────────────────────────── */}
       <footer className="py-12 px-4 md:px-8 border-t border-white/10 text-center text-xs font-mono text-white/40 relative z-10 pb-28 md:pb-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <p>© {new Date().getFullYear()} Grekam Academy. All rights reserved.</p>
-            <p className="text-[10px] text-white/30 mt-1">3-in-1 Creative & Digital Marketing Career Program</p>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-left space-y-1">
+            <p className="text-white/80 font-bold">Grekam Academy × Layart Academy Joint Program</p>
+            <p>© {new Date().getFullYear()} Grekam Academy (academy.grekam.in) & Layart Academy (layartacademy.in). All rights reserved.</p>
+            <p className="text-[10px] text-emerald-400">Live Client Projects & Internship Credentials Powered by agency.grekam.in</p>
           </div>
-          <div className="flex gap-6">
-            <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link>
+          <div className="flex flex-wrap gap-6 text-xs">
+            <a href="https://academy.grekam.in" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Grekam Academy</a>
+            <a href="https://www.layartacademy.in/" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Layart Academy</a>
+            <a href="https://agency.grekam.in" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Grekam Agency</a>
+            <a href="tel:+919360695718" className="hover:text-emerald-400 transition-colors flex items-center gap-1"><Phone className="w-3 h-3" /> +91 9360695718</a>
           </div>
         </div>
       </footer>
@@ -1499,7 +1616,7 @@ export default function MasterclassLandingPage() {
       {/* Mobile Sticky Bottom Action Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0A0D14]/95 backdrop-blur-xl border-t border-white/15 p-3 flex items-center gap-2">
         <a
-          href="https://wa.me/919876543210?text=Hi!%20I%20want%20to%20enquire%20about%20the%20Masterclass"
+          href="https://wa.me/919360695718?text=Hi!%20I%20want%20to%20enquire%20about%20the%20Masterclass"
           target="_blank"
           rel="noreferrer"
           className="flex-1 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider text-center flex items-center justify-center gap-1.5"
@@ -1510,7 +1627,7 @@ export default function MasterclassLandingPage() {
           href="#enroll"
           className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-mono font-bold uppercase tracking-wider text-center shadow-lg"
         >
-          Enroll at ₹24,000
+          Enroll at ₹24,999
         </a>
       </div>
 
