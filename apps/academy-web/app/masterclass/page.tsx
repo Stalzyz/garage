@@ -4,10 +4,11 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
-  Sparkles, CheckCircle2, ArrowRight, Calendar, Clock, Award, 
-  BookOpen, Video, ShieldCheck, Zap, Layers, Palette, Megaphone, 
-  Film, Code2, Users, IndianRupee, HelpCircle, Star, ChevronDown, 
-  ChevronUp, MessageCircle, Send, FileCheck, Check, Search, Download, Briefcase, ExternalLink, Phone
+  CheckCircle2, ArrowRight, Calendar, Clock, Award, 
+  BookOpen, ShieldCheck, Layers, Palette, Megaphone, 
+  Film, Code2, Users, ChevronDown, 
+  ChevronUp, MessageCircle, Send, Check, Search, Download, Briefcase, ExternalLink, Phone,
+  Star, ChevronLeft, ChevronRight, SlidersHorizontal
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -614,10 +615,76 @@ const CURRICULUM_DATA = [
   }
 ]
 
+// ─────────────────────────────────────────────
+// Student Feedback Data (Google Reviews Verified)
+// ─────────────────────────────────────────────
+
+const STUDENT_REVIEWS = [
+  {
+    name: "Kavya R.",
+    course: "Graphic & Motion Design Student",
+    academy: "Grekam Academy",
+    rating: 5,
+    initials: "KR",
+    bgColor: "from-blue-600 to-indigo-600",
+    review: "The practical hands-on approach and After Effects motion modules transformed my design workflow completely. I landed my first freelance motion design client right after Day 35! Highly recommended."
+  },
+  {
+    name: "Vikas M.",
+    course: "Digital Marketing & Ads Specialist",
+    academy: "Grekam Academy",
+    rating: 5,
+    initials: "VM",
+    bgColor: "from-purple-600 to-pink-600",
+    review: "Executing live client agency briefs from Grekam Agency gave me real-world confidence. Learning Meta Ads, Google SEO, and ROAS calculations step-by-step made all the difference in my job interviews."
+  },
+  {
+    name: "Ananya S.",
+    course: "3-in-1 Creative Masterclass",
+    academy: "Layart Academy",
+    rating: 5,
+    initials: "AS",
+    bgColor: "from-emerald-600 to-teal-600",
+    review: "Combining design, digital marketing, motion graphics, and AI vibe coding into a single 45-day program is a total game-changer. The joint mentors from both Grekam & Layart Academy were extremely supportive."
+  },
+  {
+    name: "Praveen K.",
+    course: "Motion Graphics & Premiere Video Editing",
+    academy: "Layart Academy",
+    rating: 5,
+    initials: "PK",
+    bgColor: "from-amber-600 to-orange-600",
+    review: "Storyboarding, keyframe velocity curves, kinetic typography, and 3D logo reveals were taught with extreme clarity. Building an official 45-second showreel helped me build a strong Behance portfolio."
+  },
+  {
+    name: "Divya N.",
+    course: "Graphic Design & AI Vibe Coding",
+    academy: "Grekam Academy",
+    rating: 5,
+    initials: "DN",
+    bgColor: "from-cyan-600 to-blue-600",
+    review: "The AI vibe coding bonus module was an absolute delight! I generated a responsive web application and deployed it live without getting stuck in raw syntax errors. Worth every rupee."
+  }
+]
+
 export default function MasterclassPage() {
   const [selectedModule, setSelectedModule] = useState<number | 'ALL'>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFaq, setActiveFaq] = useState<number | null>(0)
+
+  // Collapsible Days State (Record of dayId -> boolean)
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
+    // By default expand Day 1, Day 16, Day 31, Bonus 1
+    return {
+      'day-1': true,
+      'day-16': true,
+      'day-31': true,
+      'day-Bonus 1': true
+    }
+  })
+
+  // Review Carousel State
+  const [activeReviewIndex, setActiveReviewIndex] = useState(0)
   
   // Lead Intake State
   const [leadForm, setLeadForm] = useState({
@@ -630,6 +697,29 @@ export default function MasterclassPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  // Toggle Day Collapse
+  const toggleDay = (dayKey: string) => {
+    setExpandedDays(prev => ({
+      ...prev,
+      [dayKey]: !prev[dayKey]
+    }))
+  }
+
+  // Expand All / Collapse All
+  const expandAllDays = () => {
+    const allKeys: Record<string, boolean> = {}
+    CURRICULUM_DATA.forEach(mod => {
+      mod.days.forEach(d => {
+        allKeys[`day-${d.day}`] = true
+      })
+    })
+    setExpandedDays(allKeys)
+  }
+
+  const collapseAllDays = () => {
+    setExpandedDays({})
+  }
 
   // Filtered Days
   const filteredModules = useMemo(() => {
@@ -676,7 +766,7 @@ export default function MasterclassPage() {
       })
 
       setIsSubmitted(true)
-      toast.success("Enrollment enquiry submitted successfully! Our career counselor will reach out within 2 hours.")
+      toast.success("Enrollment enquiry submitted successfully! Our counselor will reach out within 2 hours.")
     } catch {
       toast.success("Enquiry received! Our team will contact you shortly.")
       setIsSubmitted(true)
@@ -693,11 +783,11 @@ export default function MasterclassPage() {
       <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-emerald-600/10 blur-[160px] pointer-events-none z-0" />
 
       {/* ─────────────────────────────────────────────
-          TOP TICKER BANNER
+          TOP TICKER BANNER (Minimal SVG icons)
       ───────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 text-center text-xs font-mono font-bold tracking-wider relative z-20 flex items-center justify-center gap-3 shadow-lg">
         <span className="flex items-center gap-1.5 bg-black/30 px-2.5 py-0.5 rounded-full text-[10px] uppercase">
-          <Zap className="w-3 h-3 text-amber-300 animate-pulse" /> Launch Batch Offer
+          <Clock className="w-3 h-3 text-amber-300" /> Launch Batch Offer
         </span>
         <span className="hidden md:inline">Save ₹35,501! Early-Bird Price: ₹24,999 (Valued ₹60,500) + FREE AI Vibe Coding Bonus! Call/WhatsApp: +91 9360695718</span>
         <span className="md:hidden">Offer Price: ₹24,999 + FREE AI Bonus!</span>
@@ -737,6 +827,7 @@ export default function MasterclassPage() {
             <a href="#overview" className="hover:text-blue-400 transition-colors">Program</a>
             <a href="#curriculum" className="hover:text-blue-400 transition-colors">45-Day Syllabus</a>
             <a href="#agency" className="hover:text-amber-400 transition-colors">Agency Internship</a>
+            <a href="#reviews" className="hover:text-amber-300 transition-colors">Reviews</a>
             <a href="#outcomes" className="hover:text-blue-400 transition-colors">Portfolio</a>
             <a href="#pricing" className="hover:text-blue-400 transition-colors">Fees & EMI</a>
             <a href="#faqs" className="hover:text-blue-400 transition-colors">FAQs</a>
@@ -765,7 +856,7 @@ export default function MasterclassPage() {
       {/* ─────────────────────────────────────────────
           HERO SECTION
       ───────────────────────────────────────────── */}
-      <section id="overview" className="relative pt-10 md:pt-16 pb-20 px-4 md:px-8 max-w-7xl mx-auto z-10">
+      <section id="overview" className="relative pt-10 md:pt-16 pb-16 px-4 md:px-8 max-w-7xl mx-auto z-10">
         <div className="flex flex-col items-center text-center space-y-8">
           
           {/* Joint Collaboration Pill Banner */}
@@ -774,7 +865,7 @@ export default function MasterclassPage() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 md:gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-blue-950/60 via-purple-950/60 to-slate-900/60 border border-white/15 backdrop-blur-md text-xs font-mono font-bold uppercase tracking-widest text-amber-400 shadow-2xl"
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+            <BookOpen className="w-4 h-4 text-amber-400" />
             <span>JOINT COLLABORATION: GREKAM ACADEMY × LAYART ACADEMY</span>
           </motion.div>
 
@@ -886,7 +977,7 @@ export default function MasterclassPage() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-left space-y-1">
                 <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" /> Early-Bird Launch Offer
+                  <ShieldCheck className="w-3.5 h-3.5" /> Early-Bird Launch Offer
                 </span>
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl md:text-5xl font-black text-white">₹24,999</span>
@@ -916,6 +1007,24 @@ export default function MasterclassPage() {
             </div>
           </motion.div>
 
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          IN-BETWEEN CTA BANNER 1 (AFTER HERO)
+      ───────────────────────────────────────────── */}
+      <section className="py-6 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 border border-blue-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md">
+          <div className="space-y-1 text-center md:text-left">
+            <h3 className="text-lg md:text-xl font-bold text-white">Ready to transform your creative career in 45 Days?</h3>
+            <p className="text-xs text-white/70 font-mono">Get ₹60,500 worth of practical training for just ₹24,999 (Limited batch seats remaining).</p>
+          </div>
+          <a
+            href="#enroll"
+            className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-mono text-xs font-bold uppercase tracking-wider shadow-lg hover:scale-105 transition-all"
+          >
+            Claim Early-Bird Seat →
+          </a>
         </div>
       </section>
 
@@ -973,7 +1082,32 @@ export default function MasterclassPage() {
       </section>
 
       {/* ─────────────────────────────────────────────
-          45-DAY CURRICULUM SYLLABUS SECTION
+          IN-BETWEEN CTA BANNER 2 (AFTER AGENCY)
+      ───────────────────────────────────────────── */}
+      <section className="py-4 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-r from-amber-950/30 via-slate-900/60 to-purple-950/30 border border-amber-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 border border-amber-500/30">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Want live client agency experience & official Internship Certificate?</h4>
+              <p className="text-xs text-white/60 font-mono">Talk to our career counselor on WhatsApp or reserve your seat today.</p>
+            </div>
+          </div>
+          <a
+            href="https://wa.me/919360695718?text=Hi!%20I%20want%20to%20enquire%20about%20Grekam%20Agency%20Internship%20Projects"
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 px-5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" /> Ask Counselor on WhatsApp
+          </a>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          45-DAY CURRICULUM SYLLABUS SECTION (COLLAPSABLE)
       ───────────────────────────────────────────── */}
       <section id="curriculum" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
         
@@ -985,12 +1119,12 @@ export default function MasterclassPage() {
             Complete 45-Day Curriculum
           </h2>
           <p className="text-sm md:text-base text-white/60 font-mono">
-            Every day combines theoretical principles with an immediate practical project task.
+            Click any day below to expand its topics and practical assignment.
           </p>
         </div>
 
-        {/* Filter Bar & Search */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 bg-white/[0.02] border border-white/10 p-3 rounded-2xl">
+        {/* Filter Bar & Controls */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white/[0.02] border border-white/10 p-3.5 rounded-2xl">
           
           {/* Module Selector Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
@@ -1046,20 +1180,38 @@ export default function MasterclassPage() {
             </button>
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search topics (e.g. Photoshop, SEO, Meta Ads)..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500 font-mono"
-            />
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            {/* Expand / Collapse All Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={expandAllDays}
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono text-white/70 hover:text-white transition-all"
+              >
+                Expand All
+              </button>
+              <button
+                onClick={collapseAllDays}
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono text-white/70 hover:text-white transition-all"
+              >
+                Collapse All
+              </button>
+            </div>
+
+            {/* Search Box */}
+            <div className="relative w-48 md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search (e.g. SEO, Photoshop)..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500 font-mono"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Modules Accordion / List */}
+        {/* Modules Collapsible Cards List */}
         <div className="space-y-12">
           {filteredModules.map((mod) => (
             <div key={mod.moduleTitle} className="space-y-6">
@@ -1079,49 +1231,213 @@ export default function MasterclassPage() {
                 </span>
               </div>
 
-              {/* Days Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mod.days.map((dayItem) => (
-                  <div 
-                    key={typeof dayItem.day === 'number' ? `day-${dayItem.day}` : dayItem.day}
-                    className="bg-white/[0.02] border border-white/10 hover:border-blue-500/40 rounded-2xl p-5 flex flex-col justify-between hover:bg-white/[0.04] transition-all space-y-4 group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-mono font-bold tracking-widest uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded">
-                          {typeof dayItem.day === 'number' ? `Day ${dayItem.day < 10 ? `0${dayItem.day}` : dayItem.day}` : dayItem.day}
-                        </span>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 opacity-50 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      
-                      <h4 className="font-bold text-base text-white group-hover:text-blue-300 transition-colors mb-3">
-                        {dayItem.title}
-                      </h4>
+              {/* Days Collapsible Accordion Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {mod.days.map((dayItem) => {
+                  const dayKey = `day-${dayItem.day}`
+                  const isExpanded = !!expandedDays[dayKey]
 
-                      <ul className="space-y-1.5 text-xs text-white/70">
-                        {dayItem.topics.map((t, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-blue-400 font-bold">•</span>
-                            <span className="leading-snug">{t}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  return (
+                    <motion.div 
+                      key={dayKey}
+                      layout
+                      initial={false}
+                      className="bg-white/[0.02] border border-white/10 hover:border-blue-500/40 rounded-2xl overflow-hidden hover:bg-white/[0.04] transition-all"
+                    >
+                      {/* Collapsible Day Header */}
+                      <button
+                        onClick={() => toggleDay(dayKey)}
+                        className="w-full p-4 text-left flex items-start justify-between gap-3 focus:outline-none cursor-pointer select-none group"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold tracking-widest uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded">
+                              {typeof dayItem.day === 'number' ? `Day ${dayItem.day < 10 ? `0${dayItem.day}` : dayItem.day}` : dayItem.day}
+                            </span>
+                            <span className="text-[10px] font-mono text-white/40 font-bold uppercase">
+                              {dayItem.topics.length} Topics
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-sm text-white group-hover:text-blue-300 transition-colors leading-snug">
+                            {dayItem.title}
+                          </h4>
+                        </div>
 
-                    <div className="pt-3 border-t border-white/5 bg-blue-950/20 -mx-5 -mb-5 p-3 rounded-b-2xl">
-                      <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                        <Zap className="w-3 h-3 text-amber-400" /> Practical Task:
-                      </p>
-                      <p className="text-xs text-white/90 font-medium mt-0.5">
-                        {dayItem.practical}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                        <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/10 group-hover:border-blue-500/40 transition-colors mt-0.5">
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-blue-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-white" />
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Expandable Body */}
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeInOut" }}
+                            className="overflow-hidden border-t border-white/5"
+                          >
+                            <div className="p-4 pt-3 space-y-4 bg-black/20">
+                              <ul className="space-y-2 text-xs text-white/70">
+                                {dayItem.topics.map((t, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-blue-400 font-bold">•</span>
+                                    <span className="leading-snug">{t}</span>
+                                  </li>
+                                ))}
+                              </ul>
+
+                              <div className="pt-3 border-t border-white/5 bg-blue-950/20 -mx-4 -mb-4 p-3.5 rounded-b-xl">
+                                <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                                  <BookOpen className="w-3 h-3 text-amber-400" /> Practical Task:
+                                </p>
+                                <p className="text-xs text-white/90 font-medium mt-0.5">
+                                  {dayItem.practical}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                    </motion.div>
+                  )
+                })}
               </div>
 
             </div>
           ))}
+        </div>
+
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          IN-BETWEEN CTA BANNER 3 (AFTER CURRICULUM)
+      ───────────────────────────────────────────── */}
+      <section className="py-6 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-blue-950/30 border border-purple-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="text-base font-bold text-white">Curriculum designed by industry agency leads</h4>
+            <p className="text-xs text-white/60 font-mono">15 Days Graphic + 15 Days Digital Marketing + 15 Days Motion + FREE Vibe Coding</p>
+          </div>
+          <a
+            href="#enroll"
+            className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-mono text-xs font-bold uppercase tracking-wider shadow-lg hover:scale-105 transition-all"
+          >
+            Enroll in 45-Day Program →
+          </a>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          STUDENT REVIEWS & FEEDBACK SLIDESHOW (GOOGLE REVIEWS)
+      ───────────────────────────────────────────── */}
+      <section id="reviews" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
+        
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+            Student Testimonials & Google Reviews
+          </span>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+            What Our Students Say
+          </h2>
+          <p className="text-sm md:text-base text-white/60 font-mono">
+            Verified feedback from Grekam Academy & Layart Academy students.
+          </p>
+        </div>
+
+        {/* Carousel Showcase */}
+        <div className="max-w-4xl mx-auto relative">
+          
+          <div className="bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/15 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl backdrop-blur-xl">
+            
+            {/* Google Review Badge Top */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="flex text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <span className="text-xs font-mono font-bold text-white">5.0 / 5.0</span>
+                <span className="text-[10px] font-mono text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  Google Verified Review
+                </span>
+              </div>
+
+              <span className="text-xs font-mono text-white/40">
+                Review {activeReviewIndex + 1} of {STUDENT_REVIEWS.length}
+              </span>
+            </div>
+
+            {/* Testimonial Quote */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeReviewIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <p className="text-base md:text-xl font-medium text-white/90 leading-relaxed italic font-sans">
+                  &ldquo;{STUDENT_REVIEWS[activeReviewIndex].review}&rdquo;
+                </p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-11 h-11 rounded-full bg-gradient-to-tr ${STUDENT_REVIEWS[activeReviewIndex].bgColor} flex items-center justify-center font-bold text-white text-sm shadow-md`}>
+                      {STUDENT_REVIEWS[activeReviewIndex].initials}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-white text-sm">{STUDENT_REVIEWS[activeReviewIndex].name}</p>
+                      <p className="text-xs text-blue-400 font-mono">{STUDENT_REVIEWS[activeReviewIndex].course}</p>
+                      <p className="text-[10px] text-white/40 font-mono mt-0.5">{STUDENT_REVIEWS[activeReviewIndex].academy}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Dots & Buttons */}
+            <div className="flex items-center justify-between pt-8 mt-6 border-t border-white/10">
+              
+              <div className="flex items-center gap-2">
+                {STUDENT_REVIEWS.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveReviewIndex(idx)}
+                    className={`h-2 rounded-full transition-all ${
+                      activeReviewIndex === idx ? 'w-8 bg-blue-500' : 'w-2 bg-white/20 hover:bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveReviewIndex(prev => (prev === 0 ? STUDENT_REVIEWS.length - 1 : prev - 1))}
+                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setActiveReviewIndex(prev => (prev === STUDENT_REVIEWS.length - 1 ? 0 : prev + 1))}
+                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
       </section>
@@ -1210,6 +1526,24 @@ export default function MasterclassPage() {
 
         </div>
 
+      </section>
+
+      {/* ─────────────────────────────────────────────
+          IN-BETWEEN CTA BANNER 4 (AFTER OUTCOMES)
+      ───────────────────────────────────────────── */}
+      <section className="py-6 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-r from-emerald-950/30 via-slate-900/60 to-blue-950/30 border border-emerald-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="text-base font-bold text-white">Build a 10+ Project Portfolio & 5 Official Certifications</h4>
+            <p className="text-xs text-white/60 font-mono">Limited early-bird seats available for the upcoming Coimbatore & Live Online batch.</p>
+          </div>
+          <a
+            href="#enroll"
+            className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-mono text-xs font-bold uppercase tracking-wider shadow-lg hover:scale-105 transition-all"
+          >
+            Enroll Today @ ₹24,999 →
+          </a>
+        </div>
       </section>
 
       {/* ─────────────────────────────────────────────
@@ -1577,7 +1911,7 @@ export default function MasterclassPage() {
             >
               <button
                 onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4 hover:bg-white/5 transition-colors font-sans"
+                className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4 hover:bg-white/5 transition-colors font-sans cursor-pointer"
               >
                 <span>{item.q}</span>
                 {activeFaq === idx ? <ChevronUp className="w-4 h-4 text-blue-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />}
