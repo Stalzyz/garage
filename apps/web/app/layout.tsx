@@ -36,13 +36,13 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://garage.grekam.in'),
   title: {
-    default: 'Garage CRM — Garage Operations, Sales & CRM Platform',
+    default: 'Garage CRM — All-in-One CRM, Sales & Operations Platform for Modern Businesses',
     template: '%s | Garage CRM'
   },
-  description: 'Garage CRM brings your customers, vehicles, leads, service operations, employees, finance and growth into one simple platform.',
+  description: 'Garage CRM is the all-in-one workspace that brings your sales pipeline, client proposals, project delivery, team HR, finance, and automated WhatsApp follow-ups into one simple platform.',
   openGraph: {
-    title: 'Garage CRM — Garage Operations, Sales & CRM Platform',
-    description: 'Get more customer leads. Grow your garage sales faster with Garage CRM.',
+    title: 'Garage CRM — All-in-One CRM & Business Growth Platform',
+    description: 'Get more high-value clients. Close deals faster. Run your agency and business operations seamlessly with Garage CRM.',
     url: 'https://garage.grekam.in',
     siteName: 'Garage CRM',
     images: [
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Garage CRM — Operations & Growth Platform',
-    description: 'All-in-one CRM, garage operations, billing, and team management platform.',
+    title: 'Garage CRM — Operations & Growth Platform for Businesses',
+    description: 'All-in-one CRM, sales pipelines, client proposals, billing, and team management platform.',
     images: ['/og-image.png'],
   },
   robots: {

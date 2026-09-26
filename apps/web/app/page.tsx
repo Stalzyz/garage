@@ -9,14 +9,14 @@ import {
   BookOpen, Settings, Phone, Calendar, Mail, Clock, FileText, Package, RefreshCw, X, AlertCircle,
   TrendingUp, Sliders, Smartphone, Check, Zap, HelpCircle, ChevronDown, PlayCircle, ExternalLink,
   Receipt, Flame, Compass, Award, ShieldAlert, FileCode2, ChevronUp, Send, UserPlus,
-  Lock, Share2, ChevronLeft, Quote, Car, Wrench, Truck, Bike, BatteryCharging, Gauge, FileCheck
+  Lock, Share2, ChevronLeft, Quote, Code, Megaphone, Video, BriefcaseBusiness, ShoppingCart, Server
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 
 export default function GarageLandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null)
-  const [activeModuleCategory, setActiveModuleCategory] = useState<"ALL" | "OPS" | "CRM" | "FINANCE" | "HR">("ALL")
+  const [activeModuleCategory, setActiveModuleCategory] = useState<"ALL" | "SALES" | "PROJECTS" | "FINANCE" | "HR">("ALL")
   
   // ── DROPDOWN NAVIGATION STATE ──
   const [activeNavDropdown, setActiveNavDropdown] = useState<"FEATURES" | "ECOSYSTEM" | null>(null)
@@ -24,19 +24,19 @@ export default function GarageLandingPage() {
   // ── HERO SLIDESHOW STATE ──
   const heroSlides = [
     {
-      image: "/hero-slide-1.jpg",
-      title: "Garage CRM — Live Service Bay Operations",
-      caption: "Track customer vehicles, active service bays, and technician jobs in real time."
+      image: "/hero-slide-2.jpg",
+      title: "Garage CRM — Visual Sales Pipeline & Lead Tracking",
+      caption: "Turn inbound leads into paying clients with high-converting Kanban pipeline stages."
     },
     {
-      image: "/hero-slide-2.jpg",
-      title: "Garage CRM — Sales Pipeline & Lead Tracking",
-      caption: "Turn customer enquiries into confirmed bookings with visual Kanban stages."
+      image: "/hero-slide-1.jpg",
+      title: "Garage CRM — Project Delivery & Client Workspace",
+      caption: "Manage client deliverables, milestones, assets, and team tasks in one transparent workspace."
     },
     {
       image: "/hero-slide-3.jpg",
-      title: "Garage CRM — GST Invoicing & WhatsApp Billing",
-      caption: "Create instant GST invoices and collect payments via 1-click WhatsApp links."
+      title: "Garage CRM — GST Invoicing, Retainers & Instant Payments",
+      caption: "Send itemized proposals, recurring retainer invoices, and collect payments via 1-click links."
     }
   ]
   const [activeSlide, setActiveSlide] = useState(0)
@@ -46,135 +46,135 @@ export default function GarageLandingPage() {
 
   const caseStudies = [
     {
-      id: "multi-brand-car",
-      title: "Multi-Brand Car Workshops",
-      shortTitle: "Car Workshops",
-      icon: Car,
-      tagline: "4 to 15-Bay Independent Service & Body Repair Centers",
+      id: "digital-agency",
+      title: "Digital Marketing & SEO Agencies",
+      shortTitle: "Marketing Agencies",
+      icon: Megaphone,
+      tagline: "Performance marketing, SEO retainers, social media management & PPC firms",
       stats: {
-        retention: "+38%",
-        retentionLabel: "Repeat Service Retention",
-        recovery: "₹1,45,000",
-        recoveryLabel: "Monthly Leakage Recovered",
-        timeSaved: "2.5 Hrs",
-        timeSavedLabel: "Daily Admin Saved per Bay"
+        retention: "+45%",
+        retentionLabel: "Retainer Renewal Rate",
+        recovery: "3.2x",
+        recoveryLabel: "Faster Lead-to-Close Cycle",
+        timeSaved: "18 Hrs",
+        timeSavedLabel: "Weekly Reporting Admin Saved"
       },
       story: {
-        garageName: "Apex Auto Care (8 Service Bays, Pune)",
-        challenge: "Suffered from manual paper job cards where mechanics frequently forgot to bill small spare parts, engine oil liters, and minor electrical labor. Customer follow-ups were chaotic over phone calls, leading to low repeat retention.",
-        solution: "Implemented Garage CRM with digital job card creation on tablets. Mechanics scan parts barcodes at the bay. The customer receives an automated WhatsApp repair estimate with 1-click digital approval before work starts.",
-        impact: "Zero unbilled spare parts leakage. Automated service-due reminders brought back 38% more periodic maintenance customers within 6 months.",
-        keyModules: ["Digital Job Cards with Photos", "WhatsApp Estimate Approvals", "Barcode Parts Inventory", "Automated Service Due Reminders"]
+        businessName: "Catalyst Media (22 Team Members, Bengaluru)",
+        challenge: "Managing 30+ monthly retainer clients across spreadsheets caused missed renewal invoices, untracked client deliverables, and constant manual WhatsApp updates on campaign status.",
+        solution: "Adopted Garage CRM to automate monthly retainer invoicing, track client campaign milestones, and send automated weekly WhatsApp progress summaries directly to client founders.",
+        impact: "Retainer renewals increased by 45% due to proactive transparency. Invoicing delays dropped to zero with automated recurring billing.",
+        keyModules: ["Recurring Retainer Invoicing", "Automated WhatsApp Reports", "Lead Kanban Pipeline", "Client Account History"]
       }
     },
     {
-      id: "tw-superbike",
-      title: "Two-Wheeler & Superbike Studios",
-      shortTitle: "Bikes & Superbikes",
-      icon: Bike,
-      tagline: "High-Volume Express Service & Superbike Performance Tuning",
+      id: "web-dev",
+      title: "Web Design & Software Studios",
+      shortTitle: "Web & Dev Studios",
+      icon: Code,
+      tagline: "Custom software development, UI/UX design, Next.js & mobile app agencies",
       stats: {
-        retention: "2.8x",
-        retentionLabel: "Faster Vehicle Intake",
-        recovery: "+42%",
-        recoveryLabel: "Engine Oil & Lube Sales",
-        timeSaved: "100%",
-        timeSavedLabel: "Mechanic Commission Clarity"
-      },
-      story: {
-        garageName: "SpeedCraft Moto Hub (6 Lifts, Bengaluru)",
-        challenge: "Handling 35+ bikes daily created huge front-desk queues during morning peak hours. Customers constantly called asking 'Is my bike ready?'. Tracking technician labor incentives manually took hours every weekend.",
-        solution: "Deployed Garage CRM's 30-second license plate lookup and express job card intake. When the job is marked complete, customers automatically get a WhatsApp ready alert with UPI payment link. Mechanic incentives are calculated per completed job card.",
-        impact: "Intake time dropped from 8 minutes to 90 seconds. Mechanics work 20% faster knowing their live daily commissions on the workshop TV kiosk.",
-        keyModules: ["Express Vehicle Intake", "Automated 'Job Ready' WhatsApp", "Mechanic Incentive Engine", "Periodic Lube Renewal Tracking"]
-      }
-    },
-    {
-      id: "detailing-ppf",
-      title: "Auto Detailing & Ceramic Studios",
-      shortTitle: "Detailing & PPF",
-      icon: Sparkles,
-      tagline: "High-Ticket Paint Protection Film (PPF), Ceramic Coating & Car Spas",
-      stats: {
-        retention: "4.9 ★",
-        retentionLabel: "Google Review Rating",
-        recovery: "100%",
-        recoveryLabel: "Dispute Elimination",
-        timeSaved: "92%",
-        timeSavedLabel: "Annual Warranty Compliance"
-      },
-      story: {
-        garageName: "Obsidian Detailing Studio (Delhi NCR)",
-        challenge: "With ticket sizes averaging ₹45,000 to ₹1,20,000 for full PPF and 5-year ceramic packages, customers demanded proof of surface prep. Existing scratches were sometimes blamed on the studio. Tracking 1-year warranty inspections was done on paper.",
-        solution: "Used Garage CRM's 360° vehicle intake visual damage tagging with timestamped photos. Automated milestone updates sent to car owners as stages complete (Wash → Paint Correction → Ceramic Layer 1 → Cure). Generates digital warranty certificates.",
-        impact: "100% elimination of damage disputes. Automated annual ceramic maintenance inspection reminders boosted customer lifetime value by ₹28,000 per vehicle.",
-        keyModules: ["360° Photo Damage Tagging", "Stage-by-Stage Customer Gallery", "Digital PDF Warranty Cards", "Annual Inspection Follow-ups"]
-      }
-    },
-    {
-      id: "commercial-fleet",
-      title: "Commercial Fleet Maintenance Hubs",
-      shortTitle: "Fleet Maintenance",
-      icon: Truck,
-      tagline: "Logistics Delivery Vans, Cab Aggregators & Rental Fleets",
-      stats: {
-        retention: "-24%",
-        retentionLabel: "Unplanned Breakdown Time",
-        recovery: "100%",
-        recoveryLabel: "GST Corporate Compliance",
-        timeSaved: "15 Days",
-        timeSavedLabel: "Faster Monthly Billing Cycle"
-      },
-      story: {
-        garageName: "Metro Logistics Central Workshop (40+ Fleet Vans)",
-        challenge: "Corporate clients demanded consolidated monthly GST billing and detailed maintenance expense breakdowns per van registration. Emergency roadside breakdowns were frequent due to missed preventive maintenance.",
-        solution: "Setup Garage CRM's Corporate Fleet portal. System automatically flags vehicles due for brake checks, tire rotations, and oil service based on odometer readings. Generates 1-click consolidated monthly corporate invoices with complete job logs.",
-        impact: "Fleet breakdown downtime decreased by 24%. Monthly corporate invoice approvals went from 3 weeks to 2 days with transparent digital job history.",
-        keyModules: ["Fleet Account Management", "Odometer-Based Preventive Alerts", "Consolidated Monthly GST Billing", "Cost-per-KM Analytics"]
-      }
-    },
-    {
-      id: "heavy-diesel",
-      title: "Heavy Equipment & Diesel Truck Workshops",
-      shortTitle: "Trucks & Heavy Equipment",
-      icon: Wrench,
-      tagline: "Commercial Trucks, Buses, Hydraulics & Earthmovers",
-      stats: {
-        retention: "35%",
-        retentionLabel: "Faster Engine Overhauls",
+        retention: "68%",
+        retentionLabel: "Proposal Win Rate",
         recovery: "Zero",
-        recoveryLabel: "Vendor Subcontract Leakage",
-        timeSaved: "₹3.2L",
-        timeSavedLabel: "Active Credit Ledger Controlled"
+        recoveryLabel: "Scope Creep Disputes",
+        timeSaved: "10 Days",
+        timeSavedLabel: "Faster Milestone Payments"
       },
       story: {
-        garageName: "Titan Heavy Diesel Repairs (Multi-Axle Truck Bays, Chennai)",
-        challenge: "Engine rebuilds and hydraulic overhauls take 5-10 days and involve outsourced lathe work and injector calibration. Tracking vendor bills, core returns, and customer credit ledgers on physical books caused severe cash flow delays.",
-        solution: "Utilized Garage CRM's Multi-Stage Job Order & Sub-Contracting module. Work outsourced to machine shops is matched to customer job cards. Partial milestone payments and customer credit limits are enforced at invoicing.",
-        impact: "Outsourced labor margins increased by 18% with zero unbilled machining costs. Outstanding payment recovery accelerated by 22 days.",
-        keyModules: ["Multi-Stage Overhaul Tracking", "Outsourced Vendor Work Orders", "Credit Limit & Ledger Control", "Core Return Tracking"]
+        businessName: "PixelCraft Dev Labs (15 Developers, Mumbai)",
+        challenge: "Sending static PDF estimates resulted in slow approvals, scope creep arguments during sprints, and delayed milestone payments from overseas & domestic clients.",
+        solution: "Switched to Garage CRM's interactive web proposals with itemized deliverables, dynamic change-order approvals, and automated milestone invoice triggers upon phase sign-off.",
+        impact: "Proposal acceptance rate jumped to 68%. Milestone payments are collected 10 days faster via built-in payment links.",
+        keyModules: ["Interactive Web Proposals", "Digital E-Signatures", "Milestone Invoicing", "Client File & Asset Vault"]
       }
     },
     {
-      id: "ev-battery",
-      title: "EV & Battery Care Centers",
-      shortTitle: "EV & Battery Care",
-      icon: BatteryCharging,
-      tagline: "Electric 2W/4W Service, Diagnostics & Battery Pack Labs",
+      id: "creative-video",
+      title: "Creative & Video Production Houses",
+      shortTitle: "Creative & Video",
+      icon: Video,
+      tagline: "Commercial video production, brand identity studios, 3D animation & post-production",
       stats: {
         retention: "100%",
-        retentionLabel: "Battery Serial Traceability",
-        recovery: "0",
-        recoveryLabel: "Rejected OEM Warranty Claims",
-        timeSaved: "3x",
-        timeSavedLabel: "Faster Diagnostic Intake"
+        retentionLabel: "Revision Round Clarity",
+        recovery: "₹2.4L",
+        recoveryLabel: "Freelancer Over-payouts Saved",
+        timeSaved: "4.9 ★",
+        timeSavedLabel: "Client Satisfaction Rating"
       },
       story: {
-        garageName: "Voltron EV Solutions (Electric 2W/3W Hub, Hyderabad)",
-        challenge: "Diagnosing battery cell degradation, motor controllers, and validating manufacturer warranty claims required strict serial number tracking and State-of-Health (SoH) logging that regular generic garage software lacked.",
-        solution: "Adopted Garage CRM with custom EV fields. Technicians log battery pack serials, cell voltage reports, and controller firmware versions directly into the job card. Automated OEM warranty claim export with full diagnostic history.",
-        impact: "100% trace on battery warranties with zero rejected claims. EV customers receive a digital Battery Health Report Card on WhatsApp after each service.",
-        keyModules: ["Battery Serial & SoH Diagnostics", "OEM Warranty Claim Exporter", "High-Voltage Safety Checklist", "Digital Health Report Card"]
+        businessName: "Aperture Films & Creative (Delhi NCR)",
+        challenge: "Handling complex video projects with endless unbilled client revision rounds, untracked freelance editor hours, and scattered Google Drive asset links.",
+        solution: "Used Garage CRM to establish structured project stages (Script → Shoot → Rough Cut → Final Delivery), cap client revisions, track contractor hourly costs, and host secure asset links.",
+        impact: "Eliminated unbilled revision requests completely and saved ₹2.4 Lakhs in unbudgeted contractor costs within the first quarter.",
+        keyModules: ["Project Stage Milestones", "Revision Tracking", "Freelancer Cost Tracking", "Branded Client Portal"]
+      }
+    },
+    {
+      id: "b2b-consulting",
+      title: "B2B Consulting & Advisory Firms",
+      shortTitle: "B2B Consulting",
+      icon: BriefcaseBusiness,
+      tagline: "Management consultants, corporate strategy advisors, legal & financial consultancies",
+      stats: {
+        retention: "+52%",
+        retentionLabel: "Deal Closing Speed",
+        recovery: "100%",
+        recoveryLabel: "NDA & Contract Compliance",
+        timeSaved: "25 Hrs",
+        timeSavedLabel: "Monthly Executive Admin Saved"
+      },
+      story: {
+        businessName: "Vanguard Corporate Advisors (Hyderabad)",
+        challenge: "High-ticket enterprise consulting deals require multi-stakeholder follow-ups, strict confidential document sharing, and long payment follow-up cycles.",
+        solution: "Deployed Garage CRM for enterprise deal pipelines, automated follow-up cadences, contract expiry alerts, and integrated client-facing document verification portals.",
+        impact: "Deal turnaround accelerated by 52%. All contracts and NDAs are digitally organized with complete audit trails.",
+        keyModules: ["Enterprise CRM Pipeline", "Contract Vault & Expiry Alerts", "Scheduled Retainer Invoicing", "Client Activity Logs"]
+      }
+    },
+    {
+      id: "ecommerce-growth",
+      title: "E-Commerce & Performance Agencies",
+      shortTitle: "E-Commerce & D2C",
+      icon: ShoppingCart,
+      tagline: "Shopify agencies, Meta/Google ad growth partners & direct-to-consumer brand accelerators",
+      stats: {
+        retention: "+60%",
+        retentionLabel: "Client LTV Growth",
+        recovery: "100%",
+        recoveryLabel: "Ad-Spend Margin Tracking",
+        timeSaved: "1 Click",
+        timeSavedLabel: "Multi-Brand Switcher"
+      },
+      story: {
+        businessName: "ScaleScale Growth Partners (Bengaluru)",
+        challenge: "Managing ad budgets, percentage-of-revenue billing, and performance reporting for 25+ D2C brands created severe billing calculation headaches each month-end.",
+        solution: "Leveraged Garage CRM's dynamic billing calculations to combine base retainers with performance commission invoices, with instant WhatsApp receipts sent to brand directors.",
+        impact: "Month-end finance close time reduced from 5 days to 2 hours. Client retention improved as brands received transparent, automated performance billing.",
+        keyModules: ["Performance Commission Invoicing", "Multi-Client Dashboard", "Automated WhatsApp Alerts", "Client P&L Analytics"]
+      }
+    },
+    {
+      id: "it-reseller",
+      title: "IT Resellers & Whitelabel Service Providers",
+      shortTitle: "IT Resellers & SaaS",
+      icon: Server,
+      tagline: "Whitelabel software partners, MSPs, cloud consulting & regional IT distributors",
+      stats: {
+        retention: "100%",
+        retentionLabel: "Custom Whitelabel Branding",
+        recovery: "+35%",
+        recoveryLabel: "Wholesale Margin Control",
+        timeSaved: "2 Min",
+        timeSavedLabel: "Automated Client Provisioning"
+      },
+      story: {
+        businessName: "CloudSphere IT Solutions (Chennai)",
+        challenge: "Wanted to offer a complete CRM and operational software suite to their business clients under their own brand name without spending millions developing custom code.",
+        solution: "Enrolled in Garage CRM's Whitelabel Partner program. Customized the domain, logo, and pricing tiers to provision client accounts instantly with full wholesale margin control.",
+        impact: "Launched an entirely new recurring software revenue stream in 48 hours, onboarding 40+ client organizations with 100% proprietary branding.",
+        keyModules: ["Whitelabel Custom Domain", "Sub-Tenant Provisioning", "Wholesale Reseller Dashboard", "Commission Payout Engine"]
       }
     }
   ]
@@ -202,7 +202,7 @@ export default function GarageLandingPage() {
         body: JSON.stringify({
           type: "DEMO_ACCESS",
           recipientEmail: demoEmail,
-          recipientName: demoName || "Garage Partner",
+          recipientName: demoName || "Business Partner",
           details: { phone: demoPhone }
         })
       })
@@ -217,85 +217,85 @@ export default function GarageLandingPage() {
 
   // WhatsApp Simulator State
   const [simulatedChat, setSimulatedChat] = useState<Array<{ sender: "bot" | "user"; text: string; time: string }>>([
-    { sender: "bot", text: "🚗 Apex Motors: Hi Vikram! Your Honda City (MH 12 AB 4589) is ready after Full Synthetic Oil Service & Brake Inspection.", time: "10:30 AM" },
-    { sender: "bot", text: "🧾 Click to view & pay your GST invoice: https://garage.grekam.in/verify/inv/8841", time: "10:31 AM" }
+    { sender: "bot", text: "💼 Catalyst Agency: Hi Vikram! Your Q3 Growth Proposal is ready for review.", time: "10:30 AM" },
+    { sender: "bot", text: "📄 Click to review scope & approve digitally: https://garage.grekam.in/verify/prop/9921", time: "10:31 AM" }
   ])
   const [simulatingWhatsApp, setSimulatingWhatsApp] = useState(false)
 
-  const handleSimulateWhatsAppAction = (actionType: "SERVICE_UPDATE" | "PAYMENT_LINK" | "REMINDER") => {
+  const handleSimulateWhatsAppAction = (actionType: "PROPOSAL" | "PAYMENT_LINK" | "MILESTONE") => {
     setSimulatingWhatsApp(true)
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     let newMsg = ""
 
-    if (actionType === "SERVICE_UPDATE") {
-      newMsg = "🔧 Service Alert: Wheel Alignment & Balancing complete on KA 05 CD 8821. Technician Karthik is conducting final road test."
+    if (actionType === "PROPOSAL") {
+      newMsg = "📄 Proposal Alert: Website Redesign & Brand Strategy scope is ready. 1-Click review & approve digitally."
     } else if (actionType === "PAYMENT_LINK") {
-      newMsg = "💳 Payment Request: Total Bill ₹8,450. Click link to pay via UPI / Credit Card & get instant digital receipt."
+      newMsg = "💳 Retainer Invoice #INV-1048 for ₹45,000 is generated. Click link to pay via UPI / NetBanking."
     } else {
-      newMsg = "📅 Maintenance Reminder: Your 6-Month Oil Service for MH 12 AB 4589 is due next Tuesday. Click to confirm your 10 AM slot."
+      newMsg = "🚀 Milestone Update: Sprint Phase 2 (UI/UX Prototypes) is complete. Client portal updated with Figma assets."
     }
 
     setTimeout(() => {
       setSimulatedChat(prev => [...prev, { sender: "bot", text: newMsg, time: now }])
       setSimulatingWhatsApp(false)
-      toast.success("WhatsApp Automated Alert Triggered!")
+      toast.success("Automated Client WhatsApp Alert Triggered!")
     }, 600)
   }
 
   const coreModules = [
     {
-      category: "OPS",
-      title: "Digital Job Cards & Bay Operations",
-      icon: Layers,
-      badge: "Core Operations",
+      category: "SALES",
+      title: "Visual CRM & Sales Pipeline",
+      icon: Users,
+      badge: "Lead Conversion",
       color: "from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30",
-      description: "Create digital job cards in under 60 seconds with vehicle license plate search, photo damage tagging, and live bay assignment.",
-      bullets: ["360° Vehicle photo inspection", "Technician assignment & time logs", "Real-time service progress stages", "Parts requisition from store"]
+      description: "Capture leads from website forms, WhatsApp, and campaigns. Track high-value deals through customizable visual Kanban stages.",
+      bullets: ["Custom sales stages & lead scoring", "Deal value forecasting & analytics", "Automated follow-up reminders", "Lead source attribution"]
     },
     {
-      category: "CRM",
-      title: "Lead Management & Sales Pipeline",
-      icon: Users,
-      badge: "Growth & Sales",
+      category: "SALES",
+      title: "Interactive Proposals & Contracts",
+      icon: FileText,
+      badge: "Deal Closing",
+      color: "from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30",
+      description: "Send stunning interactive web proposals with itemized scopes, contract agreements, and 1-click digital client approval.",
+      bullets: ["1-Click digital client sign-offs", "Itemized service packages & deliverables", "Automated proposal expiry dates", "PDF & Web view modes"]
+    },
+    {
+      category: "PROJECTS",
+      title: "Project Delivery & Client Portals",
+      icon: Layers,
+      badge: "Operations",
       color: "from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30",
-      description: "Capture enquiries from Google, WhatsApp, and walk-ins. Convert leads into high-margin service packages with automated follow-ups.",
-      bullets: ["Visual Kanban sales pipeline", "1-Click WhatsApp estimate approvals", "Service renewal follow-up scheduler", "Lost enquiry re-engagement"]
+      description: "Manage client sprints, deliverables, and team tasks. Give your clients a branded self-service portal to track live progress.",
+      bullets: ["Milestone & sprint task tracking", "Client-facing branded portal", "File, asset & Figma link vault", "Client feedback & revision logs"]
     },
     {
       category: "FINANCE",
-      title: "GST Invoicing & Digital Billing",
+      title: "GST Invoicing, Retainers & Billing",
       icon: DollarSign,
-      badge: "Finance & Cash Flow",
+      badge: "Cash Flow",
       color: "from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30",
-      description: "Generate compliant GST invoices with automated HSN/SAC codes, instant UPI QR payment links, and vendor purchase ledgers.",
-      bullets: ["1-Click GST tax invoice generation", "UPI QR code on invoices", "Technician labor rate cards", "Spare parts margin analysis"]
+      description: "Automate monthly client retainer invoices, track advance payments, and generate 100% compliant GST invoices with UPI QR codes.",
+      bullets: ["Automated recurring retainer billing", "Instant UPI & Card payment links", "Client ledger & outstanding tracking", "Vendor & expense management"]
     },
     {
-      category: "OPS",
-      title: "Live Spare Parts & Stock Inventory",
-      icon: Package,
-      badge: "Stock Control",
-      color: "from-cyan-500/20 to-blue-500/20 text-cyan-400 border-cyan-500/30",
-      description: "Eliminate parts theft and stockouts. Track fast-moving engine oils, brake pads, and fluids with low-stock alerts and barcode scan.",
-      bullets: ["Low stock WhatsApp alerts", "Barcode / QR code scanning", "Multi-vendor purchase orders", "Dead stock & margin reporting"]
-    },
-    {
-      category: "CRM",
-      title: "WhatsApp Automated Communication",
+      category: "SALES",
+      title: "Automated WhatsApp & Email CRM",
       icon: MessageSquare,
-      badge: "Customer Retention",
+      badge: "Client Retention",
       color: "from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30",
-      description: "Keep car owners informed without making phone calls. Send automated service updates, digital receipts, and Google review requests.",
-      bullets: ["Automated 'Job Ready' alerts", "Digital estimate approval buttons", "Automated service-due reminders", "5-Star Google Review booster"]
+      description: "Never let a client wonder about project status. Trigger automated WhatsApp updates for proposal approvals, invoice links, and milestone deliveries.",
+      bullets: ["Instant proposal approval alerts", "Automated payment reminder pings", "Weekly project progress summaries", "Custom WhatsApp Cloud API"]
     },
     {
       category: "HR",
-      title: "Mechanic Productivity & Staff HR",
+      title: "Team HR, Attendance & Payroll",
       icon: UserCheck,
       badge: "Team Management",
-      color: "from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30",
-      description: "Manage technician shifts, workshop kiosk clock-in, and automated labor commission payouts based on completed job cards.",
-      bullets: ["Workshop Tablet Kiosk Clock-in", "Per-job technician commissions", "Leave requests & attendance logs", "Technician efficiency scoring"]
+      color: "from-cyan-500/20 to-blue-500/20 text-cyan-400 border-cyan-500/30",
+      description: "Track employee attendance, project hours, leave approvals, and automated commission payouts based on closed client accounts.",
+      bullets: ["Time tracking per client project", "Leave requests & approvals", "Sales commission calculations", "Team performance analytics"]
     }
   ]
 
@@ -305,24 +305,24 @@ export default function GarageLandingPage() {
 
   const faqs = [
     {
-      q: "What is Garage CRM and how is it different from basic billing software?",
-      a: "Garage CRM is a complete operational and revenue growth platform built specifically for auto repair workshops. Unlike simple billing software, Garage CRM manages the entire customer lifecycle: lead capture, vehicle intake with photo damage inspection, live bay tracking, spare parts inventory, WhatsApp estimate approvals, mechanic commissions, and automated service reminders that bring customers back."
+      q: "What is Garage CRM and who is it designed for?",
+      a: "Garage CRM is a comprehensive, all-in-one CRM, sales, operations, project management, and finance platform built for digital marketing agencies, software development studios, B2B consulting firms, creative agencies, and fast-growing modern businesses. It streamlines everything from first client contact to proposal closing, project delivery, and automated monthly retainer billing."
     },
     {
       q: "How does the Live Demo access work?",
-      a: "You can click the 'View Demo' button, enter your work email, and you will instantly receive access credentials (demo@garage.in / Demo2023) to explore the live, fully-functional workshop dashboard."
+      a: "Click 'View Demo', enter your work email, and you will instantly receive full credentials (demo@garage.in / Demo2023) to explore the live, fully functional agency dashboard with real-time leads, proposals, project boards, and billing."
     },
     {
-      q: "Can my mechanics use this on tablets or phones inside the workshop bays?",
-      a: "Yes! Garage CRM is 100% responsive and mobile-optimized. Service advisors and mechanics can create job cards, upload damage photos, and scan parts barcodes directly from any Android phone, iPhone, iPad, or tablet."
+      q: "Can I send interactive proposals and contracts to my clients?",
+      a: "Yes! Garage CRM allows you to create interactive web proposals with your agency branding, itemized scope of work, timeline milestones, and 1-click digital e-signatures for instant deal closing."
     },
     {
-      q: "How do WhatsApp notifications and estimate approvals work?",
-      a: "Garage CRM connects with WhatsApp Cloud API to deliver instant job cards, photos of worn parts, estimates, and payment links. Customers can click a single button on WhatsApp to approve additional repair work instantly."
+      q: "Does Garage CRM support monthly recurring retainers and GST invoicing?",
+      a: "Absolutely. You can set up automated monthly recurring invoices with automated GST calculations, HSN/SAC codes, and 1-click UPI/payment links dispatched directly to your clients' WhatsApp and email."
     },
     {
-      q: "Can I migrate my existing customer list and spare parts inventory from Excel?",
-      a: "Absolutely. Our onboarding team provides 1-click bulk CSV/Excel import tools to bring in your entire customer list, vehicle history, and spare parts catalog seamlessly."
+      q: "Can I whitelabel Garage CRM for my own agency or clients?",
+      a: "Yes! Our Whitelabel Partner edition allows IT resellers and agencies to run Garage CRM on their own custom domain with custom brand logos, automated tenant provisioning, and wholesale pricing control."
     }
   ]
 
@@ -345,7 +345,7 @@ export default function GarageLandingPage() {
                 <span className="text-xl font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">Garage</span>
                 <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 tracking-wider">CRM</span>
               </div>
-              <span className="text-[10px] text-zinc-400 font-normal tracking-wide">Operations & Sales Growth</span>
+              <span className="text-[10px] text-zinc-400 font-normal tracking-wide">Business & Agency Growth</span>
             </div>
           </Link>
 
@@ -373,24 +373,24 @@ export default function GarageLandingPage() {
                     className="absolute top-full left-0 w-80 p-3 bg-[#0c1220]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl z-50 flex flex-col gap-1"
                   >
                     <a href="#case-studies" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Car className="w-5 h-5 text-blue-400 mt-0.5" />
+                      <Briefcase className="w-5 h-5 text-blue-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">6 Industry Case Studies</div>
-                        <div className="text-[11px] text-zinc-400">See how garages grow sales</div>
+                        <div className="text-[11px] text-zinc-400">Agencies, Tech Studios & Consulting</div>
                       </div>
                     </a>
                     <a href="#features" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Wrench className="w-5 h-5 text-indigo-400 mt-0.5" />
+                      <Workflow className="w-5 h-5 text-indigo-400 mt-0.5" />
                       <div>
-                        <div className="text-xs font-semibold text-white">Job Cards & Workflow</div>
-                        <div className="text-[11px] text-zinc-400">Live bay tracking & parts</div>
+                        <div className="text-xs font-semibold text-white">Sales Pipeline & Proposals</div>
+                        <div className="text-[11px] text-zinc-400">Kanban deals & 1-click approvals</div>
                       </div>
                     </a>
                     <a href="#features" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
                       <MessageSquare className="w-5 h-5 text-emerald-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">WhatsApp Automations</div>
-                        <div className="text-[11px] text-zinc-400">Instant job updates & approvals</div>
+                        <div className="text-[11px] text-zinc-400">Client updates & invoice alerts</div>
                       </div>
                     </a>
                   </motion.div>
@@ -481,18 +481,18 @@ export default function GarageLandingPage() {
           
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-8">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Built for Modern Workshops & Auto Service Centers</span>
+            <span>All-in-One CRM, Sales & Operations Platform for Modern Businesses</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.12]">
-            Get more customer leads. <br />
+            Get more clients. <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
-              Grow your garage sales faster.
+              Close deals faster. Scale your business.
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-            Garage CRM is the all-in-one workspace that brings your customer bookings, job cards, service tracking, team, billing, and automated WhatsApp follow-ups into one simple dashboard.
+            Garage CRM is the all-in-one workspace that brings your sales pipeline, interactive client proposals, project deliverables, recurring retainer billing, team HR, and automated WhatsApp follow-ups into one simple platform.
           </p>
 
           {/* Direct CTA Buttons */}
@@ -517,19 +517,19 @@ export default function GarageLandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-400 border-t border-white/5 pt-8">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>30-Sec Digital Job Cards</span>
+              <span>Visual Kanban Sales Pipelines</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>1-Click WhatsApp Estimate Approvals</span>
+              <span>Interactive Proposals with E-Signatures</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Zero Unbilled Parts Leakage</span>
+              <span>Automated Retainer Billing & GST Invoices</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Instant GST Invoices & Payment Links</span>
+              <span>Branded Client Portals & WhatsApp Updates</span>
             </div>
           </div>
         </div>
@@ -589,14 +589,14 @@ export default function GarageLandingPage() {
           
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono uppercase tracking-widest mb-3">
-              <Car className="w-3.5 h-3.5" />
+              <Briefcase className="w-3.5 h-3.5" />
               <span>Who is Garage CRM for?</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Tailored for Every Segment of the Auto Repair Industry
+              Engineered for Modern Agencies, Studios & B2B Businesses
             </h2>
             <p className="text-sm sm:text-base text-zinc-400 mt-4 leading-relaxed">
-              Explore how 6 distinct workshop categories use Garage CRM to eliminate revenue leakage, streamline technician workflow, and drive 5-star customer retention.
+              Discover how 6 distinct business categories use Garage CRM to capture high-value clients, accelerate project delivery, and automate monthly revenue.
             </p>
           </div>
 
@@ -647,7 +647,7 @@ export default function GarageLandingPage() {
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-white/10">
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-2">
-                    Industry Segment #{activeCaseStudy + 1}
+                    Business Vertical #{activeCaseStudy + 1}
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
                     {caseStudies[activeCaseStudy].title}
@@ -696,7 +696,7 @@ export default function GarageLandingPage() {
 
                 <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/15">
                   <div className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Wrench className="w-4 h-4" />
+                    <Workflow className="w-4 h-4" />
                     <span>How Garage CRM Solves It</span>
                   </div>
                   <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -737,20 +737,20 @@ export default function GarageLandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-2">Integrated Platform</div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-              Everything Needed to Run & Scale Your Workshop
+              Everything Needed to Run & Scale Your Business
             </h2>
             <p className="text-sm text-zinc-400 mt-3">
-              One connected database for vehicles, job cards, mechanics, inventory, and customer retention.
+              One connected workspace for leads, proposals, project sprints, team tasks, and automated billing.
             </p>
 
             {/* Category Filter Pills */}
             <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
               {[
                 { id: "ALL", label: "All Modules" },
-                { id: "OPS", label: "Bay Operations & Jobs" },
-                { id: "CRM", label: "CRM & WhatsApp" },
-                { id: "FINANCE", label: "GST Billing & Finance" },
-                { id: "HR", label: "Mechanics & Team" },
+                { id: "SALES", label: "Sales & Proposals" },
+                { id: "PROJECTS", label: "Projects & Portals" },
+                { id: "FINANCE", label: "Retainers & GST Invoicing" },
+                { id: "HR", label: "Team & Payroll" },
               ].map(cat => (
                 <button
                   key={cat.id}
@@ -824,25 +824,25 @@ export default function GarageLandingPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Zero Customer Phone Calls</span>
+                <span>Instant Client Communications</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-                Keep Car Owners Informed with Automated WhatsApp Updates
+                Close Deals & Update Clients with Automated WhatsApp Alerts
               </h2>
 
               <p className="text-sm text-zinc-400 leading-relaxed mb-8">
-                90% of customer phone calls are just asking <em>"Is my vehicle ready?"</em>. Garage CRM automatically triggers WhatsApp alerts for intake, estimate approvals, live stage completion, and digital payment links.
+                Keep client founders and decision makers informed instantly. Garage CRM automatically triggers WhatsApp alerts for interactive proposal reviews, milestone completion, and digital invoice payment links.
               </p>
 
               {/* Action Buttons to test simulator */}
               <div className="space-y-3">
                 <button
-                  onClick={() => handleSimulateWhatsAppAction("SERVICE_UPDATE")}
+                  onClick={() => handleSimulateWhatsAppAction("PROPOSAL")}
                   disabled={simulatingWhatsApp}
                   className="w-full p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left flex items-center justify-between text-xs font-semibold text-white transition-colors"
                 >
-                  <span>1. Simulate "Service Stage Completed" Alert</span>
+                  <span>1. Simulate "Proposal Ready for Review" Alert</span>
                   <Send className="w-4 h-4 text-emerald-400" />
                 </button>
 
@@ -851,16 +851,16 @@ export default function GarageLandingPage() {
                   disabled={simulatingWhatsApp}
                   className="w-full p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left flex items-center justify-between text-xs font-semibold text-white transition-colors"
                 >
-                  <span>2. Simulate "GST Invoice & UPI Payment Link"</span>
+                  <span>2. Simulate "Retainer Invoice & UPI Payment Link"</span>
                   <DollarSign className="w-4 h-4 text-blue-400" />
                 </button>
 
                 <button
-                  onClick={() => handleSimulateWhatsAppAction("REMINDER")}
+                  onClick={() => handleSimulateWhatsAppAction("MILESTONE")}
                   disabled={simulatingWhatsApp}
                   className="w-full p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left flex items-center justify-between text-xs font-semibold text-white transition-colors"
                 >
-                  <span>3. Simulate "6-Month Periodic Service Due" Reminder</span>
+                  <span>3. Simulate "Project Sprint Milestone Completed"</span>
                   <Calendar className="w-4 h-4 text-purple-400" />
                 </button>
               </div>
@@ -873,11 +873,11 @@ export default function GarageLandingPage() {
                 {/* WhatsApp Chat Header */}
                 <div className="bg-[#1f2c34] p-3.5 flex items-center justify-between border-b border-white/5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
-                      AP
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
+                      GA
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">Apex Motors Official</div>
+                      <div className="text-xs font-bold text-white">Garage Business CRM</div>
                       <div className="text-[10px] text-emerald-400">Verified Business Account</div>
                     </div>
                   </div>
@@ -928,7 +928,7 @@ export default function GarageLandingPage() {
                 Proudly Engineered & Maintained by Grekam
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                Garage CRM is part of Grekam's high-performance enterprise SaaS suite, built for reliability, data security, and scalable multi-branch performance.
+                Garage CRM is part of Grekam's high-performance enterprise SaaS suite, built for reliability, data security, and scalable multi-tenant performance.
               </p>
             </div>
 
@@ -1000,10 +1000,10 @@ export default function GarageLandingPage() {
       <section className="py-24 relative bg-gradient-to-b from-[#060911] to-[#030712] border-t border-white/10 text-center px-6">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-6">
-            Ready to upgrade your workshop operations?
+            Ready to accelerate your business sales?
           </h2>
           <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Test the live garage dashboard in seconds. View job cards, inventory alerts, automated invoicing, and technician commissions in action.
+            Test the live agency and business dashboard in seconds. View Kanban sales pipelines, interactive client proposals, project deliverables, and automated billing in action.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
@@ -1073,7 +1073,7 @@ export default function GarageLandingPage() {
 
                   <h3 className="text-2xl font-bold text-white mb-2">Explore Garage CRM Demo</h3>
                   <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                    Enter your work email to receive live garage demo credentials instantly and access the full suite of Job Cards, WhatsApp alerts, and Billing.
+                    Enter your work email to receive live demo credentials instantly and access the full suite of Sales Pipelines, Proposals, Client Portals, and Invoicing.
                   </p>
 
                   <form onSubmit={handleDemoSubmit} className="space-y-4">
@@ -1084,19 +1084,19 @@ export default function GarageLandingPage() {
                         required
                         value={demoEmail}
                         onChange={(e) => setDemoEmail(e.target.value)}
-                        placeholder="you@yourgarage.com"
+                        placeholder="you@yourcompany.com"
                         className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-blue-500 transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Garage / Name</label>
+                        <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Company / Agency Name</label>
                         <input
                           type="text"
                           value={demoName}
                           onChange={(e) => setDemoName(e.target.value)}
-                          placeholder="Apex Motors"
+                          placeholder="Apex Media Studio"
                           className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-blue-500 transition-colors"
                         />
                       </div>
@@ -1150,7 +1150,7 @@ export default function GarageLandingPage() {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-zinc-400">Role:</span>
-                      <span className="text-zinc-300 font-semibold">Garage Owner / Super Admin</span>
+                      <span className="text-zinc-300 font-semibold">Business Admin / Agency Owner</span>
                     </div>
                   </div>
 

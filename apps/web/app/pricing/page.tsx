@@ -12,12 +12,14 @@ import {
   ShieldCheck,
   Zap,
   Building2,
-  Car,
-  Wrench,
   Users,
   CreditCard,
-  MessageSquareQuote,
-  Send
+  MessageSquare,
+  Send,
+  Workflow,
+  Briefcase,
+  Layers,
+  FileText
 } from "lucide-react"
 
 export default function PricingPage() {
@@ -46,7 +48,7 @@ export default function PricingPage() {
         body: JSON.stringify({
           type: "DEMO_ACCESS",
           recipientEmail: demoEmail,
-          recipientName: demoName || "Garage Partner",
+          recipientName: demoName || "Business Partner",
           details: { phone: demoPhone }
         })
       })
@@ -60,68 +62,68 @@ export default function PricingPage() {
 
   const plans = [
     {
-      name: "Starter Garage",
-      tagline: "Ideal for 1-2 bay independent mechanics & small repair shops.",
+      name: "Starter Studio",
+      tagline: "Ideal for boutique agencies, freelance consultants & solo service businesses.",
       monthlyPrice: 1899,
       yearlyPrice: 1499,
       badge: null,
       popular: false,
       ctaText: "Start Free Trial",
       features: [
-        "Up to 2 Service Bays & 3 Staff Logins",
-        "Digital Job Cards & Status Tracking",
-        "Vehicle History & Customer Database",
-        "Basic GST Invoicing & Estimates",
-        "Standard Parts Inventory (up to 500 SKUs)",
+        "Up to 3 Team Logins & 25 Active Client Accounts",
+        "Visual Kanban Sales Pipeline & Lead Tracking",
+        "Interactive Digital Client Proposals",
+        "Standard GST Invoicing & Payment Links",
+        "Basic Client File & Asset Storage",
         "Email Support & Knowledge Base",
       ],
       missing: [
-        "Automated WhatsApp Service Alerts",
-        "Barcode Scanning for Parts",
-        "Customer Digital Approvals on Web",
-        "Multi-Branch Centralized Reporting",
+        "Automated WhatsApp Client Notifications",
+        "Client Self-Service Branded Portal",
+        "Automated Recurring Retainer Invoicing",
+        "Custom Whitelabel Partner Domain",
       ]
     },
     {
-      name: "Growth Garage",
-      tagline: "For fast-scaling multi-bay garages looking to maximize sales & retention.",
+      name: "Growth Agency",
+      tagline: "For scaling digital agencies, dev shops & B2B teams looking to close deals faster.",
       monthlyPrice: 4299,
       yearlyPrice: 3499,
       badge: "Most Popular",
       popular: true,
       ctaText: "Get Growth Plan",
       features: [
-        "Up to 8 Service Bays & Unlimited Technicians",
-        "Automated WhatsApp Job Updates & Approvals",
-        "Instant Inspection Reports with Photo Upload",
-        "Advanced Parts Inventory & Low-Stock Alerts",
-        "Automated Service Due & Insurance Reminders",
-        "Labour Rate Cards & Technician Productivity",
-        "Customer Review Automation (Google 5★)",
+        "Unlimited Team Members & 150 Active Clients",
+        "Automated WhatsApp Alerts (Proposals & Invoices)",
+        "Interactive Proposals with E-Signatures",
+        "Automated Monthly Recurring Retainer Billing",
+        "Client Self-Service Web Portal",
+        "Team Task & Sprint Milestone Tracking",
+        "Team Time Logs & Commission Calculations",
         "Priority WhatsApp & Phone Support",
       ],
       missing: [
-        "Multi-Branch Centralized Reporting",
-        "Custom Whitelabel Partner Branding",
+        "Multi-Organization Centralized Switcher",
+        "Custom Whitelabel Partner Domain & Logo",
       ]
     },
     {
-      name: "Pro Workshop",
-      tagline: "For busy auto centers, detailing studios & multi-location repair hubs.",
+      name: "Pro Enterprise",
+      tagline: "For high-volume digital firms, creative production houses & multi-brand agencies.",
       monthlyPrice: 8499,
       yearlyPrice: 6999,
       badge: "High Performance",
       popular: false,
       ctaText: "Upgrade to Pro",
       features: [
-        "Unlimited Service Bays & Workstations",
-        "Multi-Branch Support (up to 3 locations)",
-        "Full HR & Payroll: Bio-metric & Kiosk Clock-in",
-        "Commission & Incentive Tracking per Job",
-        "Advanced P&L, Expense & Vendor Management",
-        "Customer Web Portal (Track Live Job Progress)",
-        "Dedicated Account Manager & Onboarding",
+        "Unlimited Client Accounts & Team Members",
+        "Multi-Organization & Multi-Brand Switcher",
+        "Full HR & Payroll: Attendance, Time & Commissions",
+        "Advanced P&L, Expense Ledgers & Profit Analytics",
+        "Custom Contract Templates & Document Vault",
         "Custom Workflow Automations & API Access",
+        "Dedicated Account Manager & Onboarding",
+        "99.9% Uptime SLA Guarantee",
       ],
       missing: [
         "Custom Whitelabel Reseller Domain",
@@ -129,17 +131,17 @@ export default function PricingPage() {
     },
     {
       name: "Whitelabel Partner",
-      tagline: "For fleet operators, dealership networks & IT resellers offering custom CRM.",
+      tagline: "For IT resellers, SaaS distributors & networks offering CRM under their own brand.",
       monthlyPrice: 17999,
       yearlyPrice: 14999,
       badge: "White-Label",
       popular: false,
       ctaText: "Partner With Us",
       features: [
-        "Unlimited Locations & Sub-Garages",
-        "100% Custom Domain & Brand Logo",
+        "Unlimited Sub-Tenant Client Workspaces",
+        "100% Custom Domain & Proprietary Branding",
         "Wholesale Reseller Dashboard & Margin Control",
-        "Automated Client Provisioning & Invoicing",
+        "Automated Tenant Provisioning & Billing",
         "Custom SMS & WhatsApp Gateway Integration",
         "Full Source Config & SLA Guarantee",
         "24/7 VIP Engineering Escalation",
@@ -150,60 +152,59 @@ export default function PricingPage() {
 
   const comparisonCategories = [
     {
-      category: "Job Cards & Bay Operations",
+      category: "CRM, Leads & Sales Pipeline",
       features: [
-        { name: "Digital Job Cards creation", starter: true, growth: true, pro: true, enterprise: true },
-        { name: "Vehicle Damage Markings & Photos", starter: true, growth: true, pro: true, enterprise: true },
-        { name: "Bay & Technician Allocation", starter: "Basic", growth: "Advanced", pro: "Unlimited", enterprise: "Unlimited" },
-        { name: "Live Service Stage Tracking", starter: true, growth: true, pro: true, enterprise: true },
-        { name: "Technician Time Logging", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Visual Kanban Sales Pipeline", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Interactive Web Proposals", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Digital E-Signatures & 1-Click Approvals", starter: "Basic", growth: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
+        { name: "Automated WhatsApp Deal Alerts", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Lead Source Attribution & Analytics", starter: false, growth: true, pro: true, enterprise: true },
       ]
     },
     {
-      category: "Customer CRM & Communication",
+      category: "Project Delivery & Client Portals",
       features: [
-        { name: "Customer & Vehicle Profile History", starter: true, growth: true, pro: true, enterprise: true },
-        { name: "Automated WhatsApp Job Updates", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "1-Click Digital Estimate Approvals", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Automated Service Due & Insurance Alerts", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Automated Google Review Follow-ups", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Customer Self-Service Web Portal", starter: false, growth: false, pro: true, enterprise: true },
+        { name: "Client Account History & Contacts", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Task & Sprint Milestone Boards", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Branded Client Self-Service Portal", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Client Asset Vault & File Storage", starter: "5 GB", growth: "50 GB", pro: "Unlimited", enterprise: "Unlimited" },
+        { name: "Revision Rounds & Scope Change Logs", starter: false, growth: true, pro: true, enterprise: true },
       ]
     },
     {
-      category: "Inventory, Parts & Billing",
+      category: "Invoicing, Retainers & Finance",
       features: [
-        { name: "Spare Parts Catalog & Reorder Alerts", starter: "500 SKUs", growth: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
-        { name: "GST Compliant Invoices & Estimates", starter: true, growth: true, pro: true, enterprise: true },
-        { name: "Vendor Purchase Orders & Stock-In", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Barcode & QR Scanning", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Margin & Profit Analysis per Job", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "GST Tax Invoices & Instant UPI Links", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Automated Monthly Retainer Invoicing", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Client Ledger & Outstanding Tracking", starter: true, growth: true, pro: true, enterprise: true },
+        { name: "Vendor & Expense Management", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Profit & Loss (P&L) Analytics per Client", starter: false, growth: true, pro: true, enterprise: true },
       ]
     },
     {
-      category: "Staff, HR & Business Management",
+      category: "Team HR & Whitelabel Controls",
       features: [
-        { name: "Staff Roles & Access Permissions", starter: "3 Users", growth: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
-        { name: "Technician Commission Tracking", starter: false, growth: true, pro: true, enterprise: true },
-        { name: "Attendance, Leaves & Kiosk Clock-in", starter: false, growth: false, pro: true, enterprise: true },
-        { name: "Multi-Branch Central Reporting", starter: false, growth: false, pro: "Up to 3", enterprise: "Unlimited" },
-        { name: "Custom Whitelabel Branding & Domain", starter: false, growth: false, pro: false, enterprise: true },
+        { name: "Team Members & Role Permissions", starter: "3 Users", growth: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
+        { name: "Time Tracking & Sales Commissions", starter: false, growth: true, pro: true, enterprise: true },
+        { name: "Attendance, Leaves & Payroll Reports", starter: false, growth: false, pro: true, enterprise: true },
+        { name: "Multi-Brand Organization Switcher", starter: false, growth: false, pro: "Up to 5", enterprise: "Unlimited" },
+        { name: "Custom Whitelabel Domain & Logo", starter: false, growth: false, pro: false, enterprise: true },
       ]
     }
   ]
 
   const faqs = [
     {
-      q: "Do I need special hardware to run Garage CRM?",
-      a: "No special hardware is required. Garage CRM is a 100% cloud platform that works smoothly on any device — smartphones, tablets, iPads, laptops, or desktop computers with an internet connection."
+      q: "What types of businesses use Garage CRM?",
+      a: "Garage CRM is built for modern digital agencies, web design & development studios, marketing firms, consulting advisories, creative production houses, and B2B service companies that need a streamlined platform to manage leads, proposals, project delivery, and billing."
     },
     {
       q: "How does the automated WhatsApp notification system work?",
-      a: "Garage CRM connects with WhatsApp Cloud API to trigger instant status updates, digital estimate approvals, invoice PDFs, and service due reminders directly to your customers' WhatsApp numbers."
+      a: "Garage CRM integrates with WhatsApp Cloud API to trigger automated alerts for proposal reviews, digital client sign-offs, sprint milestone completions, and monthly retainer invoice payment links."
     },
     {
-      q: "Can I migrate my existing customer and parts data from Excel or another software?",
-      a: "Yes! Our team provides free bulk data migration for your customer list, vehicle numbers, and spare parts inventory from Excel/CSV spreadsheets."
+      q: "Can I migrate my existing clients and deals from HubSpot, Notion, or Excel?",
+      a: "Yes! Our platform provides seamless CSV/Excel bulk import tools for client contacts, pipeline deals, and financial ledgers."
     },
     {
       q: "Is there any setup fee or long-term lock-in contract?",
@@ -211,7 +212,7 @@ export default function PricingPage() {
     },
     {
       q: "How does the 18% GST calculation work?",
-      a: "All displayed subscription fees are exclusive of 18% GST. You will receive a 100% compliant GST tax invoice immediately upon payment so you can claim full Input Tax Credit (ITC)."
+      a: "All displayed subscription fees are exclusive of 18% GST. You will receive a 100% compliant GST tax invoice immediately upon payment with full Input Tax Credit (ITC) eligibility."
     }
   ]
 
@@ -232,7 +233,7 @@ export default function PricingPage() {
                 <span className="text-xl font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">Garage</span>
                 <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 tracking-wider">CRM</span>
               </div>
-              <span className="text-[10px] text-zinc-400 font-normal tracking-wide">Operations & Sales Growth</span>
+              <span className="text-[10px] text-zinc-400 font-normal tracking-wide">Business & Agency Growth</span>
             </div>
           </Link>
 
@@ -252,27 +253,27 @@ export default function PricingPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="absolute top-full left-0 w-72 p-3 bg-[#0c1220]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl z-50 flex flex-col gap-1"
+                    className="absolute top-full left-0 w-80 p-3 bg-[#0c1220]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl z-50 flex flex-col gap-1"
                   >
                     <Link href="/#case-studies" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Car className="w-5 h-5 text-blue-400 mt-0.5" />
+                      <Briefcase className="w-5 h-5 text-blue-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">6 Industry Case Studies</div>
-                        <div className="text-[11px] text-zinc-400">See how garages grow sales</div>
+                        <div className="text-[11px] text-zinc-400">Agencies, Tech Studios & Consulting</div>
                       </div>
                     </Link>
                     <Link href="/#features" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Wrench className="w-5 h-5 text-indigo-400 mt-0.5" />
+                      <Workflow className="w-5 h-5 text-indigo-400 mt-0.5" />
                       <div>
-                        <div className="text-xs font-semibold text-white">Job Cards & Workflow</div>
-                        <div className="text-[11px] text-zinc-400">Live bay tracking & parts</div>
+                        <div className="text-xs font-semibold text-white">Sales Pipeline & Proposals</div>
+                        <div className="text-[11px] text-zinc-400">Kanban deals & 1-click approvals</div>
                       </div>
                     </Link>
                     <Link href="/#features" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <MessageSquareQuote className="w-5 h-5 text-emerald-400 mt-0.5" />
+                      <MessageSquare className="w-5 h-5 text-emerald-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">WhatsApp Automations</div>
-                        <div className="text-[11px] text-zinc-400">Instant job updates & approvals</div>
+                        <div className="text-[11px] text-zinc-400">Client updates & invoice alerts</div>
                       </div>
                     </Link>
                   </motion.div>
@@ -361,12 +362,12 @@ export default function PricingPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6">
             Choose the plan that fits your <br className="hidden md:inline" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
-              garage growth goals.
+              business growth goals.
             </span>
           </h1>
 
           <p className="text-base md:text-lg text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Everything you need to manage customer job cards, streamline technician workflow, automate WhatsApp approvals, and boost workshop sales.
+            Everything you need to capture sales leads, send interactive client proposals, streamline project sprints, and automate recurring monthly revenue.
           </p>
 
           {/* Monthly / Yearly Switch */}
@@ -471,7 +472,7 @@ export default function PricingPage() {
                     <span>{plan.ctaText}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
-                  <p className="text-[10px] text-center text-zinc-500 mt-2">Instant demo & setup support</p>
+                  <p className="text-[10px] text-center text-zinc-500 mt-2">Instant demo & fast setup</p>
                 </div>
               </div>
             )
@@ -487,7 +488,7 @@ export default function PricingPage() {
             Detailed Plan Comparison
           </h2>
           <p className="text-sm text-zinc-400 mt-3">
-            Compare all features across Starter, Growth, Pro, and Whitelabel Partner editions.
+            Compare all features across Starter Studio, Growth Agency, Pro Enterprise, and Whitelabel Partner editions.
           </p>
         </div>
 
@@ -639,7 +640,7 @@ export default function PricingPage() {
 
                   <h3 className="text-2xl font-bold text-white mb-2">Explore Garage CRM Demo</h3>
                   <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                    Enter your email to receive live garage demo credentials instantly and access the full suite of Job Cards, WhatsApp alerts, and Billing.
+                    Enter your work email to receive live demo credentials instantly and access the full suite of Sales Pipelines, Proposals, Client Portals, and Invoicing.
                   </p>
 
                   <form onSubmit={handleDemoSubmit} className="space-y-4">
@@ -650,19 +651,19 @@ export default function PricingPage() {
                         required
                         value={demoEmail}
                         onChange={(e) => setDemoEmail(e.target.value)}
-                        placeholder="you@yourgarage.com"
+                        placeholder="you@yourcompany.com"
                         className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-blue-500 transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Garage / Name</label>
+                        <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Company / Agency Name</label>
                         <input
                           type="text"
                           value={demoName}
                           onChange={(e) => setDemoName(e.target.value)}
-                          placeholder="Apex Motors"
+                          placeholder="Apex Media Studio"
                           className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-blue-500 transition-colors"
                         />
                       </div>
@@ -716,7 +717,7 @@ export default function PricingPage() {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-zinc-400">Role:</span>
-                      <span className="text-zinc-300 font-semibold">Garage Owner / Super Admin</span>
+                      <span className="text-zinc-300 font-semibold">Business Admin / Agency Owner</span>
                     </div>
                   </div>
 

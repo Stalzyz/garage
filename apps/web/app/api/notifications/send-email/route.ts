@@ -14,12 +14,12 @@ export async function POST(req: Request) {
     switch (type) {
       case "DEMO_ACCESS":
         subject = `Your Garage CRM Live Demo Credentials 🚀`
-        templatePreview = `Hello ${recipientName || "Garage Owner"},\n\nThank you for requesting live access to Garage CRM!\n\nHere are your instant demo login credentials:\n\n🔗 Login Portal: https://garage.grekam.in/auth/login\n📧 Username / Email: demo@garage.in\n🔑 Password: Demo2023\n\nInside the demo you can test Job Cards, WhatsApp updates, Inventory, Invoices, and Analytics.\n\nBest regards,\nGarage CRM Team`
+        templatePreview = `Hello ${recipientName || "Business Leader"},\n\nThank you for requesting live access to Garage CRM!\n\nHere are your instant demo login credentials:\n\n🔗 Login Portal: https://garage.grekam.in/auth/login\n📧 Username / Email: demo@garage.in\n🔑 Password: Demo2023\n\nInside the demo you can test Visual Sales Pipelines, Interactive Proposals, Client Portals, Recurring Retainers, GST Invoices, and Team Management.\n\nBest regards,\nGarage CRM Team`
         break
 
       case "WELCOME_GARAGE":
-        subject = `Welcome to Grekam Garage OS - ${details?.garageName || "Your Garage"}`
-        templatePreview = `Hello ${recipientName || "Garage Owner"},\n\nYour garage workspace "${details?.garageName || "Your Garage"}" has been successfully provisioned on Grekam Garage OS.\n\nLogin URL: ${details?.loginUrl || "http://localhost:8888/auth/login"}\nPlan: ${details?.plan || "Growth Garage"}\n\nBest regards,\nGrekam Platform Team`
+        subject = `Welcome to Garage CRM - ${details?.garageName || "Your Workspace"}`
+        templatePreview = `Hello ${recipientName || "Workspace Admin"},\n\nYour organization workspace "${details?.garageName || "Your Workspace"}" has been successfully provisioned on Garage CRM.\n\nLogin URL: ${details?.loginUrl || "https://garage.grekam.in/auth/login"}\nPlan: ${details?.plan || "Growth Agency"}\n\nBest regards,\nGarage CRM Platform Team`
         break
 
       case "RESELLER_PAYOUT":
