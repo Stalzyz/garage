@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   const session = await auth()
   
   if (!session?.user) {
-    redirect("/auth/login")
+    redirect("https://agency.grekam.in/auth/login")
   }
 
   // Restrict CLIENT users to their dedicated portal
