@@ -20,6 +20,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
         
         // Demo / E2E Backdoors (work instantly without DB requirement)
+        if (credentials.email === 'demo@garage.in' && credentials.password === 'Demo2023') {
+          return {
+            id: 'demo-garage-user-id',
+            name: 'Demo Garage Owner',
+            email: 'demo@garage.in',
+            role: 'ADMIN',
+            customRole: null,
+            permissions: []
+          };
+        }
+
         if (credentials.email === 'admin@grekam.com' && credentials.password === 'admin123') {
           return {
             id: 'demo-super-admin-id',
