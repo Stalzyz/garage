@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+expect "# "
+
+send "cat /etc/nginx/sites-available/atlas\r"
+expect "# "
+
+send "cat /etc/nginx/sites-available/garage.grekam.in\r"
+expect "# "
+
+send "exit\r"
+expect eof

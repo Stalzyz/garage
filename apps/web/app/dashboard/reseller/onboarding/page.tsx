@@ -498,7 +498,7 @@ export default function ResellerOnboardingPage() {
               onClick={() => {
                 setStep(1)
                 setFormData({
-                  garageName: "", ownerFirstName: "", ownerLastName: "", email: "", phone: "", subdomain: "", address: "",
+                  garageName: "", ownerFirstName: "", ownerLastName: "", email: "", phone: "", password: "", subdomain: "", address: "",
                   selectedPlan: "Growth Garage", billingCycle: "Yearly", price: 29999, resellerCommissionRate: 25,
                   customLogoUrl: "", brandColor: "#2563eb", customDomain: "", tempPassword: "", tenantId: ""
                 })

@@ -22,7 +22,7 @@ import {
   PlusCircle,
 } from "lucide-react"
 
-export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "ADMIN" | "GARAGE_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN"
+export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "ADMIN" | "GARAGE_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN" | "STUDENT"
 
 export interface NavItem {
   title: string

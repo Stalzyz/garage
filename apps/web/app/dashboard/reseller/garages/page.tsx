@@ -126,6 +126,7 @@ export default function ResellerGaragesPage() {
         ownerName: "",
         email: "",
         phone: "",
+        password: "",
         plan: "Growth Garage",
         startDate: new Date().toISOString().split("T")[0],
         expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],

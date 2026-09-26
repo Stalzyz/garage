@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 600
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+
+expect "# "
+send "cd /var/www/garage_saas && git pull origin main\r"
+
+expect "# "
+send "export PUPPETEER_SKIP_DOWNLOAD=true && pnpm build:all 2>&1 | tail -80\r"
+
+set timeout 600
+expect "# "
+
+send "pm2 restart garage-api garage-web && pm2 status\r"
+expect "# "
+
+send "sleep 5 && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4000/api/v1/health && echo ' <- API health'\r"
+expect "# "
+
+send "sleep 2 && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3005 && echo ' <- WEB health'\r"
+expect "# "
+
+send "exit\r"
+expect eof

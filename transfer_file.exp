@@ -3,9 +3,10 @@ set timeout 120
 set host "200.97.163.236"
 set user "root"
 set password "Photoshop09@"
-set cmd [lindex $argv 0]
+set src [lindex $argv 0]
+set dest [lindex $argv 1]
 
-spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host $cmd
+spawn scp -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $src $user@$host:$dest
 expect {
     "password:" {
         send "$password\r"

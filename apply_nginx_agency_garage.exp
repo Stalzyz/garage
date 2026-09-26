@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Write site config for agency.grekam.in & garage.grekam.in with port 80 and 443
+send "cat > /etc/nginx/sites-available/garage.grekam.in << 'NGINXEOF'\nserver {\n    listen 80;\n    listen 443 ssl;\n    server_name garage.grekam.in www.garage.grekam.in agency.grekam.in www.agency.grekam.in;\n\n    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;\n    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;\n\n    client_max_body_size 100M;\n\n    # Restore Cloudflare real visitor IPs\n    set_real_ip_from 103.21.244.0/22;\n    set_real_ip_from 103.22.200.0/22;\n    set_real_ip_from 103.31.4.0/22;\n    set_real_ip_from 104.16.0.0/13;\n    set_real_ip_from 104.24.0.0/14;\n    set_real_ip_from 108.162.192.0/18;\n    set_real_ip_from 131.0.72.0/22;\n    set_real_ip_from 141.101.64.0/18;\n    set_real_ip_from 162.158.0.0/15;\n    set_real_ip_from 172.64.0.0/13;\n    set_real_ip_from 173.245.48.0/20;\n    set_real_ip_from 188.114.96.0/20;\n    set_real_ip_from 190.93.240.0/20;\n    set_real_ip_from 197.234.240.0/22;\n    set_real_ip_from 198.41.128.0/17;\n    real_ip_header CF-Connecting-IP;\n\n    location /health {\n        proxy_pass http://127.0.0.1:4000/health;\n        proxy_set_header Host \$host;\n    }\n\n    location /api/v1/ {\n        proxy_pass http://127.0.0.1:4000/api/v1/;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade \$http_upgrade;\n        proxy_set_header Connection 'upgrade';\n        proxy_set_header Host \$host;\n        proxy_set_header X-Real-IP \$remote_addr;\n        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto https;\n        proxy_read_timeout 60s;\n    }\n\n    location /uploads/ {\n        alias /var/www/garage_saas/apps/api/uploads/;\n        expires 30d;\n        add_header Cache-Control public;\n    }\n\n    location / {\n        proxy_pass http://127.0.0.1:3005;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade \$http_upgrade;\n        proxy_set_header Connection 'upgrade';\n        proxy_set_header Host \$host;\n        proxy_set_header X-Real-IP \$remote_addr;\n        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto https;\n        proxy_read_timeout 60s;\n    }\n}\nNGINXEOF\r"
+expect "# "
+
+# Link agency.grekam.in as well
+send "ln -sf /etc/nginx/sites-available/garage.grekam.in /etc/nginx/sites-enabled/agency.grekam.in\r"
+expect "# "
+
+# Test configuration and reload
+send "nginx -t && systemctl reload nginx && echo 'Nginx updated successfully'\r"
+expect "# "
+
+# Test local HTTP header requests to verify matching
+send "curl -s -o /dev/null -w '%{http_code}' -H 'Host: garage.grekam.in' http://127.0.0.1:80 && echo ' <- garage.grekam.in HTTP'\r"
+expect "# "
+
+send "curl -s -k -o /dev/null -w '%{http_code}' -H 'Host: garage.grekam.in' https://127.0.0.1:443 && echo ' <- garage.grekam.in HTTPS'\r"
+expect "# "
+
+send "curl -s -k -o /dev/null -w '%{http_code}' -H 'Host: agency.grekam.in' https://127.0.0.1:443 && echo ' <- agency.grekam.in HTTPS'\r"
+expect "# "
+
+send "exit\r"
+expect eof

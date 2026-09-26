@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+
+expect "# "
+send "echo '=== garage-api PM2 logs ===' && pm2 logs garage-api --lines 30 --nostream 2>&1\r"
+expect "# "
+
+send "echo '=== garage-web PM2 logs ===' && pm2 logs garage-web --lines 30 --nostream 2>&1\r"
+expect "# "
+
+send "echo '=== Check .env on VPS ===' && cat /var/www/garage_saas/.env 2>&1 | head -30\r"
+expect "# "
+
+send "echo '=== Check API routes ===' && curl -s http://127.0.0.1:4000/health && echo '' && curl -s http://127.0.0.1:4000/ 2>&1 | head -5\r"
+expect "# "
+
+send "echo '=== ecosystem.config.js ===' && cat /var/www/garage_saas/ecosystem.config.js\r"
+expect "# "
+
+send "exit\r"
+expect eof

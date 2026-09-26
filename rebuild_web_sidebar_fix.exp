@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set timeout 300
+spawn ssh root@200.97.163.236
+expect {
+    "passphrase" { send "\r"; exp_continue }
+    "password:" { send "Photoshop09@\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+expect "#"
+send "cd /var/www/garage_saas && git pull origin main\r"
+expect "#"
+send "cd /var/www/garage_saas/apps/web && npm run build\r"
+expect "#"
+send "cp -r /var/www/garage_saas/apps/web/.next/static /var/www/garage_saas/apps/web/.next/standalone/apps/web/.next/\r"
+expect "#"
+send "cp -r /var/www/garage_saas/apps/web/public /var/www/garage_saas/apps/web/.next/standalone/apps/web/\r"
+expect "#"
+send "pm2 reload garage-web\r"
+expect "#"
+send "pm2 status\r"
+expect "#"
+send "exit\r"
+expect eof

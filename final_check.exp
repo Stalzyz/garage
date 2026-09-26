@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Test web (307 = login redirect = HEALTHY)
+send "curl -v http://127.0.0.1:3005 2>&1 | grep -E '(< HTTP|Location|200|307|500)'\r"
+expect "# "
+
+# Test API root
+send "curl -s http://127.0.0.1:4000/health && echo ' <- API health'\r"
+expect "# "
+
+# Check nginx config for garage
+send "cat /etc/nginx/sites-available/garage.grekam.in\r"
+expect "# "
+
+# Check nginx is running
+send "systemctl status nginx --no-pager | head -5\r"
+expect "# "
+
+# Check DNS resolution for garage.grekam.in
+send "host garage.grekam.in 2>&1 | head -5\r"
+expect "# "
+
+# Try certbot again - only for the main domain
+send "certbot certonly --nginx -d garage.grekam.in --non-interactive --agree-tos --email admin@grekam.in 2>&1 | tail -20\r"
+expect "# "
+
+send "exit\r"
+expect eof

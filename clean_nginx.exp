@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+expect "# "
+
+send "rm -f /etc/nginx/sites-enabled/agency.grekam.in\r"
+expect "# "
+
+send "nginx -t && systemctl reload nginx && echo 'Clean reload OK'\r"
+expect "# "
+
+send "curl -s -k -o /dev/null -w '%{http_code}' -H 'Host: garage.grekam.in' https://127.0.0.1:443 && echo ' <- garage HTTPS'\r"
+expect "# "
+
+send "curl -s -k -o /dev/null -w '%{http_code}' -H 'Host: agency.grekam.in' https://127.0.0.1:443 && echo ' <- agency HTTPS'\r"
+expect "# "
+
+send "exit\r"
+expect eof

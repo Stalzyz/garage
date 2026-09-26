@@ -1,0 +1,75 @@
+#!/usr/bin/expect -f
+set timeout 120
+set host "200.97.163.236"
+set user "root"
+set password "Photoshop09@"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PubkeyAuthentication=no $user@$host
+
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Run node script on VPS to insert Super Admin and Admin with hashed password 'Photoshop09@'
+send {node -e '
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
+const prisma = new PrismaClient();
+
+async function main() {
+  const hash = await bcrypt.hash("Photoshop09@", 10);
+  
+  const superAdmin = await prisma.user.upsert({
+    where: { email: "admin@grekam.in" },
+    update: { passwordHash: hash, status: "ACTIVE", role: "SUPER_ADMIN" },
+    create: {
+      email: "admin@grekam.in",
+      passwordHash: hash,
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+      firstName: "Super",
+      lastName: "Admin"
+    }
+  });
+  console.log("Created/Updated Super Admin:", superAdmin.email);
+
+  const admin = await prisma.user.upsert({
+    where: { email: "garage.admin@grekam.in" },
+    update: { passwordHash: hash, status: "ACTIVE", role: "ADMIN" },
+    create: {
+      email: "garage.admin@grekam.in",
+      passwordHash: hash,
+      role: "ADMIN",
+      status: "ACTIVE",
+      firstName: "Garage",
+      lastName: "Manager"
+    }
+  });
+  console.log("Created/Updated Admin:", admin.email);
+
+  const reseller = await prisma.user.upsert({
+    where: { email: "reseller@grekam.in" },
+    update: { passwordHash: hash, status: "ACTIVE", role: "VENDOR" },
+    create: {
+      email: "reseller@grekam.in",
+      passwordHash: hash,
+      role: "VENDOR",
+      status: "ACTIVE",
+      firstName: "Reseller",
+      lastName: "Partner"
+    }
+  });
+  console.log("Created/Updated Reseller:", reseller.email);
+}
+
+main().catch(console.error).finally(() => prisma.$disconnect());
+'
+}
+expect "# "
+
+# Verify in Postgres DB
+send "PGPASSWORD='garage_pass_2026' psql -h localhost -U garage -d garage -c 'SELECT email, role, status FROM users;'\r"
+expect "# "
+
+send "exit\r"
+expect eof
