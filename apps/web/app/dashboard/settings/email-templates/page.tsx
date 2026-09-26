@@ -26,8 +26,7 @@ import { toast } from "sonner"
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
   CLIENT: { label: "Client Notifications", icon: Building2, color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
-  STAFF: { label: "Staff & Operations", icon: Users, color: "text-amber-400 bg-amber-400/10 border-amber-400/20" },
-  STUDENT: { label: "Student & Academy", icon: GraduationCap, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" }
+  STAFF: { label: "Staff & Operations", icon: Users, color: "text-amber-400 bg-amber-400/10 border-amber-400/20" }
 }
 
 const SAMPLE_VARIABLES: Record<string, string> = {
@@ -184,6 +183,7 @@ export default function EmailTemplatesSettingsPage() {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false)
 
   const filteredTemplates = templates.filter(t => {
+    if (t.category === "STUDENT") return false
     if (activeCategory === "ALL") return true
     return t.category === activeCategory
   })

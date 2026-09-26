@@ -151,21 +151,6 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     ],
     bodyPattern: 'Hi {{1}},\n\nThis is a friendly reminder that invoice #{{2}} for {{3}} is due on {{4}}.\n\nPlease click below to complete the payment seamlessly.',
     buttons: ['Pay Invoice']
-  },
-  {
-    id: 'walkin_welcome_v1',
-    name: 'Academy Walk-In Welcome',
-    templateName: 'walkin_welcome_v1',
-    category: 'ACADEMY',
-    event: 'WALKIN_REGISTERED',
-    description: 'Greet new walk-in student visiting Grekam Academy',
-    headerType: 'NONE',
-    variables: [
-      { name: 'studentName', label: 'Student Name', placeholder: 'Alex Martin' },
-      { name: 'courseName', label: 'Course Interest', placeholder: 'Fullstack & AI Bootcamp' }
-    ],
-    bodyPattern: 'Welcome {{1}} to Grekam Academy!\n\nThank you for visiting our campus today to inquire about {{2}}.\n\nOur counselor will guide you through the syllabus & lab facilities.',
-    buttons: ['Contact Counselor']
   }
 ];
 

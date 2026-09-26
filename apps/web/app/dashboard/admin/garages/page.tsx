@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { 
-  Building2, Search, Eye, Edit, PauseCircle, PlayCircle, RefreshCw, LogIn, X, ShieldCheck
+  Building2, Search, Eye, Edit, PauseCircle, PlayCircle, RefreshCw, LogIn, X, ShieldCheck, Plus
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -73,7 +73,7 @@ export default function SuperAdminGaragesPage() {
 
       setGarages([created, ...garages])
       setShowAddModal(false)
-      setNewForm({ name: "", ownerName: "", email: "", phone: "", plan: "Growth Garage", type: "Direct" })
+      setNewForm({ name: "", ownerName: "", email: "", phone: "", password: "", plan: "Growth Garage", type: "Direct" })
 
       toast.success(`Garage "${created.name}" saved to DB! Login: ${newForm.email} | Pass: ${data.user?.tempPassword || "Garage@2026!"}`)
     } catch (error: any) {

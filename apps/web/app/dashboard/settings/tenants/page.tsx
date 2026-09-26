@@ -272,10 +272,10 @@ export default function TenantManagementPage() {
             <span className="p-2 rounded-xl bg-primary/10 text-primary">
               <Building2 className="w-6 h-6" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight">Super Admin Platform Control Center</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Tenants & Whitelabel Domains</h1>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Tenant Control Plane: Provision vendors, enforce white-labeling, verify custom domains, manage plans & audit support access.
+            Manage custom domain routing, SSL status, whitelabeling, and workspace tenant settings.
           </p>
         </div>
         <div className="flex items-center gap-3">

@@ -102,13 +102,13 @@ export default function UserFriendlySuperAdminPanel() {
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-black tracking-tight">SaaS Master Control Hub</h1>
+                <h1 className="text-3xl font-black tracking-tight">Vendor & Supplier Directory</h1>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300">
-                  Super Admin
+                  Suppliers & Partners
                 </span>
               </div>
               <p className="text-xs text-white/60 mt-1">
-                Manage stores, approve vendor payouts, review customer safety, and track revenue splits.
+                Manage spare parts suppliers, lubricant vendors, external partners, and purchase accounts.
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function UserFriendlySuperAdminPanel() {
             onClick={() => setIsAddVendorOpen(true)}
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold uppercase text-xs px-6 py-4 rounded-2xl shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-all hover:scale-105 active:scale-95"
           >
-            <Plus className="w-4 h-4" /> Add New Store / Partner
+            <Plus className="w-4 h-4" /> Add New Vendor / Supplier
           </button>
         </div>
 
