@@ -1,8 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import { DollarSign, Plus, Edit, Check, X, ShieldCheck } from "lucide-react"
+import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+
+const AVAILABLE_MODULES = [
+  "CRM & Sales (Leads, Proposals, Dialer)",
+  "Kanban Projects & Asset Hub",
+  "Finance, Invoicing & P&L",
+  "HR, Payroll & Attendance",
+  "Marketing Hub & Campaign Scheduler",
+  "CMS & Website Page Builder",
+  "Analytics & Intelligence",
+  "Support Helpdesk",
+  "Automations Engine",
+  "WhatsApp Automation & Alerts",
+  "Asset Drive Storage",
+  "White Label & Custom Domain",
+]
 
 export default function SuperAdminPlansPage() {
   const [showModal, setShowModal] = useState(false)
@@ -12,45 +27,101 @@ export default function SuperAdminPlansPage() {
     {
       id: "plan-1",
       name: "Basic Garage",
-      monthlyPrice: "1499",
-      yearlyPrice: "14999",
-      garageLimit: 1,
+      monthlyPrice: "1999",
+      monthlyOfferPrice: "1499",
+      yearlyPrice: "19999",
+      yearlyOfferPrice: "14999",
+      whitelabelMonthlyBasePrice: "999",
+      whitelabelYearlyBasePrice: "9999",
+      resellerCommissionRate: "20",
+      allowWhitelabelCustomMarkup: false,
       status: "Active",
-      features: ["Garage Customers (Up to 500)", "Staff Accounts (3)", "Storage (5 GB)", "Reports"],
+      modules: [
+        "CRM & Sales (Leads, Proposals, Dialer)",
+        "Finance, Invoicing & P&L",
+        "Support Helpdesk",
+        "Asset Drive Storage"
+      ],
     },
     {
       id: "plan-2",
       name: "Growth Garage",
-      monthlyPrice: "2999",
-      yearlyPrice: "29999",
-      garageLimit: 1,
+      monthlyPrice: "3999",
+      monthlyOfferPrice: "2999",
+      yearlyPrice: "39999",
+      yearlyOfferPrice: "29999",
+      whitelabelMonthlyBasePrice: "1999",
+      whitelabelYearlyBasePrice: "19999",
+      resellerCommissionRate: "25",
+      allowWhitelabelCustomMarkup: true,
       status: "Active",
-      features: ["Garage Customers (Up to 2500)", "Staff Accounts (10)", "Storage (15 GB)", "WhatsApp Automation", "Reports"],
+      modules: [
+        "CRM & Sales (Leads, Proposals, Dialer)",
+        "Kanban Projects & Asset Hub",
+        "Finance, Invoicing & P&L",
+        "HR, Payroll & Attendance",
+        "WhatsApp Automation & Alerts",
+        "Analytics & Intelligence",
+        "Support Helpdesk",
+        "Asset Drive Storage"
+      ],
     },
     {
       id: "plan-3",
       name: "Enterprise Garage",
-      monthlyPrice: "4999",
-      yearlyPrice: "49999",
-      garageLimit: 1,
+      monthlyPrice: "6999",
+      monthlyOfferPrice: "4999",
+      yearlyPrice: "69999",
+      yearlyOfferPrice: "49999",
+      whitelabelMonthlyBasePrice: "2999",
+      whitelabelYearlyBasePrice: "29999",
+      resellerCommissionRate: "30",
+      allowWhitelabelCustomMarkup: true,
       status: "Active",
-      features: ["Garage Customers (Unlimited)", "Staff Accounts (25)", "Storage (50 GB)", "WhatsApp Automation", "Reports", "White Label Custom Domain"],
+      modules: [
+        "CRM & Sales (Leads, Proposals, Dialer)",
+        "Kanban Projects & Asset Hub",
+        "Finance, Invoicing & P&L",
+        "HR, Payroll & Attendance",
+        "Marketing Hub & Campaign Scheduler",
+        "CMS & Website Page Builder",
+        "Analytics & Intelligence",
+        "Support Helpdesk",
+        "Automations Engine",
+        "WhatsApp Automation & Alerts",
+        "Asset Drive Storage",
+        "White Label & Custom Domain"
+      ],
     },
   ])
 
   const [form, setForm] = useState({
     name: "",
     monthlyPrice: "",
+    monthlyOfferPrice: "",
     yearlyPrice: "",
-    garageLimit: 1,
-    hasWhatsApp: true,
-    hasReports: true,
-    hasWhiteLabel: false,
+    yearlyOfferPrice: "",
+    whitelabelMonthlyBasePrice: "",
+    whitelabelYearlyBasePrice: "",
+    resellerCommissionRate: "25",
+    allowWhitelabelCustomMarkup: true,
+    selectedModules: [] as string[],
   })
 
   const handleOpenCreateModal = () => {
     setEditingPlanId(null)
-    setForm({ name: "", monthlyPrice: "", yearlyPrice: "", garageLimit: 1, hasWhatsApp: true, hasReports: true, hasWhiteLabel: false })
+    setForm({
+      name: "",
+      monthlyPrice: "",
+      monthlyOfferPrice: "",
+      yearlyPrice: "",
+      yearlyOfferPrice: "",
+      whitelabelMonthlyBasePrice: "",
+      whitelabelYearlyBasePrice: "",
+      resellerCommissionRate: "25",
+      allowWhitelabelCustomMarkup: true,
+      selectedModules: [...AVAILABLE_MODULES],
+    })
     setShowModal(true)
   }
 
@@ -58,28 +129,33 @@ export default function SuperAdminPlansPage() {
     setEditingPlanId(plan.id)
     setForm({
       name: plan.name,
-      monthlyPrice: plan.monthlyPrice.replace(/[^0-9]/g, ""),
-      yearlyPrice: plan.yearlyPrice.replace(/[^0-9]/g, ""),
-      garageLimit: plan.garageLimit || 1,
-      hasWhatsApp: plan.features.some((f: string) => f.includes("WhatsApp")),
-      hasReports: plan.features.some((f: string) => f.includes("Reports")),
-      hasWhiteLabel: plan.features.some((f: string) => f.includes("White Label")),
+      monthlyPrice: plan.monthlyPrice || "",
+      monthlyOfferPrice: plan.monthlyOfferPrice || "",
+      yearlyPrice: plan.yearlyPrice || "",
+      yearlyOfferPrice: plan.yearlyOfferPrice || "",
+      whitelabelMonthlyBasePrice: plan.whitelabelMonthlyBasePrice || "",
+      whitelabelYearlyBasePrice: plan.whitelabelYearlyBasePrice || "",
+      resellerCommissionRate: plan.resellerCommissionRate || "25",
+      allowWhitelabelCustomMarkup: plan.allowWhitelabelCustomMarkup ?? true,
+      selectedModules: plan.modules || [],
     })
     setShowModal(true)
   }
 
+  const handleModuleToggle = (mod: string) => {
+    setForm((prev) => {
+      const exists = prev.selectedModules.includes(mod)
+      if (exists) {
+        return { ...prev, selectedModules: prev.selectedModules.filter((m) => m !== mod) }
+      } else {
+        return { ...prev, selectedModules: [...prev.selectedModules, mod] }
+      }
+    })
+  }
+
   const handleSavePlan = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.monthlyPrice || !form.yearlyPrice) return toast.error("Please fill required fields")
-
-    const updatedFeatures = [
-      "Garage Customers",
-      "Staff Accounts",
-      "Storage",
-      ...(form.hasWhatsApp ? ["WhatsApp Automation"] : []),
-      ...(form.hasReports ? ["Reports"] : []),
-      ...(form.hasWhiteLabel ? ["White Label Custom Domain"] : []),
-    ]
+    if (!form.name || !form.yearlyPrice) return toast.error("Please fill required fields (Name and Yearly Price)")
 
     if (editingPlanId) {
       setPlans(plans.map(p => {
@@ -88,23 +164,33 @@ export default function SuperAdminPlansPage() {
             ...p,
             name: form.name,
             monthlyPrice: form.monthlyPrice,
+            monthlyOfferPrice: form.monthlyOfferPrice,
             yearlyPrice: form.yearlyPrice,
-            garageLimit: form.garageLimit,
-            features: updatedFeatures,
+            yearlyOfferPrice: form.yearlyOfferPrice,
+            whitelabelMonthlyBasePrice: form.whitelabelMonthlyBasePrice,
+            whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
+            resellerCommissionRate: form.resellerCommissionRate,
+            allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
+            modules: form.selectedModules,
           }
         }
         return p
       }))
-      toast.success(`Plan "${form.name}" updated successfully! New Pricing: ₹${Number(form.yearlyPrice).toLocaleString("en-IN")}/yr`)
+      toast.success(`Plan "${form.name}" updated successfully! Offer Price: ₹${Number(form.yearlyOfferPrice || form.yearlyPrice).toLocaleString("en-IN")}/yr + GST`)
     } else {
       const created = {
         id: `plan-${Math.floor(100 + Math.random() * 900)}`,
         name: form.name,
         monthlyPrice: form.monthlyPrice,
+        monthlyOfferPrice: form.monthlyOfferPrice,
         yearlyPrice: form.yearlyPrice,
-        garageLimit: form.garageLimit,
+        yearlyOfferPrice: form.yearlyOfferPrice,
+        whitelabelMonthlyBasePrice: form.whitelabelMonthlyBasePrice,
+        whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
+        resellerCommissionRate: form.resellerCommissionRate,
+        allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
         status: "Active",
-        features: updatedFeatures,
+        modules: form.selectedModules,
       }
       setPlans([...plans, created])
       toast.success(`Plan "${created.name}" created successfully!`)
@@ -148,171 +234,330 @@ export default function SuperAdminPlansPage() {
     <div className="p-8 space-y-6 bg-dash-bg-base text-white min-h-screen font-sans">
       
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Plans & Pricing</h1>
-          <p className="text-xs text-zinc-400 mt-1">Manage platform subscription plans, pricing tiers, and feature entitlements.</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Package & Pricing Controls</h1>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              Super Admin Plane
+            </span>
+          </div>
+          <p className="text-xs text-zinc-400 mt-1">Configure module entitlements, retail offer prices (+ GST), Whitelabel partner base wholesale costs, and Reseller commission splits.</p>
         </div>
 
         <button 
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5 py-3 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95"
         >
-          <Plus className="w-4 h-4" /> Create Plan
+          <Plus className="w-4 h-4" /> Create New Package
         </button>
       </div>
 
+      {/* Info Banner */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900 border border-white/10 flex items-start gap-3 text-xs">
+        <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+        <div className="space-y-1 text-zinc-300">
+          <p className="font-semibold text-white">Pricing & Partner Revenue Model:</p>
+          <p>• <strong className="text-amber-300">Standard Resellers:</strong> Sell packages at actual retail price and earn a percentage commission (e.g. 25%).</p>
+          <p>• <strong className="text-purple-300">Whitelabel Partners:</strong> Pay the fixed <span className="underline">Base Wholesale Price</span> set by Super Admin and can decide their own custom client pricing above the base price.</p>
+        </div>
+      </div>
+
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((p) => (
-          <div key={p.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4 relative flex flex-col justify-between hover:border-blue-500/30 transition-all">
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">{p.name}</h2>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => handleOpenEditModal(p)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-blue-600/30 text-zinc-300 hover:text-blue-400 transition-colors"
-                    title="Edit Package & Cost"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                  </button>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                    p.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400"
-                  }`}>
-                    {p.status}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {plans.map((p) => {
+          const effectiveYearly = p.yearlyOfferPrice || p.yearlyPrice
+          const effectiveMonthly = p.monthlyOfferPrice || p.monthlyPrice
+          return (
+            <div key={p.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 relative flex flex-col justify-between hover:border-blue-500/40 transition-all shadow-xl">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">{p.name}</h2>
+                    <span className="text-[10px] font-mono text-zinc-400">ID: {p.id}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => handleOpenEditModal(p)}
+                      className="p-2 rounded-xl bg-white/10 hover:bg-blue-600/30 text-zinc-200 hover:text-blue-300 border border-white/10 transition-colors"
+                      title="Edit Package & Cost"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-semibold ${
+                      p.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400"
+                    }`}>
+                      {p.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Retail Price Display */}
+                <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs text-zinc-400 font-medium">Yearly Package Cost:</span>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-blue-400">₹{Number(effectiveYearly).toLocaleString("en-IN")}</span>
+                      <span className="text-xs font-bold text-amber-400 ml-1">+ GST</span>
+                      {p.yearlyOfferPrice && p.yearlyOfferPrice !== p.yearlyPrice && (
+                        <span className="text-[11px] text-zinc-500 line-through block">₹{Number(p.yearlyPrice).toLocaleString("en-IN")}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-zinc-400 border-t border-white/5 pt-2">
+                    <span>Monthly Option:</span>
+                    <span className="font-semibold text-zinc-200">₹{Number(effectiveMonthly).toLocaleString("en-IN")} / mo + GST</span>
+                  </div>
+                </div>
+
+                {/* Whitelabel & Reseller Splits */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
+                  <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200">
+                    <span className="text-[10px] uppercase tracking-wider text-purple-400 block font-bold">Whitelabel Base:</span>
+                    <span className="font-bold text-sm">₹{Number(p.whitelabelYearlyBasePrice || effectiveYearly).toLocaleString("en-IN")}/yr + GST</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200">
+                    <span className="text-[10px] uppercase tracking-wider text-amber-400 block font-bold">Reseller Comm:</span>
+                    <span className="font-bold text-sm">{p.resellerCommissionRate}% Commission</span>
+                  </div>
+                </div>
+
+                {/* Modules Included */}
+                <div className="pt-2 space-y-2 text-xs text-zinc-300">
+                  <span className="font-semibold text-zinc-400 uppercase text-[10px] tracking-wider block">
+                    Enabled Modules ({p.modules?.length || 0} / {AVAILABLE_MODULES.length})
                   </span>
+                  <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    {p.modules?.map((feat: string, i: number) => (
+                      <div key={i} className="flex items-center gap-2 bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.05]">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="truncate">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-3 space-y-1">
-                <p className="text-2xl font-black text-blue-400">₹{Number(p.yearlyPrice).toLocaleString("en-IN")} <span className="text-xs font-normal text-zinc-400">/ yr</span></p>
-                <p className="text-xs text-zinc-400">₹{Number(p.monthlyPrice).toLocaleString("en-IN")} / month</p>
-              </div>
-
-              <div className="pt-4 space-y-2 border-t border-white/5 text-xs text-zinc-300">
-                <span className="font-semibold text-zinc-400 uppercase text-[10px] block mb-2">Features Included</span>
-                {p.features.map((feat, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{feat}</span>
-                  </div>
-                ))}
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
+                <button onClick={() => toggleStatus(p.id)} className="text-xs text-zinc-400 hover:text-white font-medium">
+                  {p.status === "Active" ? "Deactivate Package" : "Activate Package"}
+                </button>
+                <button
+                  onClick={() => handleTestCheckout(p.name, effectiveYearly)}
+                  className="text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-semibold px-3 py-1.5 rounded-xl border border-blue-500/30 transition-all"
+                >
+                  Test Gateway Checkout
+                </button>
               </div>
             </div>
-
-            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
-              <button onClick={() => toggleStatus(p.id)} className="text-xs text-zinc-400 hover:text-white">
-                {p.status === "Active" ? "Deactivate" : "Activate"}
-              </button>
-              <button
-                onClick={() => handleTestCheckout(p.name, p.yearlyPrice)}
-                className="text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-semibold px-2.5 py-1 rounded-lg border border-blue-500/30"
-              >
-                Test Checkout
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* CREATE / EDIT PLAN MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#0b0f19] border border-white/10 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-[#0c101a] border border-white/15 rounded-3xl p-6 md:p-8 w-full max-w-3xl space-y-6 shadow-2xl my-8">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h2 className="text-lg font-bold text-white">
-                {editingPlanId ? "Edit Package & Pricing" : "Create New Plan"}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-zinc-500 hover:text-white">
+              <div>
+                <h2 className="text-xl font-bold text-white">
+                  {editingPlanId ? "Edit Package & Pricing Controls" : "Create New SaaS Package"}
+                </h2>
+                <p className="text-xs text-zinc-400">Set retail costs (+ GST), Whitelabel base pricing, reseller commissions, and module access.</p>
+              </div>
+              <button onClick={() => setShowModal(false)} className="text-zinc-500 hover:text-white p-2 rounded-xl bg-white/5">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSavePlan} className="space-y-4 text-xs">
+            <form onSubmit={handleSavePlan} className="space-y-6 text-xs">
+              
+              {/* Package Name */}
               <div className="space-y-1">
-                <label className="text-zinc-400 font-semibold">Plan Name *</label>
+                <label className="text-zinc-300 font-semibold block">Package / Plan Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Starter Garage"
+                  placeholder="e.g. Enterprise Garage SaaS"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Monthly Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="1999"
-                    value={form.monthlyPrice}
-                    onChange={(e) => setForm({ ...form, monthlyPrice: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
-                  />
+              {/* Retail Pricing Section */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-blue-400 flex items-center gap-1.5">
+                    <Tag className="w-4 h-4" /> Retail Client Pricing (+ GST)
+                  </span>
+                  <span className="text-[11px] font-mono text-amber-400 font-semibold bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                    + 18% GST Applicable
+                  </span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Yearly Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="19999"
-                    value={form.yearlyPrice}
-                    onChange={(e) => setForm({ ...form, yearlyPrice: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Monthly MRP (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="1999"
+                      value={form.monthlyPrice}
+                      onChange={(e) => setForm({ ...form, monthlyPrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Monthly Offer (₹) + GST</label>
+                    <input
+                      type="number"
+                      placeholder="1499"
+                      value={form.monthlyOfferPrice}
+                      onChange={(e) => setForm({ ...form, monthlyOfferPrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Yearly MRP (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="19999"
+                      value={form.yearlyPrice}
+                      onChange={(e) => setForm({ ...form, yearlyPrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Yearly Offer (₹) + GST</label>
+                    <input
+                      type="number"
+                      placeholder="14999"
+                      value={form.yearlyOfferPrice}
+                      onChange={(e) => setForm({ ...form, yearlyOfferPrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2">
-                <span className="text-zinc-400 font-semibold block">Features Included</span>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
+              {/* Partner Wholesale & Reseller Commission Controls */}
+              <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/20 space-y-4">
+                <span className="text-sm font-bold text-purple-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-purple-400" /> Whitelabel Partner Base Price & Reseller Commission
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Whitelabel Monthly Base (₹)</label>
                     <input
-                      type="checkbox"
-                      checked={form.hasWhatsApp}
-                      onChange={(e) => setForm({ ...form, hasWhatsApp: e.target.checked })}
-                      className="rounded border-white/10 bg-white/5 text-blue-600"
+                      type="number"
+                      placeholder="999"
+                      value={form.whitelabelMonthlyBasePrice}
+                      onChange={(e) => setForm({ ...form, whitelabelMonthlyBasePrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
                     />
-                    <span>WhatsApp Automation</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Whitelabel Yearly Base (₹)</label>
                     <input
-                      type="checkbox"
-                      checked={form.hasReports}
-                      onChange={(e) => setForm({ ...form, hasReports: e.target.checked })}
-                      className="rounded border-white/10 bg-white/5 text-blue-600"
+                      type="number"
+                      placeholder="9999"
+                      value={form.whitelabelYearlyBasePrice}
+                      onChange={(e) => setForm({ ...form, whitelabelYearlyBasePrice: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
                     />
-                    <span>Advanced Reports</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-400 font-medium block">Standard Reseller Comm (%)</label>
                     <input
-                      type="checkbox"
-                      checked={form.hasWhiteLabel}
-                      onChange={(e) => setForm({ ...form, hasWhiteLabel: e.target.checked })}
-                      className="rounded border-white/10 bg-white/5 text-blue-600"
+                      type="number"
+                      placeholder="25"
+                      value={form.resellerCommissionRate}
+                      onChange={(e) => setForm({ ...form, resellerCommissionRate: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
                     />
-                    <span>White Label & Custom Domain</span>
-                  </label>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={form.allowWhitelabelCustomMarkup}
+                    onChange={(e) => setForm({ ...form, allowWhitelabelCustomMarkup: e.target.checked })}
+                    className="rounded border-white/10 bg-white/5 text-purple-500 w-4 h-4"
+                  />
+                  <span className="text-zinc-200 font-medium">
+                    Allow Whitelabel Partners to set custom end-client pricing above Base Price
+                  </span>
+                </label>
+              </div>
+
+              {/* Module Entitlement Checkboxes */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-emerald-400" /> Select Included Modules ({form.selectedModules.length} selected)
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, selectedModules: [...AVAILABLE_MODULES] })}
+                      className="text-[11px] text-blue-400 hover:underline"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-zinc-600">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, selectedModules: [] })}
+                      className="text-[11px] text-zinc-400 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {AVAILABLE_MODULES.map((mod) => {
+                    const isChecked = form.selectedModules.includes(mod)
+                    return (
+                      <label
+                        key={mod}
+                        onClick={() => handleModuleToggle(mod)}
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                          isChecked
+                            ? "bg-blue-600/15 border-blue-500/40 text-white font-medium"
+                            : "bg-white/[0.02] border-white/10 text-zinc-400 hover:bg-white/[0.05]"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} // handled by parent onClick
+                          className="rounded border-white/10 bg-white/5 text-blue-600 w-4 h-4"
+                        />
+                        <span className="text-xs truncate">{mod}</span>
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold"
+                  className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
                 >
-                  Save Plan
+                  {editingPlanId ? "Save Changes" : "Create Package"}
                 </button>
               </div>
             </form>

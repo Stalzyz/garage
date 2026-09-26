@@ -167,29 +167,6 @@ export default function ResellerGaragesPage() {
     g.owner.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleImpersonate = async (id: string, name: string) => {
-    toast.loading(`Logging in as ${name}...`)
-    try {
-      const res = await fetch("/api/auth/impersonate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ garageId: id, garageName: name }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast.dismiss()
-        toast.success(`Access granted! Switching scope to ${name}`)
-        window.location.href = data.redirectUrl
-      } else {
-        toast.dismiss()
-        toast.error(data.error || "Impersonation failed")
-      }
-    } catch {
-      toast.dismiss()
-      toast.error("Failed to connect to impersonation service")
-    }
-  }
-
   return (
     <div className="p-8 space-y-6 bg-dash-bg-base text-white min-h-screen font-sans">
       
@@ -275,13 +252,6 @@ export default function ResellerGaragesPage() {
                     title={g.status === "Active" ? "Suspend" : "Activate"}
                   >
                     {g.status === "Active" ? <PauseCircle className="w-4 h-4 inline" /> : <PlayCircle className="w-4 h-4 inline" />}
-                  </button>
-                  <button 
-                    onClick={() => handleImpersonate(g.id, g.name)}
-                    className="text-blue-400 hover:text-blue-300 p-1" 
-                    title="Login as Garage"
-                  >
-                    <LogIn className="w-4 h-4 inline" />
                   </button>
                 </td>
               </tr>

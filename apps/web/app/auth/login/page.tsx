@@ -121,18 +121,36 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           {/* Header */}
-          <div className="flex flex-col items-center text-center mb-10">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2, stiffness: 200, damping: 20 }}
-              className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-            >
-              <ShieldCheck className="w-8 h-8 text-white/80" strokeWidth={1.5} />
-            </motion.div>
-            <h1 className="text-3xl font-bold tracking-tighter mb-2">{org.name}</h1>
-            <p className="text-sm font-mono tracking-widest text-white/40 uppercase">
-              {is2faStage ? "Verification" : "Staff Secure Login"}
+          <div className="flex flex-col items-center text-center mb-8">
+            {org.logoUrl && org.logoUrl !== "/visuals-logo.png" ? (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="mb-4 flex flex-col items-center"
+              >
+                <img 
+                  src={org.logoUrl} 
+                  alt={org.name} 
+                  className="max-h-16 max-w-[240px] object-contain mb-2 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                />
+                <h1 className="text-xl font-bold tracking-tight text-white/90">{org.name}</h1>
+              </motion.div>
+            ) : (
+              <>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", delay: 0.2, stiffness: 200, damping: 20 }}
+                  className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+                >
+                  <ShieldCheck className="w-8 h-8 text-white/80" strokeWidth={1.5} />
+                </motion.div>
+                <h1 className="text-3xl font-bold tracking-tighter mb-2">{org.name}</h1>
+              </>
+            )}
+            <p className="text-xs font-mono tracking-widest text-white/40 uppercase">
+              {is2faStage ? "Verification" : "Staff & Customer Portal Login"}
             </p>
           </div>
 

@@ -225,16 +225,23 @@ export function Sidebar() {
 
       {/* User footer */}
       <div className="p-3 relative z-10 border-t border-white/[0.08] bg-dash-bg-base">
-        <div className="flex items-center gap-3">
-          <div onClick={() => signOut()} className="flex-1 flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer border border-transparent hover:border-white/[0.08]" title="Click to logout">
-            <div className="h-9 w-9 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-200 font-medium text-sm shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1 flex items-center gap-2.5 p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] min-w-0">
+            <div className="h-8 w-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-200 font-medium text-xs shrink-0">
               {session?.user?.name?.charAt(0) || "U"}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-medium leading-none truncate text-zinc-200">{session?.user?.name || "User"}</span>
-              <span className="text-[11px] text-zinc-500 mt-1 truncate">{session?.user?.email}</span>
+              <span className="text-[10px] text-zinc-500 mt-1 truncate">{session?.user?.email}</span>
             </div>
           </div>
+          <button
+            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all flex items-center justify-center shrink-0"
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
