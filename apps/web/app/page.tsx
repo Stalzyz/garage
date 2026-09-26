@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useId } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { 
   Building2, ShieldCheck, ArrowRight, CheckCircle2, ChevronRight, Star, Sparkles, 
@@ -9,7 +9,7 @@ import {
   BookOpen, Settings, Phone, Calendar, Mail, Clock, FileText, Package, RefreshCw, X, AlertCircle,
   TrendingUp, Sliders, Smartphone, Check, Zap, HelpCircle, ChevronDown, PlayCircle, ExternalLink,
   Receipt, Flame, Compass, Award, ShieldAlert, FileCode2, ChevronUp, Send, Calculator, UserPlus,
-  Lock, Share2, Sparkle
+  Lock, Share2, Sparkle, ChevronLeft, Quote
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
@@ -21,7 +21,27 @@ export default function OrchestraGarageLandingPage() {
   const [activeModuleCategory, setActiveModuleCategory] = useState<"ALL" | "OPS" | "CRM" | "FINANCE" | "HR">("ALL")
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "ANNUAL">("ANNUAL")
   
-  // ── NEW INTERACTIVE ENHANCEMENTS STATE ──
+  // ── HERO SLIDESHOW STATE ──
+  const heroSlides = [
+    {
+      image: "/hero-slide-1.jpg",
+      title: "Live Operations & Service Bay Tracker",
+      caption: "Track vehicle status across all active service bays in real time."
+    },
+    {
+      image: "/hero-slide-2.jpg",
+      title: "Sales Lead Pipeline & Enquiry CRM",
+      caption: "Move customer leads through stages from initial contact to booking."
+    },
+    {
+      image: "/hero-slide-3.jpg",
+      title: "GST Invoice Generator & WhatsApp Billing",
+      caption: "Issue compliant GST invoices and send 1-click WhatsApp payment links."
+    }
+  ]
+  const [activeSlide, setActiveSlide] = useState(0)
+
+  // ── PERSONA & CURRENCY STATE ──
   const [persona, setPersona] = useState<"OWNER" | "MANAGER" | "RESELLER">("OWNER")
   const [selectedCurrency, setSelectedCurrency] = useState<"INR" | "AED" | "USD">("INR")
   
@@ -471,6 +491,7 @@ export default function OrchestraGarageLandingPage() {
             <a href="#calculator" className="hover:text-white transition-colors">ROI Calculator</a>
             <a href="#whatsapp-demo" className="hover:text-white transition-colors">WhatsApp Automation</a>
             <a href="#modules" className="hover:text-white transition-colors">Modules</a>
+            <a href="#reviews" className="hover:text-white transition-colors">Reviews & Ecosystem</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
@@ -509,7 +530,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </nav>
 
-      {/* ── 2. HERO SECTION (ORCHESTRA AESTHETIC WITH ROLE SWITCHER) ── */}
+      {/* ── 2. HERO SECTION (WITH SLIDESHOW & ROLE SWITCHER) ── */}
       <section className="relative pt-36 pb-16 md:pt-48 md:pb-24 overflow-hidden">
         
         {/* Glow Radial Lights */}
@@ -626,195 +647,83 @@ export default function OrchestraGarageLandingPage() {
           </div>
         </div>
 
-        {/* ── 3. INTERACTIVE DASHBOARD PREVIEW MOCKUP ── */}
+        {/* ── 3. HERO SLIDESHOW CAROUSEL (REPLACING DASHBOARD CONTAINER) ── */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 relative z-10">
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden">
+          <div className="rounded-2xl border border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden group">
             
-            {/* Window Controls */}
-            <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+            {/* Window Controls & Slide Title Header */}
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
                 <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block" />
                 <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block" />
               </div>
-              <div className="px-4 py-1 rounded-lg bg-black/40 border border-white/10 text-xs font-mono text-slate-400 flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>app.garage.grekam.in/dashboard</span>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-white tracking-wide">
+                  {heroSlides[activeSlide].title}
+                </span>
               </div>
-              <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>LIVE WORKSHOP</span>
-              </div>
-            </div>
 
-            {/* Interactive Tab Selector */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none border-b border-white/5">
-              {[
-                { id: "DASHBOARD", label: "📊 Dashboard", color: "blue" },
-                { id: "CRM", label: "🎯 Lead Pipeline", color: "purple" },
-                { id: "DIALER", label: "📞 Power Dialer", color: "emerald" },
-                { id: "INVOICES", label: "🧾 GST Invoicing", color: "amber" },
-                { id: "ESS", label: "👤 Employee ESS", color: "indigo" },
-              ].map(tab => (
+              <div className="flex items-center gap-2">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                    activeTab === tab.id
-                      ? "bg-white/10 text-white border border-white/20 shadow-lg"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                  }`}
+                  onClick={() => setActiveSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
+                  className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                 >
-                  {tab.label}
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-              ))}
+                <button
+                  onClick={() => setActiveSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1))}
+                  className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Mock Dashboard Render */}
-            <div className="min-h-[380px] rounded-xl bg-[#07090E] border border-white/10 p-6 relative overflow-hidden">
-              {activeTab === "DASHBOARD" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                      <span className="text-xs text-blue-300 font-medium">Today's Jobs</span>
-                      <p className="text-2xl font-bold text-white mt-1">28 Active</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                      <span className="text-xs text-purple-300 font-medium">New Enquiries</span>
-                      <p className="text-2xl font-bold text-white mt-1">14 Leads</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                      <span className="text-xs text-emerald-300 font-medium">Monthly Revenue</span>
-                      <p className="text-2xl font-bold text-white mt-1">{formatPrice(482500)}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                      <span className="text-xs text-amber-300 font-medium">Pending Payments</span>
-                      <p className="text-2xl font-bold text-white mt-1">{formatPrice(34200)}</p>
-                    </div>
-                  </div>
+            {/* Slideshow Display Box */}
+            <div className="relative rounded-xl overflow-hidden aspect-[16/9] border border-white/10 bg-slate-950">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activeSlide}
+                  src={heroSlides[activeSlide].image}
+                  alt={heroSlides[activeSlide].title}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.4 }}
+                  className="w-full h-full object-cover"
+                />
+              </AnimatePresence>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Live Service Bay Activity</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-white/5">
-                          <span className="font-semibold text-white">MH 12 AB 4589 — Honda City (Engine Service)</span>
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Bay 02 • Active</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-white/5">
-                          <span className="font-semibold text-white">KA 05 CD 8821 — Hyundai Creta (Brake Replacement)</span>
-                          <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">Bay 04 • Testing</span>
-                        </div>
-                      </div>
-                    </div>
+              {/* Slide Caption Overlay */}
+              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 flex justify-between items-center">
+                <p className="text-xs text-slate-200 font-medium">
+                  {heroSlides[activeSlide].caption}
+                </p>
+                <span className="text-[10px] font-mono text-slate-400 bg-white/10 px-2 py-0.5 rounded">
+                  Slide {activeSlide + 1} of {heroSlides.length}
+                </span>
+              </div>
+            </div>
 
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Today's Team Attendance</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-white/5">
-                          <span className="font-semibold text-white">Rajesh Kumar (Senior Technician)</span>
-                          <span className="text-emerald-400 font-mono">Punched In • 09:14 AM</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-white/5">
-                          <span className="font-semibold text-white">Arun V. (Service Advisor)</span>
-                          <span className="text-emerald-400 font-mono">Punched In • 08:58 AM</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "CRM" && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-white">Lead Sales Pipeline</h3>
-                    <span className="text-xs font-mono text-purple-400">14 Active Opportunities</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">New Enquiries (5)</span>
-                      <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 text-xs">
-                        <p className="font-bold text-white">Vikram Sethi</p>
-                        <p className="text-[11px] text-slate-400">Full Service & AC Overhaul</p>
-                      </div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">Follow-up Due (4)</span>
-                      <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 text-xs">
-                        <p className="font-bold text-white">Neha Sharma</p>
-                        <p className="text-[11px] text-slate-400">Ceramic Coating Proposal</p>
-                      </div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Service Booked (5)</span>
-                      <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 text-xs">
-                        <p className="font-bold text-white">Siddharth Nair</p>
-                        <p className="text-[11px] text-slate-400">Scheduled for Tomorrow 10 AM</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "DIALER" && (
-                <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="space-y-2 flex-1">
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold font-mono">POWER DIALER QUEUE</span>
-                    <h3 className="text-xl font-bold text-white">Calling: Suresh Patel (+91 98401 22910)</h3>
-                    <p className="text-xs text-slate-400">Lead Score: 94/100 • Interested in Annual Service Contract</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/30">
-                      <Phone className="w-4 h-4" />
-                      In Call (02:45)
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "INVOICES" && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs font-bold text-white border-b border-white/10 pb-2">
-                    <span>GST Invoice #INV-2026-084</span>
-                    <span className="text-emerald-400 font-mono">PAID • {formatPrice(14850)}</span>
-                  </div>
-                  <div className="text-xs space-y-1 text-slate-300 font-mono">
-                    <p>Client: Ananya Deshmukh (DL 01 AB 9912)</p>
-                    <p>Items: Synthetic Engine Oil 4L + Oil Filter + Labor Charges</p>
-                    <p>GSTIN: 33HCCPS5424M1Z8 (18% Integrated Tax Applied)</p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "ESS" && (
-                <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/30 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-indigo-300">EMPLOYEE SELF-SERVICE PORTAL</span>
-                    <span className="text-xs text-emerald-400 font-mono">Logged in: Karthik R.</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 rounded-lg bg-black/40 border border-white/10">
-                      <span className="text-slate-400 block mb-1">Attendance Today</span>
-                      <span className="font-bold text-emerald-400">Present (09:00 AM)</span>
-                    </div>
-                    <div className="p-3 rounded-lg bg-black/40 border border-white/10">
-                      <span className="text-slate-400 block mb-1">Casual Leave Balance</span>
-                      <span className="font-bold text-white">4 Days Remaining</span>
-                    </div>
-                    <div className="p-3 rounded-lg bg-black/40 border border-white/10">
-                      <span className="text-slate-400 block mb-1">Latest Payslip</span>
-                      <span className="font-bold text-blue-400 underline cursor-pointer">Download Sep 2026</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* Pagination Indicators */}
+            <div className="flex justify-center items-center gap-2 mt-4">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveSlide(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    activeSlide === idx ? "w-8 bg-blue-500" : "w-2 bg-white/20 hover:bg-white/40"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 4. NEW INTERACTIVE "GARAGE ROI & SAVINGS CALCULATOR" ── */}
+      {/* ── 4. INTERACTIVE "GARAGE ROI & SAVINGS CALCULATOR" ── */}
       <section id="calculator" className="py-24 relative bg-[#090D16] border-y border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -916,7 +825,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 5. NEW INTERACTIVE "WHATSAPP AUTOMATION SIMULATOR" ── */}
+      {/* ── 5. INTERACTIVE "WHATSAPP AUTOMATION SIMULATOR" ── */}
       <section id="whatsapp-demo" className="py-24 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -1013,85 +922,8 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 6. "FROM CHAOS TO CONTROL" COMPARISON GRID ── */}
-      <section className="py-20 relative bg-[#090D16] border-y border-white/5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">From Chaos To Control</h2>
-            <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-              Stop juggling notebooks, WhatsApp chats, and separate software.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* Without Garage */}
-            <div className="p-8 rounded-2xl bg-red-950/10 border border-red-500/20 relative overflow-hidden">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30">
-                  <X className="w-5 h-5 text-red-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Without Garage</h3>
-                  <p className="text-xs text-red-300">Disconnected manual operations</p>
-                </div>
-              </div>
-              <ul className="space-y-4 text-sm text-slate-300">
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Leads lost inside technicians' personal WhatsApp chats</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Forgotten payment follow-ups & lost invoices</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Manual paper attendance registers and payroll disputes</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>No clear picture of daily profit, loss, or spare parts inventory</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* With Garage */}
-            <div className="p-8 rounded-2xl bg-emerald-950/10 border border-emerald-500/30 relative overflow-hidden">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                  <Check className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">With Garage</h3>
-                  <p className="text-xs text-emerald-300">One connected digital workspace</p>
-                </div>
-              </div>
-              <ul className="space-y-4 text-sm text-slate-300">
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
-                  <span>Centralized lead pipeline from first enquiry to repeat customer</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
-                  <span>Automated WhatsApp payment links & GST invoicing</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
-                  <span>Digital employee ESS portal for attendance, leaves, & payroll</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
-                  <span>Real-time dashboard metrics on revenue, profit, & team performance</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. COMPLETE MODULE DIRECTORY ── */}
-      <section id="modules" className="py-24 relative">
+      {/* ── 6. COMPLETE MODULE DIRECTORY ── */}
+      <section id="modules" className="py-24 relative bg-[#090D16] border-t border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -1134,7 +966,7 @@ export default function OrchestraGarageLandingPage() {
               return (
                 <div
                   key={module.id}
-                  className={`p-6 rounded-2xl bg-[#090D16] border ${module.borderColor} hover:border-blue-500/50 transition-all hover:-translate-y-1 group relative overflow-hidden`}
+                  className={`p-6 rounded-2xl bg-[#07090E] border ${module.borderColor} hover:border-blue-500/50 transition-all hover:-translate-y-1 group relative overflow-hidden`}
                 >
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${module.gradient} rounded-full blur-2xl group-hover:scale-150 transition-transform`} />
                   
@@ -1160,7 +992,144 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 8. PRICING SECTION (WITH MULTI-CURRENCY CONVERSION) ── */}
+      {/* ── 7. CUSTOMER REVIEWS & GREKAM PRODUCT ECOSYSTEM SECTION ── */}
+      <section id="reviews" className="py-24 relative bg-[#07090E] border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Reviews Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-3">Customer Testimonials</h2>
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+              Loved by workshop owners & service advisors.
+            </h3>
+          </div>
+
+          {/* Testimonial Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div className="p-8 rounded-2xl bg-[#090D16] border border-white/10 space-y-4">
+              <div className="flex items-center gap-1 text-amber-400">
+                {"★".repeat(5)}
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed italic">
+                "Garage completely transformed our multi-bay workshop. We saved over 40 hours a month on manual invoicing and increased repeat service bookings by 25%."
+              </p>
+              <div>
+                <span className="text-sm font-bold text-white block">Ramesh V.</span>
+                <span className="text-xs text-slate-400">Owner, Apex Motors & Auto Care</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-[#090D16] border border-white/10 space-y-4">
+              <div className="flex items-center gap-1 text-amber-400">
+                {"★".repeat(5)}
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed italic">
+                "The WhatsApp billing integration is incredible. Customers receive job card estimates and pay online before even arriving to collect their vehicle."
+              </p>
+              <div>
+                <span className="text-sm font-bold text-white block">Siddharth Menon</span>
+                <span className="text-xs text-slate-400">Managing Director, SpeedWorks Auto</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-[#090D16] border border-white/10 space-y-4">
+              <div className="flex items-center gap-1 text-amber-400">
+                {"★".repeat(5)}
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed italic">
+                "As a whitelabel reseller partner, launching this under our custom domain gave us a high-margin recurring SaaS offer for our auto clients."
+              </p>
+              <div>
+                <span className="text-sm font-bold text-white block">Vikramaditya S.</span>
+                <span className="text-xs text-slate-400">CEO, AutoTech Agency Network</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Built By Grekam Banner */}
+          <div className="p-8 rounded-2xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-purple-950/40 border border-blue-500/30 mb-16 text-center">
+            <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block mb-2">PROUDLY BUILT BY GREKAM</span>
+            <h4 className="text-2xl font-bold text-white mb-2">Part of the Grekam Enterprise Ecosystem</h4>
+            <p className="text-xs text-slate-300 max-w-2xl mx-auto mb-4">
+              Garage is developed & backed by <strong>Grekam Agency</strong> — building world-class SaaS, AI applications, and digital platforms.
+            </p>
+            <a
+              href="https://agency.grekam.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg transition-all"
+            >
+              Visit Grekam Agency
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
+          {/* Grekam Ecosystem Products Showcase Grid */}
+          <div className="border-t border-white/10 pt-16">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <h4 className="text-lg font-bold text-white">Explore Other Grekam Platforms</h4>
+              <p className="text-xs text-slate-400">Empowering education, communication, and e-commerce.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Echo LMS */}
+              <a
+                href="https://echo.grekam.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-6 rounded-2xl bg-[#090D16] border border-white/10 hover:border-cyan-500/50 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors flex items-center justify-between">
+                  Echo LMS
+                  <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </h5>
+                <p className="text-xs text-slate-400">Academy LMS, student management, video courses & educator platform.</p>
+              </a>
+
+              {/* Grafty WhatsApp Automation */}
+              <a
+                href="https://grafty.pro"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-6 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  Grafty
+                  <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </h5>
+                <p className="text-xs text-slate-400">High-speed WhatsApp API gateway, broadcast campaigns & chatbots.</p>
+              </a>
+
+              {/* Atlas E-Commerce */}
+              <a
+                href="https://atlasadmin.grekam.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-6 rounded-2xl bg-[#090D16] border border-white/10 hover:border-purple-500/50 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
+                  <Package className="w-5 h-5" />
+                </div>
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-purple-400 transition-colors flex items-center justify-between">
+                  Atlas E-Commerce
+                  <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </h5>
+                <p className="text-xs text-slate-400">Multi-tenant e-commerce platform, digital storefronts & inventory suite.</p>
+              </a>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 8. PRICING SECTION ── */}
       <section id="pricing" className="py-24 relative bg-[#090D16] border-t border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -1397,19 +1366,22 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* Minimal Footer */}
+      {/* Minimal Footer with Grekam Links */}
       <footer className="py-12 border-t border-white/5 bg-[#05070B] text-xs text-slate-500">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <span className="font-bold text-sm text-white">GARAGE SaaS</span>
             <span>•</span>
-            <span>© 2026 Grekam Visuals. All rights reserved.</span>
+            <span>A product by <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="text-slate-300 underline font-semibold hover:text-white">Grekam Agency</a>.</span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-400">
-            <Link href="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/contact" className="hover:text-white transition-colors">Support & Contact</Link>
+          <div className="flex items-center gap-6 text-slate-400 flex-wrap justify-center">
+            <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Grekam Agency</a>
+            <a href="https://echo.grekam.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Echo LMS</a>
+            <a href="https://grafty.pro" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Grafty WhatsApp</a>
+            <a href="https://atlasadmin.grekam.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Atlas E-Commerce</a>
+            <Link href="/legal/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy</Link>
           </div>
         </div>
       </footer>
