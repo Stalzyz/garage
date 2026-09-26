@@ -2208,6 +2208,9 @@ model Vendor {
   pendingBalance  Float          @default(0)
   createdAt       DateTime       @default(now())
 
+  resellerId  String?
+  reseller    Reseller?          @relation(fields: [resellerId], references: [id])
+
   user        User               @relation(fields: [userId], references: [id])
   assignments VendorAssignment[]
   kyc         VendorKyc?
