@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react"
 import { DollarSign, Search, Filter, Download } from "lucide-react"
 import { toast } from "sonner"
