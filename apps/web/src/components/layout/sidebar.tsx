@@ -165,7 +165,7 @@ export function Sidebar() {
   // Retrieve custom permissions from next-auth session if available
   const customPermissions = (session?.user as any)?.permissions || []
   
-  const navItems = getNavItemsByRole(role, customPermissions)
+  const navItems = getNavItemsByRole(role, customPermissions, pathname)
 
   const getBottomTabs = (role: Role) => {
     switch (role) {

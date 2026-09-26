@@ -19,6 +19,7 @@ import {
   Globe,
   CheckSquare,
   Trophy,
+  PlusCircle,
 } from "lucide-react"
 
 export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN"
@@ -94,43 +95,49 @@ export const resellerAdminNavigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard/reseller",
     icon: LayoutDashboard,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
+  },
+  {
+    title: "Onboard Garage",
+    href: "/dashboard/reseller/onboarding",
+    icon: PlusCircle,
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "Garages",
     href: "/dashboard/reseller/garages",
     icon: Building2,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "White Label",
     href: "/dashboard/reseller/whitelabel",
     icon: Globe,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "Sales",
     href: "/dashboard/reseller/sales",
     icon: DollarSign,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "Earnings",
     href: "/dashboard/reseller/earnings",
     icon: DollarSign,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "Support",
     href: "/dashboard/reseller/support",
     icon: LifeBuoy,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
   {
     title: "Settings",
     href: "/dashboard/reseller/settings",
     icon: Settings,
-    roles: ["RESELLER_ADMIN"],
+    roles: ["RESELLER_ADMIN", "VENDOR"],
   },
 ]
 
@@ -330,11 +337,11 @@ export const navigation: NavItem[] = [
   },
 ]
 
-export const getNavItemsByRole = (role: string, customPermissions?: string[]) => {
-  if (role === "SUPER_ADMIN") {
+export const getNavItemsByRole = (role: string, customPermissions?: string[], pathname?: string) => {
+  if (role === "SUPER_ADMIN" || pathname?.startsWith("/dashboard/admin")) {
     return superAdminNavigation
   }
-  if (role === "RESELLER_ADMIN") {
+  if (role === "RESELLER_ADMIN" || role === "VENDOR" || role === "RESELLER" || pathname?.startsWith("/dashboard/reseller")) {
     return resellerAdminNavigation
   }
 
