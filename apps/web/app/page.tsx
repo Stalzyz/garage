@@ -14,29 +14,31 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 
-export default function OrchestraGarageLandingPage() {
+export default function GarageLandingPage() {
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
   const [activeFaq, setActiveFaq] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<"DASHBOARD" | "CRM" | "DIALER" | "INVOICES" | "ESS">("DASHBOARD")
   const [activeModuleCategory, setActiveModuleCategory] = useState<"ALL" | "OPS" | "CRM" | "FINANCE" | "HR">("ALL")
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "ANNUAL">("ANNUAL")
   
+  // ── DROPDOWN NAVIGATION STATE ──
+  const [activeNavDropdown, setActiveNavDropdown] = useState<"FEATURES" | "ECOSYSTEM" | null>(null)
+
   // ── HERO SLIDESHOW STATE ──
   const heroSlides = [
     {
       image: "/hero-slide-1.jpg",
-      title: "Live Operations & Service Bay Tracker",
-      caption: "Track vehicle status across all active service bays in real time."
+      title: "Garage CRM — Live Service Bay Operations",
+      caption: "Track customer vehicles, active service bays, and technician jobs in real time."
     },
     {
       image: "/hero-slide-2.jpg",
-      title: "Sales Lead Pipeline & Enquiry CRM",
-      caption: "Move customer leads through stages from initial contact to booking."
+      title: "Garage CRM — Sales Pipeline & Lead Tracking",
+      caption: "Turn customer enquiries into confirmed bookings with visual Kanban stages."
     },
     {
       image: "/hero-slide-3.jpg",
-      title: "GST Invoice Generator & WhatsApp Billing",
-      caption: "Issue compliant GST invoices and send 1-click WhatsApp payment links."
+      title: "Garage CRM — GST Invoicing & WhatsApp Billing",
+      caption: "Create instant GST invoices and collect payments via 1-click WhatsApp links."
     }
   ]
   const [activeSlide, setActiveSlide] = useState(0)
@@ -138,12 +140,12 @@ export default function OrchestraGarageLandingPage() {
             email: form.email,
             phone: form.phone,
             city: form.city,
-            websiteType: "garage_saas",
+            websiteType: "garage_crm",
             pageTier: "10-20",
             designTier: "enterprise",
             deliverySpeed: "standard",
             includeGst: true,
-            selectedFeatures: ["Garage Operations", "CRM & Sales", "Finance & GST Billing", "HR & Payroll"],
+            selectedFeatures: ["Garage CRM & Sales", "Garage Operations", "Finance & GST Billing", "HR & Payroll"],
             selectedEcommerceFeatures: [],
             productTier: "50-200",
             productUploadTier: "done_by_agency",
@@ -160,7 +162,7 @@ export default function OrchestraGarageLandingPage() {
         })
       })
 
-      toast.success("Thank you! Our garage operations specialist will contact you shortly.")
+      toast.success("Thank you! Our Garage CRM specialist will contact you shortly.")
       setIsInquiryModalOpen(false)
       setForm({ name: "", garageName: "", email: "", phone: "", city: "", notes: "" })
     } catch {
@@ -170,84 +172,18 @@ export default function OrchestraGarageLandingPage() {
     }
   }
 
-  // Complete module catalog from user specification
+  // Complete module catalog
   const allModules = [
-    {
-      id: "dashboard",
-      category: "OPS",
-      title: "Dashboard",
-      icon: LayoutDashboard,
-      badge: "📊 Blue",
-      gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
-      borderColor: "border-blue-500/30",
-      iconColor: "text-blue-400",
-      description: "Your garage operations at a glance. Real-time today's jobs, new enquiries, active customers, pending payments, overdue work, team activity, and revenue."
-    },
-    {
-      id: "content-calendar",
-      category: "OPS",
-      title: "Content Calendar",
-      icon: Calendar,
-      badge: "📅 Pink",
-      gradient: "from-pink-500/20 via-purple-500/10 to-transparent",
-      borderColor: "border-pink-500/30",
-      iconColor: "text-pink-400",
-      description: "Plan and schedule marketing activities from one unified calendar across social media, email campaigns, ads, promotions, and content publishing."
-    },
-    {
-      id: "team-wins",
-      category: "HR",
-      title: "Team Culture & Wins",
-      icon: Trophy,
-      badge: "🏆 Gold",
-      gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
-      borderColor: "border-amber-500/30",
-      iconColor: "text-amber-400",
-      description: "Keep your garage team motivated. Celebrate achievements, targets completed, employee recognition, milestones, and company announcements."
-    },
-    {
-      id: "ess-workspace",
-      category: "HR",
-      title: "My Workspace / ESS",
-      icon: UserCheck,
-      badge: "👤 Blue",
-      gradient: "from-indigo-500/20 via-blue-500/10 to-transparent",
-      borderColor: "border-indigo-500/30",
-      iconColor: "text-indigo-400",
-      description: "Employee Self-Service portal for personal profiles, clock-in/out attendance, leave applications, payslips, and internal document requests."
-    },
     {
       id: "lead-pipeline",
       category: "CRM",
-      title: "Lead Pipeline",
+      title: "Lead Pipeline CRM",
       icon: Layers,
       badge: "🎯 Purple",
       gradient: "from-purple-500/20 via-indigo-500/10 to-transparent",
       borderColor: "border-purple-500/30",
       iconColor: "text-purple-400",
-      description: "Track every customer enquiry through a visual kanban sales pipeline: New Lead → Contacted → Follow-up → Interested → Converted → Lost."
-    },
-    {
-      id: "contacts",
-      category: "CRM",
-      title: "Contacts Directory",
-      icon: Users,
-      badge: "👥 Cyan",
-      gradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
-      borderColor: "border-cyan-500/30",
-      iconColor: "text-cyan-400",
-      description: "Store customer details, vehicle registration numbers, phone/email, repair history notes, follow-ups, and complete chat history in one place."
-    },
-    {
-      id: "proposals",
-      category: "CRM",
-      title: "Proposals & Estimates",
-      icon: FileText,
-      badge: "📄 Violet",
-      gradient: "from-violet-500/20 via-purple-500/10 to-transparent",
-      borderColor: "border-violet-500/30",
-      iconColor: "text-violet-400",
-      description: "Send professional quotations faster with itemized service details, spare parts pricing, validity dates, and instant digital customer approval."
+      description: "Convert customer enquiries into repeat garage visits. Visual Kanban pipeline: New Lead → Contacted → Follow-up → Service Booked → Converted → Lost."
     },
     {
       id: "power-dialer",
@@ -258,161 +194,183 @@ export default function OrchestraGarageLandingPage() {
       gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
       borderColor: "border-emerald-500/30",
       iconColor: "text-emerald-400",
-      description: "Structured click-to-call workflow for sales and service teams with call lists, automated follow-up scheduling, and call tracking."
+      description: "High-speed 1-click calling for service advisors. Automatic follow-up lists and integrated call duration tracking to close sales faster."
     },
     {
       id: "call-intel",
       category: "CRM",
-      title: "Call Intel",
+      title: "Call Intel & Notes",
       icon: Zap,
       badge: "🧠 Orange",
       gradient: "from-orange-500/20 via-amber-500/10 to-transparent",
       borderColor: "border-orange-500/30",
       iconColor: "text-orange-400",
-      description: "Connect call recordings, duration metrics, disposition tags, and AI call notes directly to customer CRM profiles for full context."
+      description: "Connect customer call recordings, duration metrics, disposition tags, and notes directly to vehicle service histories."
     },
     {
-      id: "products-catalogue",
+      id: "contacts",
       category: "CRM",
-      title: "Products & Parts",
-      icon: Package,
-      badge: "📦 Amber",
-      gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
-      borderColor: "border-amber-500/30",
-      iconColor: "text-amber-400",
-      description: "Manage spare parts inventory, oils & lubricants, tools, accessories, stock levels, and consistent retail pricing for estimates and jobs."
+      title: "Customer & Vehicle Directory",
+      icon: Users,
+      badge: "👥 Cyan",
+      gradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
+      borderColor: "border-cyan-500/30",
+      iconColor: "text-cyan-400",
+      description: "Complete customer database with vehicle registration numbers, repair histories, follow-up dates, and chat logs in one search."
+    },
+    {
+      id: "proposals",
+      category: "CRM",
+      title: "Quotations & Estimates",
+      icon: FileText,
+      badge: "📄 Violet",
+      gradient: "from-violet-500/20 via-purple-500/10 to-transparent",
+      borderColor: "border-violet-500/30",
+      iconColor: "text-violet-400",
+      description: "Send professional repair proposals with itemized labor & spare parts pricing, validity timelines, and 1-click digital client approval."
     },
     {
       id: "subscriptions",
       category: "CRM",
-      title: "Subscriptions & Plans",
+      title: "Service Subscriptions & AMC",
       icon: RefreshCw,
       badge: "🔄 Blue",
       gradient: "from-blue-500/20 via-sky-500/10 to-transparent",
       borderColor: "border-blue-500/30",
       iconColor: "text-blue-400",
-      description: "Manage recurring customer maintenance plans, annual service packages, roadside assistance memberships, and automated renewals."
+      description: "Build predictable recurring income with Annual Maintenance Contracts (AMC), roadside assistance packages, and automated renewals."
+    },
+    {
+      id: "dashboard",
+      category: "OPS",
+      title: "Garage Dashboard",
+      icon: LayoutDashboard,
+      badge: "📊 Blue",
+      gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
+      borderColor: "border-blue-500/30",
+      iconColor: "text-blue-400",
+      description: "Your workshop at a glance. Real-time today's jobs, new enquiries, active customers, pending payments, overdue work, and revenue."
+    },
+    {
+      id: "products-catalogue",
+      category: "OPS",
+      title: "Spare Parts Catalogue",
+      icon: Package,
+      badge: "📦 Amber",
+      gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
+      borderColor: "border-amber-500/30",
+      iconColor: "text-amber-400",
+      description: "Manage spare parts stock, engine oils & fluids, accessories, reorder levels, and standard pricing for fast job estimates."
     },
     {
       id: "projects",
       category: "OPS",
-      title: "Projects & Repair Jobs",
+      title: "Major Overhaul Projects",
       icon: Briefcase,
       badge: "📁 Purple",
       gradient: "from-purple-500/20 via-violet-500/10 to-transparent",
       borderColor: "border-purple-500/30",
       iconColor: "text-purple-400",
-      description: "Manage complex vehicle overhauls and multi-stage repair jobs with task assignments, technician timelines, attachment files, and budgets."
+      description: "Manage complex multi-stage vehicle rebuilds and body repairs with task assignments, technician timelines, attachment files, and budgets."
     },
     {
-      id: "finance-income",
-      category: "FINANCE",
-      title: "Income & Sales",
-      icon: DollarSign,
-      badge: "💰 Green",
-      gradient: "from-emerald-500/20 via-green-500/10 to-transparent",
-      borderColor: "border-emerald-500/30",
-      iconColor: "text-emerald-400",
-      description: "Track all money coming into the business from customer payments, job cards, counter sales, and recurring maintenance billing."
-    },
-    {
-      id: "finance-expenses",
-      category: "FINANCE",
-      title: "Business Expenses",
-      icon: Receipt,
-      badge: "💸 Red",
-      gradient: "from-red-500/20 via-rose-500/10 to-transparent",
-      borderColor: "border-red-500/30",
-      iconColor: "text-red-400",
-      description: "Track money going out for spare parts purchases, shop rent, electricity, technician expenses, and day-to-day operating costs."
+      id: "content-calendar",
+      category: "OPS",
+      title: "Marketing Content Calendar",
+      icon: Calendar,
+      badge: "📅 Pink",
+      gradient: "from-pink-500/20 via-purple-500/10 to-transparent",
+      borderColor: "border-pink-500/30",
+      iconColor: "text-pink-400",
+      description: "Plan and schedule marketing promotions across social media, WhatsApp broadcasts, and seasonal vehicle service offers."
     },
     {
       id: "invoices-payments",
       category: "FINANCE",
-      title: "Invoices & GST Billing",
+      title: "GST Invoices & Payments",
       icon: FileCode2,
       badge: "🧾 Emerald",
       gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
       borderColor: "border-emerald-500/30",
       iconColor: "text-emerald-400",
-      description: "Create compliant GST invoices, track pending/overdue payments, send automated WhatsApp payment links, and reduce delayed collections."
+      description: "Generate compliant GST invoices with HSN/SAC codes, track pending payments, and send instant WhatsApp payment links."
+    },
+    {
+      id: "finance-income",
+      category: "FINANCE",
+      title: "Income & Sales Tracking",
+      icon: DollarSign,
+      badge: "💰 Green",
+      gradient: "from-emerald-500/20 via-green-500/10 to-transparent",
+      borderColor: "border-emerald-500/30",
+      iconColor: "text-emerald-400",
+      description: "Track all workshop income from customer service payments, counter sales, and recurring maintenance contracts in real time."
+    },
+    {
+      id: "finance-expenses",
+      category: "FINANCE",
+      title: "Workshop Expenses",
+      icon: Receipt,
+      badge: "💸 Red",
+      gradient: "from-red-500/20 via-rose-500/10 to-transparent",
+      borderColor: "border-red-500/30",
+      iconColor: "text-red-400",
+      description: "Track spare parts purchasing, shop rent, electricity, tools, and operational expenses to know your exact profit margin."
+    },
+    {
+      id: "ess-workspace",
+      category: "HR",
+      title: "Employee ESS Workspace",
+      icon: UserCheck,
+      badge: "👤 Blue",
+      gradient: "from-indigo-500/20 via-blue-500/10 to-transparent",
+      borderColor: "border-indigo-500/30",
+      iconColor: "text-indigo-400",
+      description: "Dedicated portal for technicians & advisors to clock-in/out attendance, apply for leaves, download payslips, and submit requests."
     },
     {
       id: "employees",
       category: "HR",
-      title: "Employees & Roles",
+      title: "Staff & Technician Profiles",
       icon: Users,
       badge: "👨‍🔧 Cyan",
       gradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
       borderColor: "border-cyan-500/30",
       iconColor: "text-cyan-400",
-      description: "Organize employee profiles, job titles, department assignments, contact details, emergency contacts, and joining records."
-    },
-    {
-      id: "time-track",
-      category: "HR",
-      title: "Time Track & Work Hours",
-      icon: Clock,
-      badge: "⏱️ Orange",
-      gradient: "from-orange-500/20 via-amber-500/10 to-transparent",
-      borderColor: "border-orange-500/30",
-      iconColor: "text-orange-400",
-      description: "Track exact working hours spent by technicians on specific job cards to optimize staff allocation and bay throughput."
+      description: "Organize employee profiles, job designations, bay assignments, emergency contacts, and joining documentation."
     },
     {
       id: "attendance",
       category: "HR",
-      title: "Attendance Management",
+      title: "Digital Attendance & Kiosk",
       icon: CheckSquare,
       badge: "✅ Green",
       gradient: "from-green-500/20 via-emerald-500/10 to-transparent",
       borderColor: "border-green-500/30",
       iconColor: "text-green-400",
-      description: "Eliminate manual attendance registers. Track Present, Absent, Late arrivals, Approved Leaves, and monthly attendance reports."
-    },
-    {
-      id: "leaves",
-      category: "HR",
-      title: "Leave Requests",
-      icon: Compass,
-      badge: "🏖️ Blue",
-      gradient: "from-sky-500/20 via-blue-500/10 to-transparent",
-      borderColor: "border-sky-500/30",
-      iconColor: "text-sky-400",
-      description: "Seamless leave application workflow for employees with instant manager approval notifications, leave balances, and history."
+      description: "Eliminate manual registers. Track Present, Absent, Late punch-ins, and generate monthly payroll reports with 1 click."
     },
     {
       id: "payroll",
       category: "HR",
-      title: "Payroll & Payslips",
+      title: "Payroll & Salary Slips",
       icon: DollarSign,
       badge: "💳 Emerald",
       gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
       borderColor: "border-emerald-500/30",
       iconColor: "text-emerald-400",
-      description: "Calculate technician salaries, overtime allowances, deductions, generate payslips, and maintain clear payment audit trails."
+      description: "Calculate technician salaries, overtime allowances, commission bonuses, and generate downloadable monthly payslips."
     },
     {
-      id: "documents-vault",
+      id: "team-wins",
       category: "HR",
-      title: "Document Vault",
-      icon: HardDrive,
-      badge: "📄 Violet",
-      gradient: "from-violet-500/20 via-purple-500/10 to-transparent",
-      borderColor: "border-violet-500/30",
-      iconColor: "text-violet-400",
-      description: "Secure digital storage for employee ID proofs, driving licenses, certifications, employment contracts, and tax documents."
-    },
-    {
-      id: "ats-hiring",
-      category: "HR",
-      title: "ATS — Garage Hiring",
-      icon: Building2,
-      badge: "🔎 Pink",
-      gradient: "from-pink-500/20 via-rose-500/10 to-transparent",
-      borderColor: "border-pink-500/30",
-      iconColor: "text-pink-400",
-      description: "Applicant Tracking System tailored for garage mechanics, service advisors, and managers. Manage job applications, interviews, and selections."
+      title: "Team Culture & Wins",
+      icon: Trophy,
+      badge: "🏆 Gold",
+      gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
+      borderColor: "border-amber-500/30",
+      iconColor: "text-amber-400",
+      description: "Keep mechanics and advisors motivated. Celebrate targets achieved, top performers, and garage milestones."
     }
   ]
 
@@ -422,76 +380,211 @@ export default function OrchestraGarageLandingPage() {
 
   const faqs = [
     {
-      q: "What is Garage?",
-      a: "Garage is an all-in-one operations, CRM, sales, finance, and HR platform designed specifically to help auto service centers and multi-brand garages run everything from one connected workspace."
+      q: "What is Garage CRM?",
+      a: "Garage is an all-in-one CRM and business operations software built specifically for automotive garages, multi-brand workshops, and detailing studios to increase sales, streamline vehicle repairs, and manage teams."
     },
     {
-      q: "Is Garage only a CRM?",
-      a: "No. Garage combines CRM, sales pipelines, power dialer, job card projects, GST invoicing, expense tracking, employee attendance, payroll, and marketing tools in one platform."
+      q: "How does Garage CRM increase garage sales?",
+      a: "Garage CRM captures customer enquiries from WhatsApp, phone calls, and walk-ins, moves them through a high-converting sales pipeline, triggers automated follow-ups, and prevents lost repeat business."
     },
     {
-      q: "Can I manage my customer and vehicle records?",
-      a: "Yes. You can manage leads, contacts, vehicle service history, proposals, call logs, follow-ups, and communication history from the CRM."
+      q: "Can I send GST invoices and payment links directly on WhatsApp?",
+      a: "Yes. Garage CRM integrates with WhatsApp to generate compliant GST invoices and send 1-click payment links (UPI, Cards, Netbanking) directly to vehicle owners."
     },
     {
-      q: "Can my employees use Garage?",
-      a: "Yes. Employees get their own workspace (ESS) for clock-in/out attendance, leave applications, viewing payslips, and submitting internal requests based on permissions."
-    },
-    {
-      q: "Can I manage GST invoices and payments?",
-      a: "Yes. Finance tools let you issue GST-compliant invoices, track cash vs online payments, view overdue collections, and send payment reminders via WhatsApp."
+      q: "Can my technicians and staff use Garage?",
+      a: "Yes. Employees receive their own Employee Self-Service (ESS) workspace for attendance clock-ins, leave requests, task tracking, and viewing monthly payslips."
     },
     {
       q: "Can I manage recurring maintenance packages?",
-      a: "Yes. The Subscriptions module handles annual maintenance contracts (AMC), periodic service packages, and membership renewals seamlessly."
-    },
-    {
-      q: "Can my sales/service team make calls from Garage?",
-      a: "Yes. The Power Dialer provides a high-velocity calling queue, while Call Intel attaches call duration metrics and notes directly to the customer record."
+      a: "Yes. The Subscriptions module lets you sell and manage Annual Maintenance Contracts (AMC), periodic service packages, and membership renewals seamlessly."
     },
     {
       q: "Will Garage replace all my separate spreadsheets and apps?",
-      a: "Yes. Garage is built to eliminate paper notebooks, scattered WhatsApp groups, Excel sheets, and disconnected billing tools into one single source of truth."
-    },
-    {
-      q: "Can I control employee access permissions?",
-      a: "Yes. Role-based access controls ensure technicians, service advisors, accountants, and managers only view and edit the areas permitted by the admin."
+      a: "Yes. Garage eliminates scattered paper notebooks, WhatsApp chat logs, Excel sheets, and disconnected billing tools into one single source of truth."
     }
   ]
 
   return (
     <div className="min-h-screen bg-[#07090E] text-slate-100 font-sans selection:bg-blue-500 selection:text-white relative overflow-x-hidden">
       
-      {/* ── 1. GETORCHESTRA TOP FLOATING NAVIGATION BAR ── */}
+      {/* ── 1. TOP FLOATING NAVIGATION BAR WITH DROPDOWNS ── */}
       <nav className="fixed top-0 left-0 right-0 z-[100] backdrop-blur-xl bg-[#07090E]/80 border-b border-white/5 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
-          {/* Logo & Brand Mark */}
+          {/* Brand Logo & Name in Inter */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 p-[1px] shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all">
-              <div className="w-full h-full bg-[#090D16] rounded-[11px] flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+              <div className="w-full h-full bg-[#090D16] rounded-[11px] flex items-center justify-center p-1.5">
+                <img 
+                  src="/garage-crm-logo.svg" 
+                  alt="Garage CRM Logo" 
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
+                />
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg tracking-tight text-white group-hover:text-blue-400 transition-colors">
-                  GARAGE
-                </span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                  ENTERPRISE
-                </span>
-              </div>
+            <div className="flex flex-col text-left">
+              <span className="font-bold text-xl tracking-tight text-white group-hover:text-blue-400 transition-colors leading-none font-sans">
+                Garage
+              </span>
+              <span className="text-[10px] text-blue-400 font-semibold tracking-wider uppercase mt-0.5">
+                CRM & Operations
+              </span>
             </div>
           </Link>
 
-          {/* Nav Menu */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
+          {/* Clean Dropdown Menus */}
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300 relative">
+            
+            {/* Features Dropdown */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setActiveNavDropdown("FEATURES")}
+              onMouseLeave={() => setActiveNavDropdown(null)}
+            >
+              <button className="flex items-center gap-1.5 hover:text-white py-2 transition-colors">
+                <span>Features</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+              </button>
+
+              <AnimatePresence>
+                {activeNavDropdown === "FEATURES" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 w-80 p-3 rounded-2xl bg-[#0B0F19] border border-white/10 shadow-2xl backdrop-blur-2xl space-y-1"
+                  >
+                    <a href="#modules" className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                        <Layers className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-blue-400">Lead Pipeline CRM</span>
+                        <span className="text-[11px] text-slate-400">Track customer enquiries & sales conversions.</span>
+                      </div>
+                    </a>
+
+                    <a href="#whatsapp-demo" className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-blue-400">WhatsApp Automation</span>
+                        <span className="text-[11px] text-slate-400">Instant job card alerts & payment links.</span>
+                      </div>
+                    </a>
+
+                    <a href="#modules" className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                        <FileCode2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-blue-400">GST Invoices & Billing</span>
+                        <span className="text-[11px] text-slate-400">Itemized billing with HSN codes & taxes.</span>
+                      </div>
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Grekam Ecosystem Dropdown */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setActiveNavDropdown("ECOSYSTEM")}
+              onMouseLeave={() => setActiveNavDropdown(null)}
+            >
+              <button className="flex items-center gap-1.5 hover:text-white py-2 transition-colors">
+                <span>Grekam Products</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+              </button>
+
+              <AnimatePresence>
+                {activeNavDropdown === "ECOSYSTEM" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 w-80 p-3 rounded-2xl bg-[#0B0F19] border border-white/10 shadow-2xl backdrop-blur-2xl space-y-1"
+                  >
+                    <a 
+                      href="https://agency.grekam.in" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-blue-400 flex items-center gap-1">
+                          Grekam Agency
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </span>
+                        <span className="text-[11px] text-slate-400">SaaS development & enterprise digital studio.</span>
+                      </div>
+                    </a>
+
+                    <a 
+                      href="https://echo.grekam.in" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0">
+                        <BookOpen className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-cyan-400 flex items-center gap-1">
+                          Echo LMS
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </span>
+                        <span className="text-[11px] text-slate-400">Academy LMS, video courses & student portal.</span>
+                      </div>
+                    </a>
+
+                    <a 
+                      href="https://grafty.pro" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-emerald-400 flex items-center gap-1">
+                          Grafty
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </span>
+                        <span className="text-[11px] text-slate-400">WhatsApp API gateway & marketing automation.</span>
+                      </div>
+                    </a>
+
+                    <a 
+                      href="https://atlasadmin.grekam.in" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                        <Package className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block group-hover:text-purple-400 flex items-center gap-1">
+                          Atlas E-Commerce
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </span>
+                        <span className="text-[11px] text-slate-400">Multi-tenant e-commerce & storefront builder.</span>
+                      </div>
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <a href="#calculator" className="hover:text-white transition-colors">ROI Calculator</a>
-            <a href="#whatsapp-demo" className="hover:text-white transition-colors">WhatsApp Automation</a>
-            <a href="#modules" className="hover:text-white transition-colors">Modules</a>
-            <a href="#reviews" className="hover:text-white transition-colors">Reviews & Ecosystem</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
@@ -523,14 +616,14 @@ export default function OrchestraGarageLandingPage() {
               onClick={() => setIsInquiryModalOpen(true)}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-slate-950 hover:bg-slate-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] active:scale-95 transition-all"
             >
-              Set up your garage
+              Start Free Trial
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* ── 2. HERO SECTION (WITH SLIDESHOW & ROLE SWITCHER) ── */}
+      {/* ── 2. HERO SECTION (SIMPLE WORDS, TARGETING SALES & GROWTH) ── */}
       <section className="relative pt-36 pb-16 md:pt-48 md:pb-24 overflow-hidden">
         
         {/* Glow Radial Lights */}
@@ -539,95 +632,49 @@ export default function OrchestraGarageLandingPage() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           
-          {/* Persona View Switcher */}
-          <div className="inline-flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 shadow-xl">
-            <button
-              onClick={() => setPersona("OWNER")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                persona === "OWNER" ? "bg-blue-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              👨‍💼 For Garage Owners
-            </button>
-            <button
-              onClick={() => setPersona("MANAGER")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                persona === "MANAGER" ? "bg-blue-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              👨‍🔧 For Service Managers
-            </button>
-            <button
-              onClick={() => setPersona("RESELLER")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                persona === "RESELLER" ? "bg-purple-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              🏢 Whitelabel Partners
-            </button>
+          {/* Top Pill Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 text-xs font-medium text-slate-300 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Garage CRM — Built for Auto Repair Workshops & Detailing Studios</span>
           </div>
 
-          {/* Dynamic Headline Based on Persona */}
+          {/* Simple, Punchy Sales-Driven Headline */}
           <motion.h1 
-            key={persona}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] max-w-5xl mx-auto"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] max-w-5xl mx-auto font-sans"
           >
-            {persona === "OWNER" && (
-              <>
-                Run your garage. Manage your team.
-                <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent block mt-2">
-                  Grow your revenue 2x faster.
-                </span>
-              </>
-            )}
-            {persona === "MANAGER" && (
-              <>
-                Create job cards, track bays, and
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-400 bg-clip-text text-transparent block mt-2">
-                  inspect vehicles 5x faster.
-                </span>
-              </>
-            )}
-            {persona === "RESELLER" && (
-              <>
-                Launch your branded garage software
-                <span className="bg-gradient-to-r from-purple-400 via-pink-300 to-amber-400 bg-clip-text text-transparent block mt-2">
-                  under your custom domain.
-                </span>
-              </>
-            )}
+            Get more customer leads.
+            <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent block mt-2 font-sans">
+              Grow your garage sales faster.
+            </span>
           </motion.h1>
 
-          {/* Subtitle */}
+          {/* Simple, Clear Subtitle */}
           <motion.p 
-            key={`${persona}-sub`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="mt-6 text-lg sm:text-xl text-slate-300/80 max-w-3xl mx-auto font-normal leading-relaxed"
+            className="mt-6 text-lg sm:text-xl text-slate-300/80 max-w-3xl mx-auto font-normal leading-relaxed font-sans"
           >
-            {persona === "OWNER" && "Accept service bookings, manage technicians & inventory, issue instant GST invoices, and automate customer follow-ups from one single connected workspace."}
-            {persona === "MANAGER" && "Streamline workshop throughput with live bay tracking, power dialer follow-ups, barcode spare parts stock management, and employee kiosk attendance."}
-            {persona === "RESELLER" && "Offer an enterprise garage management platform to your automotive clients. Set your own pricing, earn high recurring margins, and build your brand."}
+            <strong>Garage</strong> is the all-in-one CRM and workshop platform. Capture customer enquiries, send fast repair estimates, automate WhatsApp service reminders, and collect payments without paperwork.
           </motion.p>
 
           {/* CTA Buttons */}
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => setIsInquiryModalOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-[0_0_35px_rgba(255,255,255,0.25)] hover:shadow-[0_0_45px_rgba(255,255,255,0.4)] active:scale-98 transition-all flex items-center justify-center gap-3 group"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-[0_0_35px_rgba(255,255,255,0.25)] hover:shadow-[0_0_45px_rgba(255,255,255,0.4)] active:scale-98 transition-all flex items-center justify-center gap-3 group font-sans"
             >
-              Set up your garage
+              Get Started with Garage CRM
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <a
               href="#calculator"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-medium bg-white/[0.05] text-white hover:bg-white/10 border border-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-medium bg-white/[0.05] text-white hover:bg-white/10 border border-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3 font-sans"
             >
-              Calculate Your ROI
+              Calculate Your Growth
               <Calculator className="w-5 h-5 text-blue-400" />
             </a>
           </div>
@@ -637,7 +684,7 @@ export default function OrchestraGarageLandingPage() {
             <p className="text-xs font-mono uppercase tracking-widest text-slate-400">
               Trusted by 500+ top multi-brand garages & service chains
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-70 grayscale hover:grayscale-0 transition-all">
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-70 grayscale hover:grayscale-0 transition-all font-sans">
               <span className="font-bold tracking-wider text-base text-slate-300">AUTO-CARE PRO</span>
               <span className="font-bold tracking-wider text-base text-slate-300">GARAGE ONE</span>
               <span className="font-bold tracking-wider text-base text-slate-300">SPEEDWORKS</span>
@@ -647,7 +694,7 @@ export default function OrchestraGarageLandingPage() {
           </div>
         </div>
 
-        {/* ── 3. HERO SLIDESHOW CAROUSEL (REPLACING DASHBOARD CONTAINER) ── */}
+        {/* ── 3. HERO SLIDESHOW CAROUSEL ── */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 relative z-10">
           <div className="rounded-2xl border border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden group">
             
@@ -660,7 +707,7 @@ export default function OrchestraGarageLandingPage() {
               </div>
               
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-white tracking-wide">
+                <span className="text-xs font-bold text-white tracking-wide font-sans">
                   {heroSlides[activeSlide].title}
                 </span>
               </div>
@@ -698,7 +745,7 @@ export default function OrchestraGarageLandingPage() {
 
               {/* Slide Caption Overlay */}
               <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 flex justify-between items-center">
-                <p className="text-xs text-slate-200 font-medium">
+                <p className="text-xs text-slate-200 font-medium font-sans">
                   {heroSlides[activeSlide].caption}
                 </p>
                 <span className="text-[10px] font-mono text-slate-400 bg-white/10 px-2 py-0.5 rounded">
@@ -729,10 +776,10 @@ export default function OrchestraGarageLandingPage() {
           
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">Profit & Productivity Calculator</h2>
-            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
-              See how much revenue Garage saves your business.
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight font-sans">
+              See how much revenue Garage CRM adds to your business.
             </h3>
-            <p className="mt-4 text-base text-slate-400">
+            <p className="mt-4 text-base text-slate-400 font-sans">
               Adjust the sliders below based on your workshop capacity to calculate your estimated annual growth.
             </p>
           </div>
@@ -743,7 +790,7 @@ export default function OrchestraGarageLandingPage() {
             <div className="lg:col-span-7 p-8 rounded-2xl bg-[#07090E] border border-white/10 space-y-6">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-bold text-white">Service Bays / Technicians</label>
+                  <label className="text-sm font-bold text-white font-sans">Service Bays / Technicians</label>
                   <span className="text-sm font-mono font-bold text-blue-400">{bayCount} Bays</span>
                 </div>
                 <input 
@@ -758,7 +805,7 @@ export default function OrchestraGarageLandingPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-bold text-white">Monthly Job Cards Processed</label>
+                  <label className="text-sm font-bold text-white font-sans">Monthly Job Cards Processed</label>
                   <span className="text-sm font-mono font-bold text-purple-400">{monthlyJobs} Jobs / Month</span>
                 </div>
                 <input 
@@ -774,7 +821,7 @@ export default function OrchestraGarageLandingPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-bold text-white">Average Service Ticket Value</label>
+                  <label className="text-sm font-bold text-white font-sans">Average Service Ticket Value</label>
                   <span className="text-sm font-mono font-bold text-emerald-400">{formatPrice(avgTicketPrice)} / Ticket</span>
                 </div>
                 <input 
@@ -792,31 +839,31 @@ export default function OrchestraGarageLandingPage() {
             {/* Calculated Output Card */}
             <div className="lg:col-span-5 p-8 rounded-2xl bg-gradient-to-br from-blue-950/40 via-[#0B0F19] to-purple-950/40 border-2 border-blue-500/50 space-y-6 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
               <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-mono font-bold">
-                ESTIMATED ANNUAL ROI
+                ESTIMATED ANNUAL GROWTH
               </span>
 
               <div>
-                <span className="text-xs text-slate-400 block mb-1">Additional Annual Revenue Recovered</span>
-                <p className="text-4xl sm:text-5xl font-black text-white tracking-tight bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+                <span className="text-xs text-slate-400 block mb-1 font-sans">Additional Annual Revenue Recovered</span>
+                <p className="text-4xl sm:text-5xl font-black text-white tracking-tight bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent font-sans">
                   +{formatPrice(annualProfitIncrease)}
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">Calculated from unbilled spare parts & automated follow-ups.</p>
+                <p className="text-[11px] text-slate-400 mt-1 font-sans">Calculated from unbilled spare parts & automated follow-ups.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
                 <div>
-                  <span className="text-xs text-slate-400 block">Time Saved / Month</span>
+                  <span className="text-xs text-slate-400 block font-sans">Time Saved / Month</span>
                   <p className="text-xl font-bold text-white font-mono">{hoursSavedMonthly} Hours</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-400 block">Monthly Revenue Boost</span>
+                  <span className="text-xs text-slate-400 block font-sans">Monthly Revenue Boost</span>
                   <p className="text-xl font-bold text-emerald-400 font-mono">+{formatPrice(unbilledRecoveredMonthly)}</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsInquiryModalOpen(true)}
-                className="w-full py-3.5 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-100 transition-all shadow-lg"
+                className="w-full py-3.5 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-100 transition-all shadow-lg font-sans"
               >
                 Claim Your Estimated Growth Now
               </button>
@@ -831,10 +878,10 @@ export default function OrchestraGarageLandingPage() {
           
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-3">WhatsApp Automation</h2>
-            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight font-sans">
               Automate customer updates right on WhatsApp.
             </h3>
-            <p className="mt-4 text-base text-slate-400">
+            <p className="mt-4 text-base text-slate-400 font-sans">
               Test how Garage sends instant job card receipts, payment links, and service alerts to your customers' phones.
             </p>
           </div>
@@ -843,17 +890,17 @@ export default function OrchestraGarageLandingPage() {
             
             {/* Action Trigger Buttons */}
             <div className="lg:col-span-6 space-y-4">
-              <h4 className="text-lg font-bold text-white mb-2">Click to test instant automated triggers:</h4>
+              <h4 className="text-lg font-bold text-white mb-2 font-sans">Click to test instant automated triggers:</h4>
               
               <button
                 onClick={() => handleSimulateWhatsAppAction("SERVICE_UPDATE")}
                 className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
               >
                 <div>
-                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors font-sans">
                     1. Send Live Service Status Alert
                   </span>
-                  <span className="text-xs text-slate-400">Notify customer when vehicle inspection or alignment is complete.</span>
+                  <span className="text-xs text-slate-400 font-sans">Notify customer when vehicle inspection or alignment is complete.</span>
                 </div>
                 <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
@@ -863,10 +910,10 @@ export default function OrchestraGarageLandingPage() {
                 className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
               >
                 <div>
-                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors font-sans">
                     2. Send Instant WhatsApp Payment Link
                   </span>
-                  <span className="text-xs text-slate-400">Send GST invoice link with 1-click UPI / Credit Card payment.</span>
+                  <span className="text-xs text-slate-400 font-sans">Send GST invoice link with 1-click UPI / Credit Card payment.</span>
                 </div>
                 <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
@@ -876,10 +923,10 @@ export default function OrchestraGarageLandingPage() {
                 className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
               >
                 <div>
-                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors font-sans">
                     3. Send 6-Month Maintenance Reminder
                   </span>
-                  <span className="text-xs text-slate-400">Automatically invite previous customers back for scheduled service.</span>
+                  <span className="text-xs text-slate-400 font-sans">Automatically invite previous customers back for scheduled service.</span>
                 </div>
                 <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
@@ -897,13 +944,13 @@ export default function OrchestraGarageLandingPage() {
                     G
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-white block">Apex Motors (Garage SaaS)</span>
-                    <span className="text-[10px] text-emerald-400">Verified Business Account</span>
+                    <span className="text-xs font-bold text-white block font-sans">Apex Motors (Garage CRM)</span>
+                    <span className="text-[10px] text-emerald-400 font-sans">Verified Business Account</span>
                   </div>
                 </div>
 
                 {/* Messages Feed */}
-                <div className="space-y-3 min-h-[300px] max-h-[340px] overflow-y-auto pr-1 text-xs custom-scrollbar">
+                <div className="space-y-3 min-h-[300px] max-h-[340px] overflow-y-auto pr-1 text-xs custom-scrollbar font-sans">
                   {simulatedChat.map((msg, idx) => (
                     <div key={idx} className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 space-y-1">
                       <p className="text-slate-200 leading-relaxed">{msg.text}</p>
@@ -928,20 +975,20 @@ export default function OrchestraGarageLandingPage() {
           
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">All-In-One Platform</h2>
-            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight font-sans">
               Every module your garage needs to run & scale.
             </h3>
-            <p className="mt-4 text-base text-slate-400">
+            <p className="mt-4 text-base text-slate-400 font-sans">
               Garage connects your customers, vehicle service operations, sales, employees, finance, and marketing into one seamless workspace.
             </p>
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-12 font-sans">
             {[
-              { id: "ALL", label: "All 22 Modules" },
-              { id: "OPS", label: "⚙️ Operations & Jobs" },
+              { id: "ALL", label: "All Modules" },
               { id: "CRM", label: "🎯 CRM & Sales" },
+              { id: "OPS", label: "⚙️ Operations & Jobs" },
               { id: "FINANCE", label: "💰 Finance & Billing" },
               { id: "HR", label: "👨‍🔧 HR & Team ESS" },
             ].map(cat => (
@@ -979,10 +1026,10 @@ export default function OrchestraGarageLandingPage() {
                     </span>
                   </div>
 
-                  <h4 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors relative z-10">
+                  <h4 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors relative z-10 font-sans">
                     {module.title}
                   </h4>
-                  <p className="text-xs text-slate-400 leading-relaxed relative z-10">
+                  <p className="text-xs text-slate-400 leading-relaxed relative z-10 font-sans">
                     {module.description}
                   </p>
                 </div>
@@ -999,7 +1046,7 @@ export default function OrchestraGarageLandingPage() {
           {/* Reviews Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-3">Customer Testimonials</h2>
-            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight font-sans">
               Loved by workshop owners & service advisors.
             </h3>
           </div>
@@ -1010,12 +1057,12 @@ export default function OrchestraGarageLandingPage() {
               <div className="flex items-center gap-1 text-amber-400">
                 {"★".repeat(5)}
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed italic">
-                "Garage completely transformed our multi-bay workshop. We saved over 40 hours a month on manual invoicing and increased repeat service bookings by 25%."
+              <p className="text-xs text-slate-300 leading-relaxed italic font-sans">
+                "Garage CRM completely transformed our multi-bay workshop. We saved over 40 hours a month on manual invoicing and increased repeat service bookings by 25%."
               </p>
               <div>
-                <span className="text-sm font-bold text-white block">Ramesh V.</span>
-                <span className="text-xs text-slate-400">Owner, Apex Motors & Auto Care</span>
+                <span className="text-sm font-bold text-white block font-sans">Ramesh V.</span>
+                <span className="text-xs text-slate-400 font-sans">Owner, Apex Motors & Auto Care</span>
               </div>
             </div>
 
@@ -1023,12 +1070,12 @@ export default function OrchestraGarageLandingPage() {
               <div className="flex items-center gap-1 text-amber-400">
                 {"★".repeat(5)}
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed italic">
+              <p className="text-xs text-slate-300 leading-relaxed italic font-sans">
                 "The WhatsApp billing integration is incredible. Customers receive job card estimates and pay online before even arriving to collect their vehicle."
               </p>
               <div>
-                <span className="text-sm font-bold text-white block">Siddharth Menon</span>
-                <span className="text-xs text-slate-400">Managing Director, SpeedWorks Auto</span>
+                <span className="text-sm font-bold text-white block font-sans">Siddharth Menon</span>
+                <span className="text-xs text-slate-400 font-sans">Managing Director, SpeedWorks Auto</span>
               </div>
             </div>
 
@@ -1036,12 +1083,12 @@ export default function OrchestraGarageLandingPage() {
               <div className="flex items-center gap-1 text-amber-400">
                 {"★".repeat(5)}
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed italic">
+              <p className="text-xs text-slate-300 leading-relaxed italic font-sans">
                 "As a whitelabel reseller partner, launching this under our custom domain gave us a high-margin recurring SaaS offer for our auto clients."
               </p>
               <div>
-                <span className="text-sm font-bold text-white block">Vikramaditya S.</span>
-                <span className="text-xs text-slate-400">CEO, AutoTech Agency Network</span>
+                <span className="text-sm font-bold text-white block font-sans">Vikramaditya S.</span>
+                <span className="text-xs text-slate-400 font-sans">CEO, AutoTech Agency Network</span>
               </div>
             </div>
           </div>
@@ -1049,15 +1096,15 @@ export default function OrchestraGarageLandingPage() {
           {/* Built By Grekam Banner */}
           <div className="p-8 rounded-2xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-purple-950/40 border border-blue-500/30 mb-16 text-center">
             <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block mb-2">PROUDLY BUILT BY GREKAM</span>
-            <h4 className="text-2xl font-bold text-white mb-2">Part of the Grekam Enterprise Ecosystem</h4>
-            <p className="text-xs text-slate-300 max-w-2xl mx-auto mb-4">
+            <h4 className="text-2xl font-bold text-white mb-2 font-sans">Part of the Grekam Enterprise Ecosystem</h4>
+            <p className="text-xs text-slate-300 max-w-2xl mx-auto mb-4 font-sans">
               Garage is developed & backed by <strong>Grekam Agency</strong> — building world-class SaaS, AI applications, and digital platforms.
             </p>
             <a
               href="https://agency.grekam.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg transition-all font-sans"
             >
               Visit Grekam Agency
               <ExternalLink className="w-4 h-4" />
@@ -1067,8 +1114,8 @@ export default function OrchestraGarageLandingPage() {
           {/* Grekam Ecosystem Products Showcase Grid */}
           <div className="border-t border-white/10 pt-16">
             <div className="text-center max-w-2xl mx-auto mb-10">
-              <h4 className="text-lg font-bold text-white">Explore Other Grekam Platforms</h4>
-              <p className="text-xs text-slate-400">Empowering education, communication, and e-commerce.</p>
+              <h4 className="text-lg font-bold text-white font-sans">Explore Other Grekam Platforms</h4>
+              <p className="text-xs text-slate-400 font-sans">Empowering education, communication, and e-commerce.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1083,11 +1130,11 @@ export default function OrchestraGarageLandingPage() {
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
                   <BookOpen className="w-5 h-5" />
                 </div>
-                <h5 className="text-base font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors flex items-center justify-between">
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors flex items-center justify-between font-sans">
                   Echo LMS
                   <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </h5>
-                <p className="text-xs text-slate-400">Academy LMS, student management, video courses & educator platform.</p>
+                <p className="text-xs text-slate-400 font-sans">Academy LMS, student management, video courses & educator platform.</p>
               </a>
 
               {/* Grafty WhatsApp Automation */}
@@ -1100,11 +1147,11 @@ export default function OrchestraGarageLandingPage() {
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
                   <MessageSquare className="w-5 h-5" />
                 </div>
-                <h5 className="text-base font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors flex items-center justify-between font-sans">
                   Grafty
                   <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </h5>
-                <p className="text-xs text-slate-400">High-speed WhatsApp API gateway, broadcast campaigns & chatbots.</p>
+                <p className="text-xs text-slate-400 font-sans">High-speed WhatsApp API gateway, broadcast campaigns & chatbots.</p>
               </a>
 
               {/* Atlas E-Commerce */}
@@ -1117,11 +1164,11 @@ export default function OrchestraGarageLandingPage() {
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
                   <Package className="w-5 h-5" />
                 </div>
-                <h5 className="text-base font-bold text-white mb-1 group-hover:text-purple-400 transition-colors flex items-center justify-between">
+                <h5 className="text-base font-bold text-white mb-1 group-hover:text-purple-400 transition-colors flex items-center justify-between font-sans">
                   Atlas E-Commerce
                   <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </h5>
-                <p className="text-xs text-slate-400">Multi-tenant e-commerce platform, digital storefronts & inventory suite.</p>
+                <p className="text-xs text-slate-400 font-sans">Multi-tenant e-commerce platform, digital storefronts & inventory suite.</p>
               </a>
 
             </div>
@@ -1135,15 +1182,15 @@ export default function OrchestraGarageLandingPage() {
           
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">Transparent Pricing</h2>
-            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight font-sans">
               Simple plans that grow with your business.
             </h3>
-            <p className="mt-4 text-base text-slate-400">
+            <p className="mt-4 text-base text-slate-400 font-sans">
               No hidden fees. Every plan includes customer CRM, job cards, and full GST invoicing.
             </p>
 
             {/* Billing Cycle Toggle */}
-            <div className="mt-8 inline-flex items-center gap-3 p-1.5 rounded-xl bg-white/[0.04] border border-white/10">
+            <div className="mt-8 inline-flex items-center gap-3 p-1.5 rounded-xl bg-white/[0.04] border border-white/10 font-sans">
               <button
                 onClick={() => setBillingCycle("MONTHLY")}
                 className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
@@ -1176,15 +1223,15 @@ export default function OrchestraGarageLandingPage() {
             {/* Starter Bay */}
             <div className="p-8 rounded-2xl bg-[#07090E] border border-white/10 hover:border-blue-500/40 transition-all flex flex-col justify-between">
               <div>
-                <h4 className="text-lg font-bold text-white mb-1">Starter Bay</h4>
-                <p className="text-xs text-slate-400 mb-6">Perfect for small auto repair workshops & single bays.</p>
+                <h4 className="text-lg font-bold text-white mb-1 font-sans">Starter Bay</h4>
+                <p className="text-xs text-slate-400 mb-6 font-sans">Perfect for small auto repair workshops & single bays.</p>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-white">
+                  <span className="text-4xl font-extrabold text-white font-sans">
                     {formatPrice(billingCycle === "ANNUAL" ? 2399 : 2999)}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6">
+                <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6 font-sans">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Up to 3 Technicians & Staff</span>
@@ -1205,7 +1252,7 @@ export default function OrchestraGarageLandingPage() {
               </div>
               <button
                 onClick={() => setIsInquiryModalOpen(true)}
-                className="w-full py-3 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 border border-white/10 transition-all"
+                className="w-full py-3 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 border border-white/10 transition-all font-sans"
               >
                 Start 14-Day Free Trial
               </button>
@@ -1213,19 +1260,19 @@ export default function OrchestraGarageLandingPage() {
 
             {/* Pro Garage (Featured) */}
             <div className="p-8 rounded-2xl bg-gradient-to-b from-blue-950/30 via-[#090D16] to-[#07090E] border-2 border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.2)] flex flex-col justify-between relative">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg font-sans">
                 MOST POPULAR
               </div>
               <div>
-                <h4 className="text-lg font-bold text-white mb-1">Pro Garage</h4>
-                <p className="text-xs text-slate-300 mb-6">Designed for multi-bay service centers & scaling garages.</p>
+                <h4 className="text-lg font-bold text-white mb-1 font-sans">Pro Garage</h4>
+                <p className="text-xs text-slate-300 mb-6 font-sans">Designed for multi-bay service centers & scaling garages.</p>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-white">
+                  <span className="text-4xl font-extrabold text-white font-sans">
                     {formatPrice(billingCycle === "ANNUAL" ? 5599 : 6999)}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-200 mb-8 border-t border-white/10 pt-6">
+                <ul className="space-y-3 text-xs text-slate-200 mb-8 border-t border-white/10 pt-6 font-sans">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Up to 15 Technicians & Advisors</span>
@@ -1246,7 +1293,7 @@ export default function OrchestraGarageLandingPage() {
               </div>
               <button
                 onClick={() => setIsInquiryModalOpen(true)}
-                className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all"
+                className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all font-sans"
               >
                 Get Started Now
               </button>
@@ -1255,15 +1302,15 @@ export default function OrchestraGarageLandingPage() {
             {/* Enterprise Whitelabel */}
             <div className="p-8 rounded-2xl bg-[#07090E] border border-white/10 hover:border-purple-500/40 transition-all flex flex-col justify-between">
               <div>
-                <h4 className="text-lg font-bold text-white mb-1">Whitelabel Partner</h4>
-                <p className="text-xs text-slate-400 mb-6">For garage chains, agency partners & franchise networks.</p>
+                <h4 className="text-lg font-bold text-white mb-1 font-sans">Whitelabel Partner</h4>
+                <p className="text-xs text-slate-400 mb-6 font-sans">For garage chains, agency partners & franchise networks.</p>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-white">
+                  <span className="text-4xl font-extrabold text-white font-sans">
                     {formatPrice(billingCycle === "ANNUAL" ? 11999 : 14999)}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6">
+                <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6 font-sans">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Unlimited Staff & Multiple Locations</span>
@@ -1284,7 +1331,7 @@ export default function OrchestraGarageLandingPage() {
               </div>
               <button
                 onClick={() => setIsInquiryModalOpen(true)}
-                className="w-full py-3 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 border border-white/10 transition-all"
+                className="w-full py-3 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 border border-white/10 transition-all font-sans"
               >
                 Talk to Sales
               </button>
@@ -1299,7 +1346,7 @@ export default function OrchestraGarageLandingPage() {
           
           <div className="text-center mb-12">
             <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">Frequently Asked Questions</h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight font-sans">
               Got questions? We've got answers.
             </h3>
           </div>
@@ -1312,7 +1359,7 @@ export default function OrchestraGarageLandingPage() {
               >
                 <button
                   onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-base text-white hover:text-blue-400 transition-colors"
+                  className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-base text-white hover:text-blue-400 transition-colors font-sans"
                 >
                   <span>{faq.q}</span>
                   {activeFaq === idx ? (
@@ -1327,7 +1374,7 @@ export default function OrchestraGarageLandingPage() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4"
+                      className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4 font-sans"
                     >
                       {faq.a}
                     </motion.div>
@@ -1339,24 +1386,24 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 10. GETORCHESTRA BOTTOM CTA BANNER & FOOTER ── */}
+      {/* ── 10. BOTTOM CTA BANNER & FOOTER ── */}
       <section className="py-24 relative bg-gradient-to-b from-[#090D16] to-[#05070B]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="p-10 md:p-16 rounded-3xl bg-gradient-to-br from-blue-950/50 via-[#0B0F19] to-purple-950/30 border border-white/10 text-center relative overflow-hidden shadow-[0_0_100px_rgba(59,130,246,0.15)]">
             
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
             
-            <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-4 font-sans">
               Run smarter. Serve better. Grow faster.
             </h2>
-            <p className="text-slate-300 text-base max-w-2xl mx-auto mb-8">
+            <p className="text-slate-300 text-base max-w-2xl mx-auto mb-8 font-sans">
               Less chasing. Less paperwork. More control. More growth. Connect your entire garage operations into one single source of truth today.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => setIsInquiryModalOpen(true)}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-[0_0_35px_rgba(255,255,255,0.3)] transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-[0_0_35px_rgba(255,255,255,0.3)] transition-all flex items-center justify-center gap-2 font-sans"
               >
                 Set up your garage now
                 <ArrowRight className="w-5 h-5" />
@@ -1367,15 +1414,15 @@ export default function OrchestraGarageLandingPage() {
       </section>
 
       {/* Minimal Footer with Grekam Links */}
-      <footer className="py-12 border-t border-white/5 bg-[#05070B] text-xs text-slate-500">
+      <footer className="py-12 border-t border-white/5 bg-[#05070B] text-xs text-slate-500 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-sm text-white">GARAGE SaaS</span>
+            <span className="font-bold text-sm text-white">Garage CRM</span>
             <span>•</span>
             <span>A product by <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="text-slate-300 underline font-semibold hover:text-white">Grekam Agency</a>.</span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-400 flex-wrap justify-center">
+          <div className="flex items-center gap-6 text-slate-400 flex-wrap justify-center font-sans">
             <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Grekam Agency</a>
             <a href="https://echo.grekam.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Echo LMS</a>
             <a href="https://grafty.pro" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Grafty WhatsApp</a>
@@ -1403,75 +1450,75 @@ export default function OrchestraGarageLandingPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              <h3 className="text-xl font-bold text-white mb-1">Set Up Your Garage</h3>
-              <p className="text-xs text-slate-400 mb-6">
-                Fill in your details to activate your 14-day free trial & schedule a walkthrough.
+              <h3 className="text-xl font-bold text-white mb-1 font-sans">Set Up Garage CRM</h3>
+              <p className="text-xs text-slate-400 mb-6 font-sans">
+                Fill in your details to activate your 14-day free trial & schedule a live walkthrough.
               </p>
 
               <form onSubmit={handleInquirySubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Your Full Name *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1 font-sans">Your Full Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Ramesh Kumar"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500 font-sans"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Garage / Business Name *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1 font-sans">Garage / Business Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Apex Auto Care & Service"
                     value={form.garageName}
                     onChange={(e) => setForm({ ...form, garageName: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500 font-sans"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 font-sans">Phone Number *</label>
                     <input
                       type="tel"
                       required
                       placeholder="+91 98765 43210"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500 font-sans"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">City</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 font-sans">City</label>
                     <input
                       type="text"
                       placeholder="e.g. Coimbatore"
                       value={form.city}
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500 font-sans"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1 font-sans">Email Address</label>
                   <input
                     type="email"
                     placeholder="ramesh@apexautocare.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500 font-sans"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 mt-4"
+                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 mt-4 font-sans"
                 >
                   {submitting ? "Processing..." : "Activate Free Trial & Walkthrough"}
                 </button>
