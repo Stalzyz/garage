@@ -287,8 +287,8 @@ export default function NewInvoicePage() {
                     value={invoice.businessUnit}
                     onChange={e => setInvoice({...invoice, businessUnit: e.target.value})}
                   >
-                    <option value="AGENCY" className="bg-slate-900">Grekam Visuals (Agency)</option>
-                    <option value="ACADEMY" className="bg-slate-900">Grekam Academy</option>
+                    <option value="GARAGE_SERVICE" className="bg-slate-900">Garage Repairs & Service</option>
+                    <option value="PARTS_SALES" className="bg-slate-900">Parts & Accessory Sales</option>
                   </select>
                 </div>
                 <div>
@@ -703,10 +703,10 @@ export default function NewInvoicePage() {
             {/* Top Brand Header */}
             <div className="flex justify-between items-start">
               <div className="space-y-1 max-w-[55%]">
-                {((invoice.businessUnit === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl) ? (
+                {org.logoUrl ? (
                   <img
-                    src={(invoice.businessUnit === 'ACADEMY' ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl || '/visuals-logo.png'}
-                    alt={invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}
+                    src={org.logoUrl}
+                    alt={org.name || 'Garage SaaS'}
                     className="max-h-16 max-w-[260px] w-auto h-auto object-contain object-left mb-2"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = 'none';
@@ -717,13 +717,13 @@ export default function NewInvoicePage() {
                 ) : null}
                 <div className="logo-fallback hidden">
                   <span className="text-2xl font-black tracking-tight text-slate-900">
-                    {org.name || "Grekam"} <span className="text-emerald-600">Visuals</span>
+                    {org.name || "Garage"} <span className="text-emerald-600">SaaS</span>
                   </span>
                 </div>
 
                 <div className="pt-2 space-y-0.5">
                   <h3 className="font-bold text-slate-900 text-sm">
-                    {invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}
+                    {org.name || 'Garage Operations & Service Center'}
                   </h3>
                   <p className="text-xs text-slate-600">{org.billingAddress || "Coimbatore, Tamil Nadu, India – 641024"}</p>
                   <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber || "33HCCPS5424M1Z8"}</p>
@@ -777,10 +777,10 @@ export default function NewInvoicePage() {
 
               <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4 flex flex-col justify-center space-y-2">
                 <h4 className="font-bold text-[#064e3b] text-sm">
-                  Thank you for choosing {invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}!
+                  Thank you for choosing {org.name || 'Garage SaaS'}!
                 </h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Designing bold ideas for a brighter tomorrow.
+                  Streamlined garage service, repairs, and auto maintenance.
                 </p>
               </div>
             </div>
@@ -863,15 +863,15 @@ export default function NewInvoicePage() {
                 <p className="text-xs font-bold text-slate-900">Notes</p>
                 <ol className="text-[10px] text-slate-600 space-y-0.5 list-none pl-0">
                   <li>1. This is a computer generated invoice and does not require a signature.</li>
-                  <li>2. Services provided under {invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}.</li>
+                  <li>2. Services provided by {org.name || 'Garage SaaS'}.</li>
                   <li>3. Payment once made is non-refundable.</li>
-                  <li>4. For any billing queries, contact <span className="text-emerald-700 font-semibold">{org.supportEmail || 'support@grekam.in'}</span>.</li>
+                  <li>4. For any billing queries, contact <span className="text-emerald-700 font-semibold">{org.supportEmail || 'support@garage.grekam.in'}</span>.</li>
                   <li>5. Thank you for being a valued client!</li>
                 </ol>
               </div>
 
               <div className="md:col-span-4 flex flex-col items-center justify-end text-center pt-2">
-                <p className="text-xs font-bold text-slate-900 mb-4">For {invoice.businessUnit === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals')}</p>
+                <p className="text-xs font-bold text-slate-900 mb-4">For {org.name || 'Garage SaaS'}</p>
                 <div className="w-28 border-b border-slate-300 mb-1"></div>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">Authorized Signatory</p>
               </div>

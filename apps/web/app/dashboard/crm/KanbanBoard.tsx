@@ -6,7 +6,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
   leads: any[];
-  activeTab: 'AGENCY' | 'ACADEMY';
+  activeTab: 'SERVICE' | 'SALES' | 'AGENCY' | 'ACADEMY';
   onStatusChange: (leadId: string, newStatus: string) => void;
   onOpenLead: (lead: any) => void;
   onLogActivity: (lead: any) => void;
@@ -14,22 +14,23 @@ interface KanbanBoardProps {
   onWhatsapp?: (lead: any) => void;
 }
 
-const DEFAULT_AGENCY_COLUMNS = [
+const DEFAULT_SERVICE_COLUMNS = [
+  { id: 'NEW', title: 'New Enquiries', isDefault: true },
+  { id: 'CONTACTED', title: 'Contacted', isDefault: true },
+  { id: 'FOLLOW_UP', title: 'Follow-up Due', isDefault: true },
+  { id: 'INTERESTED', title: 'Service Booked', isDefault: true },
+  { id: 'WON', title: 'Work Completed', isDefault: true },
+  { id: 'LOST', title: 'Lost / Cancelled', isDefault: true }
+];
+
+const DEFAULT_SALES_COLUMNS = [
   { id: 'NEW', title: 'New Leads', isDefault: true },
   { id: 'CONTACTED', title: 'Contacted', isDefault: true },
   { id: 'QUALIFIED', title: 'Qualified', isDefault: true },
-  { id: 'PROPOSAL_SENT', title: 'Proposal Sent', isDefault: true },
-  { id: 'NEGOTIATION', title: 'Negotiation', isDefault: true },
-  { id: 'WON', title: 'Won', isDefault: true },
+  { id: 'PROPOSAL_SENT', title: 'Quotation Sent', isDefault: true },
+  { id: 'NEGOTIATION', title: 'Inspection / Test Drive', isDefault: true },
+  { id: 'WON', title: 'Converted / Sold', isDefault: true },
   { id: 'LOST', title: 'Lost', isDefault: true }
-];
-
-const DEFAULT_ACADEMY_COLUMNS = [
-  { id: 'ENQUIRY', title: 'New Enquiry', isDefault: true },
-  { id: 'COUNSELLING', title: 'Counselling', isDefault: true },
-  { id: 'TRIAL', title: 'Trial Class', isDefault: true },
-  { id: 'ENROLLED_ACADEMY', title: 'Enrolled', isDefault: true },
-  { id: 'DROPPED', title: 'Dropped', isDefault: true }
 ];
 
 // Single Lead Card Component with Native Drag Handlers
@@ -201,23 +202,23 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const { symbol } = useCurrency();
 
-  const [agencyCols, setAgencyCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
+  const [serviceCols, setServiceCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('grekam_crm_agency_cols');
+      const saved = localStorage.getItem('garage_crm_service_cols');
       if (saved) { try { return JSON.parse(saved); } catch {} }
     }
-    return DEFAULT_AGENCY_COLUMNS;
+    return DEFAULT_SERVICE_COLUMNS;
   });
 
-  const [academyCols, setAcademyCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
+  const [salesCols, setSalesCols] = useState<{ id: string; title: string; isDefault?: boolean }[]>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('grekam_crm_academy_cols');
+      const saved = localStorage.getItem('garage_crm_sales_cols');
       if (saved) { try { return JSON.parse(saved); } catch {} }
     }
-    return DEFAULT_ACADEMY_COLUMNS;
+    return DEFAULT_SALES_COLUMNS;
   });
 
-  const columns = activeTab === 'AGENCY' ? agencyCols : academyCols;
+  const columns = (activeTab === 'SALES') ? salesCols : serviceCols;
 
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');

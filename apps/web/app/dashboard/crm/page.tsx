@@ -32,7 +32,7 @@ export default function CRMDashboard() {
   const employees = employeesData?.employees || []
 
   // State
-  const [activeTab, setActiveTab] = useState<'AGENCY' | 'ACADEMY'>('AGENCY')
+  const [activeTab, setActiveTab] = useState<'SERVICE' | 'SALES' | 'AGENCY' | 'ACADEMY'>('SERVICE')
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [industryFilter, setIndustryFilter] = useState("ALL")
@@ -639,24 +639,24 @@ export default function CRMDashboard() {
           {/* Business Unit Selector */}
           <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
             <button
-              onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
+              onClick={() => { setActiveTab('SERVICE'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
               className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-                activeTab === 'AGENCY' 
+                activeTab === 'SERVICE' || activeTab === 'AGENCY'
                   ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
                   : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
               }`}
             >
-              Agency CRM
+              Service & Repairs
             </button>
             <button
-              onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
+              onClick={() => { setActiveTab('SALES'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
               className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-                activeTab === 'ACADEMY' 
+                activeTab === 'SALES' 
                   ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
                   : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
               }`}
             >
-              Academy CRM
+              Sales & Parts
             </button>
           </div>
         </div>
