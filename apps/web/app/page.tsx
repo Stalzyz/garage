@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useId } from "react"
 import Link from "next/link"
 import { 
   Building2, ShieldCheck, ArrowRight, CheckCircle2, ChevronRight, Star, Sparkles, 
@@ -8,7 +8,8 @@ import {
   Trophy, Radio, Globe, BarChart2, LifeBuoy, Workflow, MessageSquare, HardDrive, Bell, 
   BookOpen, Settings, Phone, Calendar, Mail, Clock, FileText, Package, RefreshCw, X, AlertCircle,
   TrendingUp, Sliders, Smartphone, Check, Zap, HelpCircle, ChevronDown, PlayCircle, ExternalLink,
-  Receipt, Flame, Compass, Award, ShieldAlert, FileCode2, ChevronUp
+  Receipt, Flame, Compass, Award, ShieldAlert, FileCode2, ChevronUp, Send, Calculator, UserPlus,
+  Lock, Share2, Sparkle
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
@@ -20,6 +21,66 @@ export default function OrchestraGarageLandingPage() {
   const [activeModuleCategory, setActiveModuleCategory] = useState<"ALL" | "OPS" | "CRM" | "FINANCE" | "HR">("ALL")
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "ANNUAL">("ANNUAL")
   
+  // ── NEW INTERACTIVE ENHANCEMENTS STATE ──
+  const [persona, setPersona] = useState<"OWNER" | "MANAGER" | "RESELLER">("OWNER")
+  const [selectedCurrency, setSelectedCurrency] = useState<"INR" | "AED" | "USD">("INR")
+  
+  // ROI Calculator Sliders
+  const [bayCount, setBayCount] = useState(6)
+  const [monthlyJobs, setMonthlyJobs] = useState(180)
+  const [avgTicketPrice, setAvgTicketPrice] = useState(4500)
+
+  // WhatsApp Simulator State
+  const [simulatedChat, setSimulatedChat] = useState<Array<{ sender: "bot" | "user"; text: string; time: string }>>([
+    { sender: "bot", text: "🚗 Apex Motors: Hi Vikram! Your Honda City (MH 12 AB 4589) is ready after Full Synthetic Oil Service & Brake Inspection.", time: "10:30 AM" },
+    { sender: "bot", text: "🧾 Click to view & pay your GST invoice: https://app.garage.grekam.in/verify/inv/8841", time: "10:31 AM" }
+  ])
+  const [simulatingWhatsApp, setSimulatingWhatsApp] = useState(false)
+
+  // Calculate ROI Metrics
+  const hoursSavedMonthly = Math.round(bayCount * 14)
+  const unbilledRecoveredMonthly = Math.round(monthlyJobs * (avgTicketPrice * 0.08))
+  const annualProfitIncrease = Math.round((unbilledRecoveredMonthly * 12) + (bayCount * 45000))
+
+  const currencySymbols = {
+    INR: "₹",
+    AED: "AED ",
+    USD: "$"
+  }
+
+  const currencyMultipliers = {
+    INR: 1,
+    AED: 0.044,
+    USD: 0.012
+  }
+
+  const formatPrice = (valInInr: number) => {
+    const symbol = currencySymbols[selectedCurrency]
+    const rate = currencyMultipliers[selectedCurrency]
+    const converted = Math.round(valInInr * rate)
+    return `${symbol}${converted.toLocaleString("en-US")}`
+  }
+
+  const handleSimulateWhatsAppAction = (actionType: "SERVICE_UPDATE" | "PAYMENT_LINK" | "REMINDER") => {
+    setSimulatingWhatsApp(true)
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    let newMsg = ""
+
+    if (actionType === "SERVICE_UPDATE") {
+      newMsg = "🔧 Service Alert: Wheel Alignment & Balancing complete on KA 05 CD 8821. Technician Karthik is conducting final road test."
+    } else if (actionType === "PAYMENT_LINK") {
+      newMsg = "💳 Payment Request: Total Bill ₹8,450. Click link to pay via UPI / Credit Card & get instant digital receipt."
+    } else {
+      newMsg = "📅 Maintenance Reminder: Your 6-Month Oil Service for MH 12 AB 4589 is due next Tuesday. Click to confirm your 10 AM slot."
+    }
+
+    setTimeout(() => {
+      setSimulatedChat(prev => [...prev, { sender: "bot", text: newMsg, time: now }])
+      setSimulatingWhatsApp(false)
+      toast.success("WhatsApp Automated Alert Triggered!")
+    }, 600)
+  }
+
   const [form, setForm] = useState({
     name: "",
     garageName: "",
@@ -407,14 +468,30 @@ export default function OrchestraGarageLandingPage() {
           {/* Nav Menu */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#modules" className="hover:text-white transition-colors">All Modules</a>
-            <a href="#workflow" className="hover:text-white transition-colors">How It Works</a>
+            <a href="#calculator" className="hover:text-white transition-colors">ROI Calculator</a>
+            <a href="#whatsapp-demo" className="hover:text-white transition-colors">WhatsApp Automation</a>
+            <a href="#modules" className="hover:text-white transition-colors">Modules</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Currency Selector */}
+            <div className="hidden lg:flex items-center bg-white/[0.04] border border-white/10 p-1 rounded-xl text-xs font-mono">
+              {(["INR", "AED", "USD"] as const).map(c => (
+                <button
+                  key={c}
+                  onClick={() => setSelectedCurrency(c)}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    selectedCurrency === c ? "bg-blue-600 text-white font-bold" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
             <Link 
               href="/auth/login" 
               className="hidden sm:inline-flex text-sm font-medium text-slate-300 hover:text-white transition-colors"
@@ -432,8 +509,8 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </nav>
 
-      {/* ── 2. HERO SECTION (ORCHESTRA AESTHETIC) ── */}
-      <section className="relative pt-36 pb-20 md:pt-48 md:pb-28 overflow-hidden">
+      {/* ── 2. HERO SECTION (ORCHESTRA AESTHETIC WITH ROLE SWITCHER) ── */}
+      <section className="relative pt-36 pb-16 md:pt-48 md:pb-24 overflow-hidden">
         
         {/* Glow Radial Lights */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-600/15 via-purple-600/10 to-transparent blur-[120px] pointer-events-none" />
@@ -441,47 +518,83 @@ export default function OrchestraGarageLandingPage() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           
-          {/* Top Pill Badge */}
-          <motion.div 
+          {/* Persona View Switcher */}
+          <div className="inline-flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 shadow-xl">
+            <button
+              onClick={() => setPersona("OWNER")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                persona === "OWNER" ? "bg-blue-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              👨‍💼 For Garage Owners
+            </button>
+            <button
+              onClick={() => setPersona("MANAGER")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                persona === "MANAGER" ? "bg-blue-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              👨‍🔧 For Service Managers
+            </button>
+            <button
+              onClick={() => setPersona("RESELLER")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                persona === "RESELLER" ? "bg-purple-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              🏢 Whitelabel Partners
+            </button>
+          </div>
+
+          {/* Dynamic Headline Based on Persona */}
+          <motion.h1 
+            key={persona}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 text-xs font-medium text-slate-300 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Free 14-day trial • 5-minute setup • No credit card required</span>
-          </motion.div>
-
-          {/* Main Headline */}
-          <motion.h1 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.4 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] max-w-5xl mx-auto"
           >
-            Start growing your garage today—
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent block mt-2">
-              without a complicated setup.
-            </span>
+            {persona === "OWNER" && (
+              <>
+                Run your garage. Manage your team.
+                <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent block mt-2">
+                  Grow your revenue 2x faster.
+                </span>
+              </>
+            )}
+            {persona === "MANAGER" && (
+              <>
+                Create job cards, track bays, and
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-400 bg-clip-text text-transparent block mt-2">
+                  inspect vehicles 5x faster.
+                </span>
+              </>
+            )}
+            {persona === "RESELLER" && (
+              <>
+                Launch your branded garage software
+                <span className="bg-gradient-to-r from-purple-400 via-pink-300 to-amber-400 bg-clip-text text-transparent block mt-2">
+                  under your custom domain.
+                </span>
+              </>
+            )}
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p 
-            initial={{ opacity: 0, y: 15 }}
+            key={`${persona}-sub`}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
             className="mt-6 text-lg sm:text-xl text-slate-300/80 max-w-3xl mx-auto font-normal leading-relaxed"
           >
-            Accept service bookings, manage technicians & inventory, issue instant GST invoices, and automate customer follow-ups with your very own white-labeled garage portal.
+            {persona === "OWNER" && "Accept service bookings, manage technicians & inventory, issue instant GST invoices, and automate customer follow-ups from one single connected workspace."}
+            {persona === "MANAGER" && "Streamline workshop throughput with live bay tracking, power dialer follow-ups, barcode spare parts stock management, and employee kiosk attendance."}
+            {persona === "RESELLER" && "Offer an enterprise garage management platform to your automotive clients. Set your own pricing, earn high recurring margins, and build your brand."}
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => setIsInquiryModalOpen(true)}
               className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-[0_0_35px_rgba(255,255,255,0.25)] hover:shadow-[0_0_45px_rgba(255,255,255,0.4)] active:scale-98 transition-all flex items-center justify-center gap-3 group"
@@ -489,14 +602,14 @@ export default function OrchestraGarageLandingPage() {
               Set up your garage
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
-              onClick={() => setIsInquiryModalOpen(true)}
+            <a
+              href="#calculator"
               className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-medium bg-white/[0.05] text-white hover:bg-white/10 border border-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3"
             >
-              Book a live demo
-              <PlayCircle className="w-5 h-5 text-blue-400" />
-            </button>
-          </motion.div>
+              Calculate Your ROI
+              <Calculator className="w-5 h-5 text-blue-400" />
+            </a>
+          </div>
 
           {/* Social Proof */}
           <div className="mt-16 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
@@ -513,14 +626,10 @@ export default function OrchestraGarageLandingPage() {
           </div>
         </div>
 
-        {/* ── 3. INTERACTIVE DASHBOARD PREVIEW MOCKUP (GETORCHESTRA STYLE) ── */}
+        {/* ── 3. INTERACTIVE DASHBOARD PREVIEW MOCKUP ── */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="rounded-2xl border border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden"
-          >
+          <div className="rounded-2xl border border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            
             {/* Window Controls */}
             <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
               <div className="flex items-center gap-2">
@@ -533,12 +642,12 @@ export default function OrchestraGarageLandingPage() {
                 <span>app.garage.grekam.in/dashboard</span>
               </div>
               <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span>LIVE SYSTEM</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>LIVE WORKSHOP</span>
               </div>
             </div>
 
-            {/* Interactive Tab Selector Inside Mockup */}
+            {/* Interactive Tab Selector */}
             <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none border-b border-white/5">
               {[
                 { id: "DASHBOARD", label: "📊 Dashboard", color: "blue" },
@@ -576,11 +685,11 @@ export default function OrchestraGarageLandingPage() {
                     </div>
                     <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                       <span className="text-xs text-emerald-300 font-medium">Monthly Revenue</span>
-                      <p className="text-2xl font-bold text-white mt-1">₹4,82,500</p>
+                      <p className="text-2xl font-bold text-white mt-1">{formatPrice(482500)}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                       <span className="text-xs text-amber-300 font-medium">Pending Payments</span>
-                      <p className="text-2xl font-bold text-white mt-1">₹34,200</p>
+                      <p className="text-2xl font-bold text-white mt-1">{formatPrice(34200)}</p>
                     </div>
                   </div>
 
@@ -593,7 +702,7 @@ export default function OrchestraGarageLandingPage() {
                           <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Bay 02 • Active</span>
                         </div>
                         <div className="flex justify-between items-center text-xs p-2.5 rounded-lg bg-white/5">
-                          <span className="font-semibold text-white">KA 05 CD 8821 — Hyundai Creta (Brake Pad Replacement)</span>
+                          <span className="font-semibold text-white">KA 05 CD 8821 — Hyundai Creta (Brake Replacement)</span>
                           <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">Bay 04 • Testing</span>
                         </div>
                       </div>
@@ -668,7 +777,7 @@ export default function OrchestraGarageLandingPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs font-bold text-white border-b border-white/10 pb-2">
                     <span>GST Invoice #INV-2026-084</span>
-                    <span className="text-emerald-400 font-mono">PAID • ₹14,850</span>
+                    <span className="text-emerald-400 font-mono">PAID • {formatPrice(14850)}</span>
                   </div>
                   <div className="text-xs space-y-1 text-slate-300 font-mono">
                     <p>Client: Ananya Deshmukh (DL 01 AB 9912)</p>
@@ -701,11 +810,210 @@ export default function OrchestraGarageLandingPage() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ── 4. "FROM CHAOS TO CONTROL" COMPARISON GRID ── */}
+      {/* ── 4. NEW INTERACTIVE "GARAGE ROI & SAVINGS CALCULATOR" ── */}
+      <section id="calculator" className="py-24 relative bg-[#090D16] border-y border-white/5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-3">Profit & Productivity Calculator</h2>
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+              See how much revenue Garage saves your business.
+            </h3>
+            <p className="mt-4 text-base text-slate-400">
+              Adjust the sliders below based on your workshop capacity to calculate your estimated annual growth.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Sliders Input Column */}
+            <div className="lg:col-span-7 p-8 rounded-2xl bg-[#07090E] border border-white/10 space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-white">Service Bays / Technicians</label>
+                  <span className="text-sm font-mono font-bold text-blue-400">{bayCount} Bays</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="25" 
+                  value={bayCount} 
+                  onChange={(e) => setBayCount(parseInt(e.target.value, 10))}
+                  className="w-full accent-blue-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-white">Monthly Job Cards Processed</label>
+                  <span className="text-sm font-mono font-bold text-purple-400">{monthlyJobs} Jobs / Month</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="20" 
+                  max="1000" 
+                  step="10"
+                  value={monthlyJobs} 
+                  onChange={(e) => setMonthlyJobs(parseInt(e.target.value, 10))}
+                  className="w-full accent-purple-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-white">Average Service Ticket Value</label>
+                  <span className="text-sm font-mono font-bold text-emerald-400">{formatPrice(avgTicketPrice)} / Ticket</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1000" 
+                  max="35000" 
+                  step="500"
+                  value={avgTicketPrice} 
+                  onChange={(e) => setAvgTicketPrice(parseInt(e.target.value, 10))}
+                  className="w-full accent-emerald-500 h-2 bg-white/10 rounded-lg cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Calculated Output Card */}
+            <div className="lg:col-span-5 p-8 rounded-2xl bg-gradient-to-br from-blue-950/40 via-[#0B0F19] to-purple-950/40 border-2 border-blue-500/50 space-y-6 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
+              <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-mono font-bold">
+                ESTIMATED ANNUAL ROI
+              </span>
+
+              <div>
+                <span className="text-xs text-slate-400 block mb-1">Additional Annual Revenue Recovered</span>
+                <p className="text-4xl sm:text-5xl font-black text-white tracking-tight bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+                  +{formatPrice(annualProfitIncrease)}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">Calculated from unbilled spare parts & automated follow-ups.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
+                <div>
+                  <span className="text-xs text-slate-400 block">Time Saved / Month</span>
+                  <p className="text-xl font-bold text-white font-mono">{hoursSavedMonthly} Hours</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400 block">Monthly Revenue Boost</span>
+                  <p className="text-xl font-bold text-emerald-400 font-mono">+{formatPrice(unbilledRecoveredMonthly)}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsInquiryModalOpen(true)}
+                className="w-full py-3.5 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-100 transition-all shadow-lg"
+              >
+                Claim Your Estimated Growth Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. NEW INTERACTIVE "WHATSAPP AUTOMATION SIMULATOR" ── */}
+      <section id="whatsapp-demo" className="py-24 relative">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-3">WhatsApp Automation</h2>
+            <h3 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+              Automate customer updates right on WhatsApp.
+            </h3>
+            <p className="mt-4 text-base text-slate-400">
+              Test how Garage sends instant job card receipts, payment links, and service alerts to your customers' phones.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Action Trigger Buttons */}
+            <div className="lg:col-span-6 space-y-4">
+              <h4 className="text-lg font-bold text-white mb-2">Click to test instant automated triggers:</h4>
+              
+              <button
+                onClick={() => handleSimulateWhatsAppAction("SERVICE_UPDATE")}
+                className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                    1. Send Live Service Status Alert
+                  </span>
+                  <span className="text-xs text-slate-400">Notify customer when vehicle inspection or alignment is complete.</span>
+                </div>
+                <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
+              </button>
+
+              <button
+                onClick={() => handleSimulateWhatsAppAction("PAYMENT_LINK")}
+                className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                    2. Send Instant WhatsApp Payment Link
+                  </span>
+                  <span className="text-xs text-slate-400">Send GST invoice link with 1-click UPI / Credit Card payment.</span>
+                </div>
+                <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
+              </button>
+
+              <button
+                onClick={() => handleSimulateWhatsAppAction("REMINDER")}
+                className="w-full p-5 rounded-2xl bg-[#090D16] border border-white/10 hover:border-emerald-500/50 transition-all text-left flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-sm font-bold text-white block group-hover:text-emerald-400 transition-colors">
+                    3. Send 6-Month Maintenance Reminder
+                  </span>
+                  <span className="text-xs text-slate-400">Automatically invite previous customers back for scheduled service.</span>
+                </div>
+                <Send className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
+              </button>
+            </div>
+
+            {/* Smartphone Simulated Frame */}
+            <div className="lg:col-span-6 flex justify-center">
+              <div className="w-[340px] rounded-[36px] border-4 border-slate-700 bg-slate-950 p-4 shadow-[0_0_50px_rgba(16,185,129,0.2)] relative">
+                {/* Notch */}
+                <div className="w-32 h-4 bg-slate-900 rounded-b-xl mx-auto mb-4" />
+                
+                {/* WhatsApp Chat Header */}
+                <div className="flex items-center gap-3 pb-3 border-b border-white/10 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white text-xs">
+                    G
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">Apex Motors (Garage SaaS)</span>
+                    <span className="text-[10px] text-emerald-400">Verified Business Account</span>
+                  </div>
+                </div>
+
+                {/* Messages Feed */}
+                <div className="space-y-3 min-h-[300px] max-h-[340px] overflow-y-auto pr-1 text-xs custom-scrollbar">
+                  {simulatedChat.map((msg, idx) => (
+                    <div key={idx} className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 space-y-1">
+                      <p className="text-slate-200 leading-relaxed">{msg.text}</p>
+                      <span className="text-[9px] text-emerald-400/80 block text-right font-mono">{msg.time} ✓✓</span>
+                    </div>
+                  ))}
+                  {simulatingWhatsApp && (
+                    <div className="text-[10px] text-slate-400 animate-pulse italic">
+                      Automated bot typing message...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 6. "FROM CHAOS TO CONTROL" COMPARISON GRID ── */}
       <section className="py-20 relative bg-[#090D16] border-y border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -782,7 +1090,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 5. COMPLETE MODULE DIRECTORY (GETORCHESTRA BENTO GRID) ── */}
+      {/* ── 7. COMPLETE MODULE DIRECTORY ── */}
       <section id="modules" className="py-24 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -852,7 +1160,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 6. PRICING SECTION (GETORCHESTRA STYLE) ── */}
+      {/* ── 8. PRICING SECTION (WITH MULTI-CURRENCY CONVERSION) ── */}
       <section id="pricing" className="py-24 relative bg-[#090D16] border-t border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -903,9 +1211,9 @@ export default function OrchestraGarageLandingPage() {
                 <p className="text-xs text-slate-400 mb-6">Perfect for small auto repair workshops & single bays.</p>
                 <div className="flex items-baseline gap-1 mb-6">
                   <span className="text-4xl font-extrabold text-white">
-                    ₹{billingCycle === "ANNUAL" ? "2,399" : "2,999"}
+                    {formatPrice(billingCycle === "ANNUAL" ? 2399 : 2999)}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">/month + GST</span>
+                  <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
                 <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6">
                   <li className="flex items-center gap-2">
@@ -944,9 +1252,9 @@ export default function OrchestraGarageLandingPage() {
                 <p className="text-xs text-slate-300 mb-6">Designed for multi-bay service centers & scaling garages.</p>
                 <div className="flex items-baseline gap-1 mb-6">
                   <span className="text-4xl font-extrabold text-white">
-                    ₹{billingCycle === "ANNUAL" ? "5,599" : "6,999"}
+                    {formatPrice(billingCycle === "ANNUAL" ? 5599 : 6999)}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">/month + GST</span>
+                  <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
                 <ul className="space-y-3 text-xs text-slate-200 mb-8 border-t border-white/10 pt-6">
                   <li className="flex items-center gap-2">
@@ -982,9 +1290,9 @@ export default function OrchestraGarageLandingPage() {
                 <p className="text-xs text-slate-400 mb-6">For garage chains, agency partners & franchise networks.</p>
                 <div className="flex items-baseline gap-1 mb-6">
                   <span className="text-4xl font-extrabold text-white">
-                    ₹{billingCycle === "ANNUAL" ? "11,999" : "14,999"}
+                    {formatPrice(billingCycle === "ANNUAL" ? 11999 : 14999)}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">/month + GST</span>
+                  <span className="text-xs text-slate-400 font-mono">/month + tax</span>
                 </div>
                 <ul className="space-y-3 text-xs text-slate-300 mb-8 border-t border-white/10 pt-6">
                   <li className="flex items-center gap-2">
@@ -1016,7 +1324,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 7. FAQ ACCORDION SECTION ── */}
+      {/* ── 9. FAQ ACCORDION SECTION ── */}
       <section id="faq" className="py-24 relative">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -1062,7 +1370,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </section>
 
-      {/* ── 8. GETORCHESTRA BOTTOM CTA BANNER & FOOTER ── */}
+      {/* ── 10. GETORCHESTRA BOTTOM CTA BANNER & FOOTER ── */}
       <section className="py-24 relative bg-gradient-to-b from-[#090D16] to-[#05070B]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="p-10 md:p-16 rounded-3xl bg-gradient-to-br from-blue-950/50 via-[#0B0F19] to-purple-950/30 border border-white/10 text-center relative overflow-hidden shadow-[0_0_100px_rgba(59,130,246,0.15)]">
@@ -1106,7 +1414,7 @@ export default function OrchestraGarageLandingPage() {
         </div>
       </footer>
 
-      {/* ── 9. INQUIRY / ONBOARDING MODAL ── */}
+      {/* ── 11. INQUIRY / ONBOARDING MODAL ── */}
       <AnimatePresence>
         {isInquiryModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
