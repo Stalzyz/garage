@@ -106,7 +106,7 @@ export function buildMasterEmailHtml(
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <a href="https://agency.grekam.in" style="text-decoration:none;display:inline-block;">
+                    <a href="https://dashboard.grekam.in" style="text-decoration:none;display:inline-block;">
                       ${logoUrl ? `
                         <img src="${logoUrl}" alt="${companyName}" style="max-height:38px;max-width:200px;display:block;border:0;outline:none;" />
                       ` : `
@@ -138,7 +138,7 @@ export function buildMasterEmailHtml(
           <tr>
             <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:22px 32px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;">
               <p style="margin:0 0 4px 0;font-weight:600;color:#475569;">${companyName}</p>
-              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://agency.grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">agency.grekam.in</a></p>
+              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://dashboard.grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">dashboard.grekam.in</a></p>
             </td>
           </tr>
         </table>
@@ -170,7 +170,7 @@ export const EmailTemplates = {
         <div style="color:#64748b;font-size:12px;margin-top:4px;">Reference ID: ${proposalId}</div>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal" 
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal" 
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           Review Proposal &rarr;
         </a>
@@ -197,7 +197,7 @@ export const EmailTemplates = {
         <div style="color:#64748b;font-size:12px;font-weight:600;margin-top:8px;text-align:right;">${progress}% Complete</div>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           View in Portal &rarr;
         </a>
@@ -226,7 +226,7 @@ export const EmailTemplates = {
         </table>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           View &amp; Settle Invoice &rarr;
         </a>
@@ -246,7 +246,7 @@ export const EmailTemplates = {
         <div style="color:#047857;font-size:16px;font-weight:700;">${fileName}</div>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#059669;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           Download Deliverables &rarr;
         </a>
@@ -275,7 +275,7 @@ export const EmailTemplates = {
         </tr>`).join('')}
       </table>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           Access Your Client Portal &rarr;
         </a>
@@ -295,7 +295,7 @@ export const EmailTemplates = {
         You can reply directly to this email or message your dedicated project manager through your portal.
       </p>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           Open Portal Dashboard &rarr;
         </a>
@@ -319,7 +319,7 @@ export const EmailTemplates = {
         <div style="color:#64748b;font-size:13px;margin-top:10px;">Next Milestone: <strong style="color:#4f46e5;">${nextMilestone}</strong></div>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           View Full Details &rarr;
         </a>
@@ -357,7 +357,7 @@ export const EmailTemplates = {
         <div style="color:#047857;font-size:16px;font-weight:700;">&#10003; Payment Successfully Settled</div>
       </div>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal/dashboard"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal/dashboard"
            style="display:inline-block;background-color:#059669;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           View Receipt in Portal &rarr;
         </a>
@@ -403,7 +403,7 @@ export const EmailTemplates = {
         Hi ${vendorName}, you have been assigned to <strong style="color:#0f172a;">${projectName}</strong>.
       </p>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal"
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           View Scope &amp; Brief &rarr;
         </a>
@@ -429,7 +429,7 @@ export const EmailTemplates = {
         Hi ${clientName}, we were unable to process your recent transaction (${reason}). Please review your billing information to ensure uninterrupted service.
       </p>
       <div style="margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || 'https://agency.grekam.in'}/portal"
+        <a href="${process.env.PORTAL_URL || 'https://dashboard.grekam.in'}/portal"
            style="display:inline-block;background-color:#dc2626;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">
           Update Billing Details &rarr;
         </a>
@@ -567,7 +567,7 @@ export function newLeadNotificationTemplate(lead: any) {
       </div>` : ''}
       
       <div style="text-align:center;margin:24px 0;">
-        <a href="${process.env.PORTAL_URL || process.env.AUTH_URL || 'https://agency.grekam.in'}/dashboard/crm/leads" 
+        <a href="${process.env.PORTAL_URL || process.env.AUTH_URL || 'https://dashboard.grekam.in'}/dashboard/crm/leads" 
            style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;font-size:14px;font-weight:600;padding:13px 26px;border-radius:8px;">
           View Lead in CRM &rarr;
         </a>

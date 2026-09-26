@@ -12,6 +12,14 @@ export default auth((req) => {
     return NextResponse.rewrite(new URL("/agency", req.url))
   }
 
+  if (host.includes("dashboard.grekam.in") && pathname === "/") {
+    return NextResponse.rewrite(new URL("/dashboard", req.url))
+  }
+
+  if (host.includes("dashboard.grekam.in") && pathname === "/") {
+    return NextResponse.rewrite(new URL("/dashboard", req.url))
+  }
+
   const isLoggedIn = !!req.auth?.user
   const isOnDashboard = pathname.startsWith('/dashboard')
   const isOnPortalProtected = pathname.startsWith('/portal/') && pathname !== '/portal/'

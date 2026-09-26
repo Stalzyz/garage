@@ -176,7 +176,7 @@ export default async function projectsRouter(app: FastifyInstance) {
           data: {
             clientName,
             companyName,
-            portalLink: 'https://agency.grekam.in/portal/dashboard',
+            portalLink: 'https://dashboard.grekam.in/portal/dashboard',
             accountManager: 'Grekam Project Manager'
           }
         });
@@ -283,7 +283,7 @@ export default async function projectsRouter(app: FastifyInstance) {
                 projectType: project.type,
                 dueDate: project.dueDate ? project.dueDate.toLocaleDateString() : 'TBD',
                 updateDate: new Date().toLocaleDateString(),
-                portalLink: `https://agency.grekam.in/portal/projects/${project.id}`
+                portalLink: `https://dashboard.grekam.in/portal/projects/${project.id}`
               }
             });
           }

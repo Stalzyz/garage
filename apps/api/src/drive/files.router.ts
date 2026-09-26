@@ -8,7 +8,7 @@ function normalizeDriveUrl(url: string): string {
   if (url.includes('r2.cloudflarestorage.com')) {
     const match = url.match(/\/grekamos\/(drive\/[^?]+)/);
     if (match && match[1]) {
-      return `https://agency.grekam.in/api/v1/storage/asset/${match[1]}`;
+      return `https://dashboard.grekam.in/api/v1/storage/asset/${match[1]}`;
     }
   }
   if (url.includes('localhost:4000') || url.includes('127.0.0.1:4000')) {

@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ['academy.grekam.in', 'grekam.in', 'www.grekam.in', 'agency.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
+      allowedOrigins: ['academy.grekam.in', 'grekam.in', 'www.grekam.in', 'agency.grekam.in', 'dashboard.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
     },
   },
 
@@ -114,26 +114,29 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
+      // agency.grekam.in / → /agency (multi-theme agency showcase)
       {
         source: '/',
-        has: [
-          {
-            type: 'host',
-            value: 'agency.grekam.in',
-          },
-        ],
+        has: [{ type: 'host', value: 'agency.grekam.in' }],
         destination: '/agency',
       },
       {
         source: '/',
-        has: [
-          {
-            type: 'host',
-            value: 'www.agency.grekam.in',
-          },
-        ],
+        has: [{ type: 'host', value: 'www.agency.grekam.in' }],
         destination: '/agency',
       },
+      // dashboard.grekam.in / → /dashboard (Grekam OS CRM/HRM)
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'dashboard.grekam.in' }],
+        destination: '/dashboard',
+      },
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'www.dashboard.grekam.in' }],
+        destination: '/dashboard',
+      },
+      // Internal API proxy
       {
         source: '/api/v1/:path*',
         destination: `${API_INTERNAL}/:path*`,

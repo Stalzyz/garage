@@ -30,7 +30,7 @@ export function initializeCronJobs() {
         const name = proposal.contact?.firstName || proposal.lead?.name || 'Client';
         
         if (email) {
-          const portalUrl = process.env.PORTAL_URL || 'https://agency.grekam.in';
+          const portalUrl = process.env.PORTAL_URL || 'https://dashboard.grekam.in';
           const link = `${portalUrl}/proposal/${proposal.publicToken}`;
           
           await sendEmail(email, {
@@ -86,7 +86,7 @@ export function initializeCronJobs() {
                 Simply reply directly to this email and let's get the conversation moving. We'd love to partner with you!
               </p>
               <div style="margin:24px 0;">
-                <a href="https://agency.grekam.in" style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">Visit Grekam OS &rarr;</a>
+                <a href="https://dashboard.grekam.in" style="display:inline-block;background-color:#4f46e5;color:#ffffff !important;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:600;font-size:14px;">Visit Grekam OS &rarr;</a>
               </div>
             `
           });

@@ -39,7 +39,7 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     event: 'CRM_LEAD_FOLLOWUP',
     description: 'Shopify store migration assessment pitch with image banner and quick reply button',
     headerType: 'IMAGE',
-    defaultMediaUrl: 'https://agency.grekam.in/og-image.png',
+    defaultMediaUrl: 'https://dashboard.grekam.in/og-image.png',
     variables: [],
     bodyPattern: 'Stop Renting Your Shopify Store.\n\nOwn your platform. Save thousands every month.\n\nFind out if your Shopify store is eligible for a FREE Migration Assessment.',
     buttons: ['Check Eligibility']
@@ -52,7 +52,7 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     event: 'CRM_LEAD_FOLLOWUP',
     description: 'All industries WhatsApp API overview with image banner and link',
     headerType: 'IMAGE',
-    defaultMediaUrl: 'https://agency.grekam.in/og-image.png',
+    defaultMediaUrl: 'https://dashboard.grekam.in/og-image.png',
     variables: [],
     bodyPattern: 'Grow Your Business with WhatsApp\n\nConnect with your customers instantly using WhatsApp API.\n\n• Send notifications & updates\n• Automate customer conversations\n• Follow up with leads\n• Send offers & campaigns\n• Manage customer communication',
     buttons: ['Free Login']

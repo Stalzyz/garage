@@ -134,7 +134,7 @@ export default async function vendorsRouter(app: FastifyInstance) {
     });
     
     if (vendor.user?.email) {
-      const portalUrl = process.env.PORTAL_URL || 'https://agency.grekam.in';
+      const portalUrl = process.env.PORTAL_URL || 'https://dashboard.grekam.in';
       const link = `${portalUrl}/portal/vendor/onboarding?token=${vendor.vendorCode}`;
       await sendEmail(
         vendor.user.email,

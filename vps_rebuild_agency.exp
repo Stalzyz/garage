@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "Photoshop09@"
+set host "72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PreferredAuthentications=password root@$host
+
+expect "password:"
+send "$password\r"
+
+expect "# "
+
+# Rebuild API (compile TypeScript)
+send "cd /root/grekam-os/apps/api && npm run build 2>&1 && echo '=== API BUILD DONE ==='\r"
+expect -timeout 120 "=== API BUILD DONE ==="
+expect "# "
+
+# Reload both processes with new ecosystem config
+send "cd /root/grekam-os && pm2 reload ecosystem.config.js --update-env && echo '=== PM2 RELOAD DONE ==='\r"
+expect -timeout 60 "=== PM2 RELOAD DONE ==="
+expect "# "
+
+# Show PM2 status
+send "pm2 list\r"
+expect "# "
+
+send "echo '=== ALL DONE ==='\r"
+expect "=== ALL DONE ==="
+expect "# "
+
+send "exit\r"
+expect eof

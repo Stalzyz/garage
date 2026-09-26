@@ -277,7 +277,7 @@ export default function ContactsAndCompaniesPage() {
     passcode?: string;
     loginUrl: string;
     alreadyExisted?: boolean;
-  }>({ isOpen: false, title: "", email: "", loginUrl: "https://agency.grekam.in/portal" })
+  }>({ isOpen: false, title: "", email: "", loginUrl: "https://dashboard.grekam.in/portal" })
 
   const handleInvitePortal = async (c: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
@@ -290,7 +290,7 @@ export default function ContactsAndCompaniesPage() {
           title: "Client Portal Credentials Created",
           email: res.credentials.email,
           passcode: res.credentials.password,
-          loginUrl: "https://agency.grekam.in/portal",
+          loginUrl: "https://dashboard.grekam.in/portal",
           alreadyExisted: false
         })
         toast.success("Client portal credentials generated & sent to email!")
@@ -299,7 +299,7 @@ export default function ContactsAndCompaniesPage() {
           isOpen: true,
           title: "Client Portal Account Active",
           email: c.email,
-          loginUrl: "https://agency.grekam.in/portal",
+          loginUrl: "https://dashboard.grekam.in/portal",
           alreadyExisted: true
         })
         toast.info("Portal account already active. Instructions sent to client!")

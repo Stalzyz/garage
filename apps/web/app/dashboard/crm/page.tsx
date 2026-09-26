@@ -1675,7 +1675,7 @@ export default function CRMDashboard() {
           
           <div className="p-4 bg-white rounded-xl mb-8 relative z-10">
             <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(process.env.NEXT_PUBLIC_APP_URL || 'https://agency.grekam.in')}/contact`}
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(process.env.NEXT_PUBLIC_APP_URL || 'https://dashboard.grekam.in')}/contact`}
               alt="Kiosk QR Code" 
               className="w-48 h-48"
             />

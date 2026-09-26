@@ -103,7 +103,7 @@ export default async function storageRouter(app: FastifyInstance) {
         if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
           API_URL = `${protoHeader}://${hostHeader}/api/v1`;
         } else {
-          API_URL = 'https://agency.grekam.in/api/v1';
+          API_URL = 'https://dashboard.grekam.in/api/v1';
         }
       }
       const downloadUrl = `${API_URL}/uploads/${key}`;

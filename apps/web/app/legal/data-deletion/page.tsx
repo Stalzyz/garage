@@ -53,7 +53,7 @@ export default function DataDeletionPage() {
       <PolicySection title="5. Automated Deletion Endpoint Callback">
         <p>If you are looking for our automated platform developer data deletion callback URL (required for Facebook/Meta developer compliance), you can submit programmatic deletion requests to our endpoint:</p>
         <p className="font-mono text-xs bg-white/5 p-3 rounded-lg border border-white/10 text-emerald-400">
-          https://agency.grekam.in/api/auth/delete-data
+          https://dashboard.grekam.in/api/auth/delete-data
         </p>
       </PolicySection>
 

@@ -29,7 +29,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
       { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service Interested', placeholder: 'Shopify / Web Development' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://dashboard.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
   },
   {
@@ -76,7 +76,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
       { name: 'leadName', label: 'Lead Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service / Requirement', placeholder: 'Next.js App & AI Bot' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nExplore our portfolio: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nExplore our portfolio: https://dashboard.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
   },
   {
@@ -473,12 +473,12 @@ export class WhatsAppService {
     }
 
 const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
-  shopify_to_ecommerce: 'https://agency.grekam.in/og-image.png',
-  grafty_common_template_all_industries: 'https://agency.grekam.in/og-image.png',
-  grafty_for_shopify: 'https://agency.grekam.in/og-image.png',
-  ecommerce_webdevelopment: 'https://agency.grekam.in/og-image.png',
-  grafty_partnership_intro: 'https://agency.grekam.in/og-image.png',
-  ecommerce_start: 'https://agency.grekam.in/og-image.png'
+  shopify_to_ecommerce: 'https://dashboard.grekam.in/og-image.png',
+  grafty_common_template_all_industries: 'https://dashboard.grekam.in/og-image.png',
+  grafty_for_shopify: 'https://dashboard.grekam.in/og-image.png',
+  ecommerce_webdevelopment: 'https://dashboard.grekam.in/og-image.png',
+  grafty_partnership_intro: 'https://dashboard.grekam.in/og-image.png',
+  ecommerce_start: 'https://dashboard.grekam.in/og-image.png'
 };
 
     // Build components array for Meta Cloud API & Grafty
@@ -492,7 +492,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     // automatically fall back to the template's approved defaultMediaUrl (e.g. Meta sample image header_handle)!
     let resolvedMediaUrl = mediaUrl ? mediaUrl.trim() : '';
     if (resolvedMediaUrl.includes('localhost:4000') || resolvedMediaUrl.includes('127.0.0.1:4000')) {
-      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
+      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://dashboard.grekam.in');
     }
 
     const knownMedia = KNOWN_TEMPLATE_MEDIA[templateName] || KNOWN_TEMPLATE_MEDIA[sanitizedName] || '';

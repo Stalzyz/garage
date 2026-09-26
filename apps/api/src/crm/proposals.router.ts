@@ -526,7 +526,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
       const { sendEmail } = await import('../integrations/email.service');
       const { generateProposalPDF } = await import('../finance/pdf.service');
       
-      const portalUrl = process.env.PORTAL_URL || process.env.AUTH_URL || 'https://agency.grekam.in';
+      const portalUrl = process.env.PORTAL_URL || process.env.AUTH_URL || 'https://dashboard.grekam.in';
       const link = `${portalUrl}/portal/proposals/${token}`;
       
       const { getBrandConfig } = await import('../utils/brand');
