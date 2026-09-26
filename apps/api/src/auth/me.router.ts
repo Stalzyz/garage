@@ -88,8 +88,8 @@ export default async function meRouter(app: FastifyInstance) {
     });
 
     const loginUrl = portalType === 'CLIENT' 
-      ? (process.env.PORTAL_URL || 'https://garage.grekam.in/portal')
-      : (process.env.AUTH_URL || 'https://garage.grekam.in/auth/login');
+      ? (process.env.PORTAL_URL || 'https://agency.grekam.in/portal')
+      : (process.env.AUTH_URL || 'https://agency.grekam.in/auth/login');
 
     const emailHtml = `
       <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">

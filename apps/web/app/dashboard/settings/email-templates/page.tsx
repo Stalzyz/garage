@@ -33,26 +33,26 @@ const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> 
 const SAMPLE_VARIABLES: Record<string, string> = {
   clientName: "Jane Doe",
   companyName: "Acme Visuals Corp",
-  portalLink: "https://garage.grekam.in/portal/dashboard",
+  portalLink: "https://agency.grekam.in/portal/dashboard",
   accountManager: "Stalin Kumar",
   invoiceNumber: "INV-2026-089",
   projectName: "Website & Brand Refresh",
   amount: "45,000",
   dueDate: "Sep 25, 2026",
-  invoiceUrl: "https://garage.grekam.in/portal/invoices",
+  invoiceUrl: "https://agency.grekam.in/portal/invoices",
   proposalTitle: "Ecommerce Platform Redesign",
   estimatedAmount: "1,20,000",
-  proposalLink: "https://garage.grekam.in/portal/proposals",
+  proposalLink: "https://agency.grekam.in/portal/proposals",
   staffName: "Sales Officer",
   leadName: "Rahul Sharma",
   phone: "+91 98765 43210",
   email: "rahul@example.com",
   leadSource: "Google Ads",
   interestTier: "High (Website & App)",
-  crmLink: "https://garage.grekam.in/dashboard/crm",
+  crmLink: "https://agency.grekam.in/dashboard/crm",
   taskTitle: "Design System Figma Components",
   priority: "HIGH",
-  taskUrl: "https://garage.grekam.in/dashboard/projects",
+  taskUrl: "https://agency.grekam.in/dashboard/projects",
   studentName: "Aarav Patel",
   courseName: "UI/UX Design Masterclass",
   batchName: "Batch 2026-A",
@@ -65,16 +65,16 @@ const SAMPLE_VARIABLES: Record<string, string> = {
   pendingTasksCount: "4",
   leadsToCallCount: "7",
   highPriorityTickets: "2",
-  dashboardLink: "https://garage.grekam.in/dashboard",
+  dashboardLink: "https://agency.grekam.in/dashboard",
   leaveType: "Casual Leave",
   endDate: "Sep 20, 2026",
   leaveStatus: "APPROVED",
   approverNotes: "Approved by Operations Manager",
-  hrLink: "https://garage.grekam.in/dashboard/hr",
+  hrLink: "https://agency.grekam.in/dashboard/hr",
   monthYear: "August 2026",
   netPay: "65,000",
   paymentDate: "Aug 31, 2026",
-  payslipUrl: "https://garage.grekam.in/dashboard/hr/payslips",
+  payslipUrl: "https://agency.grekam.in/dashboard/hr/payslips",
   feePortalLink: "https://academy.grekam.in/dashboard/fees",
   attendancePercentage: "68",
   attendedClasses: "17",
@@ -149,7 +149,7 @@ function buildPreviewEmailHtml(bodyHtml: string, subject: string, org?: any) {
           <tr>
             <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 30px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;">
               <p style="margin:0 0 4px 0;font-weight:600;color:#475569;">${companyName}</p>
-              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://garage.grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">garage.grekam.in</a></p>
+              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://agency.grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">agency.grekam.in</a></p>
             </td>
           </tr>
         </table>

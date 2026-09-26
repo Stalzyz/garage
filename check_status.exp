@@ -1,8 +1,8 @@
 #!/usr/bin/expect -f
 set timeout 30
 set script {
-curl -k -s -o /dev/null -w "%{http_code}\n" https://garage.grekam.in/portal/dashboard
-curl -k -s -o /dev/null -w "%{http_code}\n" https://garage.grekam.in/api/v1/portal/dashboard
+curl -k -s -o /dev/null -w "%{http_code}\n" https://agency.grekam.in/portal/dashboard
+curl -k -s -o /dev/null -w "%{http_code}\n" https://agency.grekam.in/api/v1/portal/dashboard
 }
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script

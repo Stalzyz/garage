@@ -1,8 +1,8 @@
 #!/usr/bin/expect -f
 set timeout 60
 set script {
-sed -i 's|http://localhost:4000|http://127.0.0.1:4000|g' /etc/nginx/sites-available/garage.grekam.in
-sed -i 's|http://localhost:3000|http://127.0.0.1:3000|g' /etc/nginx/sites-available/garage.grekam.in
+sed -i 's|http://localhost:4000|http://127.0.0.1:4000|g' /etc/nginx/sites-available/agency.grekam.in
+sed -i 's|http://localhost:3000|http://127.0.0.1:3000|g' /etc/nginx/sites-available/agency.grekam.in
 sed -i 's|http://localhost:3006|http://127.0.0.1:3006|g' /etc/nginx/sites-available/academy.grekam.in
 nginx -t && systemctl reload nginx
 echo "NGINX RELOADED SUCCESSFULLY"

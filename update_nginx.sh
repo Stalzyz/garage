@@ -1,18 +1,18 @@
-cat << 'EOF' > /etc/nginx/sites-available/garage.grekam.in
+cat << 'EOF' > /etc/nginx/sites-available/agency.grekam.in
 server {
-    server_name www.garage.grekam.in;
-    return 301 https://garage.grekam.in$request_uri;
+    server_name www.agency.grekam.in;
+    return 301 https://agency.grekam.in$request_uri;
 
     listen 443 ssl;
     listen [::]:443 ssl;
-    ssl_certificate /etc/letsencrypt/live/garage.grekam.in/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/garage.grekam.in/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/agency.grekam.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/agency.grekam.in/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }
 
 server {
-    server_name garage.grekam.in;
+    server_name agency.grekam.in;
 
     location /api/v1 {
         proxy_pass http://127.0.0.1:4000;
@@ -44,8 +44,8 @@ server {
 
     listen 443 ssl;
     listen [::]:443 ssl;
-    ssl_certificate /etc/letsencrypt/live/garage.grekam.in/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/garage.grekam.in/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/agency.grekam.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/agency.grekam.in/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }
@@ -53,8 +53,8 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name garage.grekam.in www.garage.grekam.in;
-    return 301 https://garage.grekam.in$request_uri;
+    server_name agency.grekam.in www.agency.grekam.in;
+    return 301 https://agency.grekam.in$request_uri;
 }
 EOF
 nginx -t && systemctl reload nginx && echo "SUCCESSFULLY_RELOADED_NGINX"

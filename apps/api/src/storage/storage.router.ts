@@ -102,7 +102,7 @@ export default async function storageRouter(app: FastifyInstance) {
       if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
         API_URL = `${protoHeader}://${hostHeader}/api/v1`;
       } else {
-        API_URL = 'https://garage.grekam.in/api/v1';
+        API_URL = 'https://agency.grekam.in/api/v1';
       }
     }
 
@@ -167,7 +167,7 @@ export default async function storageRouter(app: FastifyInstance) {
         publicBase = `${forwardedProto}://${forwardedHost}/api/v1`;
       } else {
         // Last resort: use a known production domain rather than an internal one
-        publicBase = 'https://garage.grekam.in/api/v1';
+        publicBase = 'https://agency.grekam.in/api/v1';
       }
     }
     // Ensure no trailing slash before appending path

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Generate tracking details for compliance auditing
     const confirmationCode = `DEL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    const statusUrl = `https://garage.grekam.in/legal/data-deletion?code=${confirmationCode}`
+    const statusUrl = `https://agency.grekam.in/legal/data-deletion?code=${confirmationCode}`
 
     return NextResponse.json({
       url: statusUrl,

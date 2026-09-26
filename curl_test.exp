@@ -12,6 +12,6 @@ expect {
 
 expect "# " { send "curl -I -L http://localhost:3000\r" }
 expect "# " { send "curl -k -I -L https://grekam.in\r" }
-expect "# " { send "curl -k -I -L https://garage.grekam.in\r" }
+expect "# " { send "curl -k -I -L https://agency.grekam.in\r" }
 expect "# " { send "exit\r" }
 expect eof

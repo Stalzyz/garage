@@ -758,7 +758,7 @@ export default async function portalRouter(app: FastifyInstance) {
     const org = await app.prisma.organization.findFirst();
     if (org?.supportEmail) {
       const { sendEmail, EmailTemplates } = await import('../integrations/email.service');
-      const adminUrl = process.env.AUTH_URL || 'https://garage.grekam.in';
+      const adminUrl = process.env.AUTH_URL || 'https://agency.grekam.in';
       const link = `${adminUrl}/dashboard/crm/proposals/${proposalId}`;
       
       await sendEmail(

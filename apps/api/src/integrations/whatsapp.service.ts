@@ -473,12 +473,12 @@ export class WhatsAppService {
     }
 
 const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
-  shopify_to_ecommerce: 'https://garage.grekam.in/og-image.png',
-  grafty_common_template_all_industries: 'https://garage.grekam.in/og-image.png',
-  grafty_for_shopify: 'https://garage.grekam.in/og-image.png',
-  ecommerce_webdevelopment: 'https://garage.grekam.in/og-image.png',
-  grafty_partnership_intro: 'https://garage.grekam.in/og-image.png',
-  ecommerce_start: 'https://garage.grekam.in/og-image.png'
+  shopify_to_ecommerce: 'https://agency.grekam.in/og-image.png',
+  grafty_common_template_all_industries: 'https://agency.grekam.in/og-image.png',
+  grafty_for_shopify: 'https://agency.grekam.in/og-image.png',
+  ecommerce_webdevelopment: 'https://agency.grekam.in/og-image.png',
+  grafty_partnership_intro: 'https://agency.grekam.in/og-image.png',
+  ecommerce_start: 'https://agency.grekam.in/og-image.png'
 };
 
     // Build components array for Meta Cloud API & Grafty
@@ -487,12 +487,12 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
 
     // Resolve effective media URL:
-    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public https://garage.grekam.in domain).
+    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public https://agency.grekam.in domain).
     // If the template requires an IMAGE, DOCUMENT, or VIDEO header and no mediaUrl was supplied,
     // automatically fall back to the template's approved defaultMediaUrl (e.g. Meta sample image header_handle)!
     let resolvedMediaUrl = mediaUrl ? mediaUrl.trim() : '';
     if (resolvedMediaUrl.includes('localhost:4000') || resolvedMediaUrl.includes('127.0.0.1:4000')) {
-      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://garage.grekam.in');
+      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
     }
 
     const knownMedia = KNOWN_TEMPLATE_MEDIA[templateName] || KNOWN_TEMPLATE_MEDIA[sanitizedName] || '';

@@ -13,7 +13,7 @@ send {cat << 'SHEOF' > /root/start_web.sh
 cd /root/grekam-os/apps/web
 export AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU="
 export AUTH_TRUST_HOST=true
-export NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1"
+export NEXT_PUBLIC_API_URL="https://agency.grekam.in/api/v1"
 export PORT=3000
 exec npx next start -p 3000 -H 0.0.0.0
 SHEOF

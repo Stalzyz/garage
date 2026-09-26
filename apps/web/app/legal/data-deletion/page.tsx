@@ -23,7 +23,7 @@ export default function DataDeletionPage() {
       <PolicySection title="2. Disconnecting Connected Apps (Google & Meta)">
         <p>If you have integrated your Google Calendar/Meet or Meta Advertising account with Grekam OS and wish to revoke access:</p>
         <PolicyList items={[
-          "Log into your dashboard at garage.grekam.in.",
+          "Log into your dashboard at agency.grekam.in.",
           "Navigate to Settings → Integrations.",
           "Find Google Calendar or Meta Ads in the list of connected services.",
           "Click the Disconnect / Revoke button next to the connected service.",
@@ -53,7 +53,7 @@ export default function DataDeletionPage() {
       <PolicySection title="5. Automated Deletion Endpoint Callback">
         <p>If you are looking for our automated platform developer data deletion callback URL (required for Facebook/Meta developer compliance), you can submit programmatic deletion requests to our endpoint:</p>
         <p className="font-mono text-xs bg-white/5 p-3 rounded-lg border border-white/10 text-emerald-400">
-          https://garage.grekam.in/api/auth/delete-data
+          https://agency.grekam.in/api/auth/delete-data
         </p>
       </PolicySection>
 

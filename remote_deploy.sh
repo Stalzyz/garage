@@ -34,7 +34,7 @@ cat > /root/start_web.sh << 'WEBEOF'
 cd /root/grekam-os/apps/web/.next/standalone/apps/web
 export AUTH_SECRET="HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU="
 export AUTH_TRUST_HOST=true
-export NEXT_PUBLIC_API_URL="https://garage.grekam.in/api/v1"
+export NEXT_PUBLIC_API_URL="https://agency.grekam.in/api/v1"
 export PORT=3000
 export HOSTNAME=0.0.0.0
 exec node server.js
@@ -86,6 +86,6 @@ pm2 status
 echo ""
 echo "======================================"
 echo "  DEPLOYMENT COMPLETE!"
-echo "  garage.grekam.in  -> updated (web)"
+echo "  agency.grekam.in  -> updated (web)"
 echo "  academy.grekam.in -> port 3006 (academy-web)"
 echo "======================================"

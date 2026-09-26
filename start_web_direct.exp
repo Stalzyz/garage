@@ -14,7 +14,7 @@ send "cp -r apps/web/public apps/web/.next/standalone/apps/web/ 2>/dev/null || t
 expect "# "
 send "pm2 delete grekam-os-web || true\r"
 expect "# "
-send "PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://garage.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/apps/web/server.js --name grekam-os-web || PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://garage.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/server.js --name grekam-os-web\r"
+send "PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://agency.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/apps/web/server.js --name grekam-os-web || PORT=3000 HOSTNAME=0.0.0.0 AUTH_SECRET=\"HVGc8f8axk68e0rBrBubq+GjZqTfoV1wZgde2qXt4vU=\" AUTH_TRUST_HOST=true NEXT_PUBLIC_API_URL=\"https://agency.grekam.in/api/v1\" pm2 start /root/grekam-os/apps/web/.next/standalone/server.js --name grekam-os-web\r"
 expect "# "
 send "pm2 save\r"
 expect "# "

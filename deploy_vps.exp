@@ -89,7 +89,7 @@ echo ""
 echo "======================================"
 echo "  DEPLOYMENT COMPLETE!"
 echo "  academy.grekam.in -> port 3006"
-echo "  garage.grekam.in  -> updated"
+echo "  agency.grekam.in  -> updated"
 echo "======================================"
 }
 

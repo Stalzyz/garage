@@ -206,7 +206,7 @@ export default function SystemSettingsPage() {
                       <Building2 className="w-5 h-5 text-slate-300" />
                       <div>
                         <h2 className="text-sm font-semibold text-slate-100">Digital Agency Brand (Grekam Visuals)</h2>
-                        <p className="text-xs text-slate-400">Landscape logo for invoices & proposals, 1:1 square favicon for garage.grekam.in</p>
+                        <p className="text-xs text-slate-400">Landscape logo for invoices & proposals, 1:1 square favicon for agency.grekam.in</p>
                       </div>
                     </div>
                     <span className="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700/60 text-[10px] font-mono uppercase tracking-wider rounded">

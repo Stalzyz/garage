@@ -12,6 +12,6 @@ expect {
 }
 
 expect "# " { send "cat /etc/nginx/sites-enabled/grekam.in\r" }
-expect "# " { send "cat /etc/nginx/sites-enabled/garage.grekam.in\r" }
+expect "# " { send "cat /etc/nginx/sites-enabled/agency.grekam.in\r" }
 expect "# " { send "exit\r" }
 expect eof
