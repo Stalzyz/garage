@@ -34,23 +34,23 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://grekam.in'),
+  metadataBase: new URL('https://garage.grekam.in'),
   title: {
-    default: 'Grekam OS — CRM, HRM & Project Management',
-    template: '%s | Grekam OS'
+    default: 'Garage CRM — Garage Operations, Sales & CRM Platform',
+    template: '%s | Garage CRM'
   },
-  description: 'Unified CRM, HRM, and project management platform for modern teams.',
+  description: 'Garage CRM brings your customers, vehicles, leads, service operations, employees, finance and growth into one simple platform.',
   openGraph: {
-    title: 'Grekam OS — CRM, HRM & Project Management',
-    description: 'Unified operational system for managing clients, HR, proposals, projects, and finance.',
-    url: 'https://grekam.in',
-    siteName: 'Grekam OS',
+    title: 'Garage CRM — Garage Operations, Sales & CRM Platform',
+    description: 'Get more customer leads. Grow your garage sales faster with Garage CRM.',
+    url: 'https://garage.grekam.in',
+    siteName: 'Garage CRM',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Grekam OS Dashboard Preview',
+        alt: 'Garage CRM Dashboard Preview',
       }
     ],
     locale: 'en_US',
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Grekam OS',
-    description: 'CRM, HRM & project management for creative teams.',
+    title: 'Garage CRM — Operations & Growth Platform',
+    description: 'All-in-one CRM, garage operations, billing, and team management platform.',
     images: ['/og-image.png'],
   },
   robots: {
