@@ -22,7 +22,7 @@ import {
   PlusCircle,
 } from "lucide-react"
 
-export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN"
+export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "ADMIN" | "GARAGE_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN"
 
 export interface NavItem {
   title: string
@@ -149,7 +149,7 @@ export const navigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["MANAGER", "STAFF", "CLIENT", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "CLIENT", "INTERN"],
   },
   {
     title: "Vendor Storefront Portal",
@@ -161,27 +161,27 @@ export const navigation: NavItem[] = [
     title: "Staff Tasks",
     href: "/dashboard/tasks",
     icon: CheckSquare,
-    roles: ["MANAGER", "STAFF", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
   {
     title: "Team Culture & Wins",
     href: "/dashboard/team-hub",
     icon: Trophy,
-    roles: ["MANAGER", "STAFF", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
 
   {
     title: "My Workspace (ESS)",
     href: "/dashboard/ess",
     icon: UserCheck,
-    roles: ["MANAGER", "STAFF", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "INTERN"],
   },
   {
     title: "CRM & Sales",
     href: "/dashboard/crm",
     icon: Layers,
     resource: "CRM & Sales",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "Lead Pipeline",  href: "/dashboard/crm" },
       { title: "Contacts",       href: "/dashboard/crm/contacts" },
@@ -197,7 +197,7 @@ export const navigation: NavItem[] = [
     href: "/dashboard/projects",
     icon: Briefcase,
     resource: "Projects",
-    roles: ["MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
     children: [
       { title: "Kanban Board", href: "/dashboard/projects" },
       { title: "Asset Hub",    href: "/dashboard/projects/assets" },
@@ -208,7 +208,7 @@ export const navigation: NavItem[] = [
     href: "/dashboard/finance",
     icon: DollarSign,
     resource: "Finance",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "Overview",  href: "/dashboard/finance" },
       { title: "Revenue",   href: "/dashboard/finance/revenue" },
@@ -222,7 +222,7 @@ export const navigation: NavItem[] = [
     href: "/dashboard/hr",
     icon: Users,
     resource: "HR & Payroll",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "Employees",  href: "/dashboard/hr" },
       { title: "Time Track", href: "/dashboard/hr/time" },
@@ -246,14 +246,14 @@ export const navigation: NavItem[] = [
     href: "/dashboard/vendors",
     icon: UserCheck,
     resource: "VENDORS",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Marketing",
     href: "/dashboard/marketing/calendar",
     icon: Radio,
     resource: "Marketing Hub",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "AI Prospects",     href: "/dashboard/marketing/prospects" },
       { title: "Content Scheduler",href: "/dashboard/marketing/scheduler" },
@@ -267,7 +267,7 @@ export const navigation: NavItem[] = [
     href: "/dashboard/cms",
     icon: Globe,
     resource: "CMS",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "Agency Visual Editor", href: "/dashboard/cms/agency-editor" },
       { title: "Pages Builder",  href: "/dashboard/cms" },
@@ -280,51 +280,51 @@ export const navigation: NavItem[] = [
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart2,
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Support",
     href: "/dashboard/support",
     icon: LifeBuoy,
     resource: "Support Helpdesk",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Automations",
     href: "/dashboard/automations",
     icon: Workflow,
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Chat Hub",
     href: "/dashboard/chat",
     icon: MessageSquare,
-    roles: ["MANAGER", "STAFF", "INTERN", "CLIENT", "VENDOR"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "INTERN", "CLIENT", "VENDOR"],
   },
   {
     title: "Asset Drive",
     href: "/dashboard/drive",
     icon: HardDrive,
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
-    roles: ["MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN"],
   },
   {
     title: "Knowledge Base",
     href: "/dashboard/kb",
     icon: BookOpen,
-    roles: ["MANAGER", "STAFF", "VENDOR", "INTERN"],
+    roles: ["ADMIN", "MANAGER", "STAFF", "VENDOR", "INTERN"],
   },
   {
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
     resource: "System Settings",
-    roles: ["MANAGER"],
+    roles: ["ADMIN", "MANAGER"],
     children: [
       { title: "General", href: "/dashboard/settings" },
       { title: "Organization & Branding", href: "/dashboard/settings/organization" },
@@ -345,10 +345,14 @@ export const getNavItemsByRole = (role: string, customPermissions?: string[], pa
     return resellerAdminNavigation
   }
 
+  // Normalize ADMIN, GARAGE_ADMIN, TENANT_ADMIN to MANAGER/ADMIN so garage owners see all workspace features
+  const isTenantAdmin = role === "ADMIN" || role === "GARAGE_ADMIN" || role === "TENANT_ADMIN" || role === "Admin" || role === "Garage Owner"
+  const effectiveRole = isTenantAdmin ? "MANAGER" : role
+
   return navigation.filter((item) => {
     if (customPermissions && customPermissions.length > 0 && item.resource) {
       return customPermissions.includes(item.resource)
     }
-    return item.roles.includes(role as Role)
+    return item.roles.includes(effectiveRole as Role) || item.roles.includes(role as Role) || (isTenantAdmin && item.roles.includes("MANAGER"))
   })
 }

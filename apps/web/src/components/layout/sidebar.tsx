@@ -152,13 +152,14 @@ export function Sidebar() {
   const org = useOrganization()
 
   let rawRole = session?.user?.role || "INTERN"
-  if (rawRole === "Super Admin") rawRole = "SUPER_ADMIN"
-  if (rawRole === "Manager") rawRole = "MANAGER"
-  if (rawRole === "Staff") rawRole = "STAFF"
-  if (rawRole === "Client") rawRole = "CLIENT"
-  if (rawRole === "Student") rawRole = "STUDENT"
-  if (rawRole === "Vendor") rawRole = "VENDOR"
-  if (rawRole === "Intern") rawRole = "INTERN"
+  if (rawRole === "Super Admin" || rawRole === "SUPER_ADMIN") rawRole = "SUPER_ADMIN"
+  else if (rawRole === "Reseller" || rawRole === "RESELLER" || rawRole === "RESELLER_ADMIN") rawRole = "RESELLER_ADMIN"
+  else if (rawRole === "Admin" || rawRole === "ADMIN" || rawRole === "GARAGE_ADMIN" || rawRole === "TENANT_ADMIN" || rawRole === "Garage Owner" || rawRole === "Manager" || rawRole === "MANAGER") rawRole = "MANAGER"
+  else if (rawRole === "Staff" || rawRole === "STAFF") rawRole = "STAFF"
+  else if (rawRole === "Client" || rawRole === "CLIENT") rawRole = "CLIENT"
+  else if (rawRole === "Student" || rawRole === "STUDENT") rawRole = "STUDENT"
+  else if (rawRole === "Vendor" || rawRole === "VENDOR") rawRole = "VENDOR"
+  else if (rawRole === "Intern" || rawRole === "INTERN") rawRole = "INTERN"
   
   const role = rawRole as Role
   
