@@ -62,6 +62,7 @@ export default function ResellerGaragesPage() {
     ownerName: "",
     email: "",
     phone: "",
+    password: "",
     plan: "Growth Garage",
     startDate: new Date().toISOString().split("T")[0],
     expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
@@ -89,6 +90,7 @@ export default function ResellerGaragesPage() {
           ownerLastName: nameParts.slice(1).join(" ") || "Owner",
           email: newForm.email,
           phone: newForm.phone,
+          password: newForm.password,
           subdomain: newForm.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
           plan: newForm.plan,
           customDomain: newForm.domain,
@@ -326,7 +328,7 @@ export default function ResellerGaragesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Email *</label>
+                  <label className="text-zinc-400 font-semibold">Email (Username) *</label>
                   <input
                     type="email"
                     required
@@ -337,13 +339,13 @@ export default function ResellerGaragesPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Phone</label>
+                  <label className="text-zinc-400 font-semibold">Initial Password *</label>
                   <input
                     type="text"
-                    placeholder="+91 98000 00000"
-                    value={newForm.phone}
-                    onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    placeholder="e.g. Garage@2026!"
+                    value={newForm.password}
+                    onChange={(e) => setNewForm({ ...newForm, password: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-mono"
                   />
                 </div>
               </div>

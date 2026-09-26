@@ -24,6 +24,7 @@ export default function SuperAdminGaragesPage() {
     ownerName: "",
     email: "",
     phone: "",
+    password: "",
     plan: "Growth Garage",
     type: "Direct",
   })
@@ -48,6 +49,7 @@ export default function SuperAdminGaragesPage() {
           ownerLastName: nameParts.slice(1).join(" ") || "Owner",
           email: newForm.email,
           phone: newForm.phone,
+          password: newForm.password,
           subdomain: newForm.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
           plan: newForm.plan,
         }),
@@ -277,7 +279,7 @@ export default function SuperAdminGaragesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Owner Email *</label>
+                  <label className="text-zinc-400 font-semibold">Owner Email (Username) *</label>
                   <input
                     type="email"
                     required
@@ -288,13 +290,13 @@ export default function SuperAdminGaragesPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-zinc-400 font-semibold">Phone Number</label>
+                  <label className="text-zinc-400 font-semibold">Initial Password *</label>
                   <input
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={newForm.phone}
-                    onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                    type="text"
+                    placeholder="e.g. Garage@2026!"
+                    value={newForm.password}
+                    onChange={(e) => setNewForm({ ...newForm, password: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-mono"
                   />
                 </div>
               </div>

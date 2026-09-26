@@ -21,6 +21,7 @@ export default function ResellerOnboardingPage() {
     phone: "",
     subdomain: "",
     address: "",
+    password: "",
 
     // Step 2: Plan Selection
     selectedPlan: "Growth Garage",
@@ -92,6 +93,7 @@ export default function ResellerOnboardingPage() {
           phone: formData.phone,
           subdomain: formData.subdomain,
           plan: formData.selectedPlan,
+          password: formData.password,
           customDomain: formData.customDomain,
           customLogoUrl: formData.customLogoUrl,
           brandColor: formData.brandColor,
@@ -238,7 +240,7 @@ export default function ResellerOnboardingPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-zinc-300 font-medium">Owner Email Address *</label>
+              <label className="text-zinc-300 font-medium">Owner Email Address (Login Username) *</label>
               <input
                 type="email"
                 placeholder="rajesh@apexautocare.com"
@@ -249,6 +251,17 @@ export default function ResellerOnboardingPage() {
             </div>
 
             <div className="space-y-1">
+              <label className="text-zinc-300 font-medium">Initial Login Password *</label>
+              <input
+                type="text"
+                placeholder="e.g. Garage@2026! (or leave blank to auto-generate)"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-mono focus:border-purple-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1 md:col-span-2">
               <label className="text-zinc-300 font-medium">Phone Number</label>
               <input
                 type="tel"

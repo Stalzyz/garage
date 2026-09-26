@@ -27,7 +27,13 @@ export async function POST(req: Request) {
     }
 
     const slug = (subdomain || garageName).toLowerCase().replace(/[^a-z0-9]/g, "")
-    const generatedPassword = password || `Garage@${Math.floor(1000 + Math.random() * 9000)}!`
+    const generatedPassword = password && password.trim() ? password.trim() : `Garage@${Math.floor(1000 + Math.random() * 9000)}!`
+
+    // Map plan string to Prisma TenantPlan enum (STARTER, GROWTH, ENTERPRISE)
+    let mappedPlan: "STARTER" | "GROWTH" | "ENTERPRISE" = "GROWTH"
+    const pUpper = (plan || "").toString().toUpperCase()
+    if (pUpper.includes("BASIC") || pUpper.includes("STARTER")) mappedPlan = "STARTER"
+    if (pUpper.includes("ENTERPRISE")) mappedPlan = "ENTERPRISE"
 
     // Hash password with bcrypt
     const passwordHash = await bcrypt.hash(generatedPassword, 10)
@@ -59,14 +65,14 @@ export async function POST(req: Request) {
       where: { slug },
       update: {
         name: garageName,
-        plan,
+        plan: mappedPlan,
         customDomain: customDomain || null,
         status: "ACTIVE",
       },
       create: {
         name: garageName,
         slug,
-        plan,
+        plan: mappedPlan,
         status: "ACTIVE",
         customDomain: customDomain || null,
         branding: {
@@ -83,8 +89,8 @@ export async function POST(req: Request) {
             projectsEnabled: true,
             financeEnabled: true,
             portalEnabled: true,
-            customDomainAllowed: plan.includes("Enterprise"),
-            whiteLabelPdfAllowed: plan.includes("Enterprise") || plan.includes("Growth"),
+            customDomainAllowed: mappedPlan === "ENTERPRISE",
+            whiteLabelPdfAllowed: mappedPlan === "ENTERPRISE" || mappedPlan === "GROWTH",
           }
         }
       },
