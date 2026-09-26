@@ -16,6 +16,7 @@ datasource db {
 
 enum UserRole {
   SUPER_ADMIN
+  ADMIN
   MANAGER
   STAFF
   CLIENT
@@ -50,6 +51,11 @@ model User {
   twoFaEnabled     Boolean @default(false)
   twoFaSecret      String?
   twoFaBackupCodes String? // JSON array of backup codes
+
+  // Multi-Tenancy
+  tenantMemberships TenantMember[]
+  activeTenantId    String?
+  organizationId    String?
 
   // Relations
   customRoleId  String?
@@ -121,6 +127,7 @@ enum BusinessUnit {
 
 model Department {
   id           String       @id @default(cuid())
+  tenantId     String?
   name         String
   businessUnit BusinessUnit
   headId       String?
@@ -130,11 +137,13 @@ model Department {
   Team        Team[]
   Designation Designation[]
 
+  @@index([tenantId])
   @@map("departments")
 }
 
 model Team {
   id           String   @id @default(cuid())
+  tenantId     String?
   name         String
   departmentId String
   leaderId     String?
@@ -143,11 +152,13 @@ model Team {
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   employees  Employee[]
 
+  @@index([tenantId])
   @@map("teams")
 }
 
 model Designation {
   id           String   @id @default(cuid())
+  tenantId     String?
   title        String
   departmentId String?
   level        Int      @default(1)
@@ -156,11 +167,235 @@ model Designation {
   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   employees  Employee[]
 
+  @@index([tenantId])
   @@map("designations")
 }
 
 // ─────────────────────────────────────────
-// WHITELABELING & SETTINGS
+// MULTI-TENANCY & WHITELABELING
+// ─────────────────────────────────────────
+
+enum TenantPlan {
+  FREE
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  SUSPENDED
+  ARCHIVED
+}
+
+model Tenant {
+  id                   String          @id @default(cuid())
+  slug                 String          @unique // e.g. "acme" -> acme.grekam.in
+  name                 String
+  status               TenantStatus    @default(ACTIVE)
+  plan                 TenantPlan      @default(STARTER)
+
+  // Custom Domain
+  customDomain         String?         @unique // e.g. "crm.acme.com"
+  domainVerified       Boolean         @default(false)
+  sslProvisioned       Boolean         @default(false)
+
+  // Subscriptions & Usage Limits
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  maxUsers             Int             @default(10)
+  maxStorageMb         Int             @default(5000)
+
+  // Relations
+  branding             TenantBranding?
+  features             TenantFeatures?
+  members              TenantMember[]
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@map("tenants")
+}
+
+model TenantBranding {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Logos & Visual Assets
+  logoUrl            String?
+  logoDarkUrl        String?
+  collapsedLogoUrl   String?
+  faviconUrl         String?
+  loginBannerUrl     String?
+
+  // Color Tokens & Dynamic Theming
+  primaryColor       String   @default("#2563eb")
+  secondaryColor     String   @default("#1e40af")
+  accentColor        String   @default("#10b981")
+  neutralBgDark      String   @default("#090D16")
+  neutralBgLight     String   @default("#FFFFFF")
+  borderRadius       String   @default("0.5rem")
+  fontFamily         String   @default("Inter")
+  darkModeDefault    Boolean  @default(true)
+
+  // Company Details
+  companyName        String?
+  taxId              String?  // GST / VAT / PAN
+  supportEmail       String?
+  supportPhone       String?
+  websiteUrl         String?
+  termsUrl           String?
+  privacyUrl         String?
+  billingAddress     String?
+
+  // White-Label Outbound Email
+  emailSenderName    String?
+  emailSenderAddress String?
+  customSmtpHost     String?
+  customSmtpPort     Int?
+  customSmtpUser     String?
+  customSmtpPass     String?
+
+  // Banking Info
+  bankName           String?
+  accountName        String?
+  accountNumber      String?
+  ifscCode           String?
+  swiftCode          String?
+  bankBranch         String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("tenant_branding")
+}
+
+model TenantFeatures {
+  id                   String   @id @default(cuid())
+  tenantId             String   @unique
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Module Toggles
+  crmEnabled           Boolean  @default(true)
+  hrmEnabled           Boolean  @default(true)
+  projectsEnabled      Boolean  @default(true)
+  financeEnabled       Boolean  @default(true)
+  portalEnabled        Boolean  @default(true)
+
+  // Entitlements
+  customDomainAllowed  Boolean  @default(false)
+  whiteLabelPdfAllowed Boolean  @default(false)
+  aiAssistantAllowed   Boolean  @default(false)
+  apiAccessAllowed     Boolean  @default(false)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("tenant_features")
+}
+
+model SaaSPlan {
+  id                  String   @id
+  slug                String   @unique
+  name                String
+  description         String?
+  billingType         String   @default("RECURRING")
+  monthlyPrice        Float
+  yearlyPrice         Float
+  offerPriceYearly    Float?
+  currency            String   @default("INR")
+  taxRate             Float    @default(18)
+  gstText             String?
+  trialDays           Int      @default(14)
+  gracePeriodDays     Int      @default(7)
+  sortOrder           Int      @default(1)
+  isActive            Boolean  @default(true)
+  isPopular           Boolean  @default(false)
+  badgeText           String?
+  customPaymentLink   String?
+  version             Int      @default(1)
+  maxStudents         Int      @default(500)
+  maxInstructors      Int      @default(5)
+  maxCourses          Int      @default(15)
+  maxBatches          Int      @default(20)
+  maxStorageGB        Int      @default(50)
+  maxWhatsAppMessages Int      @default(1000)
+  maxAiRequests       Int      @default(500)
+  maxCallMinutes      Int      @default(100)
+  maxCustomDomains    Int      @default(0)
+  maxAutomations      Int      @default(3)
+  maxStaff            Int      @default(5)
+  features            Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("saas_plans")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  GRACE_PERIOD
+  SUSPENDED
+  CANCELLED
+  EXPIRED
+  INCOMPLETE
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+model TenantSubscription {
+  id                     String             @id @default(cuid())
+  organizationId         String
+  planId                 String
+  status                 SubscriptionStatus @default(ACTIVE)
+  billingCycle           BillingCycle       @default(MONTHLY)
+  startDate              DateTime           @default(now())
+  currentPeriodStart     DateTime           @default(now())
+  currentPeriodEnd       DateTime
+  trialStart             DateTime?
+  trialEnd               DateTime?
+  gracePeriodEnd         DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  suspendedAt            DateTime?
+  endedAt                DateTime?
+  provider               String             @default("RAZORPAY")
+  providerSubscriptionId String?
+  providerCustomerId     String?
+  metadata               Json?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@map("tenant_subscriptions")
+}
+
+model TenantMember {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      String   @default("ADMIN") // OWNER | ADMIN | MANAGER | EMPLOYEE | CLIENT
+  joinedAt  DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@index([tenantId])
+  @@map("tenant_members")
+}
+
+// ─────────────────────────────────────────
+// LEGACY ORGANIZATION (SINGLETON COMPATIBILITY)
 // ─────────────────────────────────────────
 
 model Organization {
@@ -207,6 +442,15 @@ model Organization {
   ifscCode      String?
   swiftCode     String?
   bankBranch    String?
+
+  // Multi-Tenancy & Owner (Database compatibility)
+  slug           String?
+  domain         String?
+  ownerName      String?
+  ownerEmail     String?
+  ownerPhone     String?
+  status         String?
+  subscription   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -272,6 +516,9 @@ enum LeadSource {
   LINKEDIN
   ACADEMY_ALUMNI
   META_ADS
+  GOOGLE
+  WALKIN
+  IMPORT
   OTHER
 }
 
@@ -303,6 +550,7 @@ model ClientSubscription {
 
 model Lead {
   id              String     @id @default(cuid())
+  tenantId        String?
   name            String
   email           String?
   phone           String?
@@ -332,6 +580,7 @@ model Lead {
 
   @@index([status])
   @@index([assignedToId])
+  @@index([tenantId])
   @@map("leads")
 }
 
@@ -350,6 +599,7 @@ model LeadActivity {
 
 model Company {
   id              String   @id @default(cuid())
+  tenantId        String?
   name            String
   tradeName       String?
   legalName       String?
@@ -375,6 +625,7 @@ model Company {
   projects      Project[]
   subscriptions Subscription[]
 
+  @@index([tenantId])
   @@map("companies")
 }
 
@@ -397,6 +648,7 @@ model Subscription {
 
 model Contact {
   id              String      @id @default(cuid())
+  tenantId        String?
   firstName       String
   lastName        String
   email           String?
@@ -421,6 +673,7 @@ model Contact {
   communicationLogs CommunicationLog[]
   proposals         Proposal[]
 
+  @@index([tenantId])
   @@map("contacts")
 }
 
@@ -470,6 +723,7 @@ enum ProposalStatus {
 
 model Proposal {
   id            String         @id @default(cuid())
+  tenantId      String?
   leadId        String?
   contactId     String?
   title         String
@@ -497,6 +751,7 @@ model Proposal {
   generatedDocs GeneratedDocument[]
   comments      ProposalComment[]
 
+  @@index([tenantId])
   @@map("proposals")
 }
 
@@ -557,6 +812,7 @@ enum ProjectType {
 
 model Project {
   id          String        @id @default(cuid())
+  tenantId    String?
   name        String
   type        ProjectType
   status      ProjectStatus @default(BRIEFING)
@@ -581,6 +837,7 @@ model Project {
   billingSchedule BillingSchedule?
 
   @@index([status])
+  @@index([tenantId])
   @@map("projects")
 }
 
@@ -649,6 +906,7 @@ enum TaskStatus {
 
 model Task {
   id           String       @id @default(cuid())
+  tenantId     String?
   projectId    String?
   phaseId      String?
   title        String
@@ -672,6 +930,7 @@ model Task {
   timeLogs    TimeLog[]
 
   @@index([projectId, status])
+  @@index([tenantId])
   @@map("tasks")
 }
 
@@ -786,6 +1045,7 @@ enum EmploymentType {
 
 model Employee {
   id               String         @id @default(cuid())
+  tenantId         String?
   userId           String         @unique
   employeeCode     String         @unique
   departmentId     String?
@@ -833,6 +1093,7 @@ model Employee {
   commissions     Commission[]
   referredLeads   Lead[]
 
+  @@index([tenantId])
   @@map("employees")
 }
 
@@ -1169,6 +1430,7 @@ model EstimateItem {
 
 model Invoice {
   id              String        @id @default(cuid())
+  tenantId        String?
   invoiceNumber   String        @unique
   projectId       String?
   clientName      String
@@ -1199,6 +1461,7 @@ model Invoice {
   billingMilestone BillingMilestone?
 
   @@index([status])
+  @@index([tenantId])
   @@map("invoices")
 }
 
@@ -1928,20 +2191,29 @@ enum VendorType {
 }
 
 model Vendor {
-  id          String     @id @default(cuid())
-  userId      String     @unique
-  vendorCode  String     @unique
-  type        VendorType
-  company     String?
-  skills      String[]
-  dayRate     Float?
-  projectRate Float?
-  rating      Float      @default(0)
-  gstin       String?
-  createdAt   DateTime   @default(now())
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  vendorCode      String         @unique
+  type            VendorType
+  company         String?
+  skills          String[]
+  dayRate         Float?
+  projectRate     Float?
+  rating          Float          @default(0)
+  gstin           String?
+  status          String         @default("ACTIVE") // ACTIVE | PENDING_KYC | SUSPENDED | UNDER_REVIEW
+  riskScore       Int            @default(100) // 0 to 100
+  commissionTierId String?
+  balance         Float          @default(0)
+  pendingBalance  Float          @default(0)
+  createdAt       DateTime       @default(now())
 
   user        User               @relation(fields: [userId], references: [id])
   assignments VendorAssignment[]
+  kyc         VendorKyc?
+  payouts     VendorPayout[]
+  disputes    VendorDispute[]
+  aiFlags     AiModerationFlag[]
 
   @@map("vendors")
 }
@@ -1961,6 +2233,200 @@ model VendorAssignment {
   vendor Vendor @relation(fields: [vendorId], references: [id])
 
   @@map("vendor_assignments")
+}
+
+model VendorKyc {
+  id              String   @id @default(cuid())
+  vendorId        String   @unique
+  taxIdDocUrl     String?
+  registrationUrl String?
+  bankProofUrl    String?
+  status          String   @default("PENDING") // PENDING | VERIFIED | REJECTED
+  verifiedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@map("vendor_kyc")
+}
+
+model CommissionTier {
+  id          String   @id @default(cuid())
+  name        String
+  percentage  Float    @default(10.0)
+  flatFee     Float    @default(0.50)
+  minVolume   Float    @default(0)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("commission_tiers")
+}
+
+model VendorPayout {
+  id          String   @id @default(cuid())
+  vendorId    String
+  amount      Float
+  platformFee Float
+  netPayout   Float
+  status      String   @default("PENDING_APPROVAL") // PENDING_APPROVAL | PROCESSING | APPROVED | REJECTED
+  bankName    String?
+  requestedAt DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@map("vendor_payouts")
+}
+
+model AiModerationFlag {
+  id          String   @id @default(cuid())
+  vendorId    String
+  itemTitle   String
+  riskScore   Int
+  reason      String
+  status      String   @default("OPEN") // OPEN | INVESTIGATING | RESOLVED | TAKEN_DOWN
+  createdAt   DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@map("ai_moderation_flags")
+}
+
+model VendorDispute {
+  id           String   @id @default(cuid())
+  vendorId     String
+  buyerName    String
+  amount       Float
+  issue        String
+  slaRemaining String
+  status       String   @default("NEEDS_ADMIN_ACTION") // NEEDS_ADMIN_ACTION | VENDOR_RESPONDED | RESOLVED_REFUND | RESOLVED_VENDOR
+  createdAt    DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@map("vendor_disputes")
+}
+
+model SuperAdminAuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  target    String
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@map("super_admin_audit_logs")
+}
+
+// ─────────────────────────────────────────
+// FAIL-PROOF DOUBLE-ENTRY COMMISSION LEDGER
+// ─────────────────────────────────────────
+
+model LedgerTransaction {
+  id                  String         @id @default(cuid())
+  orderId             String         @unique
+  currency            String         @default("INR")
+  grossAmountCents    BigInt         // Stored in Paise/Cents (e.g., 10000 = ₹100.00)
+  platformFeeCents    BigInt         // Root Platform Super Admin Fee (3%)
+  tenantFeeCents      BigInt         // White-Label Tenant Reseller Fee (12%)
+  vendorEarningsCents BigInt         // Content Vendor Net Earnings (85%)
+  tenantId            String
+  vendorId            String
+  status              String         @default("HELD_IN_ESCROW") // HELD_IN_ESCROW | RELEASED_TO_BALANCES | REFUNDED
+  escrowReleaseAt     DateTime
+  createdAt           DateTime       @default(now())
+
+  entries             LedgerEntry[]
+
+  @@map("ledger_transactions")
+}
+
+model LedgerEntry {
+  id             String            @id @default(cuid())
+  transactionId  String
+  accountType    String            // PLATFORM_OWNER | TENANT_PARTNER | VENDOR | ESCROW_GATEWAY
+  accountOwnerId String
+  entryType      String            // DEBIT | CREDIT
+  amountCents    BigInt
+  createdAt      DateTime          @default(now())
+
+  transaction    LedgerTransaction @relation(fields: [transactionId], references: [id])
+
+  @@map("ledger_entries")
+}
+
+// ─────────────────────────────────────────
+// RESELLER ARCHITECTURE & GLOBAL FEATURE FLAGS
+// ─────────────────────────────────────────
+
+model Reseller {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  companyName       String
+  resellerCode      String   @unique
+  discountPercent   Float    @default(25.0) // Wholesale margin e.g., 25% off retail
+  walletBalanceCents BigInt  @default(0)
+  cnameDomain       String?
+  brandColor        String?  @default("#8b5cf6")
+  status            String   @default("ACTIVE") // ACTIVE | SUSPENDED | PENDING_APPROVAL
+  createdAt         DateTime @default(now())
+
+  customers         Vendor[]
+  walletLogs        ResellerWalletLog[]
+
+  @@map("resellers")
+}
+
+model ResellerWalletLog {
+  id          String   @id @default(cuid())
+  resellerId  String
+  type        String   // RECHARGE | CREDIT_DEDUCTION | REFUND | COMMISSION_PAYOUT
+  amountCents BigInt
+  description String
+  createdAt   DateTime @default(now())
+
+  reseller    Reseller @relation(fields: [resellerId], references: [id])
+
+  @@map("reseller_wallet_logs")
+}
+
+model PlatformPlan {
+  id               String   @id @default(cuid())
+  name             String   // e.g. Growth, Business, Enterprise
+  code             String   @unique
+  retailPriceYearly Float
+  wholesalePrice   Float
+  suggestedRetail  Float
+  userLimit        Int      @default(50)
+  studentLimit     Int      @default(1000)
+  storageGb        Int      @default(50)
+  whatsappLimit    Int      @default(10000)
+  features         String[] // ["LMS", "CRM", "HR", "FINANCE", "WHATSAPP", "CUSTOM_DOMAIN", "WHITE_LABEL"]
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  @@map("platform_plans")
+}
+
+model FeatureFlagOverride {
+  id          String   @id @default(cuid())
+  scope       String   // GLOBAL | PLAN | VENDOR
+  targetId    String   // e.g. "GLOBAL" or PlanId or VendorId
+  featureKey  String   // e.g. "LMS", "AI", "WHATSAPP"
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("feature_flag_overrides")
+}
+
+model MarketingCollateral {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // BROCHURE | PRICING_PDF | POSTER | VIDEO | PRESENTATION | TEMPLATE
+  fileUrl     String
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("marketing_collateral")
 }
 
 // ─────────────────────────────────────────

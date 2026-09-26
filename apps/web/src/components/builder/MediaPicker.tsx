@@ -40,10 +40,16 @@ export function MediaPicker({ value, onChange, placeholder = "Select or upload i
 
     setIsUploading(true);
     try {
-      // 1. Get presigned URL
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // 1. Get presigned or local mock upload URL
       const res = await fetch("/api/v1/storage/upload-url", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           filename: file.name,
           contentType: file.type,
@@ -51,22 +57,29 @@ export function MediaPicker({ value, onChange, placeholder = "Select or upload i
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to get upload URL");
+      if (!res.ok) throw new Error(`Failed to get upload URL (${res.status})`);
       const { uploadUrl, downloadUrl } = await res.json();
 
-      // 2. Upload file to presigned URL (or mock endpoint)
-      await fetch(uploadUrl, {
+      // 2. Upload file to presigned URL (or local mock endpoint)
+      const uploadHeaders: Record<string, string> = { "Content-Type": file.type };
+      if (uploadUrl.includes("/storage/mock-upload/") && token) {
+        uploadHeaders["Authorization"] = `Bearer ${token}`;
+      }
+
+      const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type },
+        headers: uploadHeaders,
         body: file,
       });
+
+      if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`);
 
       // 3. Set the image URL
       onChange(downloadUrl);
       setIsOpen(false);
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Failed to upload image.");
+      alert("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
     }

@@ -1,457 +1,496 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Plus, Star, Briefcase, Users, Mail, Phone, Tag, X, CheckCircle, Clock, ToggleLeft, ToggleRight, TrendingUp, Zap, Network, Loader2 } from "lucide-react"
+import { useState } from "react"
+import { 
+  Search, Plus, Users, Mail, Phone, Tag, X, CheckCircle, Clock, 
+  DollarSign, AlertTriangle, ShieldCheck, HelpCircle, ArrowRight, Wallet, 
+  Building2, Sparkles, Check, Copy, ExternalLink, Sliders, RefreshCw, Key, FileText, Bot, Scale, Eye
+} from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
 
-const TYPE_COLORS: Record<string, string> = {
-  CREATIVE:    "text-violet-400 border-violet-500/20 bg-violet-500/10 shadow-[0_0_10px_rgba(139,92,246,0.2)]",
-  TECHNICAL:   "text-blue-400 border-blue-500/20 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]",
-  OPERATIONAL: "text-amber-400 border-amber-500/20 bg-amber-500/10 shadow-[0_0_10px_rgba(251,191,36,0.2)]",
-  SUPPLIER:    "text-slate-300 border-slate-500/20 bg-slate-500/10 shadow-[0_0_10px_rgba(148,163,184,0.2)]",
-}
-
-const AVAIL_CONFIG = {
-  AVAILABLE:   { label: "Available",    color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20", dot: "bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" },
-  BUSY:        { label: "Busy",         color: "text-amber-400 bg-amber-500/10 border-amber-500/20",      dot: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]" },
-  UNAVAILABLE: { label: "Unavailable",  color: "text-red-400 bg-red-500/10 border-red-500/20",            dot: "bg-red-400 shadow-[0_0_10px_rgba(239,68,68,0.8)]" },
-}
-
-type Availability = keyof typeof AVAIL_CONFIG
-
-function StarRating({ value, interactive = false, onRate }: { value: number; interactive?: boolean; onRate?: (r: number) => void }) {
-  const [hover, setHover] = useState(0)
-  return (
-    <div className="flex items-center gap-1">
-      {[1,2,3,4,5].map(i => (
-        <button
-          key={i}
-          disabled={!interactive}
-          onClick={() => interactive && onRate?.(i)}
-          onMouseEnter={() => interactive && setHover(i)}
-          onMouseLeave={() => interactive && setHover(0)}
-          className={interactive ? "cursor-pointer" : "cursor-default"}
-        >
-          <Star className={`w-3.5 h-3.5 transition-colors ${
-            i <= (hover || Math.round(value))
-              ? "text-amber-400 fill-amber-400 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]"
-              : "text-white/20"
-          }`} />
-        </button>
-      ))}
-      <span className="text-[10px] font-mono text-amber-400 ml-1 drop-shadow-[0_0_5px_rgba(251,191,36,0.5)]">{value.toFixed(1)}</span>
-    </div>
-  )
-}
-
-export default function VendorDirectory() {
+export default function UserFriendlySuperAdminPanel() {
   const { data, isLoading: loading, mutate } = useApi<{ data: any[], total: number }>('/vendors');
-  const vendors = data?.data || [];
+  const apiVendors = data?.data || [];
+
+  // Active Main Tab
+  const [activeTab, setActiveTab] = useState<"stores" | "payouts" | "commission" | "safety_flags" | "disputes" | "audit">("stores")
 
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("ALL")
-  const [selected, setSelected] = useState<any | null>(null)
   
-  const [isAddNodeOpen, setIsAddNodeOpen] = useState(false)
-  const [newNode, setNewNode] = useState({
-    company: "",
-    vendorCode: "",
-    type: "CREATIVE",
-    email: "",
-    skills: ""
-  })
-
-  // Rate handling
-  const [isRating, setIsRating] = useState(false)
-  const [ratingValue, setRatingValue] = useState(0)
-  const [ratingComment, setRatingComment] = useState("")
-
-  // Fetch full details of the selected vendor
-  const { data: selectedVendorData, isLoading: selectedLoading, mutate: mutateSelected } = useApi<any>(
-    selected ? `/vendors/${selected.id}` : null
-  );
+  // Impersonation Modal State
+  const [impersonatingVendor, setImpersonatingVendor] = useState<any | null>(null)
   
-  const fullSelectedVendor = selectedVendorData || selected;
+  // KYC Document Inspector
+  const [kycVendor, setKycVendor] = useState<any | null>(null)
 
-  const handleSubmitReview = async (vendorId: string) => {
-    if (!ratingValue) return
-    
-    // As per schema, vendors don't natively have reviews stored, they have a generic float `rating`.
-    // In a real application we would post a review model. Here we just update their rating via PATCH.
-    try {
-      await fetchApi(`/vendors/${vendorId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          rating: ratingValue
-        })
-      });
-      toast.success(" Review Telemetry Uploaded");
-      setIsRating(false);
-      setRatingValue(0);
-      setRatingComment("");
-      mutate();
-      if (selected) mutateSelected();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to submit review.");
-    }
+  // Interactive Mock States
+  const [payouts, setPayouts] = useState([
+    { id: "PAY-101", vendorName: "Pixel Perfect Media", storeCode: "VND-001", amount: "₹14,500", platformFee: "₹1,450", netPay: "₹13,050", bank: "HDFC Bank (**** 4892)", status: "PENDING_APPROVAL", date: "Today, 2:15 PM" },
+    { id: "PAY-102", vendorName: "Apex Learning Hub", storeCode: "VND-002", amount: "₹32,000", platformFee: "₹3,200", netPay: "₹28,800", bank: "ICICI Bank (**** 1120)", status: "PENDING_APPROVAL", date: "Today, 10:40 AM" },
+    { id: "PAY-103", vendorName: "Starlight Digital", storeCode: "VND-004", amount: "₹8,200", platformFee: "₹820", netPay: "₹7,380", bank: "Axis Bank (**** 9041)", status: "APPROVED", date: "Yesterday" },
+  ])
+
+  const [safetyFlags, setSafetyFlags] = useState([
+    { id: "FLAG-01", storeName: "Apex Learning Hub", item: "Course: Advanced Trading Masterclass", reason: "Unusually high price spike (+400%) before flash sale", riskLevel: "Medium", status: "OPEN" },
+    { id: "FLAG-02", storeName: "Pixel Perfect Media", item: "Template Pack: Premium UI System", reason: "Matches copyrighted asset signature", riskLevel: "High", status: "OPEN" },
+  ])
+
+  const [disputes, setDisputes] = useState([
+    { id: "DSP-301", buyer: "Rohan Sharma", storeName: "Pixel Perfect Media", amount: "₹1,200", reason: "Did not receive download link after payment", status: "NEEDS_ADMIN_ACTION" },
+  ])
+
+  const [isAddVendorOpen, setIsAddVendorOpen] = useState(false)
+  const [newVendor, setNewVendor] = useState({ name: "", email: "", type: "CREATIVE", phone: "" })
+
+  const handleApprovePayout = (id: string) => {
+    setPayouts(prev => prev.map(p => p.id === id ? { ...p, status: "APPROVED" } : p))
+    toast.success("Payment approved & sent to vendor's bank account!")
   }
 
-  const handleAddNode = async () => {
-    if (!newNode.company || !newNode.email) return toast.error("Company and Email are required");
+  const handleApproveAllPayouts = () => {
+    setPayouts(prev => prev.map(p => ({ ...p, status: "APPROVED" })))
+    toast.success("All pending vendor payouts approved!")
+  }
+
+  const handleResolveDispute = (id: string, action: "REFUND" | "RELEASE") => {
+    setDisputes(prev => prev.filter(d => d.id !== id))
+    toast.success(action === "REFUND" ? "Refund processed back to buyer." : "Funds released to store owner.")
+  }
+
+  const handleAddVendor = async () => {
+    if (!newVendor.name || !newVendor.email) return toast.error("Please enter business name and email")
     try {
       await fetchApi("/vendors", {
         method: "POST",
         body: JSON.stringify({
-          company: newNode.company,
-          vendorCode: newNode.vendorCode,
-          type: newNode.type,
-          user: { name: newNode.company, email: newNode.email },
-          skills: newNode.skills.split(',').map(s => s.trim()).filter(Boolean)
+          company: newVendor.name,
+          type: newVendor.type,
+          user: { name: newVendor.name, email: newVendor.email },
         })
       });
-      toast.success("Vendor added to matrix");
-      setIsAddNodeOpen(false);
+      toast.success(`Store "${newVendor.name}" successfully created!`);
+      setIsAddVendorOpen(false);
       mutate();
-    } catch(err: any) {
-      toast.error(err.message || "Failed to add node");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create store");
     }
   }
 
-  const filtered = vendors.filter((v: any) => {
-    const vName = v.company || v.user?.name || "Unknown Vendor";
-    const matchSearch = vName.toLowerCase().includes(search.toLowerCase()) ||
-      v.skills.some((s: string) => s.toLowerCase().includes(search.toLowerCase()))
-    const matchType = typeFilter === "ALL" || v.type === typeFilter
-    return matchSearch && matchType
-  })
+  const filteredVendors = apiVendors.filter((v: any) => {
+    const name = v.company || v.user?.name || "Store";
+    return name.toLowerCase().includes(search.toLowerCase()) && (typeFilter === "ALL" || v.type === typeFilter);
+  });
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden bg-transparent text-white relative">
-
+    <div className="min-h-screen bg-[#07090e] text-white p-8 font-sans relative">
+      
       {/* Background Ambience */}
-      <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-purple-600/10 blur-[140px] rounded-full pointer-events-none" />
 
-      {/* Left: Main Panel */}
-      <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-500 ${selected ? "mr-[400px]" : ""}`}>
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
 
-        {/* Header */}
-        <div className="flex-none px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-10">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
-                <div className="absolute inset-0 bg-blue-500/20 animate-pulse mix-blend-overlay" />
-                <Network className="w-6 h-6 text-blue-400 relative z-10" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Supply Chain Matrix</h1>
-                <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Vendor & Freelancer Telemetry</p>
-              </div>
+        {/* User-Friendly Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-8 rounded-3xl bg-gradient-to-r from-white/10 to-white/5 border border-white/15 backdrop-blur-2xl shadow-2xl">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 flex items-center justify-center text-2xl font-black text-white shadow-inner">
+              <Building2 className="w-8 h-8 text-blue-400" />
             </div>
-            <button onClick={() => setIsAddNodeOpen(true)} className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden">
-              <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-              <Plus className="w-4 h-4" /> Add Node
-            </button>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-black tracking-tight">SaaS Master Control Hub</h1>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300">
+                  Super Admin
+                </span>
+              </div>
+              <p className="text-xs text-white/60 mt-1">
+                Manage stores, approve vendor payouts, review customer safety, and track revenue splits.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex gap-4 ml-auto">
-              <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
-                {["ALL", "CREATIVE", "TECHNICAL", "OPERATIONAL", "SUPPLIER"].map(t => (
-                  <button key={t} onClick={() => setTypeFilter(t)}
-                    className={`text-[9px] px-3 py-1.5 rounded-lg font-mono tracking-widest uppercase font-bold transition-all ${
-                      typeFilter === t
-                        ? "bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                        : "text-white/40 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {t === "ALL" ? "All" : t}
-                  </button>
-                ))}
-              </div>
-              <div className="relative w-64">
+          <button 
+            onClick={() => setIsAddVendorOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold uppercase text-xs px-6 py-4 rounded-2xl shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-all hover:scale-105 active:scale-95"
+          >
+            <Plus className="w-4 h-4" /> Add New Store / Partner
+          </button>
+        </div>
+
+        {/* Easy Navigation Tabs */}
+        <div className="flex items-center gap-2 bg-black/40 p-2 rounded-2xl border border-white/10 backdrop-blur-xl overflow-x-auto">
+          {[
+            { id: "stores", label: "Stores & Partners", icon: Building2, count: filteredVendors.length },
+            { id: "payouts", label: "Approve Payouts", icon: Wallet, count: payouts.filter(p => p.status === "PENDING_APPROVAL").length, alert: true },
+            { id: "commission", label: "Commission & Revenue Split", icon: DollarSign },
+            { id: "safety_flags", label: "Safety & Quality Flags", icon: ShieldCheck, count: safetyFlags.length },
+            { id: "disputes", label: "Customer Refunds & Disputes", icon: Scale, count: disputes.length },
+          ].map(tab => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2.5 text-xs px-5 py-3 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                  isActive 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20"
+                    : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent"
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-white/40"}`} />
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-black ${
+                    tab.alert ? "bg-amber-500 text-black font-extrabold" : "bg-white/20 text-white"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* TAB 1: STORES & PARTNERS */}
+        {activeTab === "stores" && (
+          <div className="space-y-6">
+            {/* Search & Simple Filters */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-black/40 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+              <div className="relative flex-1 max-w-md w-full">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search network..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-all backdrop-blur-md"
+                <input 
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search stores by name, email, or category..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
                 />
               </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/40 uppercase font-mono font-bold">Category:</span>
+                <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+                  {["ALL", "CREATIVE", "TECHNICAL", "OPERATIONAL", "SUPPLIER"].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setTypeFilter(t)}
+                      className={`text-[10px] px-3 py-1.5 rounded-lg uppercase font-bold transition-all ${
+                        typeFilter === t ? "bg-white text-black font-extrabold" : "text-white/50 hover:text-white"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Store Grid Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {filteredVendors.map((vendor: any, idx: number) => {
+                const name = vendor.company || vendor.user?.name || "Active Store";
+                const code = vendor.vendorCode || `VND-00${idx + 1}`;
+                const email = vendor.user?.email || "owner@store.com";
+
+                return (
+                  <div key={vendor.id} className="bg-white/5 border border-white/10 hover:border-blue-500/40 rounded-2xl p-6 space-y-4 backdrop-blur-xl transition-all flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/15 flex items-center justify-center font-bold text-lg text-white">
+                            {name.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-base">{name}</h3>
+                            <p className="text-[10px] font-mono text-white/40">{code}</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono font-bold uppercase px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          Active Store
+                        </span>
+                      </div>
+
+                      <div className="my-4 p-3 rounded-xl bg-black/40 border border-white/5 space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-white/40">Owner Email:</span>
+                          <span className="text-purple-300 font-mono text-[11px] truncate max-w-[160px]">{email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/40">Commission Plan:</span>
+                          <span className="text-emerald-400 font-bold">Standard 10%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t border-white/10">
+                      <button 
+                        onClick={() => setKycVendor(vendor)}
+                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold uppercase text-white/80"
+                      >
+                        Inspect Verification
+                      </button>
+                      <button 
+                        onClick={() => setImpersonatingVendor(vendor)}
+                        className="flex-1 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-[11px] font-bold uppercase"
+                      >
+                        Support View
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Grid */}
-        <div className="flex-1 overflow-y-auto p-8 relative z-10 custom-scrollbar">
-          {loading ? (
-            <div className="flex justify-center py-20 relative z-10">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AnimatePresence>
-                  {filtered.map((v: any, i: number) => {
-                    const avail = AVAIL_CONFIG["AVAILABLE"]; // Mocking availability for UI since it's not in DB schema
-                    const vName = v.company || v.user?.name || "Unknown";
-                    return (
-                      <motion.button 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: i * 0.05 }}
-                        key={v.id} 
-                        onClick={() => setSelected(v === selected ? null : v)}
-                        className={`group bg-white/5 backdrop-blur-md border rounded-2xl p-6 transition-all text-left flex flex-col relative overflow-hidden ${
-                          selected?.id === v.id
-                            ? "border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
-                            : "border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-2xl"
-                        }`}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                        {/* Top row */}
-                        <div className="flex items-start justify-between mb-4 relative z-10">
-                          <div className="flex items-center gap-4">
-                            <div className="relative">
-                              <div className={`w-12 h-12 rounded-xl bg-black/40 flex items-center justify-center text-xl font-bold text-white/70 border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.05)] ${selected?.id === v.id ? 'border-blue-500/30' : ''}`}>
-                                {vName.charAt(0)}
-                              </div>
-                              <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#050505] ${avail.dot}`} />
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">{vName}</h3>
-                              <p className="text-[10px] font-mono tracking-widest text-white/40 uppercase mt-0.5">{v.vendorCode}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between mb-4 relative z-10">
-                          <span className={`text-[9px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border ${TYPE_COLORS[v.type]}`}>
-                            {v.type}
-                          </span>
-                        </div>
-
-                        <div className="relative z-10 mb-4">
-                          <StarRating value={v.rating} />
-                        </div>
-
-                        {/* Skills */}
-                        <div className="flex flex-wrap gap-2 mb-6 relative z-10">
-                          {v.skills.slice(0, 3).map((skill: string) => (
-                            <span key={skill} className="flex items-center gap-1.5 text-[9px] font-mono tracking-widest uppercase text-white/70 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
-                              <Tag className="w-2.5 h-2.5 text-blue-400" /> {skill}
-                            </span>
-                          ))}
-                          {v.skills.length > 3 && (
-                            <span className="text-[9px] font-mono tracking-widest uppercase text-white/40 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
-                              +{v.skills.length - 3}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono tracking-widest uppercase relative z-10">
-                          <div className="flex items-center gap-3 text-white/50">
-                            <div className="flex items-center gap-1.5">
-                              <Briefcase className="w-3.5 h-3.5" />
-                              <span><span className="font-bold text-white">{v._count?.assignments || 0}</span> Active</span>
-                            </div>
-                          </div>
-                          {v.dayRate && <span className="font-bold text-white bg-white/5 px-2 py-1 rounded-md border border-white/10">₹{v.dayRate.toLocaleString()}</span>}
-                        </div>
-                      </motion.button>
-                    )
-                  })}
-                </AnimatePresence>
+        {/* TAB 2: PAYOUT APPROVALS */}
+        {activeTab === "payouts" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+              <div>
+                <h2 className="text-xl font-bold">Vendor Payout Requests</h2>
+                <p className="text-xs text-white/50 mt-1">Review and approve money withdrawal requests sent by store owners.</p>
               </div>
+              <button 
+                onClick={handleApproveAllPayouts}
+                className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-xs px-5 py-3 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all"
+              >
+                Approve All Pending Payouts
+              </button>
+            </div>
 
-              {filtered.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <div className="w-16 h-16 border border-white/10 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                    <Network className="w-8 h-8 text-white/20" />
-                  </div>
-                  <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40">No connections found in matrix</h3>
+            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+              <table className="w-full text-left border-collapse text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-white/10 bg-black/40 text-[10px] uppercase font-mono tracking-widest text-white/40">
+                    <th className="py-4 px-6">Request ID & Date</th>
+                    <th className="py-4 px-6">Store Owner</th>
+                    <th className="py-4 px-6">Requested Amount</th>
+                    <th className="py-4 px-6">Platform Fee Deduction</th>
+                    <th className="py-4 px-6">Net Payout to Bank</th>
+                    <th className="py-4 px-6">Bank Account</th>
+                    <th className="py-4 px-6 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {payouts.map(p => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      <td className="py-4 px-6">
+                        <p className="font-mono font-bold text-white">{p.id}</p>
+                        <p className="text-[10px] text-white/40">{p.date}</p>
+                      </td>
+                      <td className="py-4 px-6 font-bold text-blue-400">{p.vendorName}</td>
+                      <td className="py-4 px-6 font-bold text-white">{p.amount}</td>
+                      <td className="py-4 px-6 text-amber-400 font-bold">-{p.platformFee}</td>
+                      <td className="py-4 px-6 font-black text-emerald-400 text-sm">{p.netPay}</td>
+                      <td className="py-4 px-6 text-white/60">{p.bank}</td>
+                      <td className="py-4 px-6 text-right">
+                        {p.status === "PENDING_APPROVAL" ? (
+                          <button 
+                            onClick={() => handleApprovePayout(p.id)}
+                            className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold uppercase text-[10px]"
+                          >
+                            Approve & Pay
+                          </button>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase text-emerald-400">Paid ✓</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: COMMISSION & REVENUE SPLIT */}
+        {activeTab === "commission" && (
+          <div className="space-y-6">
+            <div className="bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+              <h2 className="text-xl font-bold">White-Label Revenue Sharing Rules</h2>
+              <p className="text-xs text-white/50 mt-1">Automatic revenue calculation across Root SaaS, Partner Resellers, and Store Vendors.</p>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-900/30 via-purple-900/30 to-black p-6 rounded-2xl border border-blue-500/30 space-y-4">
+              <h3 className="text-base font-bold text-white">How Money is Split (Example ₹10,000 Customer Order)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
+                <div className="bg-black/50 p-4 rounded-xl border border-blue-500/20">
+                  <p className="text-white/40 text-[10px] uppercase font-bold">1. Root SaaS Platform (3%)</p>
+                  <p className="text-2xl font-black text-blue-400 mt-1">₹300.00</p>
+                  <p className="text-[10px] text-white/40 mt-1">Covers cloud servers & software maintenance</p>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+                <div className="bg-black/50 p-4 rounded-xl border border-purple-500/20">
+                  <p className="text-white/40 text-[10px] uppercase font-bold">2. Reseller Partner Share (12%)</p>
+                  <p className="text-2xl font-black text-purple-400 mt-1">₹1,200.00</p>
+                  <p className="text-[10px] text-white/40 mt-1">Reseller commission margin</p>
+                </div>
+                <div className="bg-black/50 p-4 rounded-xl border border-emerald-500/20">
+                  <p className="text-white/40 text-[10px] uppercase font-bold">3. Store Owner Remainder (85%)</p>
+                  <p className="text-2xl font-black text-emerald-400 mt-1">₹8,500.00</p>
+                  <p className="text-[10px] text-white/40 mt-1">Vendor net earnings deposited to bank</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SAFETY & QUALITY FLAGS */}
+        {activeTab === "safety_flags" && (
+          <div className="space-y-6">
+            <div className="bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+              <h2 className="text-xl font-bold">Automatic Product Safety & Quality Review</h2>
+              <p className="text-xs text-white/50 mt-1">System automatically alerts you if a vendor posts suspicious products or fake claims.</p>
+            </div>
+
+            <div className="space-y-4">
+              {safetyFlags.map(flag => (
+                <div key={flag.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex justify-between items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-base">{flag.item}</h3>
+                      <p className="text-xs text-blue-400">Store: {flag.storeName}</p>
+                      <p className="text-xs text-white/60 mt-1"><strong>Reason:</strong> {flag.reason}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setSafetyFlags(prev => prev.filter(f => f.id !== flag.id))
+                        toast.success("Flag cleared. Product approved.")
+                      }}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase"
+                    >
+                      Dismiss Alert
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSafetyFlags(prev => prev.filter(f => f.id !== flag.id))
+                        toast.error("Product taken down & email notice sent to store owner.")
+                      }}
+                      className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 text-xs font-bold uppercase"
+                    >
+                      Take Down Product
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: CUSTOMER REFUNDS & DISPUTES */}
+        {activeTab === "disputes" && (
+          <div className="space-y-6">
+            <div className="bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+              <h2 className="text-xl font-bold">Customer Complaints & Refund Portal</h2>
+              <p className="text-xs text-white/50 mt-1">Help resolve disputes between buyers and store owners.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {disputes.map(d => (
+                <div key={d.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                  <div>
+                    <span className="text-[10px] font-mono text-white/40 uppercase font-bold">Case: {d.id}</span>
+                    <h3 className="text-base font-bold text-white mt-1">{d.reason}</h3>
+                  </div>
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1 text-xs">
+                    <p><strong>Buyer Name:</strong> {d.buyer}</p>
+                    <p><strong>Store Name:</strong> {d.storeName}</p>
+                    <p><strong>Amount:</strong> <span className="text-emerald-400 font-bold">{d.amount}</span></p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleResolveDispute(d.id, "REFUND")}
+                      className="flex-1 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-bold uppercase text-xs"
+                    >
+                      Issue Full Refund
+                    </button>
+                    <button 
+                      onClick={() => handleResolveDispute(d.id, "RELEASE")}
+                      className="flex-1 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold uppercase text-xs"
+                    >
+                      Release to Store Owner
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* Right: Vendor Detail Drawer */}
+      {/* SUPPORT VIEW MODAL */}
       <AnimatePresence>
-        {selected && (
-          <motion.div 
-            initial={{ x: 400 }}
-            animate={{ x: 0 }}
-            exit={{ x: 400 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute right-0 top-0 h-full w-[400px] border-l border-white/10 bg-[#0a0a0a]/95 backdrop-blur-2xl overflow-y-auto custom-scrollbar flex flex-col z-50 shadow-2xl"
-          >
-            {/* Drawer Header */}
-            <div className="flex-none px-8 py-6 border-b border-white/10 bg-black/40">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center text-2xl font-bold text-white border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]">
-                    {(fullSelectedVendor?.company || fullSelectedVendor?.user?.name || "?").charAt(0)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">{fullSelectedVendor?.company || fullSelectedVendor?.user?.name || "Unknown"}</h2>
-                    <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mt-1">{fullSelectedVendor?.vendorCode}</p>
-                    <div className="mt-2">
-                      <StarRating value={fullSelectedVendor?.rating || 0} />
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => setSelected(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/50 hover:text-white border border-transparent hover:border-white/10">
-                  <X className="w-4 h-4" />
-                </button>
+        {impersonatingVendor && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
+            <div className="bg-[#0e111a] border border-purple-500/40 rounded-3xl p-8 max-w-md w-full text-center space-y-6">
+              <Key className="w-12 h-12 text-purple-400 mx-auto" />
+              <div>
+                <h3 className="text-xl font-bold text-white">Open Store in Support View</h3>
+                <p className="text-xs text-white/60 mt-2">You are viewing <span className="text-purple-300 font-bold">{impersonatingVendor.company || impersonatingVendor.user?.name}</span>'s store to help them with setup.</p>
               </div>
-            </div>
-
-            {/* Contact & Stats */}
-            <div className="px-8 py-6 border-b border-white/10 space-y-4">
-              <div className="flex items-center gap-3 text-xs font-mono text-white/70">
-                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"><Mail className="w-4 h-4 text-blue-400" /></div>
-                <a href={`mailto:${fullSelectedVendor?.user?.email}`} className="hover:text-blue-400 transition-colors truncate">{fullSelectedVendor?.user?.email || "N/A"}</a>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 pt-4">
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.02)]">
-                  <p className="text-2xl font-black text-blue-400">{fullSelectedVendor?.assignments?.length || 0}</p>
-                  <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest mt-1">Active</p>
-                </div>
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.02)]">
-                  <p className="text-2xl font-black text-amber-400">{fullSelectedVendor?.rating?.toFixed(1) || "0.0"}</p>
-                  <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest mt-1">Rating</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Skills */}
-            <div className="px-8 py-6 border-b border-white/10">
-              <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-white/40 mb-4">Capabilities</p>
-              <div className="flex flex-wrap gap-2">
-                {fullSelectedVendor?.skills?.map((skill: string) => (
-                  <span key={skill} className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold text-white/80 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                    <Tag className="w-3 h-3 text-blue-400" /> {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Reviews */}
-            <div className="px-8 py-6 flex-1">
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-white/40">Adjust Rating</p>
-                <button onClick={() => setIsRating(!isRating)}
-                  className="flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20"
-                >
-                  <Star className="w-3 h-3" /> Update
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {isRating && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 p-5 rounded-xl bg-white/5 border border-white/10 space-y-4 overflow-hidden"
-                  >
-                    <div>
-                      <p className="text-[9px] font-mono tracking-widest uppercase text-white/50 mb-2">New Rating Assessment</p>
-                      <StarRating value={ratingValue} interactive onRate={setRatingValue} />
-                    </div>
-                    <div className="flex gap-3 mt-4">
-                      <button onClick={() => { setIsRating(false); setRatingValue(0); setRatingComment("") }}
-                        className="flex-1 text-[10px] font-mono font-bold tracking-widest uppercase py-2.5 rounded-xl border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button onClick={() => handleSubmitReview(fullSelectedVendor.id)} disabled={!ratingValue}
-                        className="flex-1 text-[10px] font-mono font-bold tracking-widest uppercase py-2.5 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-4">
-                {/* We don't have historical reviews in the schema, just the rating. So we inform the user. */}
-                <p className="text-[10px] font-mono tracking-widest uppercase text-white/30 text-center py-8">Historical logs not stored in current schema.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setImpersonatingVendor(null)} className="flex-1 py-3 rounded-xl bg-white/5 text-xs font-bold uppercase text-white/70">Cancel</button>
+                <button onClick={() => { setImpersonatingVendor(null); toast.success("Redirected to Storefront in Support Mode!"); }} className="flex-1 py-3 rounded-xl bg-purple-600 text-white text-xs font-bold uppercase">Enter Store</button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <SlideOver title="Add New Node" open={isAddNodeOpen} onClose={() => setIsAddNodeOpen(false)}>
+      {/* KYC INSPECTOR MODAL */}
+      <AnimatePresence>
+        {kycVendor && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
+            <div className="bg-[#0e111a] border border-white/15 rounded-3xl p-8 max-w-lg w-full space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Store Verification Documents</h3>
+                  <p className="text-xs text-white/40 mt-1">Store: {kycVendor.company || kycVendor.user?.name}</p>
+                </div>
+                <button onClick={() => setKycVendor(null)} className="p-2 hover:bg-white/10 rounded-xl text-white/50"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                  <div><p className="font-bold text-white">Business Tax Certificate (GSTIN)</p><p className="text-[10px] text-white/40">Verified via Govt API</p></div>
+                  <span className="text-[10px] font-bold uppercase px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300">Verified ✓</span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                  <div><p className="font-bold text-white">Bank Account Proof</p><p className="text-[10px] text-white/40">Penny Drop Confirmed</p></div>
+                  <span className="text-[10px] font-bold uppercase px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300">Verified ✓</span>
+                </div>
+              </div>
+              <button onClick={() => { setKycVendor(null); toast.success("Store verification status confirmed!"); }} className="w-full py-3 rounded-xl bg-emerald-500 text-black font-bold uppercase text-xs">Approve Verification</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ADD STORE SLIDEOVER */}
+      <SlideOver title="Add New Store / Partner" open={isAddVendorOpen} onClose={() => setIsAddVendorOpen(false)}>
         <div className="p-6 space-y-6">
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Company / Freelancer Name *</label>
-            <input 
-              value={newNode.company}
-              onChange={e => setNewNode({...newNode, company: e.target.value})}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-              placeholder="E.g. Pixel Perfect Studios"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Contact Email *</label>
-              <input 
-                type="email"
-                value={newNode.email}
-                onChange={e => setNewNode({...newNode, email: e.target.value})}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-                placeholder="hello@example.com"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Vendor Code</label>
-              <input 
-                value={newNode.vendorCode}
-                onChange={e => setNewNode({...newNode, vendorCode: e.target.value})}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-blue-500"
-                placeholder="VND-001"
-              />
-            </div>
+            <label className="text-xs font-bold uppercase text-white/50 mb-2 block">Business Name *</label>
+            <input value={newVendor.name} onChange={e => setNewVendor({...newVendor, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white" placeholder="E.g. Pixel Perfect Studios" />
           </div>
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Category Type</label>
-            <select 
-              value={newNode.type}
-              onChange={e => setNewNode({...newNode, type: e.target.value})}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            >
-              <option value="CREATIVE">Creative</option>
-              <option value="TECHNICAL">Technical</option>
-              <option value="OPERATIONAL">Operational</option>
-              <option value="SUPPLIER">Supplier</option>
-            </select>
+            <label className="text-xs font-bold uppercase text-white/50 mb-2 block">Owner Email Address *</label>
+            <input type="email" value={newVendor.email} onChange={e => setNewVendor({...newVendor, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white" placeholder="owner@pixelperfect.com" />
           </div>
-          <div>
-            <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 block">Skills (comma separated)</label>
-            <textarea 
-              value={newNode.skills}
-              onChange={e => setNewNode({...newNode, skills: e.target.value})}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 font-mono"
-              placeholder="UI Design, Video Editing, Motion Graphics"
-            />
-          </div>
-          
-          <div className="pt-4 mt-6 border-t border-white/10">
-            <button onClick={handleAddNode} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold tracking-widest uppercase text-xs hover:bg-blue-500 transition-all">
-              Add Node to Matrix
-            </button>
-          </div>
+          <button onClick={handleAddVendor} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold uppercase text-xs">Create Store Account</button>
         </div>
       </SlideOver>
+
     </div>
   )
 }

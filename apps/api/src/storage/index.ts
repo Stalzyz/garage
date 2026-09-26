@@ -52,8 +52,21 @@ export default async function storageRouter(app: FastifyInstance) {
     const server = childApp.withTypeProvider<ZodTypeProvider>();
     childApp.addHook('preHandler', app.requireAuth);
 
-    server.put('/mock-upload', async (req, reply) => {
-      return reply.code(200).send({ success: true });
+    // PUT /mock-upload/* - Saves stream directly to disk when S3/R2 is not configured
+    childApp.put('/mock-upload/*', async (req, reply) => {
+      const key = (req.params as any)['*'];
+      if (!key) return reply.code(400).send({ error: 'Missing key' });
+
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const destinationPath = path.join(uploadsDir, safeKey);
+
+      await pipeline(req.raw, fs.createWriteStream(destinationPath));
+      return reply.code(200).send({ success: true, key: safeKey });
     });
 
     server.post('/upload-url', {
@@ -66,17 +79,43 @@ export default async function storageRouter(app: FastifyInstance) {
       }
     }, async (req, reply) => {
       const { filename, contentType, prefix } = req.body;
+      const tenantId = (req as any).user?.tenantId || 'default';
       
       const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const key = `${prefix}/${randomUUID()}-${safeFilename}`;
+      const key = `${tenantId}/${prefix}/${randomUUID()}-${safeFilename}`;
+
+      const hostHeader = (req.headers['x-forwarded-host'] as string) || (req.headers.host as string) || '';
+      const protoHeader = (req.headers['x-forwarded-proto'] as string) || ((req.socket as any)?.encrypted ? 'https' : 'http');
+      let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      if (!API_URL || API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
+        if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+          API_URL = `${protoHeader}://${hostHeader}/api/v1`;
+        } else {
+          API_URL = 'https://garage.grekam.in/api/v1';
+        }
+      }
 
       try {
-        const uploadUrl = await app.s3.generateUploadUrl(key, contentType);
-        const downloadUrl = await app.s3.generateDownloadUrl(key);
-        return reply.send({ uploadUrl, key, downloadUrl });
+        if (app.s3 && app.s3.client) {
+          const uploadUrl = await app.s3.generateUploadUrl(key, contentType);
+          const downloadUrl = await app.s3.generateDownloadUrl(key);
+          return reply.send({ uploadUrl, key, downloadUrl });
+        } else {
+          const safeKey = key.replace(/\//g, '_');
+          return reply.send({
+            uploadUrl: `${API_URL}/storage/mock-upload/${encodeURIComponent(key)}`,
+            key,
+            downloadUrl: `${API_URL}/uploads/${safeKey}`,
+          });
+        }
       } catch (err) {
-        app.log.error(err as any, 'Failed to generate presigned URL');
-        return reply.code(500).send({ error: 'Storage Error', message: 'Failed to generate upload URL' });
+        app.log.warn(err as any, 'S3 unavailable. Falling back to local mock upload.');
+        const safeKey = key.replace(/\//g, '_');
+        return reply.send({
+          uploadUrl: `${API_URL}/storage/mock-upload/${encodeURIComponent(key)}`,
+          key,
+          downloadUrl: `${API_URL}/uploads/${safeKey}`,
+        });
       }
     });
 
@@ -84,14 +123,15 @@ export default async function storageRouter(app: FastifyInstance) {
       const data = await req.file();
       if (!data) return reply.code(400).send({ error: 'No file uploaded' });
       
-      const uploadsDir = path.join(__dirname, '../../uploads');
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
+      const tenantId = (req as any).user?.tenantId || 'default';
       const uniqueId = Math.random().toString(36).substring(2, 10);
       const safeFilename = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, '');
-      const key = `${Date.now()}_${uniqueId}_${safeFilename}`;
+      const key = `${tenantId}_${Date.now()}_${uniqueId}_${safeFilename}`;
       const destinationPath = path.join(uploadsDir, key);
 
       await pipeline(data.file, fs.createWriteStream(destinationPath));

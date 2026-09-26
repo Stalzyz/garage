@@ -105,7 +105,7 @@ export default async function referralsRouter(app: FastifyInstance) {
     // Fetch dynamic commission rate setting from SystemSetting
     const setting = await app.prisma.systemSetting.findUnique({ where: { key: 'commission_rate_student' } });
     const percentage = (setting?.value as any)?.percentage ?? 10;
-    const amount = (body.feePaid * percentage) / 100;
+    const amount = Math.round(((body.feePaid * percentage) / 100) * 100) / 100;
 
     // Link the student
     await app.prisma.student.update({
@@ -171,7 +171,7 @@ export default async function referralsRouter(app: FastifyInstance) {
     await app.prisma.referral.updateMany({
       where: { referredUserId: payout.referredId },
       data: {
-        status: body.status === 'PAID' ? 'PAID' : 'PENDING'
+        status: body.status === 'PAID' ? 'PAID' : 'REJECTED'
       }
     });
 

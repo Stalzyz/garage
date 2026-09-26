@@ -262,13 +262,6 @@ export default function LoginPage() {
               )}
             </AnimatePresence>
           </form>
-          
-          {/* Link to Academy */}
-          <div className="mt-8 text-center">
-             <a href="https://academy.grekam.in/auth/login" className="text-xs font-mono tracking-widest text-white/40 hover:text-white/80 transition-colors uppercase block">
-               Student or Educator? Log in here →
-             </a>
-          </div>
         </div>
       </motion.div>
 

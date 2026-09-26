@@ -19,7 +19,8 @@ export function renderEmailTemplate(
 
   // Replace all {{variable}} placeholders with data values
   Object.keys(data).forEach((key) => {
-    const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'gi');
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`{{\\s*${escapedKey}\\s*}}`, 'gi');
     const val = data[key] !== undefined && data[key] !== null ? String(data[key]) : '';
     renderedBody = renderedBody.replace(regex, val);
     renderedSubject = renderedSubject.replace(regex, val);

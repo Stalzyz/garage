@@ -52,8 +52,8 @@ export async function handleRazorpayWebhook(req: FastifyRequest<{ Body: Razorpay
     const { decrypt } = await import('../settings/integrations.router');
     const secret = key?.encryptedValue ? decrypt(key.encryptedValue) : (process.env.RAZORPAY_WEBHOOK_SECRET || 'dev_secret');
     
-    // 1. Verify Signature
-    if (signature && process.env.NODE_ENV === 'production') {
+    // 1. Verify Signature (whenever secret is configured)
+    if (signature && secret && secret !== 'dev_secret') {
       const bodyText = (req as any).rawBody || JSON.stringify(req.body);
       const expectedSignature = crypto
         .createHmac('sha256', secret)
@@ -90,16 +90,21 @@ export async function handleRazorpayWebhook(req: FastifyRequest<{ Body: Razorpay
                       paidAmount: invoice.totalAmount
                     }
                   });
-                  await tx.payment.create({
-                    data: {
-                      invoiceId: invoice.id,
-                      amount: invoice.totalAmount,
-                      method: 'RAZORPAY',
-                      transactionId: payment.id,
-                      paidAt: new Date(),
-                      notes: `Paid via Razorpay. Order ID: ${payment.order_id}`
-                    }
+                  const existingPayment = await tx.payment.findFirst({
+                    where: { transactionId: payment.id }
                   });
+                  if (!existingPayment) {
+                    await tx.payment.create({
+                      data: {
+                        invoiceId: invoice.id,
+                        amount: invoice.totalAmount,
+                        method: 'RAZORPAY',
+                        transactionId: payment.id,
+                        paidAt: new Date(),
+                        notes: `Paid via Razorpay. Order ID: ${payment.order_id}`
+                      }
+                    });
+                  }
 
                   // If this invoice is linked to a billing milestone, mark it as paid
                   const milestone = await tx.billingMilestone.findUnique({

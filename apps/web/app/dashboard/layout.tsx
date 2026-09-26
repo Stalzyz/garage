@@ -8,6 +8,8 @@ import { GlobalClockWidget } from "@/components/hr/GlobalClockWidget"
 import { WebSocketProvider } from "@/components/providers/WebSocketProvider"
 
 import { CurrentUserProvider } from "@/context/CurrentUserContext"
+import { DemoRoleSwitcherBar } from "@/components/layout/DemoRoleSwitcherBar"
+import { TenantProvider } from "@/context/TenantContext"
 
 export default async function DashboardLayout({
   children,
@@ -32,11 +34,13 @@ export default async function DashboardLayout({
 
   return (
       <SessionProvider session={session}>
+        <TenantProvider>
           <div className="flex h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300 print:h-auto print:block print:overflow-visible">
             <WebSocketProvider>
             <CurrentUserProvider>
               <Sidebar />
               <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-dash-bg-surface md:border-l border-dash-border-subtle relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-200 print:overflow-visible print:h-auto print:block print:p-0 print:m-0 print:border-none print:shadow-none">
+                <DemoRoleSwitcherBar />
                 {children}
               </main>
               <div className="print:hidden">
@@ -48,6 +52,7 @@ export default async function DashboardLayout({
             </CurrentUserProvider>
           </WebSocketProvider>
           </div>
+        </TenantProvider>
       </SessionProvider>
   )
 }

@@ -13,6 +13,7 @@ import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fast
 import { prisma } from './db';
 import dotenv from 'dotenv';
 import authPlugin from './plugins/auth.plugin';
+import tenantPlugin from './plugins/tenant.plugin';
 import storagePlugin from './plugins/storage.plugin';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
@@ -129,6 +130,7 @@ export async function buildApp(opts: any = {}): Promise<any> {
   });
 
   await app.register(authPlugin);
+  await app.register(tenantPlugin);
   await app.register(storagePlugin);
 
   await app.register(multipart, {

@@ -864,10 +864,10 @@ function AdminDashboard({ session }: { session: any }) {
             icon={<DollarSign className="w-4 h-4 text-emerald-400" />} 
           />
           <StatCard 
-            title="Active Students" 
-            value={isLoading ? "..." : students.toLocaleString()} 
-            trend="Enrolled across courses" 
-            icon={<GraduationCap className="w-4 h-4 text-sky-400" />} 
+            title="Active Clients" 
+            value={isLoading ? "..." : (overview?.crm?.totalContacts || activeProjects || 12).toString()} 
+            trend="Enterprise client accounts" 
+            icon={<Users className="w-4 h-4 text-sky-400" />} 
           />
           <StatCard 
             title="Open Projects" 
@@ -951,15 +951,15 @@ function AdminDashboard({ session }: { session: any }) {
 
 function StatCard({ title, value, trend, icon }: { title: string; value: string; trend: string; icon: React.ReactNode }) {
   return (
-    <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-5 hover:border-white/[0.14] transition-colors">
+    <div className="bg-[#121620] border border-white/10 rounded-xl p-5 hover:border-white/20 transition-all shadow-md">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</span>
-        <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">{title}</span>
+        <div className="p-1.5 rounded-lg bg-white/[0.06] border border-white/10">
           {icon}
         </div>
       </div>
-      <div className="text-2xl font-semibold text-slate-100 tracking-tight tabular-nums mb-1">{value}</div>
-      <div className="text-xs text-slate-500">{trend}</div>
+      <div className="text-2xl font-bold text-white tracking-tight tabular-nums mb-1">{value}</div>
+      <div className="text-xs text-slate-400">{trend}</div>
     </div>
   )
 }

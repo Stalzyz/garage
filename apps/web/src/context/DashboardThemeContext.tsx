@@ -16,11 +16,12 @@ export function DashboardThemeProvider({ children }: { children: React.ReactNode
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Check localStorage on mount
-    const savedTheme = localStorage.getItem("dashboard-theme") as Theme
-    if (savedTheme) {
-      setTheme(savedTheme)
+    // Force dark class on documentElement
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.add("dark")
     }
+    const savedTheme = (localStorage.getItem("dashboard-theme") as Theme) || "dark"
+    setTheme(savedTheme)
     setMounted(true)
   }, [])
 
@@ -28,6 +29,13 @@ export function DashboardThemeProvider({ children }: { children: React.ReactNode
     setTheme((prev) => {
       const newTheme = prev === "dark" ? "light" : "dark"
       localStorage.setItem("dashboard-theme", newTheme)
+      if (typeof document !== "undefined") {
+        if (newTheme === "dark") {
+          document.documentElement.classList.add("dark")
+        } else {
+          document.documentElement.classList.remove("dark")
+        }
+      }
       return newTheme
     })
   }

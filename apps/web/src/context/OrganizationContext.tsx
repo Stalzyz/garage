@@ -15,6 +15,9 @@ export interface Organization {
   billingAddress?: string | null;
   website?: string | null;
   phone?: string | null;
+  gstNumber?: string | null;
+  panNumber?: string | null;
+  companyName?: string | null;
   bankName?: string | null;
   bankAccountNo?: string | null;
   bankIfsc?: string | null;
@@ -34,6 +37,9 @@ const defaultOrg: Organization = {
   billingAddress: "Coimbatore, Tamil Nadu, India",
   website: "https://grekam.in",
   phone: null,
+  gstNumber: null,
+  panNumber: null,
+  companyName: "Grekam Visuals & Technologies Pvt Ltd",
   bankName: null,
   bankAccountNo: null,
   bankIfsc: null,

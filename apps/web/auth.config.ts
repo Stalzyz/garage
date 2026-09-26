@@ -9,9 +9,16 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      // 1. Root split-screen landing page (/) MUST always be accessible without redirection
-      if (nextUrl.pathname === '/' || nextUrl.pathname === '') {
-        return true;
+      // 1. Landing pages and dedicated login pages MUST always be accessible without redirection for unauthenticated users
+      const isLoginPage = nextUrl.pathname === '/auth/login' 
+        || nextUrl.pathname === '/portal' 
+        || nextUrl.pathname === '/portal/' 
+        || nextUrl.pathname === '/admin/login' 
+        || nextUrl.pathname === '/reseller/login' 
+        || nextUrl.pathname === '/login'
+
+      if (nextUrl.pathname === '/' || nextUrl.pathname === '' || isLoginPage) {
+        if (!auth?.user) return true;
       }
 
       const isLoggedIn = !!auth?.user
@@ -20,15 +27,17 @@ export const authConfig = {
       const isOnStudent = nextUrl.pathname.startsWith('/portal/student')
       const isOnClientPortal = isOnPortalProtected && !isOnStudent
 
-      const isLoginPage = nextUrl.pathname === '/auth/login' || nextUrl.pathname === '/portal' || nextUrl.pathname === '/portal/'
-
       if (isLoggedIn) {
         // @ts-ignore
         const role = auth?.user?.role;
 
         // Logged in users visiting login pages should be sent to their dashboard
         if (isLoginPage) {
-          if (role === 'CLIENT') {
+          if (role === 'SUPER_ADMIN') {
+            return Response.redirect(new URL('/dashboard/admin/dashboard', nextUrl));
+          } else if (role === 'RESELLER_ADMIN') {
+            return Response.redirect(new URL('/dashboard/reseller', nextUrl));
+          } else if (role === 'CLIENT') {
             return Response.redirect(new URL('/portal/dashboard', nextUrl));
           } else if (role === 'STUDENT') {
             return Response.redirect(new URL('/portal/student', nextUrl));
@@ -37,7 +46,7 @@ export const authConfig = {
           }
         }
 
-        // Allow logged in users to access public pages (e.g. /contact, /academy, /verify) freely
+        // Allow logged in users to access public pages freely
         const isProtectedRoute = isOnDashboard || isOnPortalProtected || isOnStudent;
         if (!isProtectedRoute) {
           return true;
@@ -59,9 +68,15 @@ export const authConfig = {
         return true;
       }
 
-      // Unauthenticated users
+      // Unauthenticated users trying to access protected dashboards
       if (isOnDashboard || isOnStudent) {
-        return false; // Redirect to /auth/login
+        if (nextUrl.pathname.startsWith('/dashboard/admin')) {
+          return Response.redirect(new URL('/admin/login', nextUrl));
+        }
+        if (nextUrl.pathname.startsWith('/dashboard/reseller')) {
+          return Response.redirect(new URL('/reseller/login', nextUrl));
+        }
+        return false; // Redirect to default /auth/login
       }
       if (isOnClientPortal) {
         return Response.redirect(new URL('/portal', nextUrl)); // Redirect to client login page

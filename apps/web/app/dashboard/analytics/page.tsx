@@ -177,21 +177,21 @@ export default function GlobalAnalyticsDashboard() {
           {/* Lower Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            {/* Academy Health */}
+            {/* SaaS Platform Health */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
               className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 shadow-sm"
             >
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-sm font-mono font-bold tracking-widest uppercase text-white/50 flex items-center gap-3">
-                  <GraduationCap className="w-4 h-4 text-amber-400" /> Academy Health
+                  <Activity className="w-4 h-4 text-emerald-400" /> SaaS & CRM Metrics
                 </h2>
               </div>
               <div className="space-y-6">
-                <ProgressRow label="Course Completion Rate" value="68%" color="bg-blue-500" />
-                <ProgressRow label="Average Assignment Score" value="84%" color="bg-emerald-500" />
-                <ProgressRow label="Student Churn Rate" value="4%" color="bg-red-500" />
-                <ProgressRow label="New Enrollments (30d)" value="125" color="bg-amber-400" raw />
+                <ProgressRow label="Lead Conversion Rate" value="38%" color="bg-blue-500" />
+                <ProgressRow label="Proposal Win Rate" value="74%" color="bg-emerald-500" />
+                <ProgressRow label="Client Retention Rate" value="96%" color="bg-indigo-500" />
+                <ProgressRow label="Active Subscriptions (MRR)" value="24" color="bg-purple-400" raw />
               </div>
             </motion.div>
 

@@ -36,13 +36,13 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://grekam.in'),
   title: {
-    default: 'Grekam OS — Enterprise Operating System',
+    default: 'Grekam OS — CRM, HRM & Project Management',
     template: '%s | Grekam OS'
   },
-  description: 'Enterprise operational system and client portal for Grekam Visuals Agency and Grekam Academy.',
+  description: 'Unified CRM, HRM, and project management platform for modern teams.',
   openGraph: {
-    title: 'Grekam OS — Agency & Academy Enterprise operational platform',
-    description: 'Unified operational system for managing clients, CRM proposals, student LMS coursework, and finance payrolls.',
+    title: 'Grekam OS — CRM, HRM & Project Management',
+    description: 'Unified operational system for managing clients, HR, proposals, projects, and finance.',
     url: 'https://grekam.in',
     siteName: 'Grekam OS',
     images: [
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Grekam OS',
-    description: 'Operational engine for creative teams.',
+    description: 'CRM, HRM & project management for creative teams.',
     images: ['/og-image.png'],
   },
   robots: {
