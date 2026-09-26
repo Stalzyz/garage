@@ -242,6 +242,242 @@ export default function GarageLandingPage() {
     }, 600)
   }
 
+  // ── 3-ROW INTEGRATION DEFINITIONS ──
+  const integrationsRow1 = [
+    {
+      name: "Meta Ads & Leads",
+      category: "Paid Social & Inbound",
+      badge: "Instant Ingestion",
+      brief: "Auto-sync Facebook & Instagram lead ad submissions straight into your CRM Kanban pipeline in <1s.",
+      icon: (
+        <svg className="w-5 h-5 text-[#0081FB]" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+        </svg>
+      )
+    },
+    {
+      name: "Google Ads (PPC)",
+      category: "Search & Display",
+      badge: "ROAS Tracking",
+      brief: "Attribute closed client deals back to high-intent Google Search campaigns for exact cost-per-acquisition.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <path d="M3.7 13.3L8.8 4.5C9.4 3.4 10.8 3 11.9 3.6C13 4.2 13.4 5.6 12.8 6.7L7.7 15.5C7.1 16.6 5.7 17 4.6 16.4C3.5 15.8 3.1 14.4 3.7 13.3Z" fill="#FBBC04"/>
+          <path d="M12.8 6.7L17.9 15.5C18.5 16.6 18.1 18 17 18.6C15.9 19.2 14.5 18.8 13.9 17.7L8.8 8.9C9.4 8.2 10.3 7.8 11.2 7.8C11.8 7.8 12.4 8 12.8 8.4L12.8 6.7Z" fill="#4285F4"/>
+          <circle cx="5.5" cy="17.5" r="2.5" fill="#34A853"/>
+        </svg>
+      )
+    },
+    {
+      name: "Google Sheets",
+      category: "Spreadsheet Sync",
+      badge: "2-Way Live Sync",
+      brief: "Continuous two-way sync for deal contacts, proposal values, pipeline stages, and revenue ledgers.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="4" fill="#0F9D58"/>
+          <path d="M7 6H17V18H7V6Z" fill="white"/>
+          <path d="M9 9H15M9 12H15M9 15H15" stroke="#0F9D58" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      )
+    },
+    {
+      name: "WhatsApp Business API",
+      category: "Client Messaging",
+      badge: "Instant Alerts",
+      brief: "Trigger automated proposal review links, milestone completion alerts, and 1-click UPI invoice links.",
+      icon: (
+        <svg className="w-5 h-5 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.44 19.65L5.27 16.62L5.07 16.3C4.24 14.98 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.69 12.04 3.69C14.24 3.69 16.31 4.55 17.86 6.11C19.42 7.66 20.27 9.73 20.27 11.92C20.28 16.46 16.58 20.15 12.04 20.15Z"/>
+        </svg>
+      )
+    },
+    {
+      name: "Grafty WhatsApp AI",
+      category: "AI Chatbots & Drips",
+      badge: "grafty.pro",
+      brief: "Automated multi-turn WhatsApp chatbots, lead qualification questionnaires, and drip broadcasts.",
+      icon: (
+        <img src="https://grafty.pro/grafty.svg" alt="Grafty" className="w-5 h-5 object-contain" />
+      )
+    },
+    {
+      name: "Make (Integromat)",
+      category: "Visual iPaaS",
+      badge: "No-Code Logic",
+      brief: "Connect Garage CRM events to 1,500+ apps with visual multi-branch conditional routing.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#6B38FB"/>
+          <path d="M6 16V8L10 13L14 8V16M14 16H18V8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )
+    }
+  ]
+
+  const integrationsRow2 = [
+    {
+      name: "n8n AI Workflows",
+      category: "Workflow Automation",
+      badge: "Self-Hosted / Cloud",
+      brief: "Trigger custom Python/JS webhook scripts, LangChain agents, and internal API orchestrations.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#FF6D5A"/>
+          <circle cx="7" cy="12" r="2.5" fill="white"/>
+          <circle cx="17" cy="8" r="2.5" fill="white"/>
+          <circle cx="17" cy="16" r="2.5" fill="white"/>
+          <path d="M9.5 12H14.5M14.5 8.5L9.5 12L14.5 15.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      )
+    },
+    {
+      name: "Zoom Discovery Calls",
+      category: "Video Conferencing",
+      badge: "Auto-Scheduling",
+      brief: "Auto-generate Zoom discovery links upon lead intake and attach recorded calls to client records.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
+          <path d="M6 9C6 7.89543 6.89543 7 8 7H13C14.1046 7 15 7.89543 15 9V15C15 16.1046 14.1046 17 13 17H8C6.89543 17 6 16.1046 6 15V9Z" fill="white"/>
+          <path d="M15 10.5L18.5 8V16L15 13.5V10.5Z" fill="white"/>
+        </svg>
+      )
+    },
+    {
+      name: "Google Meet",
+      category: "Client Meetings",
+      badge: "1-Click Calendar",
+      brief: "Sync team calendars with 1-click Meet invites for sprint milestone reviews and proposal pitches.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <path d="M14 8.5V6C14 4.89543 13.1046 4 12 4H5C3.89543 4 3 4.89543 3 6V18C3 19.1046 3.89543 20 5 20H12C13.1046 20 14 19.1046 14 18V15.5L19 19.5C19.6 20 20.5 19.6 20.5 18.8V5.2C20.5 4.4 19.6 4 19 4.5L14 8.5Z" fill="#00AC47"/>
+          <path d="M14 8.5L19 4.5V10.5L14 8.5Z" fill="#EA4335"/>
+          <path d="M14 15.5L19 19.5V13.5L14 15.5Z" fill="#4285F4"/>
+          <path d="M14 8.5V15.5L19 13.5V10.5L14 8.5Z" fill="#FBBC04"/>
+        </svg>
+      )
+    },
+    {
+      name: "Google Analytics 4",
+      category: "Traffic Attribution",
+      badge: "Funnel Velocity",
+      brief: "Monitor client proposal views, time spent reviewing deliverables, and checkout conversion drop-offs.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#F9AB00"/>
+          <rect x="5" y="13" width="3" height="6" rx="1" fill="#E37400"/>
+          <rect x="10.5" y="9" width="3" height="10" rx="1" fill="#E37400"/>
+          <rect x="16" y="5" width="3" height="14" rx="1" fill="white"/>
+        </svg>
+      )
+    },
+    {
+      name: "Gmail & Workspace",
+      category: "Email Client Sync",
+      badge: "2-Way Thread Sync",
+      brief: "Dispatch professional proposals and contract PDFs from your verified agency domain with open tracking.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#EA4335"/>
+          <path d="M5 7L12 12.5L19 7M5 7V17H19V7H5Z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )
+    },
+    {
+      name: "Zapier Automation Hub",
+      category: "Webhooks & iPaaS",
+      badge: "5,000+ Apps",
+      brief: "Trigger automated actions across Typeform, Calendly, ClickUp, and Notion without writing any code.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#FF4A00"/>
+          <path d="M12 5V19M5 12H19M7 7L17 17M7 17L17 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      )
+    }
+  ]
+
+  const integrationsRow3 = [
+    {
+      name: "Razorpay Gateway",
+      category: "Payments & Invoicing",
+      badge: "UPI, Cards & NetBanking",
+      brief: "Accept instant client milestone payments via dynamic UPI QR codes, credit cards, and auto-generate tax receipts.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#0C2340"/>
+          <path d="M7 17L12 7H17L12 17H7ZM12 7L15 12H10.5L12 7Z" fill="#0C83FD"/>
+        </svg>
+      )
+    },
+    {
+      name: "PhonePe Business",
+      category: "UPI Intent Gateway",
+      badge: "Instant UPI Settlement",
+      brief: "Zero-drop mobile UPI intent payment links sent directly inside WhatsApp proposal approval chats.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="11" fill="#5F259F"/>
+          <path d="M8.5 7H14C15.5 7 16.5 8 16.5 9.5C16.5 11 15.5 12 14 12H11V17H8.5V7ZM11 9.5V10H13.5C14 10 14.3 9.8 14.3 9.5C14.3 9.2 14 9 13.5 9H11V9.5Z" fill="white"/>
+        </svg>
+      )
+    },
+    {
+      name: "Stripe Subscriptions",
+      category: "Global Retainer Billing",
+      badge: "USD / EUR / INR",
+      brief: "Process recurring monthly retainer credit cards worldwide with automated smart failed-payment retries.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#635BFF"/>
+          <path d="M14.5 10.2C14.5 9.4 13.8 8.9 12.6 8.9C11.1 8.9 9.8 9.5 9 10L8.2 8.2C9.3 7.5 10.9 7 12.7 7C15.3 7 17 8.2 17 10.4C17 13.5 12.9 13.2 12.9 14.5C12.9 15.2 13.7 15.6 14.8 15.6C16.2 15.6 17.5 15 18.2 14.4L19 16.2C18 17 16.4 17.5 14.6 17.5C12.1 17.5 10.4 16.2 10.4 14.1C10.4 10.8 14.5 11.2 14.5 10.2Z" fill="white"/>
+        </svg>
+      )
+    },
+    {
+      name: "GST e-Invoicing (IRN)",
+      category: "Tax Compliance",
+      badge: "100% Tax Compliant",
+      brief: "Automated HSN/SAC code mapping, IRN generation, and compliant B2B tax invoices with full ITC claim.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#1E3A8A"/>
+          <path d="M12 4L18 7V12C18 16 12 20 12 20C12 20 6 16 6 12V7L12 4Z" stroke="#38BDF8" strokeWidth="1.5" fill="#0284C7"/>
+          <path d="M9 12L11 14L15 9" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )
+    },
+    {
+      name: "Smart Invoice Generator",
+      category: "Billing Engine",
+      badge: "1-Click PDF & Web Bills",
+      brief: "Convert accepted client proposals and sprint milestones into itemized bills in a single click.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#059669"/>
+          <path d="M8 6H16M8 10H16M8 14H12" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M15 13L17 17L14 18L18 20" stroke="#FDE047" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      )
+    },
+    {
+      name: "Slack Deal Alerts",
+      category: "Team Notifications",
+      badge: "Real-Time Pings",
+      brief: "Post instant win notifications into your #agency-sales channel whenever a client signs or pays.",
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="#4A154B"/>
+          <circle cx="8" cy="8" r="1.8" fill="#ECB22E"/>
+          <circle cx="16" cy="8" r="1.8" fill="#2EB67D"/>
+          <circle cx="8" cy="16" r="1.8" fill="#36C5F0"/>
+          <circle cx="16" cy="16" r="1.8" fill="#E01E5A"/>
+        </svg>
+      )
+    }
+  ]
+
   const coreModules = [
     {
       category: "SALES",
@@ -727,6 +963,125 @@ export default function GarageLandingPage() {
             </motion.div>
           )}
 
+        </div>
+      </section>
+
+      {/* ── 3.5 SEAMLESS APP & PAYMENT INTEGRATIONS (3-ROW AUTO-SCROLLING MARQUEE) ── */}
+      <section className="py-24 relative bg-[#040813] border-b border-white/5 overflow-hidden">
+        {/* Glow backdrop */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-blue-600/10 blur-[130px] pointer-events-none -z-10" />
+
+        <div className="max-w-7xl mx-auto px-6 mb-14 text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono uppercase tracking-widest mb-3">
+            <Zap className="w-3.5 h-3.5" />
+            <span>Connected Ecosystem</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            Connect Your Stack. Automate Your Work. Move Fast.
+          </h2>
+
+          <p className="text-sm sm:text-base text-zinc-400 max-w-3xl mx-auto mt-4 leading-relaxed">
+            Garage CRM hooks directly into your lead sources, calendar scheduling, payments, messaging, and automation engines so your team spends zero time on manual copy-pasting.
+          </p>
+        </div>
+
+        {/* ── ROW 1: Meta, Google Ads, Sheets, WhatsApp, Grafty, Make (Right to Left) ── */}
+        <div className="mb-4 overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="animate-marquee-row-1 gap-4 py-1">
+            {[...integrationsRow1, ...integrationsRow1].map((item, idx) => (
+              <div
+                key={`r1-${idx}`}
+                className="w-[360px] p-5 rounded-2xl bg-[#090E1C]/90 border border-white/10 hover:border-blue-500/40 hover:bg-[#0c1326] transition-all flex flex-col justify-between shrink-0 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-blue-300 transition-colors">{item.name}</div>
+                      <div className="text-[10px] text-zinc-500">{item.category}</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed min-h-[34px]">
+                  {item.brief}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── ROW 2: n8n, Zoom, Google Meet, Analytics, Gmail, Zapier (Left to Right) ── */}
+        <div className="mb-4 overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="animate-marquee-row-2 gap-4 py-1">
+            {[...integrationsRow2, ...integrationsRow2].map((item, idx) => (
+              <div
+                key={`r2-${idx}`}
+                className="w-[360px] p-5 rounded-2xl bg-[#090E1C]/90 border border-white/10 hover:border-purple-500/40 hover:bg-[#0c1326] transition-all flex flex-col justify-between shrink-0 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">{item.name}</div>
+                      <div className="text-[10px] text-zinc-500">{item.category}</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed min-h-[34px]">
+                  {item.brief}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── ROW 3: Razorpay, PhonePe, Stripe, GST e-Invoice, Invoice Gen, Slack (Right to Left) ── */}
+        <div className="overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="animate-marquee-row-3 gap-4 py-1">
+            {[...integrationsRow3, ...integrationsRow3].map((item, idx) => (
+              <div
+                key={`r3-${idx}`}
+                className="w-[360px] p-5 rounded-2xl bg-[#090E1C]/90 border border-white/10 hover:border-emerald-500/40 hover:bg-[#0c1326] transition-all flex flex-col justify-between shrink-0 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">{item.name}</div>
+                      <div className="text-[10px] text-zinc-500">{item.category}</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed min-h-[34px]">
+                  {item.brief}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Fast-Integration Footnote */}
+        <div className="text-center mt-10">
+          <div className="inline-flex items-center gap-2 text-xs text-zinc-400 bg-white/[0.03] px-4 py-2 rounded-full border border-white/5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>REST API & Webhooks enabled on all plans for custom in-house tools.</span>
+          </div>
         </div>
       </section>
 

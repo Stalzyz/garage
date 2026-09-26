@@ -252,3 +252,47 @@ html.lenis, html.lenis body {
     background-position: 0% 0%;
   }
 }
+
+/* Horizontal Integration Marquee Animations */
+@keyframes marqueeScrollLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marqueeScrollRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-row-1 {
+  display: flex;
+  width: max-content;
+  animation: marqueeScrollLeft 32s linear infinite;
+}
+
+.animate-marquee-row-2 {
+  display: flex;
+  width: max-content;
+  animation: marqueeScrollRight 38s linear infinite;
+}
+
+.animate-marquee-row-3 {
+  display: flex;
+  width: max-content;
+  animation: marqueeScrollLeft 28s linear infinite;
+}
+
+.animate-marquee-row-1:hover,
+.animate-marquee-row-2:hover,
+.animate-marquee-row-3:hover {
+  animation-play-state: paused;
+}
+
