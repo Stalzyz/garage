@@ -192,20 +192,46 @@ export default async function tenantsRouter(app: FastifyInstance) {
       },
     });
 
-    // If owner email provided, link or create user
+    // If owner email provided, link or create user in PostgreSQL DB
     if (body.ownerEmail) {
-      const existingUser = await app.prisma.user.findUnique({
+      const bcrypt = require('bcryptjs');
+      const hash = await bcrypt.hash('Garage@2026!', 10);
+
+      const user = await app.prisma.user.upsert({
         where: { email: body.ownerEmail },
+        update: {
+          status: 'ACTIVE',
+          role: 'ADMIN',
+        },
+        create: {
+          email: body.ownerEmail,
+          passwordHash: hash,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          firstName: body.name.split(' ')[0] || 'Garage',
+          lastName: body.name.split(' ')[1] || 'Owner',
+        },
       });
-      if (existingUser) {
-        await app.prisma.tenantMember.create({
-          data: {
+
+      await app.prisma.tenantMember.upsert({
+        where: {
+          tenantId_userId: {
             tenantId: tenant.id,
-            userId: existingUser.id,
-            role: 'OWNER',
+            userId: user.id,
           },
-        });
-      }
+        },
+        update: { role: 'OWNER' },
+        create: {
+          tenantId: tenant.id,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      });
+
+      await app.prisma.user.update({
+        where: { id: user.id },
+        data: { activeTenantId: tenant.id },
+      });
     }
 
     return tenant;

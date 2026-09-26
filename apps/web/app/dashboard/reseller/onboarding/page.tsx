@@ -78,11 +78,28 @@ export default function ResellerOnboardingPage() {
 
   const handleProvisionTenant = async () => {
     setIsProvisioning(true)
-    toast.loading("Provisioning new garage workspace & initializing tenant database...")
+    toast.loading("Provisioning new garage workspace in PostgreSQL database...")
 
     try {
-      const generatedTempPass = `Garage@${Math.floor(1000 + Math.random() * 9000)}`
-      const generatedTenantId = `gar-${Math.floor(100 + Math.random() * 900)}`
+      const res = await fetch("/api/tenants/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          garageName: formData.garageName,
+          ownerFirstName: formData.ownerFirstName,
+          ownerLastName: formData.ownerLastName,
+          email: formData.email,
+          phone: formData.phone,
+          subdomain: formData.subdomain,
+          plan: formData.selectedPlan,
+          customDomain: formData.customDomain,
+          customLogoUrl: formData.customLogoUrl,
+          brandColor: formData.brandColor,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to provision tenant")
 
       // Dispatch automated welcome email via API
       await fetch("/api/notifications/send-email", {
@@ -95,8 +112,8 @@ export default function ResellerOnboardingPage() {
           type: "WELCOME_GARAGE",
           details: {
             garageName: formData.garageName,
-            loginUrl: `https://${formData.subdomain || "garage"}.grekam.in/login`,
-            tempPassword: generatedTempPass,
+            loginUrl: data.loginUrl || `https://${formData.subdomain || "garage"}.grekam.in/login`,
+            tempPassword: data.user?.tempPassword || "Garage@2026!",
             plan: formData.selectedPlan,
           },
         }),
@@ -104,18 +121,18 @@ export default function ResellerOnboardingPage() {
 
       setFormData(prev => ({
         ...prev,
-        tempPassword: generatedTempPass,
-        tenantId: generatedTenantId,
+        tempPassword: data.user?.tempPassword || "Garage@2026!",
+        tenantId: data.tenant?.id || `gar-${Math.floor(100 + Math.random() * 900)}`,
       }))
 
       setIsProvisioning(false)
       toast.dismiss()
-      toast.success(`Garage "${formData.garageName}" provisioned successfully!`)
+      toast.success(`Garage "${formData.garageName}" saved to database! Login credentials generated.`)
       setStep(4)
-    } catch (error) {
+    } catch (error: any) {
       setIsProvisioning(false)
       toast.dismiss()
-      toast.error("Failed to provision garage workspace")
+      toast.error(`Provisioning failed: ${error.message}`)
     }
   }
 

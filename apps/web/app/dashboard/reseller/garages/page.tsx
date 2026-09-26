@@ -69,55 +69,73 @@ export default function ResellerGaragesPage() {
     domain: "",
   })
 
-  const handleCreateGarage = (e: React.FormEvent) => {
+  const handleCreateGarage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newForm.name || !newForm.ownerName || !newForm.email) {
       toast.error("Please fill in Garage Name, Owner Name, and Email")
       return
     }
 
-    const created = {
-      id: `gar-${Math.floor(100 + Math.random() * 900)}`,
-      name: newForm.name,
-      owner: newForm.ownerName,
-      email: newForm.email,
-      phone: newForm.phone || "+91 99000 00000",
-      plan: newForm.plan,
-      status: "Active",
-      createdDate: newForm.startDate,
-      renewalDate: newForm.expiryDate,
-      domain: newForm.domain || `${newForm.name.toLowerCase().replace(/\s+/g, "")}.reseller.com`,
-      whiteLabelStatus: newForm.logo ? "Custom Branding Active" : "Default Branding",
-      usage: { customers: 0, staff: 1, storage: "0.1 GB / 10 GB" }
+    toast.loading("Saving new garage to PostgreSQL database...")
+
+    try {
+      const nameParts = newForm.ownerName.trim().split(" ")
+      const res = await fetch("/api/tenants/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          garageName: newForm.name,
+          ownerFirstName: nameParts[0] || "Garage",
+          ownerLastName: nameParts.slice(1).join(" ") || "Owner",
+          email: newForm.email,
+          phone: newForm.phone,
+          subdomain: newForm.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
+          plan: newForm.plan,
+          customDomain: newForm.domain,
+          customLogoUrl: newForm.logo,
+        }),
+      })
+
+      const data = await res.json()
+      toast.dismiss()
+
+      if (!res.ok) throw new Error(data.error || "Failed to save garage")
+
+      const created = {
+        id: data.tenant?.id || `gar-${Math.floor(100 + Math.random() * 900)}`,
+        name: newForm.name,
+        owner: newForm.ownerName,
+        email: newForm.email,
+        phone: newForm.phone || "+91 99000 00000",
+        plan: newForm.plan,
+        status: "Active",
+        createdDate: newForm.startDate,
+        renewalDate: newForm.expiryDate,
+        domain: data.loginUrl || `${newForm.name.toLowerCase().replace(/\s+/g, "")}.grekam.in`,
+        whiteLabelStatus: newForm.logo ? "Custom Branding Active" : "Default Branding",
+        usage: { customers: 0, staff: 1, storage: "0.1 GB / 10 GB" }
+      }
+
+      setGarages([created, ...garages])
+      setShowAddModal(false)
+
+      setNewForm({
+        name: "",
+        ownerName: "",
+        email: "",
+        phone: "",
+        plan: "Growth Garage",
+        startDate: new Date().toISOString().split("T")[0],
+        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        logo: "",
+        domain: "",
+      })
+
+      toast.success(`Garage "${created.name}" saved to database! Login: ${created.email} | Pass: ${data.user?.tempPassword || "Garage@2026!"}`)
+    } catch (error: any) {
+      toast.dismiss()
+      toast.error(`Error saving garage: ${error.message}`)
     }
-
-    setGarages([created, ...garages])
-    setShowAddModal(false)
-
-    // Dispatch automated welcome email
-    fetch("/api/notifications/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "WELCOME_GARAGE",
-        recipientEmail: created.email,
-        recipientName: created.owner,
-        details: { garageName: created.name, plan: created.plan, loginUrl: "http://localhost:8888/auth/login" },
-      }),
-    }).catch(console.error)
-
-    setNewForm({
-      name: "",
-      ownerName: "",
-      email: "",
-      phone: "",
-      plan: "Growth Garage",
-      startDate: new Date().toISOString().split("T")[0],
-      expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      logo: "",
-      domain: "",
-    })
-    toast.success(`Garage "${created.name}" created! Welcome email dispatched to ${created.email}.`)
   }
 
   const toggleStatus = (id: string) => {

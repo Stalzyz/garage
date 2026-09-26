@@ -9,6 +9,7 @@ import { toast } from "sonner"
 export default function SuperAdminGaragesPage() {
   const [activeTab, setActiveTab] = useState<"All" | "Direct" | "Reseller">("All")
   const [searchQuery, setSearchQuery] = useState("")
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const [garages, setGarages] = useState([
     { id: "g-1", name: "Apex Auto Care", owner: "Rajesh Kumar", type: "Reseller", plan: "Enterprise Garage", reseller: "Apex SaaS Partners", status: "Active", renewal: "2026-10-15" },
@@ -17,6 +18,67 @@ export default function SuperAdminGaragesPage() {
     { id: "g-4", name: "Grekam Flagship Garage", owner: "Sanjay Gupta", type: "Direct", plan: "Enterprise Garage", reseller: "Direct Customer", status: "Active", renewal: "2027-01-15" },
     { id: "g-5", name: "Royal Auto Works", owner: "Suresh Patel", type: "Reseller", plan: "Basic Garage", reseller: "Royal Resellers", status: "Expiring Soon", renewal: "2026-09-29" },
   ])
+
+  const [newForm, setNewForm] = useState({
+    name: "",
+    ownerName: "",
+    email: "",
+    phone: "",
+    plan: "Growth Garage",
+    type: "Direct",
+  })
+
+  const handleCreateGarage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newForm.name || !newForm.ownerName || !newForm.email) {
+      toast.error("Please fill in Garage Name, Owner Name, and Email")
+      return
+    }
+
+    toast.loading("Saving new garage to PostgreSQL database...")
+
+    try {
+      const nameParts = newForm.ownerName.trim().split(" ")
+      const res = await fetch("/api/tenants/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          garageName: newForm.name,
+          ownerFirstName: nameParts[0] || "Garage",
+          ownerLastName: nameParts.slice(1).join(" ") || "Owner",
+          email: newForm.email,
+          phone: newForm.phone,
+          subdomain: newForm.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
+          plan: newForm.plan,
+        }),
+      })
+
+      const data = await res.json()
+      toast.dismiss()
+
+      if (!res.ok) throw new Error(data.error || "Failed to save garage")
+
+      const created = {
+        id: data.tenant?.id || `gar-${Math.floor(100 + Math.random() * 900)}`,
+        name: newForm.name,
+        owner: newForm.ownerName,
+        type: newForm.type,
+        plan: newForm.plan,
+        reseller: newForm.type === "Direct" ? "Direct Customer" : "Partner Reseller",
+        status: "Active",
+        renewal: "2027-09-26",
+      }
+
+      setGarages([created, ...garages])
+      setShowAddModal(false)
+      setNewForm({ name: "", ownerName: "", email: "", phone: "", plan: "Growth Garage", type: "Direct" })
+
+      toast.success(`Garage "${created.name}" saved to DB! Login: ${newForm.email} | Pass: ${data.user?.tempPassword || "Garage@2026!"}`)
+    } catch (error: any) {
+      toast.dismiss()
+      toast.error(`Error saving garage: ${error.message}`)
+    }
+  }
 
   const toggleStatus = (id: string) => {
     setGarages(garages.map(g => {
@@ -78,19 +140,28 @@ export default function SuperAdminGaragesPage() {
           <p className="text-xs text-zinc-400 mt-1">Global view of all Direct Garages and Reseller-managed Garages.</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 text-xs font-semibold">
-          {(["All", "Direct", "Reseller"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activeTab === tab ? "bg-blue-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              {tab === "All" ? "All Garages" : tab === "Direct" ? "Direct Customers" : "Reseller Garages"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20"
+          >
+            <Plus className="w-4 h-4" /> Provision Garage
+          </button>
+
+          {/* Tabs */}
+          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 text-xs font-semibold">
+            {(["All", "Direct", "Reseller"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === tab ? "bg-blue-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {tab === "All" ? "All Garages" : tab === "Direct" ? "Direct Customers" : "Reseller Garages"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -167,6 +238,112 @@ export default function SuperAdminGaragesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* PROVISION GARAGE MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#0b0f19] border border-white/10 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <h2 className="text-lg font-bold text-white">Provision New Garage</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateGarage} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-zinc-400 font-semibold">Garage Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. City Auto Care"
+                  value={newForm.name}
+                  onChange={(e) => setNewForm({ ...newForm, name: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-zinc-400 font-semibold">Owner Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Rajesh Kumar"
+                  value={newForm.ownerName}
+                  onChange={(e) => setNewForm({ ...newForm, ownerName: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-zinc-400 font-semibold">Owner Email *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="rajesh@cityauto.com"
+                    value={newForm.email}
+                    onChange={(e) => setNewForm({ ...newForm, email: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-zinc-400 font-semibold">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={newForm.phone}
+                    onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-zinc-400 font-semibold">Subscription Plan</label>
+                  <select
+                    value={newForm.plan}
+                    onChange={(e) => setNewForm({ ...newForm, plan: e.target.value })}
+                    className="w-full bg-[#111625] border border-white/10 rounded-xl p-2.5 text-white"
+                  >
+                    <option value="Basic Garage">Basic Garage (₹14,999/yr)</option>
+                    <option value="Growth Garage">Growth Garage (₹29,999/yr)</option>
+                    <option value="Enterprise Garage">Enterprise Garage (₹49,999/yr)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-zinc-400 font-semibold">Customer Type</label>
+                  <select
+                    value={newForm.type}
+                    onChange={(e) => setNewForm({ ...newForm, type: e.target.value as any })}
+                    className="w-full bg-[#111625] border border-white/10 rounded-xl p-2.5 text-white"
+                  >
+                    <option value="Direct">Direct Customer</option>
+                    <option value="Reseller">Reseller Garage</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30"
+                >
+                  Provision & Save to DB
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   )
