@@ -79,6 +79,11 @@ export async function buildApp(opts: any = {}): Promise<any> {
     }
   });
 
+  // Register buffer parser for media/binary uploads (image/*, application/*, text/*, etc.) to prevent 415 errors
+  app.addContentTypeParser('*', { parseAs: 'buffer' }, (req, body, done) => {
+    done(null, body);
+  });
+
   // Core Plugins
   await app.register(cors, {
     origin: (origin, cb) => {

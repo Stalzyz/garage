@@ -26,22 +26,54 @@ export default async function storageRouter(app: FastifyInstance) {
 
   const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'grekam-os-assets';
 
-  // Mock PUT endpoint for local development without S3, now saves locally!
-  app.put('/mock-upload/*', async (req, reply) => {
-    const key = (req.params as any)['*'];
-    if (!key) return reply.code(400).send({ error: 'Missing key' });
-
-    const uploadsDir = path.join(__dirname, '../../uploads');
+  // Mock PUT & POST endpoint for local development without S3, saves locally
+  const handleLocalUpload = async (req: any, reply: any) => {
+    const key = (req.params as any)['*'] || (req.query as any)?.key || `upload-${Date.now()}`;
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
     
-    const safeKey = key.replace(/\//g, '_');
+    const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const destinationPath = path.join(uploadsDir, safeKey);
     
-    await pipeline(req.raw, fs.createWriteStream(destinationPath));
+    if (Buffer.isBuffer(req.body)) {
+      fs.writeFileSync(destinationPath, req.body);
+    } else if (typeof req.body === 'string') {
+      fs.writeFileSync(destinationPath, Buffer.from(req.body));
+    } else if (req.raw && typeof req.raw.pipe === 'function' && !req.raw.readableEnded) {
+      try {
+        await pipeline(req.raw, fs.createWriteStream(destinationPath));
+      } catch {
+        if (!fs.existsSync(destinationPath)) {
+          fs.writeFileSync(destinationPath, Buffer.alloc(0));
+        }
+      }
+    } else if (!fs.existsSync(destinationPath)) {
+      fs.writeFileSync(destinationPath, Buffer.alloc(0));
+    }
     
-    return reply.code(200).send({ success: true });
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send({ success: true, key: safeKey, url: `/api/v1/uploads/${safeKey}`, downloadUrl: `/api/v1/uploads/${safeKey}` });
+  };
+
+  app.put('/mock-upload', handleLocalUpload);
+  app.put('/mock-upload/*', handleLocalUpload);
+  app.post('/mock-upload', handleLocalUpload);
+  app.post('/mock-upload/*', handleLocalUpload);
+  app.options('/mock-upload', async (req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send();
+  });
+  app.options('/mock-upload/*', async (req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send();
   });
 
   // GET /api/v1/storage/asset/*

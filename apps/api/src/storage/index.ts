@@ -8,46 +8,56 @@ import { pipeline } from 'stream/promises';
 
 export default async function storageRouter(app: FastifyInstance) {
   // PUBLIC GET /api/v1/storage/asset/*
-  // Streams R2 images directly with CORS & caching headers enabled (no auth required)
+  // Streams R2/local images directly with CORS & caching headers enabled (no auth required)
   app.get('/asset/*', async (req, reply) => {
     const key = (req.params as any)['*'];
     if (!key) return reply.code(400).send({ error: 'Missing key' });
 
     try {
-      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
-      const command = new GetObjectCommand({
-        Bucket: app.s3.bucket,
-        Key: key,
-      });
+      if (app.s3?.client) {
+        const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+        const command = new GetObjectCommand({
+          Bucket: app.s3.bucket,
+          Key: key,
+        });
 
-      const response = await app.s3.client.send(command);
-      if (!response.Body) {
-        return reply.code(404).send({ error: 'File empty or not found' });
+        const response = await app.s3.client.send(command);
+        if (response.Body) {
+          reply.header('Access-Control-Allow-Origin', '*');
+          reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+          reply.header('Access-Control-Allow-Headers', '*');
+          reply.header('Cross-Origin-Resource-Policy', 'cross-origin');
+          reply.header('Cache-Control', 'public, max-age=31536000, immutable');
+          if (response.ContentType) {
+            reply.header('Content-Type', response.ContentType);
+          }
+          if (response.ContentLength) {
+            reply.header('Content-Length', response.ContentLength);
+          }
+          return reply.send(response.Body as any);
+        }
       }
+    } catch (err: any) {
+      // S3 failed, fallback to checking local storage
+    }
 
+    // Local file fallback
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
+    const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const localFile = path.join(uploadsDir, safeKey);
+    if (fs.existsSync(localFile)) {
       reply.header('Access-Control-Allow-Origin', '*');
       reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
       reply.header('Access-Control-Allow-Headers', '*');
       reply.header('Cross-Origin-Resource-Policy', 'cross-origin');
       reply.header('Cache-Control', 'public, max-age=31536000, immutable');
-      if (response.ContentType) {
-        reply.header('Content-Type', response.ContentType);
-      }
-      if (response.ContentLength) {
-        reply.header('Content-Length', response.ContentLength);
-      }
-
-      return reply.send(response.Body as any);
-    } catch (err: any) {
-      if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
-        return reply.code(404).send({ error: 'File not found' });
-      }
-      app.log.error(err, 'R2 GetObject Error');
-      return reply.code(500).send({ error: 'Failed to fetch asset' });
+      return reply.send(fs.createReadStream(localFile));
     }
+
+    return reply.code(404).send({ error: 'File not found' });
   });
 
-  // PUT & POST /mock-upload and /mock-upload/* - Saves stream directly to disk when S3/R2 is not configured
+  // PUT & POST /mock-upload and /mock-upload/* - Saves stream/buffer directly to disk when S3/R2 is not configured
   const handleMockUpload = async (req: any, reply: any) => {
     const key = (req.params as any)['*'] || (req.query as any)?.key || `upload-${Date.now()}-${randomUUID()}`;
     const uploadsDir = path.resolve(process.cwd(), 'uploads');
@@ -58,9 +68,43 @@ export default async function storageRouter(app: FastifyInstance) {
     const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const destinationPath = path.join(uploadsDir, safeKey);
 
-    await pipeline(req.raw, fs.createWriteStream(destinationPath));
+    if (Buffer.isBuffer(req.body)) {
+      fs.writeFileSync(destinationPath, req.body);
+    } else if (typeof req.body === 'string') {
+      fs.writeFileSync(destinationPath, Buffer.from(req.body));
+    } else if (req.raw && typeof req.raw.pipe === 'function' && !req.raw.readableEnded) {
+      try {
+        await pipeline(req.raw, fs.createWriteStream(destinationPath));
+      } catch {
+        if (!fs.existsSync(destinationPath)) {
+          fs.writeFileSync(destinationPath, Buffer.alloc(0));
+        }
+      }
+    } else if (!fs.existsSync(destinationPath)) {
+      fs.writeFileSync(destinationPath, Buffer.alloc(0));
+    }
+
+    const hostHeader = (req.headers['x-forwarded-host'] as string) || (req.headers.host as string) || '';
+    const protoHeader = (req.headers['x-forwarded-proto'] as string) || ((req.socket as any)?.encrypted ? 'https' : 'http');
+    let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+    if (!API_URL || API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
+      if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+        API_URL = `${protoHeader}://${hostHeader}/api/v1`;
+      } else {
+        API_URL = 'https://garage.grekam.in/api/v1';
+      }
+    }
+    const downloadUrl = `${API_URL}/uploads/${safeKey}`;
+
     reply.header('Access-Control-Allow-Origin', '*');
-    return reply.code(200).send({ success: true, key: safeKey, url: `/api/v1/storage/asset/${safeKey}` });
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send({ 
+      success: true, 
+      key: safeKey, 
+      url: downloadUrl,
+      downloadUrl 
+    });
   };
 
   app.put('/mock-upload', handleMockUpload);

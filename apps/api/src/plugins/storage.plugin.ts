@@ -39,7 +39,8 @@ const storagePlugin: FastifyPluginAsync = async (fastify, opts) => {
 
   const generateUploadUrl = async (key: string, contentType: string) => {
     if (!process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID === 'dummy-access') {
-      return '/api/v1/storage/mock-upload';
+      const safeKey = key.replace(/\//g, '_');
+      return `/api/v1/storage/mock-upload/${encodeURIComponent(safeKey)}`;
     }
 
     const command = new PutObjectCommand({
@@ -53,8 +54,8 @@ const storagePlugin: FastifyPluginAsync = async (fastify, opts) => {
 
   const generateDownloadUrl = async (key: string) => {
     if (!process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID === 'dummy-access') {
-      const filename = key.split('/').pop() || 'image';
-      return `https://dummyimage.com/600x400/000/fff&text=${filename}`;
+      const safeKey = key.replace(/\//g, '_');
+      return `/api/v1/uploads/${safeKey}`;
     }
 
     const command = new GetObjectCommand({
