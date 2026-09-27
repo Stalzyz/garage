@@ -176,7 +176,7 @@ export default async function storageRouter(app: FastifyInstance) {
       return reply.code(400).send({ error: 'No file uploaded' });
     }
     
-    const uploadsDir = path.join(__dirname, '../../uploads');
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
@@ -188,23 +188,8 @@ export default async function storageRouter(app: FastifyInstance) {
 
     await pipeline(data.file, fs.createWriteStream(destinationPath));
 
-    // Build a download URL that Meta's servers can actually reach.
-    // Priority: explicit env var → x-forwarded-host (public domain set by reverse proxy) → hardcoded fallback.
-    // Never use req.headers.host directly — behind a proxy it resolves to the internal API host.
-    let publicBase = process.env.NEXT_PUBLIC_API_URL || '';
-    if (!publicBase || publicBase.includes('localhost') || publicBase.includes('127.0.0.1')) {
-      const forwardedProto = (req.headers['x-forwarded-proto'] as string)?.split(',')[0].trim() || 'https';
-      const forwardedHost  = (req.headers['x-forwarded-host']  as string)?.split(',')[0].trim();
-      if (forwardedHost) {
-        publicBase = `${forwardedProto}://${forwardedHost}/api/v1`;
-      } else {
-        // Last resort: use a known production domain rather than an internal one
-        publicBase = 'https://garage.grekam.in/api/v1';
-      }
-    }
-    // Ensure no trailing slash before appending path
-    const downloadUrl = `${publicBase.replace(/\/$/, '')}/uploads/${key}`;
+    const downloadUrl = `/api/v1/uploads/${key}`;
 
-    return { downloadUrl, key, success: true };
+    return { downloadUrl, url: downloadUrl, key, success: true };
   });
 }

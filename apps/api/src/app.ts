@@ -144,8 +144,13 @@ export async function buildApp(opts: any = {}): Promise<any> {
     }
   });
 
+  const uploadsDir = path.resolve(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
   await app.register(fastifyStatic, {
-    root: path.join(__dirname, '../uploads'),
+    root: uploadsDir,
     prefix: '/api/v1/uploads/',
   });
 
