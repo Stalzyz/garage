@@ -122,6 +122,32 @@ export async function POST(req: Request) {
       data: { activeTenantId: tenant.id }
     })
 
+    // 5. Sync with Organization model for comprehensive dashboard listings
+    await prisma.organization.upsert({
+      where: { id: tenant.id },
+      update: {
+        name: garageName,
+        ownerName: `${ownerFirstName || "Garage"} ${ownerLastName || "Owner"}`.trim(),
+        ownerEmail: email,
+        ownerPhone: phone || null,
+        status: "ACTIVE",
+        customerType: "DIRECT",
+        subscription: "ACTIVE",
+        domain: customDomain || `${slug}.grekam.in`,
+      },
+      create: {
+        id: tenant.id,
+        name: garageName,
+        ownerName: `${ownerFirstName || "Garage"} ${ownerLastName || "Owner"}`.trim(),
+        ownerEmail: email,
+        ownerPhone: phone || null,
+        status: "ACTIVE",
+        customerType: "DIRECT",
+        subscription: "ACTIVE",
+        domain: customDomain || `${slug}.grekam.in`,
+      }
+    }).catch(err => console.error("Organization sync warning:", err))
+
     return NextResponse.json({
       success: true,
       message: `Garage "${garageName}" provisioned in database with real login credentials!`,
