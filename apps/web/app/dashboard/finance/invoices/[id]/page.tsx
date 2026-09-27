@@ -357,6 +357,8 @@ export default function InvoiceDetailsPage() {
 
             <div className="flex items-center gap-2 text-slate-500 font-bold text-[11px]">
               <span>Design · Develop · Grow</span>
+            </div>
+
           </div>
 
         </div>
