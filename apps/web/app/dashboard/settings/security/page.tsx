@@ -27,12 +27,20 @@ export default function SecuritySettingsPage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword) return toast.error("Please enter your current password");
-    if (newPassword.length < 8) return toast.error("New password must be at least 8 characters");
+    if (newPassword.length < 6) return toast.error("New password must be at least 6 characters");
     if (newPassword !== confirmPassword) return toast.error("New passwords do not match");
 
     setPasswordLoading(true);
     try {
-      await ApiClient.post("/auth/password", { currentPassword, newPassword });
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to update password");
+      }
       toast.success("Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");

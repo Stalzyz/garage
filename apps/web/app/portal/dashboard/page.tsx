@@ -555,8 +555,15 @@ export default function ClientDashboard() {
             <span className="text-xs text-white/70">{clientName}</span>
           </div>
 
-          <button onClick={() => signOut({ callbackUrl: '/portal' })}
-            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors"
+          <button 
+            onClick={async () => {
+              try {
+                await signOut({ redirect: false })
+              } catch {}
+              window.location.href = '/portal'
+            }}
+            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+            title="Log Out"
           >
             <LogOut className="w-4 h-4" />
           </button>

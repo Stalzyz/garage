@@ -92,6 +92,18 @@ export const authConfig = {
       }
       return token
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return url
+      try {
+        const u = new URL(url)
+        if (u.hostname === "0.0.0.0" || u.hostname === "127.0.0.1" || u.hostname === "localhost" || u.port === "3005") {
+          return u.pathname + u.search
+        }
+        return url
+      } catch {
+        return "/auth/login"
+      }
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as string

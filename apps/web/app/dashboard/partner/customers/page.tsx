@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Building2, Plus, Search, CheckCircle2, Clock, AlertTriangle, ArrowUpRight, LogIn, RefreshCw, Zap, ShieldCheck } from "lucide-react"
+import { Building2, Plus, Search, CheckCircle2, Clock, AlertTriangle, ArrowUpRight, LogIn, RefreshCw, Zap, ShieldCheck, Key, Lock, Copy, Check } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -13,12 +13,23 @@ export default function PartnerCustomersPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [activatingId, setActivatingId] = useState<string | null>(null)
 
+  // Reset Password Modal State
+  const [resetModalCustomer, setResetModalCustomer] = useState<any | null>(null)
+  const [customResetPassword, setCustomResetPassword] = useState("")
+  const [resetLoading, setResetLoading] = useState(false)
+  const [copiedPass, setCopiedPass] = useState(false)
+
   // Form State
   const [garageName, setGarageName] = useState("")
   const [ownerName, setOwnerName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [password, setPassword] = useState("")
   const [domain, setDomain] = useState("")
+
+  const generateRandomPassword = () => {
+    return `Garage@${Math.floor(1000 + Math.random() * 9000)}!`
+  }
 
   const fetchCustomers = async () => {
     try {
@@ -44,10 +55,11 @@ export default function PartnerCustomersPage() {
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const chosenPassword = password.trim() || generateRandomPassword()
       const res = await fetch("/api/partner/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ garageName, ownerName, email, phone, domain }),
+        body: JSON.stringify({ garageName, ownerName, email, phone, domain, password: chosenPassword }),
       })
       const json = await res.json()
       if (json.success) {
@@ -57,6 +69,7 @@ export default function PartnerCustomersPage() {
         setOwnerName("")
         setEmail("")
         setPhone("")
+        setPassword("")
         setDomain("")
         fetchCustomers()
       } else {
@@ -91,6 +104,31 @@ export default function PartnerCustomersPage() {
     }
   }
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetModalCustomer) return
+    setResetLoading(true)
+
+    try {
+      const res = await fetch(`/api/partner/customers/${resetModalCustomer.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: customResetPassword }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        toast.success(json.message || "Password updated successfully!")
+        setCustomResetPassword(json.newPassword)
+      } else {
+        toast.error(json.error || "Failed to reset password")
+      }
+    } catch {
+      toast.error("Error updating customer password")
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
   const filtered = customers.filter((c) => {
     const matchSearch = (c.name || "").toLowerCase().includes(search.toLowerCase()) || (c.ownerName || "").toLowerCase().includes(search.toLowerCase())
     if (filter === "ALL") return matchSearch
@@ -108,7 +146,10 @@ export default function PartnerCustomersPage() {
         </div>
 
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setPassword(generateRandomPassword())
+            setShowAddModal(true)
+          }}
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all self-start md:self-auto"
         >
           <Plus className="w-4 h-4" /> Add Customer
@@ -187,25 +228,37 @@ export default function PartnerCustomersPage() {
                       </span>
                     </td>
                     <td className="py-4 px-4 text-right">
-                      {cust.status === "ACTIVE" ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/dashboard?impersonate=${cust.id}`}
-                            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold text-[11px] flex items-center gap-1"
+                      <div className="flex items-center justify-end gap-2">
+                        {cust.status === "ACTIVE" ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                setResetModalCustomer(cust)
+                                setCustomResetPassword(generateRandomPassword())
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 font-medium text-[11px] flex items-center gap-1"
+                              title="Reset Password"
+                            >
+                              <Key className="w-3 h-3 text-amber-400" /> Pass
+                            </button>
+                            <Link
+                              href={`/dashboard?impersonate=${cust.id}`}
+                              className="px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 font-semibold text-[11px] flex items-center gap-1"
+                            >
+                              <LogIn className="w-3 h-3 text-blue-400" /> Login
+                            </Link>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleActivate(cust.id, cust.name)}
+                            disabled={activatingId === cust.id}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1 ml-auto"
                           >
-                            <LogIn className="w-3 h-3 text-blue-400" /> Login
-                          </Link>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleActivate(cust.id, cust.name)}
-                          disabled={activatingId === cust.id}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1 ml-auto"
-                        >
-                          <ShieldCheck className="w-3 h-3" />
-                          {activatingId === cust.id ? "Activating..." : "Activate (₹10k)"}
-                        </button>
-                      )}
+                            <ShieldCheck className="w-3 h-3" />
+                            {activatingId === cust.id ? "Activating..." : "Activate (₹10k)"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -283,6 +336,27 @@ export default function PartnerCustomersPage() {
               </div>
 
               <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-zinc-400 font-semibold">Initial Password *</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setPassword(generateRandomPassword())} 
+                    className="text-[10px] text-blue-400 hover:underline"
+                  >
+                    Generate Passkey
+                  </button>
+                </div>
+                <input 
+                  type="text" 
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Enter initial password" 
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-blue-500" 
+                />
+              </div>
+
+              <div>
                 <label className="block text-zinc-400 mb-1 font-semibold">Custom Subdomain (Optional)</label>
                 <input 
                   type="text" 
@@ -296,6 +370,68 @@ export default function PartnerCustomersPage() {
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
                 <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white">Cancel</button>
                 <button type="submit" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">Create Customer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: RESET PASSWORD ── */}
+      {resetModalCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#0b101d] border border-white/15 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-white">Reset Customer Password</h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">{resetModalCustomer.name} ({resetModalCustomer.ownerEmail})</p>
+              </div>
+              <button onClick={() => setResetModalCustomer(null)} className="text-zinc-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-zinc-300 font-semibold">New Password</label>
+                  <button
+                    type="button"
+                    onClick={() => setCustomResetPassword(generateRandomPassword())}
+                    className="text-[10px] text-amber-400 hover:underline"
+                  >
+                    Generate Random
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={customResetPassword}
+                    onChange={(e) => setCustomResetPassword(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(customResetPassword)
+                      setCopiedPass(true)
+                      setTimeout(() => setCopiedPass(false), 2000)
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1"
+                    title="Copy Password"
+                  >
+                    {copiedPass ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
+                This updates the login passkey for the customer workshop admin immediately.
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                <button type="button" onClick={() => setResetModalCustomer(null)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white">Close</button>
+                <button type="submit" disabled={resetLoading} className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-black font-bold">
+                  {resetLoading ? "Updating..." : "Save New Password"}
+                </button>
               </div>
             </form>
           </div>

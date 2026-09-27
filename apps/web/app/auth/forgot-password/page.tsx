@@ -1,54 +1,57 @@
 "use client"
 
-import { useActionState, useState, useEffect } from "react"
-import { useFormStatus } from "react-dom"
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Mail, ShieldAlert } from "lucide-react"
+import { useState, useEffect } from "react"
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Mail, ShieldAlert, Key, Copy, Check, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
-// Server action logic
-async function resetPassword(prevState: unknown, formData: FormData) {
-  const email = formData.get("email")
-  
-  if (!email || typeof email !== "string" || !email.includes("@")) {
-    return { error: "Please enter a valid email address." }
-  }
-  
-  try {
-    const apiUrl = process.env.API_INTERNAL_URL || 'http://localhost:4000/api/v1';
-    const res = await fetch(`${apiUrl}/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, portalType: 'ADMIN' })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      return { error: data.message || "Failed to process request. Please try again." }
-    }
-    
-    return { success: "Temporary password has been sent to your email." }
-  } catch (err: any) {
-    return { error: "Unable to connect to recovery server." }
-  }
-}
-
 export default function ForgotPasswordPage() {
-  const [state, dispatch] = useActionState(resetPassword, undefined)
+  const [email, setEmail] = useState("")
+  const [isPending, setIsPending] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successData, setSuccessData] = useState<{ message: string; tempPassword?: string } | null>(null)
+  const [copied, setCopied] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const [focusedInput, setFocusedInput] = useState<string | null>(null)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  if (!isClient) return null // Prevent hydration mismatches
+  if (!isClient) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !email.includes("@")) {
+      setErrorMessage("Please enter a valid email address.")
+      return
+    }
+
+    setIsPending(true)
+    setErrorMessage(null)
+    setSuccessData(null)
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setSuccessData(data)
+      } else {
+        setErrorMessage(data.error || "Failed to process recovery request.")
+      }
+    } catch (err: any) {
+      setErrorMessage("Network error during recovery request.")
+    } finally {
+      setIsPending(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-[#050505] font-sans selection:bg-blue-500/30 text-white relative flex items-center justify-center overflow-hidden">
-      
+    <div className="min-h-screen bg-[#050505] font-sans selection:bg-blue-500/30 text-white relative flex items-center justify-center overflow-hidden p-4">
       {/* Background Ambient Mesh */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
         <motion.div 
@@ -71,121 +74,109 @@ export default function ForgotPasswordPage() {
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[420px] p-8 md:p-10 rounded-[2.5rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden group"
+        className="relative z-10 w-full max-w-[440px] p-8 md:p-10 rounded-[2.5rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden"
       >
-        {/* Card Inner Glow (follows focus) */}
-        <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 opacity-0 transition-opacity duration-700 pointer-events-none ${focusedInput ? 'opacity-100' : ''}`} />
-
         <div className="relative z-10">
           {/* Header */}
-          <div className="flex flex-col items-center text-center mb-10">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", delay: 0.2, stiffness: 200, damping: 20 }}
-              className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-            >
-              <ShieldAlert className="w-8 h-8 text-white/80" strokeWidth={1.5} />
-            </motion.div>
-            <h1 className="text-3xl font-bold tracking-tighter mb-2">Access Recovery</h1>
-            <p className="text-sm font-mono tracking-widest text-white/40 uppercase leading-relaxed px-2">Transmit recovery protocol to registered node.</p>
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
+              <Key className="w-7 h-7" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Password Recovery</h1>
+            <p className="text-xs text-zinc-400 mt-1">Recover account access for Garages, Partners & Resellers</p>
           </div>
 
-          <form action={dispatch} className="space-y-5">
-            {/* Email Input */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-xs font-mono tracking-widest text-white/50 uppercase ml-2">System ID (Email)</label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 group-focus-within/input:text-blue-400 transition-colors">
-                  <Mail className="w-5 h-5" strokeWidth={1.5} />
+          {!successData ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Account Email</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your-email@domain.com"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 transition-all"
+                  />
                 </div>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="m@example.com"
-                  required
-                  onFocus={() => setFocusedInput('email')}
-                  onBlur={() => setFocusedInput(null)}
-                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-md"
-                />
               </div>
-            </div>
 
-            {/* Submit Button */}
-            <div className="pt-4">
-              <SubmitButton />
-            </div>
+              <AnimatePresence>
+                {errorMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <div className="text-center pt-2">
-              <Link href="/auth/login" className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-white/40 hover:text-white transition-colors uppercase">
-                <ArrowLeft className="w-3 h-3" /> Abort Recovery
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full mt-2 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+              >
+                {isPending ? "Generating Recovery Passkey..." : "Reset Password"}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <div className="text-center pt-3">
+                <Link href="/auth/login" className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
+                </Link>
+              </div>
+            </form>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-5 text-center"
+            >
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400 text-xs flex items-center gap-2 text-left">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <span>{successData.message}</span>
+              </div>
+
+              {successData.tempPassword && (
+                <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-left space-y-2">
+                  <span className="text-[11px] text-zinc-400 font-semibold block">Temporary Access Passkey:</span>
+                  <div className="flex items-center justify-between gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl font-mono text-sm text-emerald-400">
+                    <span className="select-all font-bold">{successData.tempPassword}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(successData.tempPassword!)
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 2000)
+                      }}
+                      className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-xs text-white flex items-center gap-1"
+                    >
+                      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-zinc-500">
+                    Log in with this temporary passkey, then visit <strong>Security Settings</strong> to set your permanent password.
+                  </p>
+                </div>
+              )}
+
+              <Link
+                href="/auth/login"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 bg-white text-black font-bold rounded-xl text-sm transition hover:bg-zinc-200 shadow-xl"
+              >
+                Proceed to Login <ArrowRight className="w-4 h-4" />
               </Link>
-            </div>
-
-            {/* Status Messages */}
-            <AnimatePresence mode="wait">
-              {state?.error && (
-                <motion.div 
-                  key="error"
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                    <p className="text-sm font-mono">{state.error}</p>
-                  </div>
-                </motion.div>
-              )}
-              {state?.success && (
-                <motion.div 
-                  key="success"
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                    <CheckCircle2 className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                    <p className="text-sm font-mono">{state.success}</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </div>
-  )
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-
-  return (
-    <button 
-      type="submit" 
-      disabled={pending}
-      className={`relative w-full h-14 flex items-center justify-center gap-3 rounded-2xl font-bold tracking-widest uppercase transition-all overflow-hidden group ${pending ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5' : 'bg-white text-black hover:scale-[1.02]'}`}
-    >
-      {pending ? (
-        <>
-          <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
-          Transmitting...
-        </>
-      ) : (
-        <>
-          Dispatch Link
-          <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-        </>
-      )}
-      
-      {/* Button Shine Effect */}
-      {!pending && (
-        <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-      )}
-    </button>
   )
 }
