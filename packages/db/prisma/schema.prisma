@@ -57,6 +57,7 @@ model User {
   tenantMemberships TenantMember[]
   activeTenantId    String?
   organizationId    String?
+  workspaceId       String?
 
   // Relations
   customRoleId  String?
@@ -194,6 +195,7 @@ enum TenantStatus {
 
 model Tenant {
   id                   String          @id @default(cuid())
+  workspaceId          String?         @unique
   slug                 String          @unique // e.g. "acme" -> acme.grekam.in
   name                 String
   status               TenantStatus    @default(ACTIVE)
@@ -401,8 +403,9 @@ model TenantMember {
 // ─────────────────────────────────────────
 
 model Organization {
-  id   String @id @default(cuid())
-  name String @default("My Agency OS")
+  id          String  @id @default(cuid())
+  workspaceId String? @unique
+  name        String  @default("My Agency OS")
 
   // Whitelabel Branding
   logoUrl           String? // Agency landscape logo (Invoices, Proposals, HR)
@@ -2201,6 +2204,7 @@ enum VendorType {
 
 model Vendor {
   id              String         @id @default(cuid())
+  workspaceId     String?        @unique
   userId          String         @unique
   vendorCode      String         @unique
   type            VendorType

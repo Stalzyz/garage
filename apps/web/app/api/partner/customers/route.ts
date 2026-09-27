@@ -76,6 +76,7 @@ export async function POST(req: Request) {
     const newCustomer = await prisma.organization.create({
       data: {
         name: garageName,
+        workspaceId: `ws_org_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         ownerName,
         ownerEmail: customerEmail,
         ownerPhone: phone,

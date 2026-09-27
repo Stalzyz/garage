@@ -72,8 +72,45 @@ export function resolveBrandLogo(logoUrl: string | null, fallbackFilename: strin
   return targetUrl;
 }
 
-export async function getBrandConfig(app: FastifyInstance, type: BrandType): Promise<BrandConfig> {
-  const org = await app.prisma.organization.findFirst();
+export async function getBrandConfig(app: FastifyInstance, type: BrandType, opts?: { tenantId?: string; workspaceId?: string }): Promise<BrandConfig> {
+  let org: any = null;
+  if (opts?.tenantId) {
+    const tb = await app.prisma.tenantBranding.findUnique({
+      where: { tenantId: opts.tenantId },
+      include: { tenant: true },
+    });
+    if (tb) {
+      org = {
+        name: tb.tenant.name,
+        companyName: tb.companyName || tb.tenant.name,
+        logoUrl: tb.logoUrl,
+        faviconUrl: tb.faviconUrl,
+        primaryColor: tb.primaryColor,
+        secondaryColor: tb.secondaryColor,
+        accentColor: tb.accentColor,
+        supportEmail: tb.supportEmail,
+        billingAddress: tb.billingAddress,
+        website: tb.websiteUrl,
+        phone: tb.supportPhone,
+        gstNumber: tb.taxId,
+        panNumber: tb.taxId,
+        bankName: tb.bankName,
+        accountNumber: tb.accountNumber,
+        ifscCode: tb.ifscCode,
+        swiftCode: tb.swiftCode,
+        bankBranch: tb.bankBranch,
+      };
+    }
+  }
+
+  if (!org && opts?.workspaceId) {
+    org = await app.prisma.organization.findUnique({ where: { workspaceId: opts.workspaceId } });
+  }
+
+  if (!org) {
+    org = await app.prisma.organization.findFirst();
+  }
+
   const finance = await app.prisma.financeSettings.findFirst();
 
   const gstin = (org?.gstNumber || finance?.gstNumber)?.trim() || null;

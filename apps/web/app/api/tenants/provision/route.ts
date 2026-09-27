@@ -116,16 +116,24 @@ export async function POST(req: Request) {
       }
     })
 
-    // 4. Update user activeTenantId
+    // 4. Update user activeTenantId & workspaceId
+    const workspaceId = `ws_${slug}_${tenant.id}`
+    
+    await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: { workspaceId }
+    }).catch(() => {})
+
     await prisma.user.update({
       where: { id: user.id },
-      data: { activeTenantId: tenant.id }
+      data: { activeTenantId: tenant.id, workspaceId, organizationId: tenant.id }
     })
 
     // 5. Sync with Organization model for comprehensive dashboard listings
     await prisma.organization.upsert({
       where: { id: tenant.id },
       update: {
+        workspaceId,
         name: garageName,
         ownerName: `${ownerFirstName || "Garage"} ${ownerLastName || "Owner"}`.trim(),
         ownerEmail: email,
@@ -137,6 +145,7 @@ export async function POST(req: Request) {
       },
       create: {
         id: tenant.id,
+        workspaceId,
         name: garageName,
         ownerName: `${ownerFirstName || "Garage"} ${ownerLastName || "Owner"}`.trim(),
         ownerEmail: email,
