@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
 import { cn } from "@/lib/utils"
