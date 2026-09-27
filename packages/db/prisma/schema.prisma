@@ -3831,18 +3831,24 @@ model PartnerWallet {
 }
 
 model PartnerWalletTransaction {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   partnerId     String
   walletId      String
-  type          String   // RECHARGE | ACTIVATION | RENEWAL | REFUND | ADJUSTMENT
+  type          String    // RECHARGE | ACTIVATION | RENEWAL | REFUND | ADJUSTMENT
   amount        Float
   balanceBefore Float
   balanceAfter  Float
-  referenceType String?  // CUSTOMER | INVOICE | PAYMENT | ADMIN_ADJUSTMENT
+  referenceType String?   // CUSTOMER | INVOICE | PAYMENT | ADMIN_ADJUSTMENT | OFFLINE_DEPOSIT
   referenceId   String?
   description   String
   createdBy     String?
-  createdAt     DateTime @default(now())
+  paymentMode   String?   // NEFT | IMPS | RTGS | UPI | CHEQUE | CASH | DIRECT_ADJUSTMENT
+  utrNumber     String?   // Bank reference / UTR / transaction ID
+  status        String    @default("COMPLETED") // PENDING | COMPLETED | REJECTED
+  notes         String?
+  approvedBy    String?
+  approvedAt    DateTime?
+  createdAt     DateTime  @default(now())
 
   partner       Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   wallet        PartnerWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
@@ -3859,6 +3865,9 @@ model PartnerCommission {
   commissionPercent Float
   commissionAmount  Float
   status            String    @default("PENDING") // PENDING | APPROVED | PAID | REVERSED
+  payoutMode        String?   // NEFT | IMPS | UPI | CHEQUE
+  payoutUtr         String?   // Bank payout reference UTR
+  payoutBatchId     String?
   createdAt         DateTime  @default(now())
   approvedAt        DateTime?
   paidAt            DateTime?

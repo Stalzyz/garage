@@ -23,81 +23,85 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { amount, paymentMethod } = body
+    const { amount, paymentMode = "NEFT", utrNumber, notes } = body
 
     const rechargeAmount = parseFloat(amount)
     if (isNaN(rechargeAmount) || rechargeAmount <= 0) {
       return NextResponse.json({ error: "Please enter a valid recharge amount." }, { status: 400 })
     }
 
-    // Atomic wallet recharge inside database transaction
-    const result = await prisma.$transaction(async (tx) => {
-      let wallet = await tx.partnerWallet.findUnique({
-        where: { partnerId: partner.id },
-      })
+    if (!utrNumber || !utrNumber.trim()) {
+      return NextResponse.json({ error: "Bank UTR / Transaction Reference Number is mandatory for offline verification." }, { status: 400 })
+    }
 
-      if (!wallet) {
-        wallet = await tx.partnerWallet.create({
-          data: {
-            partnerId: partner.id,
-            balance: 0.0,
-            status: "ACTIVE",
-          },
-        })
+    const cleanUtr = utrNumber.trim().toUpperCase()
+
+    // Check if UTR already submitted
+    const existingTx = await prisma.partnerWalletTransaction.findFirst({
+      where: {
+        utrNumber: cleanUtr,
+        status: { in: ["PENDING", "COMPLETED"] }
       }
+    })
 
-      const balanceBefore = wallet.balance
-      const balanceAfter = Math.round((wallet.balance + rechargeAmount) * 100) / 100
+    if (existingTx) {
+      return NextResponse.json({ 
+        error: `Transaction Reference / UTR "${cleanUtr}" has already been submitted or credited.` 
+      }, { status: 400 })
+    }
 
-      const updatedWallet = await tx.partnerWallet.update({
-        where: { id: wallet.id },
-        data: { balance: balanceAfter },
-      })
+    // Ensure wallet exists
+    let wallet = await prisma.partnerWallet.findUnique({
+      where: { partnerId: partner.id },
+    })
 
-      await tx.partner.update({
-        where: { id: partner.id },
-        data: { walletBalance: balanceAfter },
-      })
-
-      const walletTx = await tx.partnerWalletTransaction.create({
+    if (!wallet) {
+      wallet = await prisma.partnerWallet.create({
         data: {
           partnerId: partner.id,
-          walletId: wallet.id,
-          type: "RECHARGE",
-          amount: rechargeAmount,
-          balanceBefore,
-          balanceAfter,
-          referenceType: "PAYMENT",
-          referenceId: `RCG-${Date.now()}`,
-          description: `Prepaid wallet top-up via ${paymentMethod || "Online Gateway"}`,
-          createdBy: partner.userId,
+          balance: 0.0,
+          status: "ACTIVE",
         },
       })
+    }
 
-      await tx.partnerActivityLog.create({
-        data: {
-          actorUserId: partner.userId,
-          partnerId: partner.id,
-          action: "WALLET_RECHARGED",
-          entityType: "WALLET",
-          entityId: wallet.id,
-          description: `Recharged wallet with ₹${rechargeAmount}. New balance: ₹${balanceAfter}.`,
-        },
-      })
+    // Create pending offline recharge transaction
+    const walletTx = await prisma.partnerWalletTransaction.create({
+      data: {
+        partnerId: partner.id,
+        walletId: wallet.id,
+        type: "RECHARGE",
+        amount: rechargeAmount,
+        balanceBefore: wallet.balance,
+        balanceAfter: wallet.balance,
+        referenceType: "OFFLINE_DEPOSIT",
+        referenceId: cleanUtr,
+        paymentMode: paymentMode.toUpperCase(),
+        utrNumber: cleanUtr,
+        status: "PENDING",
+        notes: notes || null,
+        description: `Offline Deposit (₹${rechargeAmount.toLocaleString()}) via ${paymentMode.toUpperCase()} - Ref: ${cleanUtr}`,
+        createdBy: partner.userId,
+      },
+    })
 
-      return {
-        wallet: updatedWallet,
-        transaction: walletTx,
-      }
+    await prisma.partnerActivityLog.create({
+      data: {
+        actorUserId: partner.userId,
+        partnerId: partner.id,
+        action: "OFFLINE_DEPOSIT_SUBMITTED",
+        entityType: "WALLET_TRANSACTION",
+        entityId: walletTx.id,
+        description: `Submitted offline deposit of ₹${rechargeAmount} via ${paymentMode.toUpperCase()} (UTR: ${cleanUtr}). Awaiting Grekam Admin approval.`,
+      },
     })
 
     return NextResponse.json({
       success: true,
-      message: `₹${rechargeAmount} added to your Partner Wallet successfully!`,
-      wallet: result.wallet,
-      transaction: result.transaction,
+      message: `Offline deposit request of ₹${rechargeAmount.toLocaleString()} submitted with UTR ${cleanUtr}. Grekam Admin will verify bank credit and approve shortly.`,
+      transaction: walletTx,
     })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to recharge wallet" }, { status: 500 })
+    return NextResponse.json({ error: error.message || "Failed to submit deposit request" }, { status: 500 })
   }
 }
