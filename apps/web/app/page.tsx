@@ -60,13 +60,13 @@ export default function GarageLandingPage() {
       icon: DollarSign
     },
     {
-      id: "crm-hr",
-      image: "/crm5.jpeg",
-      title: "Garage CRM — Team HR, Attendance & Payroll System",
-      caption: "Track employee billable hours, project attendance, leave approvals, and commission distributions.",
-      tabName: "HR & Attendance",
-      badge: "Team Talent",
-      icon: UserCheck
+      id: "crm-whatsapp-followup",
+      image: "/crm6.jpeg",
+      title: "Garage CRM — Automated WhatsApp Follow-ups & Alerts",
+      caption: "Send automated proposal approval links, payment reminders, and weekly client progress summaries via WhatsApp.",
+      tabName: "WhatsApp Follow-ups",
+      badge: "Automated Drips",
+      icon: MessageSquare
     }
   ]
   const [activeSlide, setActiveSlide] = useState(0)
@@ -1978,6 +1978,31 @@ export default function GarageLandingPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── STICKY FLOATING ACTION BUTTON (FAB) FOR FREE DEMO VIA WHATSAPP ── */}
+      <aside aria-label="WhatsApp Free Demo Support" className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center">
+        <a
+          href="https://wa.me/919789359407?text=Hi%20Garage%20Team%2C%20I%20would%20like%20to%20get%20a%20Free%20Demo%20of%20Garage%20CRM."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex items-center gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-[0_0_25px_rgba(37,211,102,0.6)] hover:shadow-[0_0_35px_rgba(37,211,102,0.85)] transition-all transform hover:scale-105 active:scale-95 border-2 border-white/30"
+          aria-label="Connect on WhatsApp for Free Demo"
+        >
+          {/* Animated Glowing Ring Beacon */}
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+          </span>
+
+          {/* WhatsApp SVG Icon */}
+          <svg className="w-5 h-5 text-white shrink-0 fill-current" viewBox="0 0 24 24">
+            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.44 19.65L5.27 16.62L5.07 16.3C4.24 14.98 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.69 12.04 3.69C14.24 3.69 16.31 4.55 17.86 6.11C19.42 7.66 20.27 9.73 20.27 11.92C20.28 16.46 16.58 20.15 12.04 20.15Z"/>
+          </svg>
+
+          <span className="tracking-wide">Free Demo</span>
+          <span className="hidden sm:inline-block text-[11px] font-normal opacity-90 border-l border-white/30 pl-2">Chat on WhatsApp</span>
+        </a>
+      </aside>
 
     </div>
   )
