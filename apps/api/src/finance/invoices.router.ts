@@ -166,7 +166,7 @@ const CreateInvoiceSchema = z.object({
   clientName: z.string().min(1),
   clientEmail: z.string().email().optional().or(z.literal('')),
   clientGst: z.string().optional().or(z.literal('')),
-  businessUnit: z.enum(['AGENCY', 'ACADEMY']),
+  businessUnit: z.preprocess((val) => (val === 'ACADEMY' ? 'ACADEMY' : val === 'BOTH' ? 'BOTH' : 'AGENCY'), z.enum(['AGENCY', 'ACADEMY', 'BOTH'])).default('AGENCY'),
   dueDate: z.string().datetime(),
   currency: z.string().default('INR'),
   notes: z.string().optional(),

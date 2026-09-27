@@ -16,7 +16,7 @@ const CreateLeadSchema = z.object({
   estimatedBudget: z.number().optional(),
   projectType: z.string().optional(),
   notes: z.string().optional(),
-  businessUnit: z.enum(['AGENCY', 'ACADEMY']).optional().default('AGENCY'),
+  businessUnit: z.preprocess((val) => (val === 'ACADEMY' ? 'ACADEMY' : val === 'BOTH' ? 'BOTH' : 'AGENCY'), z.enum(['AGENCY', 'ACADEMY', 'BOTH'])).default('AGENCY'),
   courseInterest: z.string().optional(),
   batchId: z.string().optional(),
   ref: z.string().optional(), // Referral code (employeeCode)

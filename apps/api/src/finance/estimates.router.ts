@@ -13,7 +13,7 @@ const CreateEstimateSchema = z.object({
   projectId: z.string().optional(),
   clientName: z.string().min(1),
   clientEmail: z.string().email().optional(),
-  businessUnit: z.enum(['AGENCY', 'ACADEMY']),
+  businessUnit: z.preprocess((val) => (val === 'ACADEMY' ? 'ACADEMY' : val === 'BOTH' ? 'BOTH' : 'AGENCY'), z.enum(['AGENCY', 'ACADEMY', 'BOTH'])).default('AGENCY'),
   validUntil: z.string().datetime().optional(),
   currency: z.string().default('INR'),
   notes: z.string().optional(),

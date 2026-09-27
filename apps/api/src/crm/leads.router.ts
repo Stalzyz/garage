@@ -48,7 +48,7 @@ const CreateLeadSchema = z.object({
   projectType: z.string().optional(),
   notes: z.string().optional(),
   assignedToId: z.union([z.string(), z.literal("")]).optional().transform(val => val === "" ? undefined : val),
-  businessUnit: z.enum(['AGENCY', 'ACADEMY']).optional(),
+  businessUnit: z.preprocess((val) => (val === 'ACADEMY' ? 'ACADEMY' : val === 'BOTH' ? 'BOTH' : 'AGENCY'), z.enum(['AGENCY', 'ACADEMY', 'BOTH'])).default('AGENCY'),
   courseInterest: z.string().optional(),
   batchId: z.string().optional(),
 });
