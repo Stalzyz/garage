@@ -45,38 +45,7 @@ export default function PartnerDashboard() {
       if (json.success) {
         setData(json)
       } else {
-        // Fallback demo data
-        setData({
-          partner: {
-            companyName: "Apex Auto Solutions",
-            partnerCode: "PRT-8821",
-            partnerType: "WHITE_LABEL",
-            walletBalance: 50000.0,
-            status: "ACTIVE",
-            kycStatus: "APPROVED",
-          },
-          stats: {
-            totalCustomers: 12,
-            activeCustomers: 10,
-            pendingCustomers: 2,
-            thisMonthSales: 145000,
-            myEarnings: 45000,
-            walletBalance: 50000,
-          },
-          recentCustomers: [
-            { id: "c1", name: "Apex Auto Care", ownerName: "Rajesh Kumar", status: "ACTIVE", domain: "apex.apexautosolutions.com", createdAt: new Date() },
-            { id: "c2", name: "Speedy Motors", ownerName: "Anita Sharma", status: "ACTIVE", domain: "speedy.apexautosolutions.com", createdAt: new Date() },
-            { id: "c3", name: "Royal Auto Works", ownerName: "Suresh Patel", status: "PENDING_ACTIVATION", domain: null, createdAt: new Date() },
-          ],
-          recentInvoices: [
-            { id: "i1", invoiceNumber: "INV-8821-0001", customerName: "Apex Auto Care", total: 18000, status: "PAID" },
-            { id: "i2", invoiceNumber: "INV-8821-0002", customerName: "Speedy Motors", total: 15000, status: "PAID" },
-          ],
-          recentActivities: [
-            { id: "a1", action: "WALLET_RECHARGED", description: "Recharged wallet with ₹50,000.", createdAt: new Date() },
-            { id: "a2", action: "CUSTOMER_ACTIVATED", description: "Customer Apex Auto Care activated (₹10,000 base deducted).", createdAt: new Date() },
-          ],
-        })
+        setData(null)
       }
     } catch {
       toast.error("Failed to load partner dashboard data")

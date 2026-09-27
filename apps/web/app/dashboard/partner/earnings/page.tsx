@@ -17,30 +17,7 @@ export default function PartnerEarningsPage() {
       if (json.success) {
         setData(json)
       } else {
-        // Fallback demo data
-        setData({
-          partnerType: "WHITE_LABEL",
-          commissionPercent: 20,
-          whiteLabel: {
-            totalSales: 145000,
-            totalGrekamBaseCost: 80000,
-            totalMargin: 65000,
-            invoices: [
-              { id: "1", customerName: "Apex Auto Care", total: 18000, basePriceSnapshot: 10000, partnerMargin: 8000, paidAt: new Date() },
-              { id: "2", customerName: "Speedy Motors", total: 15000, basePriceSnapshot: 10000, partnerMargin: 5000, paidAt: new Date() },
-              { id: "3", customerName: "City Garage Service", total: 18000, basePriceSnapshot: 10000, partnerMargin: 8000, paidAt: new Date() },
-            ],
-          },
-          reseller: {
-            totalEarned: 24000,
-            paid: 18000,
-            pending: 6000,
-            commissions: [
-              { id: "c1", saleAmount: 10000, commissionPercent: 20, commissionAmount: 2000, status: "PAID", createdAt: new Date() },
-              { id: "c2", saleAmount: 20000, commissionPercent: 20, commissionAmount: 4000, status: "PENDING", createdAt: new Date() },
-            ],
-          },
-        })
+        setData(null)
       }
     } catch {
       toast.error("Failed to load earnings data")

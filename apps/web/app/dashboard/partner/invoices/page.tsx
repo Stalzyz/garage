@@ -21,12 +21,9 @@ export default function PartnerInvoicesPage() {
       const res = await fetch("/api/partner/invoices")
       const json = await res.json()
       if (json.success) {
-        setInvoices(json.invoices)
+        setInvoices(json.invoices || [])
       } else {
-        setInvoices([
-          { id: "inv-1", invoiceNumber: "INV-8821-0001", customerName: "ABC Garage", packageName: "Pro Garage", total: 18000, partnerMargin: 8000, status: "PAID", createdAt: new Date() },
-          { id: "inv-2", invoiceNumber: "INV-8821-0002", customerName: "Kumar Auto Care", packageName: "Starter Garage", total: 15000, partnerMargin: 5000, status: "PAID", createdAt: new Date() },
-        ])
+        setInvoices([])
       }
     } catch {
       toast.error("Failed to load invoices")

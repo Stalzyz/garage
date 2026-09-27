@@ -1,20 +1,35 @@
-"use client";
+"use client"
 
-import { useState } from "react"
-import { DollarSign, Search, Filter, Download } from "lucide-react"
+import { useState, useEffect } from "react"
+import { DollarSign, Search, Filter, Download, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 export default function SuperAdminPaymentsPage() {
   const [filterStatus, setFilterStatus] = useState<"All" | "Paid" | "Pending" | "Failed" | "Refunded">("All")
   const [searchQuery, setSearchQuery] = useState("")
+  const [payments, setPayments] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [payments] = useState([
-    { id: "p-101", amount: "₹49,999", garage: "Apex Auto Care", reseller: "Apex SaaS Partners", plan: "Enterprise Garage", date: "2026-09-26", status: "Paid" },
-    { id: "p-102", amount: "₹29,999", garage: "City Auto Garage", reseller: "Direct Customer", plan: "Growth Garage", date: "2026-09-25", status: "Paid" },
-    { id: "p-103", amount: "₹29,999", garage: "Speedy Motors", reseller: "Apex SaaS Partners", plan: "Growth Garage", date: "2026-09-24", status: "Paid" },
-    { id: "p-104", amount: "₹14,999", garage: "Royal Auto Works", reseller: "Royal Resellers", plan: "Basic Garage", date: "2026-09-23", status: "Pending" },
-    { id: "p-105", amount: "₹29,999", garage: "Metro Garage Works", reseller: "Direct Customer", plan: "Growth Garage", date: "2026-09-20", status: "Failed" },
-  ])
+  const fetchPayments = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/admin/payments?status=${filterStatus}`)
+      const data = await res.json()
+      if (data.success && data.payments) {
+        setPayments(data.payments)
+      } else {
+        setPayments([])
+      }
+    } catch {
+      toast.error("Failed to fetch payments")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPayments()
+  }, [filterStatus])
 
   const handleDownloadInvoice = (item: any) => {
     toast.info(`Generating official receipt for ${item.garage}...`)
@@ -53,7 +68,7 @@ export default function SuperAdminPaymentsPage() {
 
           <div class="section">
             <p><strong>Billed To:</strong> ${item.garage}</p>
-            <p><strong>Reseller Partner:</strong> ${item.reseller}</p>
+            <p><strong>Partner Entity:</strong> ${item.reseller}</p>
             <p><strong>Issuer:</strong> Grekam Technologies Pvt Ltd</p>
           </div>
 
@@ -61,122 +76,154 @@ export default function SuperAdminPaymentsPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Item / Plan Description</th>
-                  <th>Subscription Period</th>
-                  <th>Status</th>
-                  <th>Total Billed Amount</th>
+                  <th>Description</th>
+                  <th>Reference</th>
+                  <th style="text-align: right;">Amount (INR)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>${item.plan} (Annual License)</td>
-                  <td>1 Year Unlimited Access</td>
-                  <td>${item.status}</td>
-                  <td class="total">${item.amount}</td>
+                  <td>${item.garage} (${item.plan})</td>
+                  <td>${item.utrNumber || "Prepaid Float / Direct"}</td>
+                  <td style="text-align: right;">${item.amount}</td>
                 </tr>
               </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                  <td class="total" style="text-align: right;">${item.amount}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
           <div class="footer">
-            <p>Computer generated invoice. Grekam OS Platform Control Center.</p>
+            This is a computer-generated invoice from Grekam OS Platform. All taxes and compliance handled per GST norms.
           </div>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
         </body>
       </html>
     `)
     printWindow.document.close()
+    printWindow.print()
   }
 
-  const filteredPayments = payments.filter(p => {
-    const matchesSearch = p.garage.toLowerCase().includes(searchQuery.toLowerCase()) || p.reseller.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = filterStatus === "All" || p.status === filterStatus
-    return matchesSearch && matchesStatus
-  })
+  const filteredPayments = payments.filter(p =>
+    (p.garage || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.reseller || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.id || "").toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="p-8 space-y-6 bg-dash-bg-base text-white min-h-screen font-sans">
       
-      {/* Header */}
-      <div className="border-b border-white/10 pb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Payments & Ledger</h1>
-        <p className="text-xs text-zinc-400 mt-1">Platform payment transactions from Direct Garages and Resellers.</p>
+      {/* Top Header */}
+      <div className="border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Payments & Bank Float Ledger</h1>
+          <p className="text-xs text-zinc-400 mt-1">Audit trail of all direct customer subscriptions and partner float deposits.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchPayments}
+            className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:border-zinc-700 transition"
+            title="Refresh"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Filter & Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-        <div className="relative flex-1 max-w-md w-full">
+      {/* Filters & Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 flex-wrap">
+          {(["All", "Paid", "Pending", "Failed"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status as any)}
+              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                filterStatus === status
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative max-w-md w-full">
           <Search className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
           <input
             type="text"
-            placeholder="Search by garage or reseller..."
+            placeholder="Search payments by description, partner, or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
           />
         </div>
-
-        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 text-xs font-semibold overflow-x-auto">
-          {(["All", "Paid", "Pending", "Failed", "Refunded"] as const).map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
-              className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
-                filterStatus === st ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              {st}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-white/10 text-zinc-400 uppercase text-[10px] font-semibold bg-white/[0.02]">
-              <th className="py-3.5 px-4">Amount</th>
-              <th className="py-3.5 px-4">Garage</th>
-              <th className="py-3.5 px-4">Reseller</th>
-              <th className="py-3.5 px-4">Plan</th>
-              <th className="py-3.5 px-4">Date</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4 text-right">Invoice</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filteredPayments.map((p) => (
-              <tr key={p.id} className="hover:bg-white/[0.02]">
-                <td className="py-3.5 px-4 font-bold text-white text-sm">{p.amount}</td>
-                <td className="py-3.5 px-4 font-semibold text-zinc-200">{p.garage}</td>
-                <td className="py-3.5 px-4 text-zinc-400">{p.reseller}</td>
-                <td className="py-3.5 px-4 text-zinc-300">{p.plan}</td>
-                <td className="py-3.5 px-4 text-zinc-400">{p.date}</td>
-                <td className="py-3.5 px-4">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                    p.status === "Paid" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                    p.status === "Pending" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
-                    "bg-red-500/10 text-red-400 border border-red-500/20"
-                  }`}>
-                    {p.status}
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button
-                    onClick={() => handleDownloadInvoice(p)}
-                    className="text-blue-400 hover:text-blue-300 p-1"
-                    title="Download Official Invoice PDF"
-                  >
-                    <Download className="w-4 h-4 inline" />
-                  </button>
-                </td>
+      {/* Payments Table */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="border-b border-white/10 text-zinc-400 font-semibold uppercase text-[10px] bg-white/[0.02]">
+              <tr>
+                <th className="py-4 px-6">Transaction Date</th>
+                <th className="py-4 px-6">Description / Transaction</th>
+                <th className="py-4 px-6">Partner / Source</th>
+                <th className="py-4 px-6">Mode / Plan</th>
+                <th className="py-4 px-6">Status</th>
+                <th className="py-4 px-6 text-right">Amount</th>
+                <th className="py-4 px-6 text-right">Invoice</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-zinc-300">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-zinc-500">Loading transactions from database...</td>
+                </tr>
+              ) : filteredPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-zinc-500">No payment transactions recorded yet.</td>
+                </tr>
+              ) : (
+                filteredPayments.map((p) => (
+                  <tr key={p.id} className="hover:bg-white/[0.02]">
+                    <td className="py-4 px-6 text-zinc-400 whitespace-nowrap font-mono">{p.date}</td>
+                    <td className="py-4 px-6 font-semibold text-white">
+                      <div>{p.garage}</div>
+                      {p.utrNumber && <div className="text-[10px] text-blue-400 font-mono">Ref: {p.utrNumber}</div>}
+                    </td>
+                    <td className="py-4 px-6 text-zinc-400">{p.reseller}</td>
+                    <td className="py-4 px-6">{p.plan}</td>
+                    <td className="py-4 px-6">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        p.status === "Paid" 
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                          : p.status === "Pending"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            : "bg-red-500/10 text-red-400 border border-red-500/20"
+                      }`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-right font-bold text-white font-mono">{p.amount}</td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        onClick={() => handleDownloadInvoice(p)}
+                        className="inline-flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg text-zinc-300 hover:text-white transition"
+                      >
+                        <Download className="w-3.5 h-3.5" /> PDF
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

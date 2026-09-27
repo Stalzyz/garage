@@ -27,13 +27,9 @@ export default function PartnerPackagesPage() {
       const res = await fetch("/api/partner/packages")
       const json = await res.json()
       if (json.success) {
-        setPackages(json.packages)
+        setPackages(json.packages || [])
       } else {
-        // Fallback demo packages
-        setPackages([
-          { id: "p1", name: "Starter Garage", planId: "plan-starter", sellingPrice: 15000, billingCycle: "YEARLY", status: "ACTIVE" },
-          { id: "p2", name: "Pro Garage", planId: "plan-pro", sellingPrice: 18000, billingCycle: "YEARLY", status: "ACTIVE" },
-        ])
+        setPackages([])
       }
     } catch {
       toast.error("Failed to load packages")

@@ -1,34 +1,46 @@
 "use client"
 
-import { useState } from "react"
-import { Activity, Search } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Activity, Search, RefreshCw } from "lucide-react"
+import { toast } from "sonner"
 
 export default function SuperAdminActivityPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [activities] = useState([
-    { id: "act-1", who: "Apex SaaS Partners (Reseller)", action: "Created garage", target: "XYZ Auto Care", date: "2026-09-26 15:05" },
-    { id: "act-2", who: "Grekam Super Admin", action: "Updated Growth Plan pricing", target: "Growth Garage Plan", date: "2026-09-26 14:20" },
-    { id: "act-3", who: "Speedy Motors (Garage)", action: "Payment received", target: "₹29,999 - Growth Garage", date: "2026-09-26 12:00" },
-    { id: "act-4", who: "Vanguard Resellers", action: "Custom domain verified", target: "garage.vanguard.io", date: "2026-09-26 10:15" },
-    { id: "act-5", who: "Grekam Super Admin", action: "Reseller created", target: "Royal Auto Agency", date: "2026-09-25 18:30" },
-    { id: "act-6", who: "Apex SaaS Partners (Reseller)", action: "White label branding updated", target: "Apex Auto Network", date: "2026-09-25 15:00" },
-    { id: "act-7", who: "Grekam Super Admin", action: "Garage suspended", target: "Legacy Motors (inactive)", date: "2026-09-24 12:00" },
-    { id: "act-8", who: "City Auto Garage (Direct)", action: "Plan upgraded", target: "Basic → Growth Garage", date: "2026-09-24 10:00" },
-  ])
+  const fetchActivities = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/admin/activity")
+      const data = await res.json()
+      if (data.success && data.activities) {
+        setActivities(data.activities)
+      } else {
+        setActivities([])
+      }
+    } catch {
+      toast.error("Failed to load activity logs")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchActivities()
+  }, [])
 
   const filteredActivities = activities.filter(a =>
-    a.who.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.target.toLowerCase().includes(searchQuery.toLowerCase())
+    (a.who || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.action || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.target || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const getActionColor = (action: string) => {
-    if (action.includes("created") || action.includes("Created")) return "text-emerald-400"
-    if (action.includes("Payment") || action.includes("paid")) return "text-blue-400"
-    if (action.includes("suspended") || action.includes("Suspended")) return "text-red-400"
-    if (action.includes("Updated") || action.includes("updated")) return "text-amber-400"
-    if (action.includes("verified") || action.includes("upgraded")) return "text-purple-400"
+    if (action.includes("created") || action.includes("Created") || action.includes("APPROVED")) return "text-emerald-400"
+    if (action.includes("Payment") || action.includes("paid") || action.includes("RECHARGED")) return "text-blue-400"
+    if (action.includes("suspended") || action.includes("Suspended") || action.includes("REJECTED")) return "text-red-400"
+    if (action.includes("Updated") || action.includes("updated") || action.includes("PENDING")) return "text-amber-400"
     return "text-zinc-300"
   }
 
@@ -36,11 +48,21 @@ export default function SuperAdminActivityPage() {
     <div className="p-8 space-y-6 bg-dash-bg-base text-white min-h-screen font-sans">
 
       {/* Header */}
-      <div className="border-b border-white/10 pb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Activity Log</h1>
-        <p className="text-xs text-zinc-400 mt-1">
-          Audit trail of all platform events — garage creation, payments, plan changes, and admin actions.
-        </p>
+      <div className="border-b border-white/10 pb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Platform Activity Audit Log</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Real-time audit trail of all platform events — garage activations, float deposits, plan updates, and admin overrides.
+          </p>
+        </div>
+
+        <button
+          onClick={fetchActivities}
+          className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:border-zinc-700 transition"
+          title="Refresh"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Search */}
@@ -58,27 +80,37 @@ export default function SuperAdminActivityPage() {
       </div>
 
       {/* Activity List */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-white/10 text-zinc-400 uppercase text-[10px] font-semibold bg-white/[0.02]">
-              <th className="py-3.5 px-4">Who</th>
-              <th className="py-3.5 px-4">Action</th>
-              <th className="py-3.5 px-4">Garage / Reseller / Target</th>
-              <th className="py-3.5 px-4 text-right">Date & Time</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filteredActivities.map((a) => (
-              <tr key={a.id} className="hover:bg-white/[0.02]">
-                <td className="py-3.5 px-4 font-semibold text-white">{a.who}</td>
-                <td className={`py-3.5 px-4 font-medium ${getActionColor(a.action)}`}>{a.action}</td>
-                <td className="py-3.5 px-4 text-zinc-400">{a.target}</td>
-                <td className="py-3.5 px-4 text-right text-zinc-500">{a.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-6 space-y-4">
+          {loading ? (
+            <div className="py-12 text-center text-zinc-500 text-xs">Loading activity logs...</div>
+          ) : filteredActivities.length === 0 ? (
+            <div className="py-12 text-center text-zinc-500 text-xs">No platform activity recorded yet.</div>
+          ) : (
+            filteredActivities.map((act) => (
+              <div
+                key={act.id}
+                className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white/[0.04] transition"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                    <Activity className={`w-4 h-4 ${getActionColor(act.action)}`} />
+                  </div>
+                  <div>
+                    <div className="text-xs">
+                      <strong className="text-white">{act.who}</strong>{" "}
+                      <span className={getActionColor(act.action)}>{act.action}</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">{act.target}</div>
+                  </div>
+                </div>
+                <div className="text-[10px] text-zinc-500 font-mono self-end sm:self-auto">
+                  {act.date}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
     </div>

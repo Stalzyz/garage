@@ -26,14 +26,9 @@ export default function PartnerCustomersPage() {
       const res = await fetch(`/api/partner/customers?status=${filter}`)
       const json = await res.json()
       if (json.success) {
-        setCustomers(json.customers)
+        setCustomers(json.customers || [])
       } else {
-        // Sample fallback
-        setCustomers([
-          { id: "c1", name: "ABC Garage", ownerName: "Arun Kumar", ownerEmail: "arun@abcgarage.com", ownerPhone: "+91 98400 12345", status: "ACTIVE", domain: "abc.apexautosolutions.com", customerType: "WHITE_LABEL", createdAt: new Date() },
-          { id: "c2", name: "Kumar Auto Care", ownerName: "Rajesh Kumar", ownerEmail: "rajesh@kumarauto.in", ownerPhone: "+91 97890 54321", status: "ACTIVE", domain: "kumar.apexautosolutions.com", customerType: "WHITE_LABEL", createdAt: new Date() },
-          { id: "c3", name: "Sri Motors", ownerName: "Senthil Nathan", ownerEmail: "senthil@srimotors.com", ownerPhone: "+91 94440 67890", status: "PENDING_ACTIVATION", domain: null, customerType: "WHITE_LABEL", createdAt: new Date() },
-        ])
+        setCustomers([])
       }
     } catch {
       toast.error("Failed to load customers")
