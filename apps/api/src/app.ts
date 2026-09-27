@@ -22,6 +22,7 @@ import { initializeCronJobs as startAutomatedDrips } from './automations/cron';
 import { initSentry } from './sentry';
 
 import path from 'path';
+import fs from 'fs';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 // fallback for development if run directly from apps/api
