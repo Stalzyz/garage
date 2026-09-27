@@ -22,13 +22,11 @@ export default function CRMDashboard() {
   const { data: session } = useSession()
   const { symbol, formatCurrency } = useCurrency()
   
-  // API Fetch for Leads, Batches, and Employees
+  // API Fetch for Leads and Employees
   const { data: leadsData, mutate: mutateLeads, isLoading: leadsLoading } = useApi<any>('/crm/leads')
-  const { data: batchesData } = useApi<any>('/academy/batches')
   const { data: employeesData } = useApi<any>('/hr/employees')
   
   const leads = leadsData?.data || []
-  const batches = batchesData?.data || []
   const employees = employeesData?.employees || []
 
   // State
@@ -71,12 +69,6 @@ export default function CRMDashboard() {
   // Meeting Setup in Log Activity
   const [meetingSummary, setMeetingSummary] = useState("")
   const [meetingTime, setMeetingTime] = useState("")
-
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
-  const [scheduleLead, setScheduleLead] = useState<any>(null)
-
-  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
-  const [convertLead, setConvertLead] = useState<any>(null)
 
   const [isKioskModalOpen, setIsKioskModalOpen] = useState(false)
   const [isMetaModalOpen, setIsMetaModalOpen] = useState(false)
@@ -129,19 +121,15 @@ export default function CRMDashboard() {
     return Array.from(set).sort()
   }, [leads])
 
-  // Form Fields for Student Conversion
-  const [convertForm, setConvertForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    batchId: ""
-  })
+
 
   // Calculations based on Active Tab
   const filteredLeads = leads.filter((lead: any) => {
-    if (lead.businessUnit !== activeTab) return false
+    const unit = lead.businessUnit || 'SERVICE'
+    const matchesTab = activeTab === 'SERVICE' 
+      ? (unit === 'SERVICE' || unit === 'AGENCY')
+      : (unit === activeTab)
+    if (!matchesTab) return false
     
     // Status filter
     if (statusFilter !== "ALL" && lead.status !== statusFilter) return false
@@ -156,25 +144,19 @@ export default function CRMDashboard() {
       (lead.email || "").toLowerCase().includes(query) ||
       (lead.company || "").toLowerCase().includes(query) ||
       (lead.industry || "").toLowerCase().includes(query) ||
-      (lead.courseInterest || "").toLowerCase().includes(query)
+      (lead.serviceRequirement || lead.projectType || "").toLowerCase().includes(query)
     )
   })
 
   // Telemetry Calculations
-  const agencyLeads = leads.filter((l: any) => l.businessUnit === 'AGENCY')
-  const academyLeads = leads.filter((l: any) => l.businessUnit === 'ACADEMY')
-
-  const totalContacts = activeTab === 'AGENCY' ? agencyLeads.length : academyLeads.length
+  const totalContacts = filteredLeads.length
   
-  const pipelineValue = activeTab === 'AGENCY' 
-    ? agencyLeads.reduce((sum: number, l: any) => sum + (l.estimatedBudget || 0), 0)
-    : academyLeads.length * 15000 // Mock academy average value per lead (₹15,000)
+  const pipelineValue = filteredLeads.reduce((sum: number, l: any) => sum + (Number(l.estimatedBudget) || 0), 0)
 
   const conversionRate = (() => {
-    const relevantLeads = activeTab === 'AGENCY' ? agencyLeads : academyLeads
-    if (relevantLeads.length === 0) return 0
-    const wonCount = relevantLeads.filter((l: any) => l.status === 'WON' || l.status === 'ENROLLED_ACADEMY').length
-    return Math.round((wonCount / relevantLeads.length) * 100)
+    if (filteredLeads.length === 0) return 0
+    const wonCount = filteredLeads.filter((l: any) => l.status === 'WON' || l.status === 'CONVERTED').length
+    return Math.round((wonCount / filteredLeads.length) * 100)
   })()
 
   // Helper to map assignee ID to active staff name
@@ -222,8 +204,8 @@ export default function CRMDashboard() {
 
   const ALL_COLUMNS = [
     { id: 'name', label: 'Lead Name' },
-    { id: 'company', label: 'Company / Course Interest' },
-    { id: 'industry', label: 'Industry Sector' },
+    { id: 'company', label: 'Company / Requirement' },
+    { id: 'industry', label: 'Industry / Segment' },
     { id: 'contact', label: 'Contact Info' },
     { id: 'nextFollowUp', label: 'Next Follow-Up SLA' },
     { id: 'stage', label: 'Stage / Status' },
@@ -495,57 +477,7 @@ export default function CRMDashboard() {
     }
   }
 
-  const handleOpenConvertModal = (lead: any) => {
-    setConvertLead(lead)
-    
-    // Split name to first and last name
-    const parts = (lead.name || "").trim().split(/\s+/)
-    const firstName = parts[0] || ""
-    const lastName = parts.slice(1).join(" ") || "Prospect"
 
-    setConvertForm({
-      firstName,
-      lastName,
-      email: lead.email || "",
-      phone: lead.phone || "",
-      dateOfBirth: "",
-      batchId: lead.batchId || ""
-    })
-    setIsConvertModalOpen(true)
-  }
-
-  const handleConvertStudent = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      // 1. Create student in the database
-      const student = await fetchApi(`/academy/students`, {
-        method: "POST",
-        body: JSON.stringify({
-          firstName: convertForm.firstName,
-          lastName: convertForm.lastName,
-          email: convertForm.email,
-          phone: convertForm.phone || undefined,
-          dateOfBirth: convertForm.dateOfBirth || undefined,
-          batchId: convertForm.batchId || undefined,
-          leadId: convertLead.id
-        })
-      })
-
-      // 2. Mark the original lead status as ENROLLED_ACADEMY
-      await fetchApi(`/crm/leads/${convertLead.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          status: "ENROLLED_ACADEMY"
-        })
-      })
-
-      toast.success("Lead successfully converted to Student!")
-      setIsConvertModalOpen(false)
-      mutateLeads()
-    } catch (err: any) {
-      toast.error(err.message || "Failed to convert lead to student")
-    }
-  }
 
   const handleDeleteLead = async (id: string) => {
     if (!confirm("Are you sure you want to delete this lead?")) return
@@ -953,9 +885,7 @@ export default function CRMDashboard() {
                           <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Lead Name</th>
                         )}
                         {visibleColumns.company && (
-                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">
-                            {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
-                          </th>
+                          <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Company / Requirement</th>
                         )}
                         {visibleColumns.industry && (
                           <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Industry</th>
@@ -1370,8 +1300,8 @@ export default function CRMDashboard() {
                       className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
                     >
                       <option value="NONE">Default Follow-Up (lead_post_call_followup)</option>
-                      <option value="trial_class_invitation">Trial Class Invitation (trial_class_invitation)</option>
-                      <option value="lead_instant_acknowledgement">Course Brochure & Info (lead_instant_acknowledgement)</option>
+                      <option value="lead_quotation_followup">Quotation & Proposal Follow-Up (lead_quotation_followup)</option>
+                      <option value="lead_instant_acknowledgement">Service Brochure & Info (lead_instant_acknowledgement)</option>
                       <option value="SKIP">Skip / Don't Send WhatsApp Message</option>
                     </select>
                   </div>
@@ -1491,118 +1421,6 @@ export default function CRMDashboard() {
         )}
       </AnimatePresence>
 
-      {/* CONVERT TO STUDENT MODAL */}
-      <AnimatePresence>
-        {isConvertModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div 
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              className="bg-[var(--dash-bg-surface,#111)] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-t-[2rem] md:rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl mt-auto md:mt-0"
-            >
-              <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center bg-emerald-500/10">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">Enroll Student Profile</h3>
-                </div>
-                <button 
-                  onClick={() => setIsConvertModalOpen(false)}
-                  className="text-[var(--dash-text-primary)]/40 hover:text-[var(--dash-text-primary)] transition-colors font-mono text-sm"
-                >
-                   Close
-                </button>
-              </div>
-
-              <form onSubmit={handleConvertStudent} className="p-6 space-y-4">
-                <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs text-emerald-400/90 leading-relaxed">
-                  This action will auto-create a user account for the student, map their enrollment in the selected batch, and link their student credentials back to Lead ID <strong>{convertLead?.id}</strong>.
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">First Name *</label>
-                    <input
-                      required
-                      value={convertForm.firstName}
-                      onChange={(e) => setConvertForm({ ...convertForm, firstName: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Last Name *</label>
-                    <input
-                      required
-                      value={convertForm.lastName}
-                      onChange={(e) => setConvertForm({ ...convertForm, lastName: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Enrollment Email Address *</label>
-                    <input
-                      required
-                      type="email"
-                      value={convertForm.email}
-                      onChange={(e) => setConvertForm({ ...convertForm, email: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Contact Phone</label>
-                    <input
-                      value={convertForm.phone}
-                      onChange={(e) => setConvertForm({ ...convertForm, phone: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Date of Birth</label>
-                    <input
-                      type="date"
-                      value={convertForm.dateOfBirth}
-                      onChange={(e) => setConvertForm({ ...convertForm, dateOfBirth: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Enrolled Batch *</label>
-                    <select
-                      required
-                      value={convertForm.batchId}
-                      onChange={(e) => setConvertForm({ ...convertForm, batchId: e.target.value })}
-                      className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                    >
-                      <option value="">Select a batch...</option>
-                      {batches.map((batch: any) => (
-                        <option key={batch.id} value={batch.id}>
-                          {batch.name} ({batch.course?.name || "LMS"})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="pt-4 pb-8 md:pb-6 px-6 -mx-6 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-end gap-3 sticky bottom-0 bg-[var(--dash-bg-surface,#111)] z-10 mt-6 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] md:shadow-none">
-                  <button
-                    type="button"
-                    onClick={() => setIsConvertModalOpen(false)}
-                    className="px-5 py-2.5 bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] hover:bg-white/10 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-mono font-bold tracking-wider uppercase text-[var(--dash-text-primary)] shadow-lg transition-colors"
-                  >
-                    Finalize Admission
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     {/* Kiosk QR Modal */}
     {isKioskModalOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -1656,23 +1474,24 @@ export default function CRMDashboard() {
               className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
             >
               <option value="">Move to Stage...</option>
-              {activeTab === 'AGENCY' ? (
+              {activeTab === 'SALES' ? (
                 <>
-                  <option value="NEW">New</option>
+                  <option value="NEW">New Lead</option>
                   <option value="CONTACTED">Contacted</option>
                   <option value="QUALIFIED">Qualified</option>
-                  <option value="PROPOSAL_SENT">Proposal Sent</option>
-                  <option value="NEGOTIATION">Negotiation</option>
-                  <option value="WON">Won</option>
+                  <option value="PROPOSAL_SENT">Quotation Sent</option>
+                  <option value="NEGOTIATION">Inspection / Test Drive</option>
+                  <option value="WON">Converted / Sold</option>
                   <option value="LOST">Lost</option>
                 </>
               ) : (
                 <>
-                  <option value="ENQUIRY">Enquiry</option>
-                  <option value="COUNSELLING">Counselling</option>
-                  <option value="TRIAL">Trial Class</option>
-                  <option value="ENROLLED_ACADEMY">Enrolled</option>
-                  <option value="DROPPED">Dropped</option>
+                  <option value="NEW">New Enquiries</option>
+                  <option value="CONTACTED">Contacted</option>
+                  <option value="FOLLOW_UP">Follow-up Due</option>
+                  <option value="INTERESTED">Service Booked</option>
+                  <option value="WON">Work Completed</option>
+                  <option value="LOST">Lost / Cancelled</option>
                 </>
               )}
             </select>

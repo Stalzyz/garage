@@ -239,14 +239,14 @@ export function KanbanBoard({
     const newId = newColumnTitle.trim().toUpperCase().replace(/\s+/g, '_');
     const newColObj = { id: newId, title: newColumnTitle.trim(), isDefault: false };
 
-    if (activeTab === 'AGENCY') {
-      const updated = [...agencyCols, newColObj];
-      setAgencyCols(updated);
-      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_agency_cols', JSON.stringify(updated));
+    if (activeTab === 'SALES') {
+      const updated = [...salesCols, newColObj];
+      setSalesCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('garage_crm_sales_cols', JSON.stringify(updated));
     } else {
-      const updated = [...academyCols, newColObj];
-      setAcademyCols(updated);
-      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_academy_cols', JSON.stringify(updated));
+      const updated = [...serviceCols, newColObj];
+      setServiceCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('garage_crm_service_cols', JSON.stringify(updated));
     }
 
     setNewColumnTitle('');
@@ -254,14 +254,14 @@ export function KanbanBoard({
   };
 
   const handleRemoveColumn = (colId: string) => {
-    if (activeTab === 'AGENCY') {
-      const updated = agencyCols.filter((c) => c.id !== colId);
-      setAgencyCols(updated);
-      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_agency_cols', JSON.stringify(updated));
+    if (activeTab === 'SALES') {
+      const updated = salesCols.filter((c) => c.id !== colId);
+      setSalesCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('garage_crm_sales_cols', JSON.stringify(updated));
     } else {
-      const updated = academyCols.filter((c) => c.id !== colId);
-      setAcademyCols(updated);
-      if (typeof window !== 'undefined') localStorage.setItem('grekam_crm_academy_cols', JSON.stringify(updated));
+      const updated = serviceCols.filter((c) => c.id !== colId);
+      setServiceCols(updated);
+      if (typeof window !== 'undefined') localStorage.setItem('garage_crm_service_cols', JSON.stringify(updated));
     }
   };
 
