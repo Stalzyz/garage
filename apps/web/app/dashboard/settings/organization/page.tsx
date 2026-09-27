@@ -173,11 +173,18 @@ export default function OrganizationSettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/[0.08] pb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight">
-            Organization & Branding
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight">
+              Organization & Branding
+            </h1>
+            {org?.id && (
+              <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+                Vendor ID: {org.id}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-zinc-400 mt-1">
-            Manage your legal entity, logos, color palette, tax details, and public channels.
+            Manage your unique workspace entity, logos, color palette, tax details, and public channels.
           </p>
         </div>
         <Button 
@@ -189,6 +196,25 @@ export default function OrganizationSettingsPage() {
           {saving ? "Saving..." : saved ? "Saved" : "Save changes"}
         </Button>
       </div>
+
+      {/* ── 0. UNIQUE WORKSPACE & TENANT IDENTIFIER ── */}
+      {org?.id && (
+        <div className="bg-gradient-to-r from-blue-950/30 via-[#121620] to-indigo-950/30 border border-blue-500/20 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 font-mono text-sm font-bold">
+              ID
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-zinc-200">Unique Vendor / Workspace ID</div>
+              <div className="text-[11px] font-mono text-blue-400 select-all font-semibold tracking-wide">{org.id}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Dedicated Isolated Database Partition</span>
+          </div>
+        </div>
+      )}
 
       {/* ── 1. BRAND LOGOS & VISUAL ASSETS (TOP POSITION) ── */}
       <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-6">

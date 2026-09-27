@@ -56,7 +56,14 @@ function OrgHeader() {
   return (
     <div className="flex h-16 items-center px-6 gap-3 relative z-10">
       <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={32} />
-      <span className="text-lg font-bold tracking-tight">{org.name}</span>
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="text-sm font-bold tracking-tight text-dash-text-primary truncate">{org.name}</span>
+        {org.id && (
+          <span className="text-[10px] font-mono text-zinc-400 truncate tracking-tight">
+            ID: {org.id.slice(0, 10)}...
+          </span>
+        )}
+      </div>
       <div className="ml-auto flex items-center gap-2">
         <NotificationMenu />
         <RealtimeIndicator />
