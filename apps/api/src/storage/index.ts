@@ -47,27 +47,43 @@ export default async function storageRouter(app: FastifyInstance) {
     }
   });
 
+  // PUT & POST /mock-upload and /mock-upload/* - Saves stream directly to disk when S3/R2 is not configured
+  const handleMockUpload = async (req: any, reply: any) => {
+    const key = (req.params as any)['*'] || (req.query as any)?.key || `upload-${Date.now()}-${randomUUID()}`;
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const destinationPath = path.join(uploadsDir, safeKey);
+
+    await pipeline(req.raw, fs.createWriteStream(destinationPath));
+    reply.header('Access-Control-Allow-Origin', '*');
+    return reply.code(200).send({ success: true, key: safeKey, url: `/api/v1/storage/asset/${safeKey}` });
+  };
+
+  app.put('/mock-upload', handleMockUpload);
+  app.put('/mock-upload/*', handleMockUpload);
+  app.post('/mock-upload', handleMockUpload);
+  app.post('/mock-upload/*', handleMockUpload);
+  app.options('/mock-upload', async (req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'PUT, POST, GET, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send();
+  });
+  app.options('/mock-upload/*', async (req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'PUT, POST, GET, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.code(200).send();
+  });
+
   // Protected upload endpoints wrapped in nested plugin scope with requireAuth hook
   await app.register(async function protectedStorageRoutes(childApp) {
     const server = childApp.withTypeProvider<ZodTypeProvider>();
     childApp.addHook('preHandler', app.requireAuth);
-
-    // PUT /mock-upload/* - Saves stream directly to disk when S3/R2 is not configured
-    childApp.put('/mock-upload/*', async (req, reply) => {
-      const key = (req.params as any)['*'];
-      if (!key) return reply.code(400).send({ error: 'Missing key' });
-
-      const uploadsDir = path.resolve(process.cwd(), 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const safeKey = key.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-      const destinationPath = path.join(uploadsDir, safeKey);
-
-      await pipeline(req.raw, fs.createWriteStream(destinationPath));
-      return reply.code(200).send({ success: true, key: safeKey });
-    });
 
     server.post('/upload-url', {
       schema: {
