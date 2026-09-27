@@ -24,6 +24,7 @@ enum UserRole {
   VENDOR
   INTERN
   EDUCATOR
+  PARTNER
 }
 
 enum UserStatus {
@@ -65,6 +66,7 @@ model User {
   educator      Educator?
   vendor        Vendor?
   clientProfile ClientProfile?
+  partner       Partner?
 
   sessions      Session[]
   notifications Notification[]
@@ -451,6 +453,13 @@ model Organization {
   ownerPhone     String?
   status         String?
   subscription   String?
+
+  // Reseller / Whitelabel Partner Tracking
+  partnerId            String?
+  customerType         String?   @default("DIRECT") // DIRECT | RESELLER | WHITE_LABEL
+  basePriceSnapshot    Float?
+  sellingPriceSnapshot Float?
+  partnerMarginSnapshot Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3702,4 +3711,197 @@ model TeamAchievement {
   createdAt     DateTime @default(now())
 
   @@map("team_achievements")
+}
+
+// ─────────────────────────────────────────
+// PARTNER & WHITE-LABEL SYSTEM
+// ─────────────────────────────────────────
+
+model Partner {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  partnerCode         String    @unique
+  partnerType         String    @default("RESELLER") // RESELLER | WHITE_LABEL
+  individualOrCompany String    @default("INDIVIDUAL") // INDIVIDUAL | COMPANY
+  companyName         String?
+
+  kycStatus           String    @default("PENDING") // PENDING | UNDER_REVIEW | APPROVED | REJECTED
+  status              String    @default("PENDING") // PENDING | ACTIVE | SUSPENDED
+
+  commissionPercent   Float     @default(20.0)
+  whiteLabelEnabled   Boolean   @default(false)
+  maxPriceMultiplier  Float     @default(2.0)
+  walletBalance       Float     @default(0.0)
+
+  approvedAt          DateTime?
+  approvedBy          String?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kyc                 PartnerKYC[]
+  whiteLabel          PartnerWhiteLabel?
+  planAccess          PartnerPlanAccess[]
+  packages            PartnerPackage[]
+  wallet              PartnerWallet?
+  walletTransactions  PartnerWalletTransaction[]
+  commissions         PartnerCommission[]
+  invoices            PartnerInvoice[]
+
+  @@map("partners")
+}
+
+model PartnerKYC {
+  id              String    @id @default(cuid())
+  partnerId       String
+  documentType    String    // PAN | AADHAAR | GST | BUSINESS_REG | PASSPORT
+  documentNumber  String?
+  fileUrl         String?
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  submittedAt     DateTime  @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
+
+  partner         Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_kyc")
+}
+
+model PartnerWhiteLabel {
+  id           String   @id @default(cuid())
+  partnerId    String   @unique
+  brandName    String
+  logoUrl      String?
+  customDomain String?
+  domainStatus String   @default("PENDING") // PENDING | CONNECTED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  partner      Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_white_label")
+}
+
+model PartnerPlanAccess {
+  id            String   @id @default(cuid())
+  partnerId     String
+  planId        String
+  basePrice     Float
+  maxMultiplier Float    @default(2.0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  partner       Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, planId])
+  @@map("partner_plan_access")
+}
+
+model PartnerPackage {
+  id           String   @id @default(cuid())
+  partnerId    String
+  planId       String
+  name         String
+  description  String?
+  sellingPrice Float
+  billingCycle String   @default("YEARLY") // MONTHLY | YEARLY
+  status       String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  partner      Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_packages")
+}
+
+model PartnerWallet {
+  id           String   @id @default(cuid())
+  partnerId    String   @unique
+  balance      Float    @default(0.0)
+  status       String   @default("ACTIVE") // ACTIVE | FROZEN
+  updatedAt    DateTime @updatedAt
+
+  partner      Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  transactions PartnerWalletTransaction[]
+
+  @@map("partner_wallets")
+}
+
+model PartnerWalletTransaction {
+  id            String   @id @default(cuid())
+  partnerId     String
+  walletId      String
+  type          String   // RECHARGE | ACTIVATION | RENEWAL | REFUND | ADJUSTMENT
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  referenceType String?  // CUSTOMER | INVOICE | PAYMENT | ADMIN_ADJUSTMENT
+  referenceId   String?
+  description   String
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  partner       Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  wallet        PartnerWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("partner_wallet_transactions")
+}
+
+model PartnerCommission {
+  id                String    @id @default(cuid())
+  partnerId         String
+  organizationId    String?
+  paymentId         String?
+  saleAmount        Float
+  commissionPercent Float
+  commissionAmount  Float
+  status            String    @default("PENDING") // PENDING | APPROVED | PAID | REVERSED
+  createdAt         DateTime  @default(now())
+  approvedAt        DateTime?
+  paidAt            DateTime?
+
+  partner           Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_commissions")
+}
+
+model PartnerInvoice {
+  id                String    @id @default(cuid())
+  partnerId         String
+  organizationId    String
+  invoiceNumber     String    @unique
+  customerName      String
+  packageName       String
+  basePriceSnapshot Float
+  sellingPrice      Float
+  partnerMargin     Float
+  tax               Float     @default(0.0)
+  total             Float
+  status            String    @default("PENDING") // DRAFT | SENT | PAID | FAILED | CANCELLED | REFUNDED
+  dueDate           DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  partner           Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_invoices")
+}
+
+model PartnerActivityLog {
+  id             String   @id @default(cuid())
+  actorUserId    String
+  partnerId      String?
+  organizationId String?
+  action         String   // PARTNER_APPROVED | CUSTOMER_ACTIVATED | WALLET_RECHARGED | etc.
+  entityType     String
+  entityId       String?
+  description    String
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@map("partner_activity_logs")
 }

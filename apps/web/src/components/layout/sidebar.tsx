@@ -153,7 +153,8 @@ export function Sidebar() {
 
   let rawRole = session?.user?.role || "INTERN"
   if (rawRole === "Super Admin" || rawRole === "SUPER_ADMIN") rawRole = "SUPER_ADMIN"
-  else if (rawRole === "Reseller" || rawRole === "RESELLER" || rawRole === "RESELLER_ADMIN") rawRole = "RESELLER_ADMIN"
+  else if (rawRole === "Partner" || rawRole === "PARTNER") rawRole = "PARTNER"
+  else if (rawRole === "Reseller" || rawRole === "RESELLER" || rawRole === "RESELLER_ADMIN") rawRole = "PARTNER"
   else if (rawRole === "Admin" || rawRole === "ADMIN" || rawRole === "GARAGE_ADMIN" || rawRole === "TENANT_ADMIN" || rawRole === "Garage Owner" || rawRole === "Manager" || rawRole === "MANAGER") rawRole = "MANAGER"
   else if (rawRole === "Staff" || rawRole === "STAFF") rawRole = "STAFF"
   else if (rawRole === "Client" || rawRole === "CLIENT") rawRole = "CLIENT"
@@ -167,6 +168,9 @@ export function Sidebar() {
   const customPermissions = (session?.user as any)?.permissions || []
   
   const navItems = getNavItemsByRole(role, customPermissions, pathname)
+
+  const isPartnerRoute = pathname?.startsWith("/dashboard/partner")
+  const isAdminRoute = pathname?.startsWith("/dashboard/admin")
 
   const getBottomTabs = (role: Role) => {
     switch (role) {
@@ -208,12 +212,39 @@ export function Sidebar() {
       {/* Header / Logo — Dynamic Whitelabel */}
       <OrgHeader />
 
-      {/* Role badge */}
-      <div className="px-5 py-2 relative z-10">
+      {/* Role badge & Mode Switcher */}
+      <div className="px-4 py-2 relative z-10 flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-[11px] font-medium text-zinc-400 capitalize">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {role.toLowerCase().replace('_', ' ')}
+          {isPartnerRoute ? "Partner Mode" : role.toLowerCase().replace('_', ' ')}
         </span>
+      </div>
+
+      {/* Quick Workspace / Partner Switcher */}
+      <div className="px-3 mb-1 relative z-10">
+        {isPartnerRoute ? (
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-300 hover:text-white transition group shadow-sm"
+          >
+            <span className="flex items-center gap-2">
+              <Building2 className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400" />
+              Garage Workspace
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard/partner"
+            className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/30 border border-emerald-500/20 hover:border-emerald-500/40 text-xs font-medium text-emerald-300 hover:text-emerald-200 transition group shadow-sm"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              Partner Dashboard
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-emerald-500/60 group-hover:text-emerald-400 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        )}
       </div>
 
       {/* Nav items */}

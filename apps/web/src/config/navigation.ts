@@ -20,9 +20,11 @@ import {
   CheckSquare,
   Trophy,
   PlusCircle,
+  Wallet,
+  FileText,
 } from "lucide-react"
 
-export type Role = "SUPER_ADMIN" | "RESELLER_ADMIN" | "ADMIN" | "GARAGE_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN" | "STUDENT"
+export type Role = "SUPER_ADMIN" | "PARTNER" | "RESELLER_ADMIN" | "ADMIN" | "GARAGE_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "VENDOR" | "INTERN" | "STUDENT"
 
 export interface NavItem {
   title: string
@@ -50,9 +52,15 @@ export const superAdminNavigation: NavItem[] = [
     roles: ["SUPER_ADMIN"],
   },
   {
-    title: "Resellers",
-    href: "/dashboard/admin/resellers",
+    title: "Partners",
+    href: "/dashboard/admin/partners",
     icon: Users,
+    roles: ["SUPER_ADMIN"],
+  },
+  {
+    title: "KYC Compliance",
+    href: "/dashboard/admin/kyc",
+    icon: ShieldCheck,
     roles: ["SUPER_ADMIN"],
   },
   {
@@ -88,58 +96,67 @@ export const superAdminNavigation: NavItem[] = [
 ]
 
 // -------------------------------------------------------------
-// 2. RESELLER ADMIN NAVIGATION (Reseller Scope)
+// 2. RESELLER & WHITE-LABEL PARTNER NAVIGATION
 // -------------------------------------------------------------
-export const resellerAdminNavigation: NavItem[] = [
+export const partnerNavigation: NavItem[] = [
   {
-    title: "Dashboard",
-    href: "/dashboard/reseller",
+    title: "Partner Overview",
+    href: "/dashboard/partner",
     icon: LayoutDashboard,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "Onboard Garage",
-    href: "/dashboard/reseller/onboarding",
-    icon: PlusCircle,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
-  },
-  {
-    title: "Garages",
-    href: "/dashboard/reseller/garages",
+    title: "Garages & Customers",
+    href: "/dashboard/partner/customers",
     icon: Building2,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "White Label",
-    href: "/dashboard/reseller/whitelabel",
+    title: "Prepaid Wallet",
+    href: "/dashboard/partner/wallet",
+    icon: Wallet,
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
+  },
+  {
+    title: "Packages & Pricing",
+    href: "/dashboard/partner/packages",
+    icon: Layers,
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
+  },
+  {
+    title: "White-Label Brand",
+    href: "/dashboard/partner/whitelabel",
     icon: Globe,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "Sales",
-    href: "/dashboard/reseller/sales",
-    icon: DollarSign,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    title: "Invoices",
+    href: "/dashboard/partner/invoices",
+    icon: FileText,
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "Earnings",
-    href: "/dashboard/reseller/earnings",
-    icon: DollarSign,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    title: "Earnings & Margins",
+    href: "/dashboard/partner/earnings",
+    icon: Trophy,
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "Support",
-    href: "/dashboard/reseller/support",
+    title: "Partner Support",
+    href: "/dashboard/partner/support",
     icon: LifeBuoy,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
   {
-    title: "Settings",
-    href: "/dashboard/reseller/settings",
+    title: "Settings & KYC",
+    href: "/dashboard/partner/settings",
     icon: Settings,
-    roles: ["RESELLER_ADMIN", "VENDOR"],
+    roles: ["PARTNER", "RESELLER_ADMIN", "VENDOR", "SUPER_ADMIN"],
   },
 ]
+
+// Legacy alias for backwards compatibility
+export const resellerAdminNavigation: NavItem[] = partnerNavigation
 
 // -------------------------------------------------------------
 // 3. VENDOR / AGENCY TENANT NAVIGATION (Tenant Scope)
@@ -341,8 +358,14 @@ export const getNavItemsByRole = (role: string, customPermissions?: string[], pa
   if (role === "SUPER_ADMIN" || pathname?.startsWith("/dashboard/admin")) {
     return superAdminNavigation
   }
-  if (role === "RESELLER_ADMIN" || role === "VENDOR" || role === "RESELLER" || pathname?.startsWith("/dashboard/reseller")) {
-    return resellerAdminNavigation
+  if (
+    role === "PARTNER" || 
+    role === "RESELLER_ADMIN" || 
+    role === "RESELLER" || 
+    pathname?.startsWith("/dashboard/partner") || 
+    pathname?.startsWith("/dashboard/reseller")
+  ) {
+    return partnerNavigation
   }
 
   // Normalize ADMIN, GARAGE_ADMIN, TENANT_ADMIN to MANAGER/ADMIN so garage owners see all workspace features
@@ -356,3 +379,4 @@ export const getNavItemsByRole = (role: string, customPermissions?: string[], pa
     return item.roles.includes(effectiveRole as Role) || item.roles.includes(role as Role) || (isTenantAdmin && item.roles.includes("MANAGER"))
   })
 }
+
