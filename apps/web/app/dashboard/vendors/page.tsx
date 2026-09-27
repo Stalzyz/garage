@@ -229,15 +229,9 @@ export default function UserFriendlySuperAdminPanel() {
                     <div className="flex gap-2 pt-2 border-t border-white/10">
                       <button 
                         onClick={() => setKycVendor(vendor)}
-                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold uppercase text-white/80"
+                        className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold uppercase text-white/80"
                       >
                         Inspect Verification
-                      </button>
-                      <button 
-                        onClick={() => setImpersonatingVendor(vendor)}
-                        className="flex-1 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-[11px] font-bold uppercase"
-                      >
-                        Support View
                       </button>
                     </div>
                   </div>
@@ -428,25 +422,6 @@ export default function UserFriendlySuperAdminPanel() {
         )}
 
       </div>
-
-      {/* SUPPORT VIEW MODAL */}
-      <AnimatePresence>
-        {impersonatingVendor && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
-            <div className="bg-[#0e111a] border border-purple-500/40 rounded-3xl p-8 max-w-md w-full text-center space-y-6">
-              <Key className="w-12 h-12 text-purple-400 mx-auto" />
-              <div>
-                <h3 className="text-xl font-bold text-white">Open Store in Support View</h3>
-                <p className="text-xs text-white/60 mt-2">You are viewing <span className="text-purple-300 font-bold">{impersonatingVendor.company || impersonatingVendor.user?.name}</span>'s store to help them with setup.</p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setImpersonatingVendor(null)} className="flex-1 py-3 rounded-xl bg-white/5 text-xs font-bold uppercase text-white/70">Cancel</button>
-                <button onClick={() => { setImpersonatingVendor(null); toast.success("Redirected to Storefront in Support Mode!"); }} className="flex-1 py-3 rounded-xl bg-purple-600 text-white text-xs font-bold uppercase">Enter Store</button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* KYC INSPECTOR MODAL */}
       <AnimatePresence>

@@ -187,9 +187,6 @@ export default function SuperAdminResellersPage() {
                   <button onClick={() => toggleStatus(r.id)} className="text-amber-400 hover:text-amber-300 p-1" title="Suspend/Activate">
                     {r.status === "Active" ? <PauseCircle className="w-4 h-4 inline" /> : <PlayCircle className="w-4 h-4 inline" />}
                   </button>
-                  <button onClick={() => toast.info(`Impersonating Reseller ${r.name}...`)} className="text-purple-400 hover:text-purple-300 p-1" title="Login as Reseller">
-                    <LogIn className="w-4 h-4 inline" />
-                  </button>
                 </td>
               </tr>
             ))}

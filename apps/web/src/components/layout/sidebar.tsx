@@ -231,32 +231,7 @@ export function Sidebar() {
         </span>
       </div>
 
-      {/* Quick Workspace / Partner Switcher */}
-      <div className="px-3 mb-1 relative z-10">
-        {isPartnerRoute ? (
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-300 hover:text-white transition group shadow-sm"
-          >
-            <span className="flex items-center gap-2">
-              <Building2 className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400" />
-              Garage Workspace
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        ) : (
-          <Link
-            href="/dashboard/partner"
-            className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/30 border border-emerald-500/20 hover:border-emerald-500/40 text-xs font-medium text-emerald-300 hover:text-emerald-200 transition group shadow-sm"
-          >
-            <span className="flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Partner Dashboard
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 text-emerald-500/60 group-hover:text-emerald-400 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        )}
-      </div>
+
 
       {/* Nav items */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-3 space-y-0.5 pb-6 relative z-10">

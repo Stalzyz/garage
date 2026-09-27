@@ -264,21 +264,12 @@ export default function PartnerDashboard() {
                         </span>
                       </td>
                       <td className="py-3.5 text-right">
-                        {cust.status === "ACTIVE" ? (
-                          <Link 
-                            href={`/dashboard?impersonate=${cust.id}`}
-                            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 text-[11px] font-medium"
-                          >
-                            Login
-                          </Link>
-                        ) : (
-                          <Link 
-                            href="/dashboard/partner/customers"
-                            className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold"
-                          >
-                            Activate
-                          </Link>
-                        )}
+                        <Link 
+                          href="/dashboard/partner/customers"
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 text-[11px] font-medium"
+                        >
+                          {cust.status === "ACTIVE" ? "Manage" : "Activate"}
+                        </Link>
                       </td>
                     </tr>
                   ))

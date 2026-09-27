@@ -521,23 +521,35 @@ export default function SuperAdminPlansPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {AVAILABLE_MODULES.map((mod) => {
                     const isChecked = form.selectedModules.includes(mod)
+                    const isWhiteLabelMod = mod.includes("White Label")
                     return (
                       <label
                         key={mod}
                         onClick={() => handleModuleToggle(mod)}
-                        className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                        className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                           isChecked
-                            ? "bg-blue-600/15 border-blue-500/40 text-white font-medium"
-                            : "bg-white/[0.02] border-white/10 text-zinc-400 hover:bg-white/[0.05]"
+                            ? isWhiteLabelMod
+                              ? "bg-purple-600/20 border-purple-500/50 text-purple-200 font-semibold shadow-md shadow-purple-500/10"
+                              : "bg-blue-600/15 border-blue-500/40 text-white font-medium"
+                            : isWhiteLabelMod
+                              ? "bg-purple-950/10 border-purple-500/20 text-purple-400 hover:bg-purple-950/20"
+                              : "bg-white/[0.02] border-white/10 text-zinc-400 hover:bg-white/[0.05]"
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}} // handled by parent onClick
-                          className="rounded border-white/10 bg-white/5 text-blue-600 w-4 h-4"
-                        />
-                        <span className="text-xs truncate">{mod}</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}} // handled by parent onClick
+                            className={`rounded border-white/10 bg-white/5 w-4 h-4 ${isWhiteLabelMod ? "text-purple-600" : "text-blue-600"}`}
+                          />
+                          <span className="text-xs truncate">{mod}</span>
+                        </div>
+                        {isWhiteLabelMod && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
+                            Partner Tier
+                          </span>
+                        )}
                       </label>
                     )
                   })}

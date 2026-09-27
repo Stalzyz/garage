@@ -189,7 +189,7 @@ export default function SystemSettingsPage() {
             href="/dashboard/settings/email-templates"
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
           >
-            <Mail className="w-4 h-4 text-zinc-400" /> Email Templates
+            <Mail className="w-4 h-4 text-zinc-400" /> Email & SMTP Delivery
           </a>
         </div>
 

@@ -501,13 +501,6 @@ export default function TenantManagementPage() {
                     >
                       <Palette className="w-3.5 h-3.5" /> Configure White-Label
                     </button>
-                    <button
-                      onClick={() => handleImpersonate(t)}
-                      className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20 font-medium transition-colors flex items-center gap-1"
-                      title="Open Support Session Access (Audited)"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" /> Support Access
-                    </button>
                   </div>
 
                   <button

@@ -134,6 +134,27 @@ export default function AdminPartnersPage() {
     }
   }
 
+  async function handleToggleWhiteLabel(partner: Partner) {
+    const nextType = partner.type === "WHITE_LABEL" ? "RESELLER" : "WHITE_LABEL"
+    const nextEnabled = nextType === "WHITE_LABEL"
+    try {
+      const res = await fetch(`/api/admin/partners/${partner.id}/whitelabel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partnerType: nextType, enabled: nextEnabled }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(data.message || `Partner updated to ${nextType}!`)
+        setPartners(prev => prev.map(p => p.id === partner.id ? { ...p, type: nextType, whiteLabelEnabled: nextEnabled } : p))
+      } else {
+        alert(data.error || "Failed to update partner white-label status")
+      }
+    } catch {
+      alert("Network error updating white-label status")
+    }
+  }
+
   async function handleToggleStatus(partner: Partner) {
     const isSuspending = partner.status === "ACTIVE"
     const endpoint = isSuspending
@@ -449,13 +470,19 @@ export default function AdminPartnersPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
-                            <span className={`inline-flex items-center w-max px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              partner.type === "WHITE_LABEL" 
-                                ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" 
-                                : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                            }`}>
-                              {partner.type === "WHITE_LABEL" ? "White-Label" : "Reseller"}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleToggleWhiteLabel(partner)}
+                                className={`inline-flex items-center w-max px-2.5 py-0.5 rounded-full text-xs font-semibold hover:opacity-80 transition cursor-pointer ${
+                                  partner.type === "WHITE_LABEL" 
+                                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30" 
+                                    : "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+                                }`}
+                                title="Click to switch partner type between White-Label and Reseller"
+                              >
+                                {partner.type === "WHITE_LABEL" ? "✨ White-Label" : "💼 Reseller"}
+                              </button>
+                            </div>
                             <span className={`inline-flex items-center gap-1 text-[11px] ${
                               partner.kycStatus === "APPROVED" 
                                 ? "text-emerald-400" 

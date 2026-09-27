@@ -239,14 +239,8 @@ export default function PartnerCustomersPage() {
                               className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 font-medium text-[11px] flex items-center gap-1"
                               title="Reset Password"
                             >
-                              <Key className="w-3 h-3 text-amber-400" /> Pass
+                              <Key className="w-3 h-3 text-amber-400" /> Reset Pass
                             </button>
-                            <Link
-                              href={`/dashboard?impersonate=${cust.id}`}
-                              className="px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 font-semibold text-[11px] flex items-center gap-1"
-                            >
-                              <LogIn className="w-3 h-3 text-blue-400" /> Login
-                            </Link>
                           </>
                         ) : (
                           <button
