@@ -18,17 +18,19 @@ export async function GET(req: Request) {
 
     const organizations = await prisma.organization.findMany({
       where: orgWhere,
-      include: {
-        partner: {
-          select: {
-            id: true,
-            companyName: true,
-            partnerType: true,
-          }
-        }
-      },
       orderBy: { createdAt: "desc" }
     })
+
+    // Fetch Partners for name lookup
+    const partners = await prisma.partner.findMany({
+      select: {
+        id: true,
+        companyName: true,
+        partnerType: true,
+      }
+    })
+    const partnerMap = new Map<string, any>()
+    partners.forEach(p => partnerMap.set(p.id, p))
 
     // 2. Fetch all Tenants (Workspaces created via Direct Provisioning)
     const tenants = await prisma.tenant.findMany({
@@ -64,7 +66,7 @@ export async function GET(req: Request) {
         phone: org.ownerPhone || "N/A",
         type: org.partnerId ? "Reseller" : "Direct",
         plan: org.subscription === "ACTIVE" ? "Growth Plan" : "Starter Plan",
-        reseller: org.partner?.companyName || "Direct Customer",
+        reseller: org.partnerId ? (partnerMap.get(org.partnerId)?.companyName || "Reseller Partner") : "Direct Customer",
         status: org.status === "ACTIVE" ? "Active" : org.status === "PENDING_ACTIVATION" ? "Pending Activation" : (org.status || "Active"),
         renewal: new Date(new Date(org.createdAt).setFullYear(new Date(org.createdAt).getFullYear() + 1)).toISOString().split("T")[0],
         domain: org.domain || (org.name ? `${org.name.toLowerCase().replace(/[^a-z0-9]/g, "")}.grekam.in` : null),
