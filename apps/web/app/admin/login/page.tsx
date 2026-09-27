@@ -13,8 +13,8 @@ export default function SuperAdminLoginPage() {
   const [isPending, setIsPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
 
-  const [email, setEmail] = useState("admin@grekam.com")
-  const [password, setPassword] = useState("admin123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   useEffect(() => {
     setIsClient(true)
@@ -70,7 +70,7 @@ export default function SuperAdminLoginPage() {
           <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
             <Building2 className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Grekam Super Admin</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Super Admin Portal</h1>
           <p className="text-xs text-zinc-400">Platform Control Center Login</p>
         </div>
 
@@ -98,7 +98,7 @@ export default function SuperAdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@grekam.com"
+                placeholder="admin@example.com"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
@@ -119,25 +119,6 @@ export default function SuperAdminLoginPage() {
             </div>
           </div>
 
-          {/* Demo Credentials Box */}
-          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs space-y-1">
-            <div className="flex items-center justify-between text-blue-300 font-medium">
-              <span>Demo Super Admin Login:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("admin@grekam.com")
-                  setPassword("admin123")
-                }}
-                className="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded font-mono underline"
-              >
-                Auto-fill
-              </button>
-            </div>
-            <p className="font-mono text-zinc-300">Email: <span className="text-white font-semibold">admin@grekam.com</span></p>
-            <p className="font-mono text-zinc-300">Password: <span className="text-white font-semibold">admin123</span></p>
-          </div>
-
           <button
             type="submit"
             disabled={isPending}
@@ -149,9 +130,9 @@ export default function SuperAdminLoginPage() {
         </form>
 
         <div className="text-center pt-2 space-y-1">
-          <p className="text-[11px] text-zinc-500">
-            Reseller login? <Link href="/reseller/login" className="text-blue-400 hover:underline">Click here</Link>
-          </p>
+          <Link href="/auth/login" className="text-[11px] text-zinc-500 hover:text-zinc-300">
+            ← Return to Workshop Login
+          </Link>
         </div>
       </motion.div>
     </div>

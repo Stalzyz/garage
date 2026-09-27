@@ -13,8 +13,8 @@ export default function ResellerLoginPage() {
   const [isPending, setIsPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
 
-  const [email, setEmail] = useState("reseller@grekam.com")
-  const [password, setPassword] = useState("reseller123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   useEffect(() => {
     setIsClient(true)
@@ -92,7 +92,7 @@ export default function ResellerLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="partner@reseller.com"
+                placeholder="partner@yourdomain.com"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500 transition-colors"
               />
             </div>
@@ -113,25 +113,6 @@ export default function ResellerLoginPage() {
             </div>
           </div>
 
-          {/* Demo Credentials Box */}
-          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-xs space-y-1">
-            <div className="flex items-center justify-between text-purple-300 font-medium">
-              <span>Demo Reseller Admin Login:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("reseller@grekam.com")
-                  setPassword("reseller123")
-                }}
-                className="text-[10px] bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded font-mono underline"
-              >
-                Auto-fill
-              </button>
-            </div>
-            <p className="font-mono text-zinc-300">Email: <span className="text-white font-semibold">reseller@grekam.com</span></p>
-            <p className="font-mono text-zinc-300">Password: <span className="text-white font-semibold">reseller123</span></p>
-          </div>
-
           <button
             type="submit"
             disabled={isPending}
@@ -143,9 +124,9 @@ export default function ResellerLoginPage() {
         </form>
 
         <div className="text-center pt-2 text-xs text-zinc-500 space-y-1">
-          <p>
-            Super Admin login? <Link href="/admin/login" className="text-purple-400 hover:underline">Click here</Link>
-          </p>
+          <Link href="/auth/login" className="text-zinc-500 hover:text-zinc-300">
+            ← Return to Workshop Login
+          </Link>
         </div>
       </motion.div>
     </div>

@@ -8,8 +8,8 @@ import Link from "next/link"
 
 export default function PartnerLoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("reseller@grekam.com")
-  const [password, setPassword] = useState("reseller123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isPending, setIsPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -124,12 +124,6 @@ export default function PartnerLoginPage() {
               )}
             </button>
           </form>
-
-          <div className="pt-2 border-t border-zinc-800/80 text-center">
-            <p className="text-xs text-zinc-500">
-              Demo Credentials: <span className="text-emerald-400 font-mono">reseller@grekam.com</span> / <span className="text-zinc-300 font-mono">reseller123</span>
-            </p>
-          </div>
         </div>
 
         {/* Back Link */}
