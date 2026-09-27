@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   Building2, ShieldCheck, ArrowRight, CheckCircle2, ChevronRight, Star, Sparkles, 
@@ -21,25 +21,65 @@ export default function GarageLandingPage() {
   // ── DROPDOWN NAVIGATION STATE ──
   const [activeNavDropdown, setActiveNavDropdown] = useState<"FEATURES" | "ECOSYSTEM" | null>(null)
 
-  // ── HERO SLIDESHOW STATE ──
+  // ── HERO SLIDESHOW STATE (crm1.jpeg to crm5.jpeg) ──
   const heroSlides = [
     {
-      image: "/hero-slide-2.jpg",
-      title: "Garage CRM — Visual Sales Pipeline & Lead Tracking",
-      caption: "Turn inbound leads into paying clients with high-converting Kanban pipeline stages."
+      id: "crm-pipeline",
+      image: "/crm1.jpeg",
+      title: "Garage CRM — Visual Sales Pipeline & Lead Kanban",
+      caption: "Track and convert high-ticket leads through customizable pipeline stages with instant contact sync.",
+      tabName: "Sales & Pipeline",
+      badge: "Inbound Deals",
+      icon: Users
     },
     {
-      image: "/hero-slide-1.jpg",
-      title: "Garage CRM — Project Delivery & Client Workspace",
-      caption: "Manage client deliverables, milestones, assets, and team tasks in one transparent workspace."
+      id: "crm-proposals",
+      image: "/crm2.jpeg",
+      title: "Garage CRM — Interactive Web Proposals & Sign-offs",
+      caption: "Send dynamic client proposals with itemized scopes, contract agreements, and 1-click approvals.",
+      tabName: "Proposals & Contracts",
+      badge: "Deal Closing",
+      icon: FileText
     },
     {
-      image: "/hero-slide-3.jpg",
-      title: "Garage CRM — GST Invoicing, Retainers & Instant Payments",
-      caption: "Send itemized proposals, recurring retainer invoices, and collect payments via 1-click links."
+      id: "crm-projects",
+      image: "/crm3.jpeg",
+      title: "Garage CRM — Client Sprint Milestones & Task Delivery",
+      caption: "Manage client deliverables, team sprints, asset vaults, and deliverable approvals in one workspace.",
+      tabName: "Project Milestones",
+      badge: "Operations",
+      icon: Layers
+    },
+    {
+      id: "crm-finance",
+      image: "/crm4.jpeg",
+      title: "Garage CRM — GST Invoicing, Retainers & Instant UPI",
+      caption: "Automate monthly recurring retainer billing, create compliant GST tax bills, and collect payments.",
+      tabName: "GST & Retainers",
+      badge: "Finance & Cashflow",
+      icon: DollarSign
+    },
+    {
+      id: "crm-hr",
+      image: "/crm5.jpeg",
+      title: "Garage CRM — Team HR, Attendance & Payroll System",
+      caption: "Track employee billable hours, project attendance, leave approvals, and commission distributions.",
+      tabName: "HR & Attendance",
+      badge: "Team Talent",
+      icon: UserCheck
     }
   ]
   const [activeSlide, setActiveSlide] = useState(0)
+  const [isSlidePaused, setIsSlidePaused] = useState(false)
+
+  // Auto-play slideshow timer (every 5 seconds)
+  useEffect(() => {
+    if (isSlidePaused) return
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [isSlidePaused, heroSlides.length])
 
   // ── 6 DETAILED INDUSTRY CASE STUDIES STATE ──
   const [activeCaseStudy, setActiveCaseStudy] = useState(0)
@@ -770,50 +810,119 @@ export default function GarageLandingPage() {
           </div>
         </div>
 
-        {/* ── INTERACTIVE HERO SLIDESHOW ── */}
-        <div className="max-w-6xl mx-auto mt-16">
-          <div className="relative rounded-3xl p-2 bg-gradient-to-b from-white/15 via-white/5 to-transparent shadow-2xl border border-white/10 backdrop-blur-2xl">
+        {/* ── INTERACTIVE HERO SLIDESHOW WITH 5 TABS ── */}
+        <div 
+          className="max-w-6xl mx-auto mt-16"
+          onMouseEnter={() => setIsSlidePaused(true)}
+          onMouseLeave={() => setIsSlidePaused(false)}
+        >
+          <div className="relative rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-transparent shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-2xl">
             
             {/* Slideshow Screen Container */}
-            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#0A0E1A]">
-              <img
-                src={heroSlides[activeSlide].image}
-                alt={heroSlides[activeSlide].title}
-                className="w-full h-full object-cover transition-opacity duration-700"
-              />
+            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#070B14] border border-white/10 group">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activeSlide}
+                  src={heroSlides[activeSlide].image}
+                  alt={heroSlides[activeSlide].title}
+                  initial={{ opacity: 0, scale: 1.02 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45, ease: "easeInOut" }}
+                  className="w-full h-full object-cover sm:object-contain bg-[#060913]"
+                />
+              </AnimatePresence>
+
+              {/* Prev / Next Arrow Controls */}
+              <button
+                onClick={() => setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10"
+                aria-label="Previous Slide"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => setActiveSlide((prev) => (prev + 1) % heroSlides.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10"
+                aria-label="Next Slide"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
 
               {/* Slide Caption Overlay */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <div className="text-sm sm:text-base font-bold text-white">{heroSlides[activeSlide].title}</div>
-                  <div className="text-xs text-zinc-300 mt-0.5">{heroSlides[activeSlide].caption}</div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 z-10">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                    <span>{heroSlides[activeSlide].badge}</span>
+                  </div>
+                  <div className="text-sm sm:text-base font-extrabold text-white tracking-tight">{heroSlides[activeSlide].title}</div>
+                  <div className="text-xs text-zinc-300 mt-1 leading-relaxed">{heroSlides[activeSlide].caption}</div>
                 </div>
-                <button
-                  onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shrink-0 shadow-md flex items-center gap-1.5"
-                >
-                  <span>Test in Live Demo</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex gap-1.5 mr-2">
+                    {heroSlides.map((_, dotIdx) => (
+                      <button
+                        key={dotIdx}
+                        onClick={() => setActiveSlide(dotIdx)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          activeSlide === dotIdx ? "w-6 bg-blue-500" : "w-1.5 bg-white/30 hover:bg-white/50"
+                        }`}
+                        aria-label={`Go to slide ${dotIdx + 1}`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shrink-0 shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
+                  >
+                    <span>Try in Live Demo</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Slide Navigation Tabs */}
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {heroSlides.map((slide, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveSlide(idx)}
-                  className={`p-3 rounded-xl text-left transition-all ${
-                    activeSlide === idx
-                      ? "bg-blue-600/20 border border-blue-500/40 text-white"
-                      : "bg-white/[0.02] border border-transparent text-zinc-400 hover:bg-white/[0.05]"
-                  }`}
-                >
-                  <div className="text-[11px] font-bold truncate">{slide.title.replace("Garage CRM — ", "")}</div>
-                  <div className="text-[9px] text-zinc-400 truncate mt-0.5">Click to preview</div>
-                </button>
-              ))}
+            {/* 5 Slide Navigation Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 sm:mt-3">
+              {heroSlides.map((slide, idx) => {
+                const TabIcon = slide.icon
+                const isActive = activeSlide === idx
+                return (
+                  <button
+                    key={slide.id}
+                    onClick={() => setActiveSlide(idx)}
+                    className={`relative p-3 rounded-xl text-left transition-all overflow-hidden ${
+                      isActive
+                        ? "bg-blue-600/20 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)] text-white"
+                        : "bg-white/[0.02] border border-white/5 text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
+                    }`}
+                  >
+                    {/* Active Tab Progress Bar */}
+                    {isActive && (
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400" />
+                    )}
+
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                        isActive ? "bg-blue-500 text-white" : "bg-white/5 text-zinc-400"
+                      }`}>
+                        <TabIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                        isActive ? "text-blue-300" : "text-zinc-500"
+                      }`}>
+                        0{idx + 1}
+                      </span>
+                    </div>
+
+                    <div className="text-xs font-bold truncate">{slide.tabName}</div>
+                    <div className="text-[10px] text-zinc-400 truncate mt-0.5">{slide.badge}</div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>
