@@ -986,14 +986,14 @@ export default function GarageLandingPage() {
           </p>
         </div>
 
-        {/* ── INTERACTIVE CENTRAL NETWORK DIAGRAM WITH GLOWING BEZIER CONNECTIONS ── */}
+        {/* ── INTERACTIVE 360° ORBITAL INTEGRATION NETWORK DIAGRAM ── */}
         <div className="max-w-6xl mx-auto px-4 mb-16">
-          <div className="relative rounded-3xl bg-[#060B17]/95 border border-white/10 p-4 sm:p-8 shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden">
+          <div className="relative rounded-3xl bg-[#050914]/95 border border-white/10 p-4 sm:p-8 shadow-[0_0_80px_rgba(0,0,0,0.85)] overflow-hidden">
             
-            {/* SVG Interactive Canvas */}
-            <div className="relative w-full aspect-[1000/500] max-h-[500px]">
+            {/* SVG Interactive Orbital Canvas */}
+            <div className="relative w-full aspect-[1000/600] max-h-[600px]">
               <svg 
-                viewBox="0 0 1000 480" 
+                viewBox="0 0 1000 600" 
                 className="w-full h-full select-none"
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
@@ -1001,7 +1001,7 @@ export default function GarageLandingPage() {
                 <defs>
                   {/* Glowing Filters */}
                   <filter id="hubGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="10" result="blur" />
+                    <feGaussianBlur stdDeviation="12" result="blur" />
                     <feMerge>
                       <feMergeNode in="blur" />
                       <feMergeNode in="SourceGraphic" />
@@ -1009,7 +1009,7 @@ export default function GarageLandingPage() {
                   </filter>
 
                   <filter id="centerPlateGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#38BDF8" floodOpacity="0.5"/>
+                    <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#38BDF8" floodOpacity="0.6"/>
                   </filter>
 
                   <filter id="particleGlow" x="-100%" y="-100%" width="300%" height="300%">
@@ -1021,299 +1021,312 @@ export default function GarageLandingPage() {
                   </filter>
 
                   <filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
                     <feMerge>
                       <feMergeNode in="blur" />
                       <feMergeNode in="SourceGraphic" />
                     </feMerge>
                   </filter>
 
-                  {/* Gradient Lines */}
-                  <linearGradient id="gradLeft" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#00E5FF" stopOpacity="0.9" />
-                    <stop offset="50%" stopColor="#0284C7" stopOpacity="0.6" />
-                    <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.2" />
+                  {/* Radial Center Glow Ring */}
+                  <radialGradient id="centerGlowRing" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#0284C7" stopOpacity="0.6" />
+                    <stop offset="60%" stopColor="#1E1B4B" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+                  </radialGradient>
+
+                  {/* Directional Gradients */}
+                  <linearGradient id="gradTop" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#10B981" stopOpacity="0.9" />
                   </linearGradient>
 
                   <linearGradient id="gradRight" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.2" />
-                    <stop offset="50%" stopColor="#059669" stopOpacity="0.6" />
-                    <stop offset="100%" stopColor="#10B981" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#6366F1" stopOpacity="0.9" />
                   </linearGradient>
 
-                  <radialGradient id="centerGlowRing" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#0284C7" stopOpacity="0.5" />
-                    <stop offset="60%" stopColor="#0F172A" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="transparent" stopOpacity="0" />
-                  </radialGradient>
+                  <linearGradient id="gradBottom" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.9" />
+                  </linearGradient>
+
+                  <linearGradient id="gradLeft" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#00E5FF" stopOpacity="0.9" />
+                  </linearGradient>
                 </defs>
 
-                {/* ── AMBIENT NEON GLOW BACKDROP LINES (Soft Gaussian Blur) ── */}
-                <path d="M 500 240 C 370 240, 280 60, 185 60" stroke="#00E5FF" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 360 240, 250 145, 145 145" stroke="#38BDF8" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 340 240, 220 240, 115 240" stroke="#60A5FA" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 360 240, 250 335, 145 335" stroke="#818CF8" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 370 240, 280 420, 185 420" stroke="#00E5FF" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                {/* ── CONCENTRIC ORBITAL RINGS ── */}
+                {/* Outer Orbit Glow */}
+                <ellipse cx="500" cy="300" rx="380" ry="215" stroke="#00E5FF" strokeWidth="4" strokeOpacity="0.08" filter="url(#particleGlow)" />
+                {/* Outer Orbit Dashed Line */}
+                <ellipse cx="500" cy="300" rx="380" ry="215" stroke="rgba(56,189,248,0.25)" strokeWidth="1.5" strokeDasharray="6 8" />
+                
+                {/* Inner Orbit Dashed Line */}
+                <ellipse cx="500" cy="300" rx="230" ry="130" stroke="rgba(99,102,241,0.18)" strokeWidth="1" strokeDasharray="4 6" />
 
-                <path d="M 500 240 C 630 240, 720 60, 815 60" stroke="#10B981" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 640 240, 750 145, 855 145" stroke="#34D399" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 660 240, 780 240, 885 240" stroke="#10B981" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 640 240, 750 335, 855 335" stroke="#38BDF8" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
-                <path d="M 500 240 C 630 240, 720 420, 815 420" stroke="#10B981" strokeWidth="5" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                {/* ── AMBIENT NEON GLOW BACKDROP CONNECTING LINES ── */}
+                <path d="M 500 300 C 500 220, 500 160, 500 85" stroke="#10B981" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 575 300, 640 220, 690 115" stroke="#14B8A6" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 640 300, 750 260, 830 195" stroke="#0C83FD" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 660 300, 780 300, 880 300" stroke="#6366F1" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 640 300, 750 340, 830 405" stroke="#0284C7" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 575 300, 640 380, 690 485" stroke="#5F259F" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 500 380, 500 440, 500 515" stroke="#EA4335" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 425 300, 360 380, 310 485" stroke="#F59E0B" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 360 300, 250 340, 170 405" stroke="#FF6D5A" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 340 300, 220 300, 120 300" stroke="#6B38FB" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 360 300, 250 260, 170 195" stroke="#2D8CFF" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
+                <path d="M 500 300 C 425 300, 360 220, 310 115" stroke="#0081FB" strokeWidth="4" strokeOpacity="0.18" filter="url(#particleGlow)" />
 
-                {/* ── CRISP CONNECTING GLOWING BEZIER CURVES ── */}
-                {/* Left Paths */}
-                <path id="pathL1" d="M 500 240 C 370 240, 280 60, 185 60" stroke="url(#gradLeft)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathL2" d="M 500 240 C 360 240, 250 145, 145 145" stroke="url(#gradLeft)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathL3" d="M 500 240 C 340 240, 220 240, 115 240" stroke="url(#gradLeft)" strokeWidth="2.2" strokeLinecap="round" />
-                <path id="pathL4" d="M 500 240 C 360 240, 250 335, 145 335" stroke="url(#gradLeft)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathL5" d="M 500 240 C 370 240, 280 420, 185 420" stroke="url(#gradLeft)" strokeWidth="2" strokeLinecap="round" />
+                {/* ── CRISP CONNECTING GLOWING RADIAL BEZIER PATHS ── */}
+                <path id="pathOrb0" d="M 500 300 C 500 220, 500 160, 500 85" stroke="url(#gradTop)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb1" d="M 500 300 C 575 300, 640 220, 690 115" stroke="url(#gradTop)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb2" d="M 500 300 C 640 300, 750 260, 830 195" stroke="url(#gradRight)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb3" d="M 500 300 C 660 300, 780 300, 880 300" stroke="url(#gradRight)" strokeWidth="2.2" strokeLinecap="round" />
+                <path id="pathOrb4" d="M 500 300 C 640 300, 750 340, 830 405" stroke="url(#gradRight)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb5" d="M 500 300 C 575 300, 640 380, 690 485" stroke="url(#gradBottom)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb6" d="M 500 300 C 500 380, 500 440, 500 515" stroke="url(#gradBottom)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb7" d="M 500 300 C 425 300, 360 380, 310 485" stroke="url(#gradBottom)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb8" d="M 500 300 C 360 300, 250 340, 170 405" stroke="url(#gradLeft)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb9" d="M 500 300 C 340 300, 220 300, 120 300" stroke="url(#gradLeft)" strokeWidth="2.2" strokeLinecap="round" />
+                <path id="pathOrb10" d="M 500 300 C 360 300, 250 260, 170 195" stroke="url(#gradLeft)" strokeWidth="1.8" strokeLinecap="round" />
+                <path id="pathOrb11" d="M 500 300 C 425 300, 360 220, 310 115" stroke="url(#gradLeft)" strokeWidth="1.8" strokeLinecap="round" />
 
-                {/* Right Paths */}
-                <path id="pathR1" d="M 500 240 C 630 240, 720 60, 815 60" stroke="url(#gradRight)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathR2" d="M 500 240 C 640 240, 750 145, 855 145" stroke="url(#gradRight)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathR3" d="M 500 240 C 660 240, 780 240, 885 240" stroke="url(#gradRight)" strokeWidth="2.2" strokeLinecap="round" />
-                <path id="pathR4" d="M 500 240 C 640 240, 750 335, 855 335" stroke="url(#gradRight)" strokeWidth="2" strokeLinecap="round" />
-                <path id="pathR5" d="M 500 240 C 630 240, 720 420, 815 420" stroke="url(#gradRight)" strokeWidth="2" strokeLinecap="round" />
-
-                {/* ── STATIONARY LUMINOUS ACCENT DOTS (Matching reference image) ── */}
-                <circle cx="275" cy="115" r="3.5" fill="#38BDF8" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="360" cy="205" r="3.5" fill="#A855F7" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="215" cy="185" r="3.5" fill="#38BDF8" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="215" cy="295" r="3.5" fill="#38BDF8" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="275" cy="365" r="3.5" fill="#38BDF8" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="360" cy="275" r="3.5" fill="#A855F7" opacity="0.8" filter="url(#dotGlow)" />
-
-                <circle cx="725" cy="115" r="3.5" fill="#34D399" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="640" cy="205" r="3.5" fill="#A855F7" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="785" cy="185" r="3.5" fill="#34D399" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="785" cy="295" r="3.5" fill="#34D399" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="725" cy="365" r="3.5" fill="#34D399" opacity="0.8" filter="url(#dotGlow)" />
-                <circle cx="640" cy="275" r="3.5" fill="#A855F7" opacity="0.8" filter="url(#dotGlow)" />
-
-                {/* ── ANIMATED TRAVELING ENERGY PARTICLES (Gliding along curves) ── */}
-                {/* Left Animated Glowing Dots */}
-                <circle r="4.5" fill="#00E5FF" filter="url(#particleGlow)">
-                  <animateMotion dur="3.2s" repeatCount="indefinite" path="M 500 240 C 370 240, 280 60, 185 60" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                {/* ── ANIMATED TRAVELING ENERGY PARTICLES (360° Radial Flow) ── */}
+                <circle r="4" fill="#10B981" filter="url(#particleGlow)">
+                  <animateMotion dur="2.8s" repeatCount="indefinite" path="M 500 300 C 500 220, 500 160, 500 85" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#38BDF8" filter="url(#particleGlow)">
-                  <animateMotion dur="2.7s" repeatCount="indefinite" path="M 500 240 C 360 240, 250 145, 145 145" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#14B8A6" filter="url(#particleGlow)">
+                  <animateMotion dur="3.2s" repeatCount="indefinite" path="M 500 300 C 575 300, 640 220, 690 115" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#818CF8" filter="url(#particleGlow)">
-                  <animateMotion dur="3.5s" repeatCount="indefinite" path="M 500 240 C 340 240, 220 240, 115 240" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#0C83FD" filter="url(#particleGlow)">
+                  <animateMotion dur="2.6s" repeatCount="indefinite" path="M 500 300 C 640 300, 750 260, 830 195" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#38BDF8" filter="url(#particleGlow)">
-                  <animateMotion dur="2.9s" repeatCount="indefinite" path="M 500 240 C 360 240, 250 335, 145 335" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#6366F1" filter="url(#particleGlow)">
+                  <animateMotion dur="3.5s" repeatCount="indefinite" path="M 500 300 C 660 300, 780 300, 880 300" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#00E5FF" filter="url(#particleGlow)">
-                  <animateMotion dur="3.4s" repeatCount="indefinite" path="M 500 240 C 370 240, 280 420, 185 420" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#0284C7" filter="url(#particleGlow)">
+                  <animateMotion dur="3.0s" repeatCount="indefinite" path="M 500 300 C 640 300, 750 340, 830 405" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-
-                {/* Right Animated Glowing Dots */}
-                <circle r="4.5" fill="#10B981" filter="url(#particleGlow)">
-                  <animateMotion dur="2.8s" repeatCount="indefinite" path="M 500 240 C 630 240, 720 60, 815 60" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#A855F7" filter="url(#particleGlow)">
+                  <animateMotion dur="3.4s" repeatCount="indefinite" path="M 500 300 C 575 300, 640 380, 690 485" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#34D399" filter="url(#particleGlow)">
-                  <animateMotion dur="3.3s" repeatCount="indefinite" path="M 500 240 C 640 240, 750 145, 855 145" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#EA4335" filter="url(#particleGlow)">
+                  <animateMotion dur="2.9s" repeatCount="indefinite" path="M 500 300 C 500 380, 500 440, 500 515" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#10B981" filter="url(#particleGlow)">
-                  <animateMotion dur="2.6s" repeatCount="indefinite" path="M 500 240 C 660 240, 780 240, 885 240" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#F59E0B" filter="url(#particleGlow)">
+                  <animateMotion dur="3.3s" repeatCount="indefinite" path="M 500 300 C 425 300, 360 380, 310 485" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#6EE7B7" filter="url(#particleGlow)">
-                  <animateMotion dur="3.6s" repeatCount="indefinite" path="M 500 240 C 640 240, 750 335, 855 335" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#FF6D5A" filter="url(#particleGlow)">
+                  <animateMotion dur="2.7s" repeatCount="indefinite" path="M 500 300 C 360 300, 250 340, 170 405" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
-                <circle r="4.5" fill="#10B981" filter="url(#particleGlow)">
-                  <animateMotion dur="3.0s" repeatCount="indefinite" path="M 500 240 C 630 240, 720 420, 815 420" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                <circle r="4" fill="#6B38FB" filter="url(#particleGlow)">
+                  <animateMotion dur="3.6s" repeatCount="indefinite" path="M 500 300 C 340 300, 220 300, 120 300" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                </circle>
+                <circle r="4" fill="#2D8CFF" filter="url(#particleGlow)">
+                  <animateMotion dur="3.1s" repeatCount="indefinite" path="M 500 300 C 360 300, 250 260, 170 195" keyPoints="0;1;0" keyTimes="0;0.5;1" />
+                </circle>
+                <circle r="4" fill="#00E5FF" filter="url(#particleGlow)">
+                  <animateMotion dur="2.5s" repeatCount="indefinite" path="M 500 300 C 425 300, 360 220, 310 115" keyPoints="0;1;0" keyTimes="0;0.5;1" />
                 </circle>
 
                 {/* ── TERMINAL CONNECTION GLOWING DOTS ── */}
-                <circle cx="185" cy="60" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="145" cy="145" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="115" cy="240" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="145" cy="335" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="185" cy="420" r="4" fill="#10B981" filter="url(#dotGlow)" />
+                <circle cx="500" cy="85" r="4" fill="#10B981" filter="url(#dotGlow)" />
+                <circle cx="690" cy="115" r="4" fill="#14B8A6" filter="url(#dotGlow)" />
+                <circle cx="830" cy="195" r="4" fill="#0C83FD" filter="url(#dotGlow)" />
+                <circle cx="880" cy="300" r="4" fill="#6366F1" filter="url(#dotGlow)" />
+                <circle cx="830" cy="405" r="4" fill="#0284C7" filter="url(#dotGlow)" />
+                <circle cx="690" cy="485" r="4" fill="#A855F7" filter="url(#dotGlow)" />
+                <circle cx="500" cy="515" r="4" fill="#EA4335" filter="url(#dotGlow)" />
+                <circle cx="310" cy="485" r="4" fill="#F59E0B" filter="url(#dotGlow)" />
+                <circle cx="170" cy="405" r="4" fill="#FF6D5A" filter="url(#dotGlow)" />
+                <circle cx="120" cy="300" r="4" fill="#6B38FB" filter="url(#dotGlow)" />
+                <circle cx="170" cy="195" r="4" fill="#2D8CFF" filter="url(#dotGlow)" />
+                <circle cx="310" cy="115" r="4" fill="#0081FB" filter="url(#dotGlow)" />
 
-                <circle cx="815" cy="60" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="855" cy="145" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="885" cy="240" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="855" cy="335" r="4" fill="#10B981" filter="url(#dotGlow)" />
-                <circle cx="815" cy="420" r="4" fill="#10B981" filter="url(#dotGlow)" />
-
-                {/* ── CENTER HUB: GARAGE CRM LOGO WITH GLOWING CONCENTRIC PULSES ── */}
+                {/* ── CENTER HUB: GARAGE CRM LOGO WITH GLOWING ORBITAL ENGINE ── */}
                 {/* Outer Ripple 1 */}
-                <circle cx="500" cy="240" r="78" fill="url(#centerGlowRing)">
-                  <animate attributeName="r" values="72;84;72" dur="4s" repeatCount="indefinite" />
+                <circle cx="500" cy="300" r="86" fill="url(#centerGlowRing)">
+                  <animate attributeName="r" values="80;92;80" dur="4s" repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0.4;0.8;0.4" dur="4s" repeatCount="indefinite" />
                 </circle>
 
                 {/* Outer Glow Ring 2 */}
-                <circle cx="500" cy="240" r="62" fill="#081021" stroke="#00E5FF" strokeWidth="1.5" strokeOpacity="0.5" filter="url(#hubGlow)" />
-                <circle cx="500" cy="240" r="50" fill="#040813" stroke="#38BDF8" strokeWidth="2" strokeOpacity="0.8" />
+                <circle cx="500" cy="300" r="68" fill="#081021" stroke="#00E5FF" strokeWidth="1.5" strokeOpacity="0.5" filter="url(#hubGlow)" />
+                <circle cx="500" cy="300" r="54" fill="#040813" stroke="#38BDF8" strokeWidth="2" strokeOpacity="0.8" />
 
                 {/* Center White Clean Circular Plate */}
-                <circle cx="500" cy="240" r="42" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="1.5" filter="url(#centerPlateGlow)" />
+                <circle cx="500" cy="300" r="44" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" filter="url(#centerPlateGlow)" />
 
                 {/* Garage CRM Logo Mark Image in Center */}
                 <image 
                   href="/garage-logo.svg" 
-                  x="468" 
-                  y="208" 
-                  width="64" 
-                  height="64" 
+                  x="466" 
+                  y="266" 
+                  width="68" 
+                  height="68" 
                   className="rounded-full"
                 />
 
-                {/* ── SURROUNDING INTEGRATION NODES (LEFT SIDE) ── */}
-                {/* Node L1: Meta Ads */}
-                <g transform="translate(185, 60)">
-                  <foreignObject x="-175" y="-22" width="165" height="44">
-                    <div className="flex items-center justify-end gap-3 h-full pr-1">
-                      <div className="w-10 h-10 rounded-full bg-[#0081FB] shadow-[0_0_18px_rgba(0,129,251,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-white tracking-wide">Meta Ads</span>
+                {/* ── 12 SURROUNDING CIRCULAR INTEGRATION LOGOS IN 360° ORBIT ── */}
+                
+                {/* Node 0 (12 o'clock / Top): WhatsApp Marketing */}
+                <g transform="translate(500, 85)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#25D366] shadow-[0_0_22px_rgba(37,211,102,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.44 19.65L5.27 16.62L5.07 16.3C4.24 14.98 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.69 12.04 3.69C14.24 3.69 16.31 4.55 17.86 6.11C19.42 7.66 20.27 9.73 20.27 11.92C20.28 16.46 16.58 20.15 12.04 20.15Z"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="0" y="-32" textAnchor="middle" className="text-[11px] font-bold fill-emerald-300 tracking-wide">WhatsApp</text>
                 </g>
 
-                {/* Node L2: Google Ads */}
-                <g transform="translate(145, 145)">
-                  <foreignObject x="-175" y="-22" width="165" height="44">
-                    <div className="flex items-center justify-end gap-3 h-full pr-1">
-                      <div className="w-10 h-10 rounded-full bg-[#F59E0B] shadow-[0_0_18px_rgba(245,158,11,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                          <path d="M3.7 13.3L8.8 4.5C9.4 3.4 10.8 3 11.9 3.6C13 4.2 13.4 5.6 12.8 6.7L7.7 15.5C7.1 16.6 5.7 17 4.6 16.4C3.5 15.8 3.1 14.4 3.7 13.3Z" fill="white"/>
-                          <path d="M12.8 6.7L17.9 15.5C18.5 16.6 18.1 18 17 18.6C15.9 19.2 14.5 18.8 13.9 17.7L8.8 8.9C9.4 8.2 10.3 7.8 11.2 7.8C11.8 7.8 12.4 8 12.8 8.4L12.8 6.7Z" fill="#1E3A8A"/>
-                          <circle cx="5.5" cy="17.5" r="2.5" fill="#34D399"/>
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-white tracking-wide">Google Ads</span>
+                {/* Node 1 (1 o'clock): Grafty AI */}
+                <g transform="translate(690, 115)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#0F766E] shadow-[0_0_22px_rgba(20,184,166,0.6)] flex items-center justify-center border-2 border-teal-300/40 p-2 hover:scale-110 transition-transform cursor-pointer">
+                      <img src="https://grafty.pro/grafty.svg" alt="Grafty" className="w-full h-full object-contain" />
                     </div>
                   </foreignObject>
+                  <text x="35" y="-12" textAnchor="start" className="text-[11px] font-bold fill-teal-300 tracking-wide">Grafty AI</text>
                 </g>
 
-                {/* Node L3: Google Sheets */}
-                <g transform="translate(115, 240)">
-                  <foreignObject x="-185" y="-22" width="175" height="44">
-                    <div className="flex items-center justify-end gap-3 h-full pr-1">
-                      <div className="w-10 h-10 rounded-full bg-[#0F9D58] shadow-[0_0_18px_rgba(15,157,88,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                          <rect x="5" y="4" width="14" height="16" rx="2" fill="white"/>
-                          <path d="M8 8H16M8 12H16M8 16H16" stroke="#0F9D58" strokeWidth="1.8" strokeLinecap="round"/>
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-white tracking-wide">Google Sheets</span>
+                {/* Node 2 (2 o'clock): Razorpay */}
+                <g transform="translate(830, 195)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#0C2340] shadow-[0_0_22px_rgba(12,131,253,0.6)] flex items-center justify-center border-2 border-blue-400/40 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M7 17L12 7H17L12 17H7ZM12 7L15 12H10.5L12 7Z" fill="#0C83FD"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="35" y="5" textAnchor="start" className="text-[11px] font-bold fill-blue-300 tracking-wide">Razorpay</text>
                 </g>
 
-                {/* Node L4: Zoom & Meet */}
-                <g transform="translate(145, 335)">
-                  <foreignObject x="-175" y="-22" width="165" height="44">
-                    <div className="flex items-center justify-end gap-3 h-full pr-1">
-                      <div className="w-10 h-10 rounded-full bg-[#2D8CFF] shadow-[0_0_18px_rgba(45,140,255,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M5 8C5 6.89543 5.89543 6 7 6H13C14.1046 6 15 6.89543 15 8V16C15 17.1046 14.1046 18 13 18H7C5.89543 18 5 17.1046 5 16V8Z"/>
-                          <path d="M16 10L19.5 7.5V16.5L16 14V10Z"/>
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-white tracking-wide">Zoom & Meet</span>
+                {/* Node 3 (3 o'clock / East): Stripe */}
+                <g transform="translate(880, 300)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#635BFF] shadow-[0_0_22px_rgba(99,91,255,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14.5 10.2C14.5 9.4 13.8 8.9 12.6 8.9C11.1 8.9 9.8 9.5 9 10L8.2 8.2C9.3 7.5 10.9 7 12.7 7C15.3 7 17 8.2 17 10.4C17 13.5 12.9 13.2 12.9 14.5C12.9 15.2 13.7 15.6 14.8 15.6C16.2 15.6 17.5 15 18.2 14.4L19 16.2C18 17 16.4 17.5 14.6 17.5C12.1 17.5 10.4 16.2 10.4 14.1C10.4 10.8 14.5 11.2 14.5 10.2Z"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="35" y="5" textAnchor="start" className="text-[11px] font-bold fill-indigo-300 tracking-wide">Stripe</text>
                 </g>
 
-                {/* Node L5: Make & n8n */}
-                <g transform="translate(185, 420)">
-                  <foreignObject x="-195" y="-22" width="185" height="44">
-                    <div className="flex items-center justify-end gap-3 h-full pr-1">
-                      <div className="w-10 h-10 rounded-full bg-[#6B38FB] shadow-[0_0_18px_rgba(107,56,251,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                          <path d="M6 16V8L10 13L14 8V16M14 16H18V8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-white tracking-wide">Make & n8n</span>
+                {/* Node 4 (4 o'clock): GST e-Invoicing */}
+                <g transform="translate(830, 405)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#0284C7] shadow-[0_0_22px_rgba(2,132,199,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 4L18 7V12C18 16 12 20 12 20C12 20 6 16 6 12V7L12 4Z" stroke="#38BDF8" strokeWidth="1.5" fill="#0284C7"/>
+                        <path d="M9 12L11 14L15 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="35" y="5" textAnchor="start" className="text-[11px] font-bold fill-sky-300 tracking-wide">GST Portal</text>
                 </g>
 
-                {/* ── SURROUNDING INTEGRATION NODES (RIGHT SIDE) ── */}
-                {/* Node R1: WhatsApp Marketing */}
-                <g transform="translate(815, 60)">
-                  <foreignObject x="10" y="-22" width="195" height="44">
-                    <div className="flex items-center justify-start gap-3 h-full pl-1">
-                      <span className="text-xs font-bold text-white tracking-wide">WhatsApp Marketing</span>
-                      <div className="w-10 h-10 rounded-full bg-[#25D366] shadow-[0_0_18px_rgba(37,211,102,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.44 19.65L5.27 16.62L5.07 16.3C4.24 14.98 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.69 12.04 3.69C14.24 3.69 16.31 4.55 17.86 6.11C19.42 7.66 20.27 9.73 20.27 11.92C20.28 16.46 16.58 20.15 12.04 20.15Z"/>
-                        </svg>
-                      </div>
+                {/* Node 5 (5 o'clock): PhonePe */}
+                <g transform="translate(690, 485)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#5F259F] shadow-[0_0_22px_rgba(95,37,159,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M8.5 7H14C15.5 7 16.5 8 16.5 9.5C16.5 11 15.5 12 14 12H11V17H8.5V7ZM11 9.5V10H13.5C14 10 14.3 9.8 14.3 9.5C14.3 9.2 14 9 13.5 9H11V9.5Z" fill="white"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="35" y="15" textAnchor="start" className="text-[11px] font-bold fill-purple-300 tracking-wide">PhonePe</text>
                 </g>
 
-                {/* Node R2: Grafty AI */}
-                <g transform="translate(855, 145)">
-                  <foreignObject x="10" y="-22" width="175" height="44">
-                    <div className="flex items-center justify-start gap-3 h-full pl-1">
-                      <span className="text-xs font-bold text-white tracking-wide">Grafty AI Chat</span>
-                      <div className="w-10 h-10 rounded-full bg-[#0F766E] shadow-[0_0_18px_rgba(15,118,110,0.5)] flex items-center justify-center shrink-0 border border-teal-300/40 p-1.5">
-                        <img src="https://grafty.pro/grafty.svg" alt="Grafty" className="w-full h-full object-contain" />
-                      </div>
+                {/* Node 6 (6 o'clock / Bottom): Gmail */}
+                <g transform="translate(500, 515)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#EA4335] shadow-[0_0_22px_rgba(234,67,53,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 7L12 12.5L19 7M5 7V17H19V7H5Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="0" y="42" textAnchor="middle" className="text-[11px] font-bold fill-red-300 tracking-wide">Gmail Sync</text>
                 </g>
 
-                {/* Node R3: Razorpay & UPI */}
-                <g transform="translate(885, 240)">
-                  <foreignObject x="10" y="-22" width="185" height="44">
-                    <div className="flex items-center justify-start gap-3 h-full pl-1">
-                      <span className="text-xs font-bold text-white tracking-wide">Payments & UPI</span>
-                      <div className="w-10 h-10 rounded-full bg-[#0C2340] shadow-[0_0_18px_rgba(12,131,253,0.5)] flex items-center justify-center shrink-0 border border-blue-400/30">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                          <path d="M7 17L12 7H17L12 17H7ZM12 7L15 12H10.5L12 7Z" fill="#0C83FD"/>
-                        </svg>
-                      </div>
+                {/* Node 7 (7 o'clock): Google Analytics */}
+                <g transform="translate(310, 485)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#F59E0B] shadow-[0_0_22px_rgba(245,158,11,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <rect x="5" y="13" width="3" height="6" rx="1" fill="#E37400"/>
+                        <rect x="10.5" y="9" width="3" height="10" rx="1" fill="#E37400"/>
+                        <rect x="16" y="5" width="3" height="14" rx="1" fill="white"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="-35" y="15" textAnchor="end" className="text-[11px] font-bold fill-amber-300 tracking-wide">Analytics</text>
                 </g>
 
-                {/* Node R4: Stripe Billing */}
-                <g transform="translate(855, 335)">
-                  <foreignObject x="10" y="-22" width="175" height="44">
-                    <div className="flex items-center justify-start gap-3 h-full pl-1">
-                      <span className="text-xs font-bold text-white tracking-wide">Stripe Billing</span>
-                      <div className="w-10 h-10 rounded-full bg-[#635BFF] shadow-[0_0_18px_rgba(99,91,255,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M14.5 10.2C14.5 9.4 13.8 8.9 12.6 8.9C11.1 8.9 9.8 9.5 9 10L8.2 8.2C9.3 7.5 10.9 7 12.7 7C15.3 7 17 8.2 17 10.4C17 13.5 12.9 13.2 12.9 14.5C12.9 15.2 13.7 15.6 14.8 15.6C16.2 15.6 17.5 15 18.2 14.4L19 16.2C18 17 16.4 17.5 14.6 17.5C12.1 17.5 10.4 16.2 10.4 14.1C10.4 10.8 14.5 11.2 14.5 10.2Z"/>
-                        </svg>
-                      </div>
+                {/* Node 8 (8 o'clock): n8n Workflows */}
+                <g transform="translate(170, 405)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#FF6D5A] shadow-[0_0_22px_rgba(255,109,90,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <circle cx="7" cy="12" r="2.5" fill="white"/>
+                        <circle cx="17" cy="8" r="2.5" fill="white"/>
+                        <circle cx="17" cy="16" r="2.5" fill="white"/>
+                        <path d="M9.5 12H14.5M14.5 8.5L9.5 12L14.5 15.5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="-35" y="5" textAnchor="end" className="text-[11px] font-bold fill-orange-300 tracking-wide">n8n AI</text>
                 </g>
 
-                {/* Node R5: GST e-Invoicing */}
-                <g transform="translate(815, 420)">
-                  <foreignObject x="10" y="-22" width="185" height="44">
-                    <div className="flex items-center justify-start gap-3 h-full pl-1">
-                      <span className="text-xs font-bold text-white tracking-wide">GST e-Invoicing</span>
-                      <div className="w-10 h-10 rounded-full bg-[#0284C7] shadow-[0_0_18px_rgba(2,132,199,0.5)] flex items-center justify-center shrink-0 border border-white/20">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                          <path d="M12 4L18 7V12C18 16 12 20 12 20C12 20 6 16 6 12V7L12 4Z" stroke="#38BDF8" strokeWidth="1.5" fill="#0284C7"/>
-                          <path d="M9 12L11 14L15 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
+                {/* Node 9 (9 o'clock / West): Make */}
+                <g transform="translate(120, 300)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#6B38FB] shadow-[0_0_22px_rgba(107,56,251,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 16V8L10 13L14 8V16M14 16H18V8" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   </foreignObject>
+                  <text x="-35" y="5" textAnchor="end" className="text-[11px] font-bold fill-purple-300 tracking-wide">Make</text>
+                </g>
+
+                {/* Node 10 (10 o'clock): Zoom & Meet */}
+                <g transform="translate(170, 195)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#2D8CFF] shadow-[0_0_22px_rgba(45,140,255,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5 8C5 6.89543 5.89543 6 7 6H13C14.1046 6 15 6.89543 15 8V16C15 17.1046 14.1046 18 13 18H7C5.89543 18 5 17.1046 5 16V8Z"/>
+                        <path d="M16 10L19.5 7.5V16.5L16 14V10Z"/>
+                      </svg>
+                    </div>
+                  </foreignObject>
+                  <text x="-35" y="5" textAnchor="end" className="text-[11px] font-bold fill-blue-300 tracking-wide">Zoom / Meet</text>
+                </g>
+
+                {/* Node 11 (11 o'clock): Meta & Google Ads */}
+                <g transform="translate(310, 115)">
+                  <foreignObject x="-24" y="-24" width="48" height="48">
+                    <div className="w-12 h-12 rounded-full bg-[#0081FB] shadow-[0_0_22px_rgba(0,129,251,0.6)] flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+                      </svg>
+                    </div>
+                  </foreignObject>
+                  <text x="-35" y="-12" textAnchor="end" className="text-[11px] font-bold fill-cyan-300 tracking-wide">Meta & Ads</text>
                 </g>
 
               </svg>
             </div>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-3">
               <span className="text-[11px] text-zinc-400 font-mono uppercase tracking-widest">
-                Real-Time Synchronized Hub • Bi-directional Event Webhooks
+                360° Orbital Architecture • Real-Time Bi-directional Synchronization
               </span>
             </div>
 
