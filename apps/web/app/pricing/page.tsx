@@ -8,9 +8,8 @@ import {
   X,
   ChevronDown,
   ArrowRight,
-  Sparkles,
   ShieldCheck,
-  Zap,
+  CheckCircle2,
   Building2,
   Users,
   CreditCard,
@@ -313,7 +312,7 @@ export default function PricingPage() {
                       </div>
                     </a>
                     <a href="https://grafty.pro" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Zap className="w-5 h-5 text-green-400 mt-0.5" />
+                      <MessageSquare className="w-5 h-5 text-emerald-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">Grafty WhatsApp</div>
                         <div className="text-[11px] text-zinc-400">WhatsApp business automation</div>
@@ -338,7 +337,7 @@ export default function PricingPage() {
               onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
               className="px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors flex items-center gap-2"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
               View Demo
             </button>
             <Link
@@ -355,7 +354,7 @@ export default function PricingPage() {
       <section className="pt-20 pb-16 px-6 relative text-center">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6">
-            <Sparkles className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5" />
             <span>Simple, Transparent Pricing • No Hidden Setup Fees</span>
           </div>
 
@@ -634,7 +633,7 @@ export default function PricingPage() {
               {!demoSubmitted ? (
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-4">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Instant Live Access</span>
                   </div>
 

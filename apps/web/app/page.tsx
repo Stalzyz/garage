@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
-  Building2, ShieldCheck, ArrowRight, CheckCircle2, ChevronRight, Star, Sparkles, 
+  Building2, ShieldCheck, ArrowRight, CheckCircle2, ChevronRight, Star, 
   LayoutDashboard, Layers, Users, Briefcase, DollarSign, UserCheck, CheckSquare, 
   Trophy, Radio, Globe, BarChart2, LifeBuoy, Workflow, MessageSquare, HardDrive, Bell, 
   BookOpen, Settings, Phone, Calendar, Mail, Clock, FileText, Package, RefreshCw, X, AlertCircle,
-  TrendingUp, Sliders, Smartphone, Check, Zap, HelpCircle, ChevronDown, PlayCircle, ExternalLink,
-  Receipt, Flame, Compass, Award, ShieldAlert, FileCode2, ChevronUp, Send, UserPlus,
+  TrendingUp, Sliders, Smartphone, Check, HelpCircle, ChevronDown, PlayCircle, ExternalLink,
+  Receipt, Compass, Award, ShieldAlert, FileCode2, ChevronUp, Send, UserPlus,
   Lock, Share2, ChevronLeft, Quote, Code, Megaphone, Video, BriefcaseBusiness, ShoppingCart, Server
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -711,7 +711,7 @@ export default function GarageLandingPage() {
                       </div>
                     </a>
                     <a href="https://grafty.pro" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Zap className="w-5 h-5 text-green-400 mt-0.5" />
+                      <MessageSquare className="w-5 h-5 text-emerald-400 mt-0.5" />
                       <div>
                         <div className="text-xs font-semibold text-white">Grafty WhatsApp</div>
                         <div className="text-[11px] text-zinc-400">WhatsApp business automation</div>
@@ -736,7 +736,7 @@ export default function GarageLandingPage() {
               onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
               className="px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors flex items-center gap-2"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <PlayCircle className="w-3.5 h-3.5 text-blue-400" />
               View Demo
             </button>
             <Link
@@ -750,39 +750,39 @@ export default function GarageLandingPage() {
       </header>
 
       {/* ── 2. HERO SECTION ── */}
-      <section id="overview" className="relative pt-20 pb-28 px-6 overflow-hidden">
+      <section id="overview" className="relative pt-16 sm:pt-20 pb-20 sm:pb-28 px-4 sm:px-6 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] pointer-events-none -z-10" />
 
         <div className="max-w-5xl mx-auto text-center">
           
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-8">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6 sm:mb-8">
+            <ShieldCheck className="w-3.5 h-3.5" />
             <span>All-in-One CRM, Sales & Operations Platform for Modern Businesses</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.12]">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.15]">
             Get more clients. <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
               Close deals faster. Scale your business.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+          <p className="text-sm sm:text-base lg:text-lg text-zinc-400 max-w-3xl mx-auto mb-8 sm:mb-10 leading-relaxed font-normal">
             Garage CRM is the all-in-one workspace that brings your sales pipeline, interactive client proposals, project deliverables, recurring retainer billing, team HR, and automated WhatsApp follow-ups into one simple platform.
           </p>
 
           {/* Direct CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16">
             <button
               onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
             >
               <span>Explore Live Demo Dashboard</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <a
               href="#case-studies"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 backdrop-blur-xl transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 backdrop-blur-xl transition-all flex items-center justify-center gap-2"
             >
               <span>See 6 Industry Case Studies</span>
               <ChevronDown className="w-4 h-4 text-zinc-400" />
@@ -790,7 +790,7 @@ export default function GarageLandingPage() {
           </div>
 
           {/* Quick Feature Proof Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-400 border-t border-white/5 pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-zinc-400 border-t border-white/5 pt-6 sm:pt-8">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Visual Kanban Sales Pipelines</span>
@@ -812,14 +812,14 @@ export default function GarageLandingPage() {
 
         {/* ── INTERACTIVE HERO SLIDESHOW WITH 5 TABS ── */}
         <div 
-          className="max-w-6xl mx-auto mt-16"
+          className="max-w-6xl mx-auto mt-12 sm:mt-16"
           onMouseEnter={() => setIsSlidePaused(true)}
           onMouseLeave={() => setIsSlidePaused(false)}
         >
-          <div className="relative rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-transparent shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-2xl">
+          <div className="relative rounded-2xl sm:rounded-3xl p-1.5 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-transparent shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-2xl">
             
             {/* Slideshow Screen Container */}
-            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#070B14] border border-white/10 group">
+            <div className="relative aspect-[16/10] sm:aspect-[16/9] min-h-[220px] sm:min-h-[460px] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#070B14] border border-white/10 group">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeSlide}
@@ -829,35 +829,38 @@ export default function GarageLandingPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.45, ease: "easeInOut" }}
-                  className="w-full h-full object-cover sm:object-contain bg-[#060913]"
+                  className="w-full h-full object-contain bg-[#060913]"
                 />
               </AnimatePresence>
 
               {/* Prev / Next Arrow Controls */}
               <button
                 onClick={() => setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
                 aria-label="Previous Slide"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <button
                 onClick={() => setActiveSlide((prev) => (prev + 1) % heroSlides.length)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
                 aria-label="Next Slide"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              {/* Slide Caption Overlay */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 z-10">
+              {/* Top Floating Badge on All Devices */}
+              <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-blue-300 border border-blue-500/30 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                <span>{heroSlides[activeSlide].badge}</span>
+              </div>
+
+              {/* Desktop Slide Caption Overlay */}
+              <div className="hidden sm:flex absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 sm:p-6 items-center justify-between gap-4 z-10">
                 <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider mb-1.5">
-                    <span>{heroSlides[activeSlide].badge}</span>
-                  </div>
                   <div className="text-sm sm:text-base font-extrabold text-white tracking-tight">{heroSlides[activeSlide].title}</div>
-                  <div className="text-xs text-zinc-300 mt-1 leading-relaxed">{heroSlides[activeSlide].caption}</div>
+                  <div className="text-xs text-zinc-300 mt-0.5 leading-relaxed">{heroSlides[activeSlide].caption}</div>
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
@@ -883,10 +886,36 @@ export default function GarageLandingPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile Compact Bottom Bar */}
+              <div className="flex sm:hidden absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-2.5 items-center justify-between gap-2 z-10">
+                <div className="text-[11px] font-bold text-white truncate max-w-[170px]">{heroSlides[activeSlide].tabName}</div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex gap-1">
+                    {heroSlides.map((_, dotIdx) => (
+                      <button
+                        key={dotIdx}
+                        onClick={() => setActiveSlide(dotIdx)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          activeSlide === dotIdx ? "w-4 bg-blue-500" : "w-1.5 bg-white/40"
+                        }`}
+                        aria-label={`Go to slide ${dotIdx + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-600 text-white flex items-center gap-1 shadow-md"
+                  >
+                    <span>Demo</span>
+                    <ArrowRight className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* 5 Slide Navigation Tabs */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 sm:mt-3">
+            {/* 5 Slide Navigation Tabs — Mobile Horizontal Swipe & Desktop 5-Col Grid */}
+            <div className="flex sm:grid sm:grid-cols-5 gap-2 mt-2 sm:mt-3 overflow-x-auto pb-1 sm:pb-0 no-scrollbar snap-x snap-mandatory">
               {heroSlides.map((slide, idx) => {
                 const TabIcon = slide.icon
                 const isActive = activeSlide === idx
@@ -894,7 +923,7 @@ export default function GarageLandingPage() {
                   <button
                     key={slide.id}
                     onClick={() => setActiveSlide(idx)}
-                    className={`relative p-3 rounded-xl text-left transition-all overflow-hidden ${
+                    className={`relative min-w-[145px] sm:min-w-0 flex-1 shrink-0 snap-start p-2.5 sm:p-3 rounded-xl text-left transition-all overflow-hidden ${
                       isActive
                         ? "bg-blue-600/20 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)] text-white"
                         : "bg-white/[0.02] border border-white/5 text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
@@ -905,11 +934,11 @@ export default function GarageLandingPage() {
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400" />
                     )}
 
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                      <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center shrink-0 ${
                         isActive ? "bg-blue-500 text-white" : "bg-white/5 text-zinc-400"
                       }`}>
-                        <TabIcon className="w-3.5 h-3.5" />
+                        <TabIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       </div>
                       <span className={`text-[10px] font-bold uppercase tracking-wider ${
                         isActive ? "text-blue-300" : "text-zinc-500"
@@ -918,7 +947,7 @@ export default function GarageLandingPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs font-bold truncate">{slide.tabName}</div>
+                    <div className="text-xs font-bold truncate leading-tight">{slide.tabName}</div>
                     <div className="text-[10px] text-zinc-400 truncate mt-0.5">{slide.badge}</div>
                   </button>
                 )
@@ -1006,7 +1035,7 @@ export default function GarageLandingPage() {
                   onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-blue-500/20 flex items-center gap-2 shrink-0 self-start lg:self-center"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                   <span>Test this Workflow in Demo</span>
                 </button>
               </div>
@@ -1082,7 +1111,7 @@ export default function GarageLandingPage() {
 
         <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono uppercase tracking-widest mb-3">
-            <Zap className="w-3.5 h-3.5" />
+            <Layers className="w-3.5 h-3.5" />
             <span>Connected Ecosystem</span>
           </div>
 
@@ -1732,7 +1761,7 @@ export default function GarageLandingPage() {
           <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/20 to-purple-950/40 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-8">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Building2 className="w-3.5 h-3.5" />
                 <span>Grekam Technologies Ecosystem</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">
@@ -1878,7 +1907,7 @@ export default function GarageLandingPage() {
               {!demoSubmitted ? (
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-4">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Instant Live Access</span>
                   </div>
 
