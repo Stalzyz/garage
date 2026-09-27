@@ -26,20 +26,20 @@ export interface Organization {
 
 const defaultOrg: Organization = {
   id: "",
-  name: "Grekam Visuals",
-  logoUrl: "/visuals-logo.png",
-  academyLogoUrl: "/academy-logo.png",
-  faviconUrl: "/favicon.ico",
-  academyFaviconUrl: "/favicon.ico",
-  primaryColor: "#2DA16D",
+  name: "Grekam Garage",
+  logoUrl: null,
+  academyLogoUrl: null,
+  faviconUrl: null,
+  academyFaviconUrl: null,
+  primaryColor: "#2563eb",
   darkModeDefault: true,
-  supportEmail: "greeksacademy@gmail.com",
-  billingAddress: "Coimbatore, Tamil Nadu, India",
-  website: "https://grekam.in",
+  supportEmail: "support@grekam.in",
+  billingAddress: "Chennai, Tamil Nadu, India",
+  website: "https://garage.grekam.in",
   phone: null,
   gstNumber: null,
   panNumber: null,
-  companyName: "Grekam Visuals & Technologies Pvt Ltd",
+  companyName: "Grekam Garage",
   bankName: null,
   bankAccountNo: null,
   bankIfsc: null,
@@ -68,17 +68,17 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
             const finalOrg: Organization = {
               ...defaultOrg,
               ...orgData,
-              logoUrl: orgData.logoUrl || "/visuals-logo.png",
-              academyLogoUrl: orgData.academyLogoUrl || "/academy-logo.png",
-              faviconUrl: orgData.faviconUrl || "/favicon.ico",
-              primaryColor: orgData.primaryColor || "#2DA16D",
+              logoUrl: orgData.logoUrl || null,
+              academyLogoUrl: orgData.academyLogoUrl || null,
+              faviconUrl: orgData.faviconUrl || null,
+              primaryColor: orgData.primaryColor || "#2563eb",
             };
             setOrg(finalOrg);
 
             // Inject primary color as CSS variable globally
             if (typeof document !== "undefined") {
               const root = document.documentElement;
-              root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2DA16D");
+              root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2563eb");
 
               // Update page title if set
               if (orgData.name) {

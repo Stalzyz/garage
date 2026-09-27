@@ -122,23 +122,8 @@ export default function FinanceDashboard() {
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
-            {[null, "AGENCY", "ACADEMY"].map(unit => (
-              <button
-                key={unit ?? "all"}
-                onClick={() => setUnitFilter(unit)}
-                className={`text-[10px] px-4 py-2 rounded-lg font-mono tracking-widest uppercase font-bold transition-all ${
-                  unitFilter === unit
-                    ? "bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                    : "text-white/40 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {unit ? unit : "All Units"}
-              </button>
-            ))}
-          </div>
+        {/* Search Bar */}
+        <div className="flex items-center justify-end mb-6">
           <div className="relative w-72">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input

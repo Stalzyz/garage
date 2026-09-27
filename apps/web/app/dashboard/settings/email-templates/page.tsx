@@ -297,7 +297,7 @@ export default function EmailTemplatesSettingsPage() {
             <Mail className="w-5 h-5 text-primary" />
             <h1 className="text-xl font-bold text-foreground">Email Template Manager</h1>
           </div>
-          <p className="text-xs text-muted-foreground">Customize branding, subject lines, and dynamic placeholders for Client, Staff, and Student email notifications.</p>
+          <p className="text-xs text-muted-foreground">Customize branding, subject lines, and dynamic placeholders for Client, Garage, and Staff email notifications.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -327,7 +327,7 @@ export default function EmailTemplatesSettingsPage() {
         <div className="w-80 flex-none border-r border-border/50 flex flex-col bg-card/40">
           {/* Category Filter Tabs */}
           <div className="p-3 border-b border-border/50 flex gap-1 overflow-x-auto no-scrollbar">
-            {["ALL", "CLIENT", "STAFF", "STUDENT"].map(cat => (
+            {["ALL", "CLIENT", "STAFF"].map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}

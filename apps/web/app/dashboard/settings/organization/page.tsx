@@ -617,79 +617,37 @@ export default function OrganizationSettingsPage() {
         </div>
       </div>
 
-      {/* ── 4. BRAND ASSETS (AGENCY & ACADEMY) ── */}
+      {/* ── 4. BRAND LOGOS & VISUAL ASSETS ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Agency Assets */}
+        {/* Dashboard & App Square Logo */}
         <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-4">
           <div className="border-b border-white/[0.06] pb-3">
             <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-zinc-400" /> Agency Brand (Grekam Visuals)
+              <Building2 className="w-4 h-4 text-blue-400" /> Dashboard & Sidebar Logo (Square)
             </h3>
-            <p className="text-xs text-zinc-400 mt-0.5">Used on invoices, proposals, and agency portal.</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Square 1:1 ratio icon displayed in the dashboard sidebar, top navigation, and app icon.</p>
           </div>
 
-          {/* Logo */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-zinc-400 font-medium">
-              <span>Landscape Logo</span>
-              <span className="text-[11px] text-zinc-500">~3:1 ratio</span>
+              <span>Square App Logo</span>
+              <span className="text-[11px] text-zinc-500">1:1 square ratio</span>
             </div>
-            <div className="h-20 rounded-lg border border-dashed border-white/[0.12] bg-[#0b0d13] flex items-center justify-center p-2">
-              {org?.logoUrl ? (
-                <img src={org.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
-              ) : (
-                <span className="text-xs text-zinc-500">No logo uploaded</span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <input 
-                type="file" 
-                ref={agencyLogoInputRef} 
-                accept="image/*" 
-                className="hidden" 
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleUploadFile(file, 'logoUrl');
-                }} 
-              />
-              <button
-                type="button"
-                onClick={() => agencyLogoInputRef.current?.click()}
-                disabled={uploadingState['logoUrl']}
-                className="flex-1 py-1.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 rounded-md transition-colors"
-              >
-                {uploadingState['logoUrl'] ? "Uploading..." : "Upload logo"}
-              </button>
-              {org?.logoUrl && (
-                <button
-                  type="button"
-                  onClick={() => setOrg({ ...org, logoUrl: "" })}
-                  className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-md transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Favicon */}
-          <div className="space-y-2 pt-2 border-t border-white/[0.06]">
-            <div className="flex items-center justify-between text-xs text-zinc-400 font-medium">
-              <span>Square Favicon</span>
-              <span className="text-[11px] text-zinc-500">1:1 square</span>
-            </div>
-            <div className="h-14 rounded-lg border border-dashed border-white/[0.12] bg-[#0b0d13] flex items-center justify-center p-2">
+            <div className="h-24 w-24 mx-auto rounded-xl border border-dashed border-white/[0.15] bg-[#0b0d13] flex items-center justify-center p-2 overflow-hidden shadow-inner">
               {org?.faviconUrl ? (
-                <img src={org.faviconUrl} alt="Favicon" className="max-h-full max-w-full object-contain" />
+                <img src={org.faviconUrl} alt="Dashboard Logo" className="w-full h-full object-cover rounded-lg" />
               ) : (
-                <Globe className="w-4 h-4 text-zinc-500" />
+                <div className="flex flex-col items-center gap-1 text-zinc-500">
+                  <Globe className="w-6 h-6" />
+                  <span className="text-[10px]">No logo</span>
+                </div>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <input 
                 type="file" 
                 ref={agencyFaviconInputRef} 
-                accept="image/*, .ico" 
+                accept="image/*, .ico, .png, .jpg, .svg, .webp" 
                 className="hidden" 
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -700,23 +658,90 @@ export default function OrganizationSettingsPage() {
                 type="button"
                 onClick={() => agencyFaviconInputRef.current?.click()}
                 disabled={uploadingState['faviconUrl']}
-                className="flex-1 py-1.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 rounded-md transition-colors"
+                className="flex-1 py-2 px-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 text-xs font-semibold text-blue-400 rounded-lg transition-colors cursor-pointer"
               >
-                {uploadingState['faviconUrl'] ? "Uploading..." : "Upload favicon"}
+                {uploadingState['faviconUrl'] ? "Uploading..." : "Upload Dashboard Logo"}
               </button>
               {org?.faviconUrl && (
                 <button
                   type="button"
-                  onClick={() => setOrg({ ...org, faviconUrl: "" })}
-                  className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-md transition-colors"
+                  onClick={async () => {
+                    setOrg({ ...org, faviconUrl: "" });
+                    await ApiClient.patch('/settings/organization', { faviconUrl: null }).catch(() => {});
+                    if (typeof window !== "undefined") window.dispatchEvent(new Event("organization-updated"));
+                    toast.success("Dashboard logo removed");
+                  }}
+                  className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-lg transition-colors cursor-pointer"
+                  title="Remove logo"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
           </div>
         </div>
 
+        {/* Documents & Invoices Rectangle Logo */}
+        <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-4">
+          <div className="border-b border-white/[0.06] pb-3">
+            <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+              <FileBadge2 className="w-4 h-4 text-emerald-400" /> Invoices & Documents Logo (Rectangle)
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5">Wide landscape banner displayed on Tax Invoices, Estimates, Quotations, and PDF exports.</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-zinc-400 font-medium">
+              <span>Wide Document Banner</span>
+              <span className="text-[11px] text-zinc-500">~3:1 or 4:1 landscape</span>
+            </div>
+            <div className="h-24 w-full rounded-xl border border-dashed border-white/[0.15] bg-[#0b0d13] flex items-center justify-center p-3 overflow-hidden shadow-inner">
+              {org?.logoUrl ? (
+                <img src={org.logoUrl} alt="Document Logo" className="max-h-full max-w-full object-contain" />
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-zinc-500">
+                  <ImageIcon className="w-6 h-6" />
+                  <span className="text-[10px]">No invoice banner uploaded</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <input 
+                type="file" 
+                ref={agencyLogoInputRef} 
+                accept="image/*, .png, .jpg, .svg, .webp" 
+                className="hidden" 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadFile(file, 'logoUrl');
+                }} 
+              />
+              <button
+                type="button"
+                onClick={() => agencyLogoInputRef.current?.click()}
+                disabled={uploadingState['logoUrl']}
+                className="flex-1 py-2 px-3 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-xs font-semibold text-emerald-400 rounded-lg transition-colors cursor-pointer"
+              >
+                {uploadingState['logoUrl'] ? "Uploading..." : "Upload Document Logo"}
+              </button>
+              {org?.logoUrl && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setOrg({ ...org, logoUrl: "" });
+                    await ApiClient.patch('/settings/organization', { logoUrl: null }).catch(() => {});
+                    if (typeof window !== "undefined") window.dispatchEvent(new Event("organization-updated"));
+                    toast.success("Document logo removed");
+                  }}
+                  className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-lg transition-colors cursor-pointer"
+                  title="Remove logo"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── 5. BANK SETTLEMENT & UPI DETAILS ── */}

@@ -18,18 +18,24 @@ import { TimerWidget } from "./TimerWidget"
 
 function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string; size?: number }) {
   const [hasError, setHasError] = useState(false)
+
+  // Reset error state whenever the URL prop changes
+  useEffect(() => {
+    setHasError(false)
+  }, [url])
   
   if (url && !hasError) {
     return (
       <div 
         style={{ width: size, height: size }}
-        className="rounded-xl overflow-hidden shrink-0 border border-dash-border-strong bg-white/5 flex items-center justify-center p-0.5"
+        className="rounded-xl overflow-hidden shrink-0 border border-dash-border-strong bg-white/5 flex items-center justify-center p-0.5 shadow-sm"
       >
         <img 
+          key={url}
           src={url} 
           alt={name} 
           onError={() => setHasError(true)} 
-          className="w-full h-full object-contain" 
+          className="w-full h-full object-cover rounded-lg" 
         />
       </div>
     )
@@ -38,9 +44,9 @@ function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string
   return (
     <div 
       style={{ width: size, height: size }}
-      className="rounded-xl bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+      className="rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.2)] font-bold text-xs text-blue-400"
     >
-      <ShieldCheck className="w-4 h-4 text-blue-400" strokeWidth={2} />
+      {name ? name.charAt(0).toUpperCase() : <ShieldCheck className="w-4 h-4 text-blue-400" strokeWidth={2} />}
     </div>
   )
 }
@@ -50,7 +56,7 @@ function OrgHeader() {
 
   return (
     <div className="flex h-16 items-center px-6 gap-3 relative z-10">
-      <BrandLogo url={org.logoUrl} name={org.name} size={32} />
+      <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={32} />
       <span className="text-lg font-bold tracking-tight">{org.name}</span>
       <div className="ml-auto flex items-center gap-2">
         <TimerWidget />
@@ -288,7 +294,7 @@ export function Sidebar() {
       {/* Mobile Top Header Bar */}
       <div className="print:hidden md:hidden fixed top-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-b border-dash-border-strong z-40 flex items-center justify-between px-5">
         <div className="flex items-center gap-2.5">
-          <BrandLogo url={org.logoUrl} name={org.name} size={28} />
+          <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={28} />
           <span className="text-xs font-bold tracking-wider uppercase text-dash-text-primary/90 truncate max-w-[120px]">{org.name}</span>
         </div>
         <div className="flex items-center gap-2.5">

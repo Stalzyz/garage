@@ -345,20 +345,17 @@ export default function CRMDashboard() {
   }
 
   const handleDownloadSampleCsv = () => {
-    const isAgency = activeTab === 'AGENCY'
-    const csvContent = isAgency
-      ? `name,email,phone,company,industry,estimatedBudget,projectType,source,notes\nAcme Corp,contact@acme.com,+919876543210,Acme Industries,Healthcare,150000,WEBSITE,WEBSITE,Looking for a full website redesign\nStark Media,hello@starkmedia.com,+919812345678,Stark Media,E-Commerce,300000,BRAND_IDENTITY,REFERRAL,Wants brand identity and logo guidelines`
-      : `name,email,phone,courseInterest,source,notes\nRahul Sharma,rahul@gmail.com,+919876543210,Fullstack Web Development,WEBSITE,Interested in weekend batch\nPriya Patel,priya@gmail.com,+919812345678,UI/UX Design,REFERRAL,Enquired about course fees`
+    const csvContent = `name,email,phone,company,industry,serviceRequirement,estimatedBudget,source,notes\nAcme Logistics,contact@acmelogistics.in,+919876543210,Acme Logistics,Logistics,Fleet Maintenance & Periodic Service,45000,WEBSITE,Inquired for 5 vehicles annual maintenance\nRajesh Kumar,rajesh.k@gmail.com,+919812345678,Apex Auto Works,Automotive,Full Body Paint & Dent Repair,25000,REFERRAL,Requested estimate for bumper and panel repair`
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', isAgency ? 'agency_leads_sample.csv' : 'academy_enquiries_sample.csv')
+    link.setAttribute('download', 'business_leads_sample.csv')
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    toast.success("Sample CSV template downloaded!")
+    toast.success("Business leads sample CSV template downloaded!")
   }
 
   // Actions
@@ -407,20 +404,15 @@ export default function CRMDashboard() {
         name: leadForm.name,
         email: leadForm.email || undefined,
         phone: leadForm.phone || undefined,
+        company: leadForm.company || undefined,
+        industry: leadForm.industry || undefined,
         source: leadForm.source,
         notes: leadForm.notes || undefined,
         assignedToId: leadForm.assignedToId || undefined,
-        businessUnit: activeTab
-      }
-
-      if (activeTab === 'AGENCY') {
-        payload.company = leadForm.company || undefined
-        payload.industry = leadForm.industry || undefined
-        payload.estimatedBudget = leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined
-        payload.projectType = leadForm.projectType || undefined
-      } else {
-        payload.courseInterest = leadForm.courseInterest || undefined
-        payload.batchId = leadForm.batchId || undefined
+        estimatedBudget: leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined,
+        projectType: leadForm.projectType || leadForm.courseInterest || undefined,
+        courseInterest: leadForm.projectType || leadForm.courseInterest || undefined,
+        businessUnit: activeTab || 'SERVICE'
       }
 
       if (editingLead) {
@@ -674,7 +666,7 @@ export default function CRMDashboard() {
               <Users className="w-5 h-5 text-blue-400" />
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Total Agency Leads" : "Total Enquiries"}
+              Total Leads
             </h3>
           </div>
           <div className="relative z-10">
@@ -694,23 +686,19 @@ export default function CRMDashboard() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl group-hover:bg-violet-500/20 transition-colors" />
           <div className="flex items-center gap-3 mb-6 relative z-10">
             <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center border border-violet-500/30 shadow-[inset_0_0_10px_rgba(139,92,246,0.2)]">
-              {activeTab === 'AGENCY' ? (
-                symbol === "₹" ? (
-                  <IndianRupee className="w-5 h-5 text-violet-400" />
-                ) : (
-                  <Coins className="w-5 h-5 text-violet-400" />
-                )
+              {symbol === "₹" ? (
+                <IndianRupee className="w-5 h-5 text-violet-400" />
               ) : (
-                <GraduationCap className="w-5 h-5 text-violet-400" />
+                <Coins className="w-5 h-5 text-violet-400" />
               )}
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Pipeline Value" : "Counselling Active"}
+              Pipeline Value
             </h3>
           </div>
           <div className="relative z-10">
             <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
-              {leadsLoading ? "..." : activeTab === 'AGENCY' ? (symbol === "₹" ? `₹${(pipelineValue / 100000).toFixed(1)}L` : formatCurrency(pipelineValue, true)) : academyLeads.filter((l: any) => l.status === 'COUNSELLING').length}
+              {leadsLoading ? "..." : (symbol === "₹" ? `₹${(pipelineValue / 100000).toFixed(1)}L` : formatCurrency(pipelineValue, true))}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
               <ArrowUpRight className="w-3.5 h-3.5" /> Live Updates
@@ -728,12 +716,12 @@ export default function CRMDashboard() {
               <Target className="w-5 h-5 text-emerald-400" />
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Lead Win Rate" : "Enrolled Students"}
+              Lead Win Rate
             </h3>
           </div>
           <div className="relative z-10">
             <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
-              {leadsLoading ? "..." : activeTab === 'AGENCY' ? `${conversionRate}%` : academyLeads.filter((l: any) => l.status === 'ENROLLED_ACADEMY').length}
+              {leadsLoading ? "..." : `${conversionRate}%`}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
               <ArrowUpRight className="w-3.5 h-3.5" /> High conversion velocity
@@ -753,7 +741,7 @@ export default function CRMDashboard() {
               <input 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={activeTab === 'AGENCY' ? "Search leads, company..." : "Search students, course interest..."} 
+                placeholder="Search leads by name, company, or requirement..." 
                 className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-primary)]/30"
               />
             </div>
@@ -764,25 +752,13 @@ export default function CRMDashboard() {
               className="bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2 text-sm text-[var(--dash-text-primary)] focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               <option value="ALL">All Stages</option>
-              {activeTab === 'AGENCY' ? (
-                <>
-                  <option value="NEW">New</option>
-                  <option value="CONTACTED">Contacted</option>
-                  <option value="QUALIFIED">Qualified</option>
-                  <option value="PROPOSAL_SENT">Proposal Sent</option>
-                  <option value="NEGOTIATION">Negotiation</option>
-                  <option value="WON">Won (Converted)</option>
-                  <option value="LOST">Lost</option>
-                </>
-              ) : (
-                <>
-                  <option value="ENQUIRY">Enquiry</option>
-                  <option value="COUNSELLING">Counselling</option>
-                  <option value="TRIAL">Trial Class</option>
-                  <option value="ENROLLED_ACADEMY">Enrolled (Student)</option>
-                  <option value="DROPPED">Dropped</option>
-                </>
-              )}
+              <option value="NEW">New</option>
+              <option value="CONTACTED">Contacted</option>
+              <option value="QUALIFIED">Qualified</option>
+              <option value="PROPOSAL_SENT">Proposal / Quotation Sent</option>
+              <option value="NEGOTIATION">Negotiation</option>
+              <option value="WON">Won (Converted)</option>
+              <option value="LOST">Lost</option>
             </select>
 
             <select
@@ -825,7 +801,7 @@ export default function CRMDashboard() {
               onClick={handleOpenCreateLead}
               className="group flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
             >
-              <Plus className="w-4 h-4" /> New {activeTab === 'AGENCY' ? 'Agency Lead' : 'Academy Enquiry'}
+              <Plus className="w-4 h-4" /> Add Lead
             </button>
           </div>
         </div>
@@ -1043,11 +1019,7 @@ export default function CRMDashboard() {
                             )}
                             {visibleColumns.company && (
                               <td className="p-4 text-sm text-[var(--dash-text-primary)]/60">
-                                {activeTab === 'AGENCY' ? (
-                                  lead.company || <span className="text-white/20">—</span>
-                                ) : (
-                                  lead.courseInterest || <span className="text-white/20">—</span>
-                                )}
+                                {lead.company || lead.projectType || lead.courseInterest || <span className="text-white/20">—</span>}
                               </td>
                             )}
                             {visibleColumns.industry && (
@@ -1182,7 +1154,7 @@ export default function CRMDashboard() {
             >
               <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
                 <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
-                  {editingLead ? "Edit Lead Details" : `Create new ${activeTab === 'AGENCY' ? 'Agency Lead' : 'Academy Enquiry'}`}
+                  {editingLead ? "Edit Lead Details" : "Create New Business Lead"}
                 </h3>
                 <button 
                   onClick={() => setIsLeadModalOpen(false)}
@@ -1232,16 +1204,18 @@ export default function CRMDashboard() {
                     >
                       <option value="WEBSITE">Website</option>
                       <option value="WHATSAPP">WhatsApp</option>
+                      <option value="WALK_IN">Walk-in / Workshop</option>
                       <option value="REFERRAL">Referral</option>
                       <option value="COLD_OUTREACH">Cold Outreach</option>
+                      <option value="GOOGLE_SEARCH">Google Search</option>
+                      <option value="META_ADS">Meta / Facebook Ads</option>
                       <option value="INSTAGRAM">Instagram</option>
-                      <option value="LINKEDIN">LinkedIn</option>
-                      <option value="ACADEMY_ALUMNI">Academy Alumni</option>
+                      <option value="PHONE_INQUIRY">Phone Call Inquiry</option>
                       <option value="OTHER">Other</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign to Telecaller / Staff</label>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign to Staff / Executive</label>
                     <select
                       value={leadForm.assignedToId}
                       onChange={(e) => setLeadForm({ ...leadForm, assignedToId: e.target.value })}
@@ -1257,80 +1231,48 @@ export default function CRMDashboard() {
                   </div>
                 </div>
 
-                {activeTab === 'AGENCY' ? (
-                  <div className="space-y-4 border-t border-white/5 pt-4">
-                    <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Agency Parameters</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Company Name</label>
-                        <input
-                          value={leadForm.company}
-                          onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
-                          placeholder="e.g. Acme Tech Inc."
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Industry Sector</label>
-                        <input
-                          value={leadForm.industry}
-                          onChange={(e) => setLeadForm({ ...leadForm, industry: e.target.value })}
-                          placeholder="e.g. Healthcare, E-Commerce, SaaS, EdTech, Real Estate, FinTech"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Estimated Budget (INR)</label>
-                        <input
-                          type="number"
-                          value={leadForm.estimatedBudget}
-                          onChange={(e) => setLeadForm({ ...leadForm, estimatedBudget: e.target.value })}
-                          placeholder="e.g. 150000"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Project Type Scope</label>
-                        <input
-                          value={leadForm.projectType}
-                          onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value })}
-                          placeholder="e.g. UI/UX Redesign"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
+                <div className="space-y-4 border-t border-white/5 pt-4">
+                  <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Business & Service Details</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Company / Fleet / Customer Name</label>
+                      <input
+                        value={leadForm.company}
+                        onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
+                        placeholder="e.g. Apex Motors / Individual Customer"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Service Requirement / Scope</label>
+                      <input
+                        value={leadForm.projectType || leadForm.courseInterest}
+                        onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value, courseInterest: e.target.value })}
+                        placeholder="e.g. Periodic Maintenance, Body Repair, Engine Overhaul, Fleet AMC"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Estimated Budget ({symbol})</label>
+                      <input
+                        type="number"
+                        value={leadForm.estimatedBudget}
+                        onChange={(e) => setLeadForm({ ...leadForm, estimatedBudget: e.target.value })}
+                        placeholder="e.g. 25000"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Industry / Vehicle Segment</label>
+                      <input
+                        value={leadForm.industry}
+                        onChange={(e) => setLeadForm({ ...leadForm, industry: e.target.value })}
+                        placeholder="e.g. Commercial Fleet, Passenger Cars, Luxury, EV"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4 border-t border-white/5 pt-4">
-                    <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Academy Parameters</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Course Interest</label>
-                        <input
-                          value={leadForm.courseInterest}
-                          onChange={(e) => setLeadForm({ ...leadForm, courseInterest: e.target.value })}
-                          placeholder="e.g. UI/UX Masterclass"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign Batch</label>
-                        <select
-                          value={leadForm.batchId}
-                          onChange={(e) => setLeadForm({ ...leadForm, batchId: e.target.value })}
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        >
-                          <option value="">No Batch Assigned</option>
-                          {batches.map((batch: any) => (
-                            <option key={batch.id} value={batch.id}>
-                              {batch.name} ({batch.course?.name || "LMS"})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-1">

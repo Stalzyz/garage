@@ -280,20 +280,6 @@ export const navigation: NavItem[] = [
     ],
   },
   {
-    title: "CMS & Website",
-    href: "/dashboard/cms",
-    icon: Globe,
-    resource: "CMS",
-    roles: ["ADMIN", "MANAGER"],
-    children: [
-      { title: "Agency Visual Editor", href: "/dashboard/cms/agency-editor" },
-      { title: "Pages Builder",  href: "/dashboard/cms" },
-      { title: "Blog Posts",     href: "/dashboard/cms/blog" },
-      { title: "Media Library",  href: "/dashboard/cms/media" },
-      { title: "SEO Settings",   href: "/dashboard/cms/seo" },
-    ],
-  },
-  {
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart2,

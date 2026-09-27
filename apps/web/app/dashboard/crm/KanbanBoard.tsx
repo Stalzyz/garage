@@ -117,13 +117,13 @@ function LeadCard({
       )}
 
       <div className="flex items-center justify-between gap-2 mb-2">
-        {lead.businessUnit === 'AGENCY' && lead.estimatedBudget ? (
+        {lead.estimatedBudget ? (
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-bold">
             <span>{symbol}</span> {lead.estimatedBudget.toLocaleString()}
           </div>
-        ) : lead.businessUnit === 'ACADEMY' && lead.courseInterest ? (
-          <div className="flex items-center gap-1.5 text-xs text-violet-400 font-mono">
-            <GraduationCap className="w-3.5 h-3.5" /> <span className="truncate">{lead.courseInterest}</span>
+        ) : lead.projectType || lead.courseInterest ? (
+          <div className="flex items-center gap-1.5 text-xs text-blue-400 font-mono truncate">
+            <span className="truncate">{lead.projectType || lead.courseInterest}</span>
           </div>
         ) : <div />}
 

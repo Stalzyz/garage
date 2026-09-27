@@ -255,7 +255,7 @@ export default function NewInvoicePage() {
             {/* Invoice Meta */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
               <h2 className="text-sm font-bold mb-4 font-mono uppercase tracking-widest text-white/50 border-b border-white/10 pb-2">Details</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Document Type</label>
                   <select 
@@ -279,17 +279,6 @@ export default function NewInvoicePage() {
                       else if (val.startsWith('INV-')) setDocType('TAX');
                     }}
                   />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Business Unit</label>
-                  <select 
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    value={invoice.businessUnit}
-                    onChange={e => setInvoice({...invoice, businessUnit: e.target.value})}
-                  >
-                    <option value="GARAGE_SERVICE" className="bg-slate-900">Garage Repairs & Service</option>
-                    <option value="PARTS_SALES" className="bg-slate-900">Parts & Accessory Sales</option>
-                  </select>
                 </div>
                 <div>
                   <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Due Date</label>
