@@ -706,7 +706,7 @@ export default function NewInvoicePage() {
                 ) : null}
                 <div className="logo-fallback hidden">
                   <span className="text-2xl font-black tracking-tight text-slate-900">
-                    {org.name || "Garage"} <span className="text-emerald-600">SaaS</span>
+                    {org.name || "Garage"} <span style={{ color: org.primaryColor || '#4f46e5' }}>SaaS</span>
                   </span>
                 </div>
 
@@ -714,15 +714,19 @@ export default function NewInvoicePage() {
                   <h3 className="font-bold text-slate-900 text-sm">
                     {org.name || 'Garage Operations & Service Center'}
                   </h3>
-                  <p className="text-xs text-slate-600">{org.billingAddress || "Coimbatore, Tamil Nadu, India – 641024"}</p>
-                  <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber || "33HCCPS5424M1Z8"}</p>
-                  <p className="text-xs text-slate-600 font-mono">PAN : {org.gstNumber && org.gstNumber.length >= 12 ? org.gstNumber.slice(2, 12) : "HCCPS5424M"}</p>
+                  {org.billingAddress && <p className="text-xs text-slate-600">{org.billingAddress}</p>}
+                  {org.gstNumber && <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber}</p>}
+                  {(org.panNumber || (org.gstNumber && org.gstNumber.length >= 12 ? org.gstNumber.slice(2, 12) : null)) && (
+                    <p className="text-xs text-slate-600 font-mono">
+                      PAN : {org.panNumber || org.gstNumber?.slice(2, 12)}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Right Meta Column */}
               <div className="text-right space-y-3">
-                <h1 className="text-3xl font-black tracking-tight text-[#064e3b] uppercase">
+                <h1 style={{ color: org.primaryColor || '#4f46e5' }} className="text-3xl font-black tracking-tight uppercase">
                   {docType === 'PROFORMA' || invoice.invoiceNumber.startsWith('PI-') ? 'PROFORMA INVOICE' : 'TAX INVOICE'}
                 </h1>
 
@@ -744,7 +748,7 @@ export default function NewInvoicePage() {
                   </div>
 
                   <span className="text-slate-500 font-medium">Place of Supply</span>
-                  <span className="font-bold text-slate-900">: Tamil Nadu (33)</span>
+                  <span className="font-bold text-slate-900">: {org.gstNumber && org.gstNumber.length >= 2 ? `State (${org.gstNumber.slice(0, 2)})` : 'Tamil Nadu (33)'}</span>
 
                   <span className="text-slate-500 font-medium">Reverse Charge</span>
                   <span className="font-bold text-slate-900">: No</span>
@@ -752,20 +756,25 @@ export default function NewInvoicePage() {
               </div>
             </div>
 
-            {/* 2 Mint Green Cards */}
+            {/* 2 Themed Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4 space-y-1">
-                <p className="text-xs font-bold text-[#064e3b] uppercase tracking-wider mb-2">Bill To</p>
+              <div 
+                style={{ backgroundColor: `${org.primaryColor || '#4f46e5'}08`, borderColor: `${org.primaryColor || '#4f46e5'}20` }} 
+                className="border rounded-xl p-4 space-y-1"
+              >
+                <p style={{ color: org.primaryColor || '#4f46e5' }} className="text-xs font-bold uppercase tracking-wider mb-2">Bill To</p>
                 <p className="font-bold text-slate-900 text-sm">{invoice.companyName || invoice.contactName || "Valued Client"}</p>
                 {invoice.clientAddress && <p className="text-xs text-slate-600">{invoice.clientAddress}</p>}
                 <p className="text-xs text-slate-600">Tamil Nadu, India</p>
-                <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst?.trim() ? invoice.clientGst : "N/A"}</p>
-                <p className="text-xs text-slate-600">State : Tamil Nadu (33)</p>
+                {invoice.clientGst?.trim() && <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst}</p>}
               </div>
 
 
-              <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4 flex flex-col justify-center space-y-2">
-                <h4 className="font-bold text-[#064e3b] text-sm">
+              <div 
+                style={{ backgroundColor: `${org.primaryColor || '#4f46e5'}08`, borderColor: `${org.primaryColor || '#4f46e5'}20` }} 
+                className="border rounded-xl p-4 flex flex-col justify-center space-y-2"
+              >
+                <h4 style={{ color: org.primaryColor || '#4f46e5' }} className="font-bold text-sm">
                   Thank you for choosing {org.name || 'Garage SaaS'}!
                 </h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
@@ -778,7 +787,7 @@ export default function NewInvoicePage() {
             <div className="rounded-xl border border-slate-200 overflow-hidden pt-2">
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#055740] text-white font-bold uppercase tracking-wider">
+                  <tr style={{ backgroundColor: org.primaryColor || '#4f46e5' }} className="text-white font-bold uppercase tracking-wider">
                     <th className="py-3 px-4 text-center w-12">#</th>
                     <th className="py-3 px-4">Description</th>
                     <th className="py-3 px-4 text-center">HSN/SAC</th>
@@ -808,8 +817,11 @@ export default function NewInvoicePage() {
             {/* Totals & Words Section */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
               <div className="md:col-span-7 space-y-4">
-                <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4">
-                  <p className="text-[11px] font-bold text-[#064e3b] uppercase tracking-wider mb-1">Amount in Words</p>
+                <div 
+                  style={{ backgroundColor: `${org.primaryColor || '#4f46e5'}08`, borderColor: `${org.primaryColor || '#4f46e5'}20` }} 
+                  className="border rounded-xl p-4"
+                >
+                  <p style={{ color: org.primaryColor || '#4f46e5' }} className="text-[11px] font-bold uppercase tracking-wider mb-1">Amount in Words</p>
                   <p className="text-xs font-bold text-slate-800">{numberToWordsIN(grandTotal)}</p>
                 </div>
               </div>
@@ -838,7 +850,10 @@ export default function NewInvoicePage() {
                     <span className="font-bold text-slate-900 font-mono">{symbol} {totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
 
-                  <div className="flex justify-between py-3 px-4 bg-[#f0fdf4] text-[#064e3b] font-bold border-t border-[#dcfce7]">
+                  <div 
+                    style={{ backgroundColor: `${org.primaryColor || '#4f46e5'}12`, color: org.primaryColor || '#4f46e5', borderColor: `${org.primaryColor || '#4f46e5'}25` }} 
+                    className="flex justify-between py-3 px-4 font-bold border-t"
+                  >
                     <span className="text-sm">Total Amount ({symbol})</span>
                     <span className="text-base font-black font-mono">{symbol} {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
@@ -854,7 +869,9 @@ export default function NewInvoicePage() {
                   <li>1. This is a computer generated invoice and does not require a signature.</li>
                   <li>2. Services provided by {org.name || 'Garage SaaS'}.</li>
                   <li>3. Payment once made is non-refundable.</li>
-                  <li>4. For any billing queries, contact <span className="text-emerald-700 font-semibold">{org.supportEmail || 'support@garage.grekam.in'}</span>.</li>
+                  {org.supportEmail && (
+                    <li>4. For any billing queries, contact <span style={{ color: org.primaryColor || '#4f46e5' }} className="font-semibold">{org.supportEmail}</span>.</li>
+                  )}
                   <li>5. Thank you for being a valued client!</li>
                 </ol>
               </div>
@@ -869,15 +886,21 @@ export default function NewInvoicePage() {
             {/* Footer Bar */}
             <div className="bg-slate-50 border border-slate-200 rounded-full px-5 py-2.5 flex flex-wrap justify-between items-center text-xs text-slate-600 gap-3 mt-4">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 bg-[#055740] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                  <Phone className="w-3 h-3" /> {org.phone || "+91 422 123 4567"}
-                </span>
-                <span className="flex items-center gap-1 bg-[#055740] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                  <Mail className="w-3 h-3" /> {org.supportEmail || "support@grekam.in"}
-                </span>
-                <span className="flex items-center gap-1 bg-[#055740] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                  <Globe className="w-3 h-3" /> {org.website || "agency.grekam.in"}
-                </span>
+                {org.phone && (
+                  <span style={{ backgroundColor: org.primaryColor || '#4f46e5' }} className="flex items-center gap-1 text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                    <Phone className="w-3 h-3" /> {org.phone}
+                  </span>
+                )}
+                {org.supportEmail && (
+                  <span style={{ backgroundColor: org.primaryColor || '#4f46e5' }} className="flex items-center gap-1 text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                    <Mail className="w-3 h-3" /> {org.supportEmail}
+                  </span>
+                )}
+                {org.website && (
+                  <span style={{ backgroundColor: org.primaryColor || '#4f46e5' }} className="flex items-center gap-1 text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                    <Globe className="w-3 h-3" /> {org.website}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px]">

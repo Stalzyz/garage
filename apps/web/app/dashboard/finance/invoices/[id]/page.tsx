@@ -91,6 +91,8 @@ export default function InvoiceDetailsPage() {
   }
 
   const wordsAmount = numberToWordsIN(invoice.totalAmount || 0)
+  const primaryColor = org.primaryColor || '#4f46e5'
+  const secondaryColor = org.secondaryColor || '#10b981'
 
   return (
     <div className="flex flex-col h-full bg-[#050508] text-white overflow-hidden font-sans">
@@ -130,7 +132,8 @@ export default function InvoiceDetailsPage() {
           <button 
             onClick={handleSend}
             disabled={isSending || invoice.status === 'PAID'}
-            className="flex items-center gap-2 px-5 py-2 text-xs bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+            style={{ backgroundColor: primaryColor }}
+            className="flex items-center gap-2 px-5 py-2 text-xs text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg disabled:opacity-50"
           >
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             {invoice.status === 'SENT' ? 'Resend Email' : invoice.status === 'PAID' ? 'Already Paid' : 'Send Email'}
@@ -146,9 +149,9 @@ export default function InvoiceDetailsPage() {
           {/* Top Brand Header */}
           <div className="flex justify-between items-start">
             <div className="space-y-1 max-w-[55%]">
-              {((isAcademy ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl) ? (
+              {org.logoUrl ? (
                 <img
-                  src={(isAcademy ? (org.academyLogoUrl || org.logoUrl) : org.logoUrl) || org.logoUrl || '/visuals-logo.png'}
+                  src={org.logoUrl}
                   alt={companyName}
                   className="max-h-16 max-w-[260px] w-auto h-auto object-contain object-left mb-2"
                   onError={(e) => {
@@ -158,23 +161,27 @@ export default function InvoiceDetailsPage() {
                   }}
                 />
               ) : null}
-              <div className="logo-fallback hidden">
+              <div className={`logo-fallback ${org.logoUrl ? 'hidden' : 'block'}`}>
                 <span className="text-2xl font-black tracking-tight text-slate-900">
-                  {org.name || "Grekam"} <span className="text-emerald-600">Visuals</span>
+                  {org.name || "Grekam"} <span style={{ color: primaryColor }}>Visuals</span>
                 </span>
               </div>
 
               <div className="pt-2 space-y-0.5">
                 <h3 className="font-bold text-slate-900 text-sm">{companyName}</h3>
-                <p className="text-xs text-slate-600">{org.billingAddress || "Coimbatore, Tamil Nadu, India – 641024"}</p>
-                <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber || "33HCCPS5424M1Z8"}</p>
-                <p className="text-xs text-slate-600 font-mono">PAN : {org.gstNumber && org.gstNumber.length >= 12 ? org.gstNumber.slice(2, 12) : "HCCPS5424M"}</p>
+                {org.billingAddress && <p className="text-xs text-slate-600">{org.billingAddress}</p>}
+                {org.gstNumber && <p className="text-xs text-slate-600 font-mono">GSTIN : {org.gstNumber}</p>}
+                {(org.panNumber || (org.gstNumber && org.gstNumber.length >= 12 ? org.gstNumber.slice(2, 12) : null)) && (
+                  <p className="text-xs text-slate-600 font-mono">
+                    PAN : {org.panNumber || org.gstNumber?.slice(2, 12)}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Right Meta Column */}
             <div className="text-right space-y-3">
-              <h1 className="text-3xl font-black tracking-tight text-[#064e3b] uppercase">
+              <h1 style={{ color: primaryColor }} className="text-3xl font-black tracking-tight uppercase">
                 {invoice.isProforma ? "PROFORMA INVOICE" : "TAX INVOICE"}
               </h1>
 
@@ -198,7 +205,7 @@ export default function InvoiceDetailsPage() {
                 </div>
 
                 <span className="text-slate-500 font-medium">Place of Supply</span>
-                <span className="font-bold text-slate-900">: Tamil Nadu (33)</span>
+                <span className="font-bold text-slate-900">: {org.gstNumber && org.gstNumber.length >= 2 ? `State (${org.gstNumber.slice(0, 2)})` : 'Tamil Nadu (33)'}</span>
 
                 <span className="text-slate-500 font-medium">Reverse Charge</span>
                 <span className="font-bold text-slate-900">: No</span>
@@ -206,20 +213,25 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
 
-          {/* 2 Mint Green Cards */}
+          {/* 2 Themed Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-5 space-y-1">
-              <p className="text-xs font-bold text-[#064e3b] uppercase tracking-wider mb-2">Bill To</p>
+            <div 
+              style={{ backgroundColor: `${primaryColor}08`, borderColor: `${primaryColor}20` }} 
+              className="border rounded-xl p-5 space-y-1"
+            >
+              <p style={{ color: primaryColor }} className="text-xs font-bold uppercase tracking-wider mb-2">Bill To</p>
               <p className="font-bold text-slate-900 text-sm">{invoice.clientName}</p>
               {invoice.clientAddress && <p className="text-xs text-slate-600">{invoice.clientAddress}</p>}
               <p className="text-xs text-slate-600">Tamil Nadu, India</p>
-              <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst?.trim() ? invoice.clientGst : "N/A"}</p>
-              <p className="text-xs text-slate-600">State : Tamil Nadu (33)</p>
+              {invoice.clientGst?.trim() && <p className="text-xs text-slate-600 font-mono">GSTIN : {invoice.clientGst}</p>}
             </div>
 
 
-            <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-5 flex flex-col justify-center space-y-2">
-              <h4 className="font-bold text-[#064e3b] text-sm">Thank you for choosing {companyName}!</h4>
+            <div 
+              style={{ backgroundColor: `${primaryColor}08`, borderColor: `${primaryColor}20` }} 
+              className="border rounded-xl p-5 flex flex-col justify-center space-y-2"
+            >
+              <h4 style={{ color: primaryColor }} className="font-bold text-sm">Thank you for choosing {companyName}!</h4>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Designing bold ideas for a brighter tomorrow.
               </p>
@@ -230,7 +242,7 @@ export default function InvoiceDetailsPage() {
           <div className="rounded-xl border border-slate-200 overflow-hidden pt-2">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="bg-[#055740] text-white font-bold uppercase tracking-wider">
+                <tr style={{ backgroundColor: primaryColor }} className="text-white font-bold uppercase tracking-wider">
                   <th className="py-3 px-4 text-center w-12">#</th>
                   <th className="py-3 px-4">Description</th>
                   <th className="py-3 px-4 text-center">HSN/SAC</th>
@@ -257,8 +269,11 @@ export default function InvoiceDetailsPage() {
           {/* Totals & Words Section */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
             <div className="md:col-span-7 space-y-4">
-              <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-4">
-                <p className="text-[11px] font-bold text-[#064e3b] uppercase tracking-wider mb-1">Amount in Words</p>
+              <div 
+                style={{ backgroundColor: `${primaryColor}08`, borderColor: `${primaryColor}20` }} 
+                className="border rounded-xl p-4"
+              >
+                <p style={{ color: primaryColor }} className="text-[11px] font-bold uppercase tracking-wider mb-1">Amount in Words</p>
                 <p className="text-xs font-bold text-slate-800">{wordsAmount}</p>
               </div>
             </div>
@@ -287,7 +302,10 @@ export default function InvoiceDetailsPage() {
                     <span className="font-bold text-slate-900 font-mono">{symbol} {invoice.igst?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-3 px-4 bg-[#f0fdf4] text-[#064e3b] font-bold border-t border-[#dcfce7]">
+                <div 
+                  style={{ backgroundColor: `${primaryColor}12`, color: primaryColor, borderColor: `${primaryColor}25` }} 
+                  className="flex justify-between py-3 px-4 font-bold border-t"
+                >
                   <span className="text-sm">Total Amount ({symbol})</span>
                   <span className="text-base font-black font-mono">{symbol} {invoice.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
@@ -303,7 +321,9 @@ export default function InvoiceDetailsPage() {
                 <li>1. This is a computer generated invoice and does not require a signature.</li>
                 <li>2. Services provided under {companyName}.</li>
                 <li>3. Payment once made is non-refundable.</li>
-                <li>4. For any billing queries, contact <span className="text-emerald-700 font-semibold">{org.supportEmail || 'support@grekam.in'}</span>.</li>
+                {org.supportEmail && (
+                  <li>4. For any billing queries, contact <span style={{ color: primaryColor }} className="font-semibold">{org.supportEmail}</span>.</li>
+                )}
                 <li>5. Thank you for being a valued client!</li>
               </ol>
             </div>
@@ -318,21 +338,25 @@ export default function InvoiceDetailsPage() {
           {/* Footer Bar */}
           <div className="bg-slate-50 border border-slate-200 rounded-full px-6 py-3 flex flex-wrap justify-between items-center text-xs text-slate-600 gap-4 mt-8">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 bg-[#055740] text-white px-3 py-1 rounded-full text-[11px] font-bold">
-                <Phone className="w-3 h-3" /> {org.phone || "+91 422 123 4567"}
-              </span>
-              <span className="flex items-center gap-1.5 bg-[#055740] text-white px-3 py-1 rounded-full text-[11px] font-bold">
-                <Mail className="w-3 h-3" /> {org.supportEmail || "support@grekam.in"}
-              </span>
-              <span className="flex items-center gap-1.5 bg-[#055740] text-white px-3 py-1 rounded-full text-[11px] font-bold">
-                <Globe className="w-3 h-3" /> {org.website || "agency.grekam.in"}
-              </span>
+              {org.phone && (
+                <span style={{ backgroundColor: primaryColor }} className="flex items-center gap-1.5 text-white px-3 py-1 rounded-full text-[11px] font-bold">
+                  <Phone className="w-3 h-3" /> {org.phone}
+                </span>
+              )}
+              {org.supportEmail && (
+                <span style={{ backgroundColor: primaryColor }} className="flex items-center gap-1.5 text-white px-3 py-1 rounded-full text-[11px] font-bold">
+                  <Mail className="w-3 h-3" /> {org.supportEmail}
+                </span>
+              )}
+              {org.website && (
+                <span style={{ backgroundColor: primaryColor }} className="flex items-center gap-1.5 text-white px-3 py-1 rounded-full text-[11px] font-bold">
+                  <Globe className="w-3 h-3" /> {org.website}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 text-slate-500 font-bold text-[11px]">
               <span>Design · Develop · Grow</span>
-            </div>
-
           </div>
 
         </div>

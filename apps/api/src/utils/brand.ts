@@ -76,40 +76,40 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   const org = await app.prisma.organization.findFirst();
   const finance = await app.prisma.financeSettings.findFirst();
 
-  const gstin = finance?.gstNumber?.trim() || null;
-  const pan = gstin && gstin.length >= 12 ? gstin.substring(2, 12) : null;
+  const gstin = (org?.gstNumber || finance?.gstNumber)?.trim() || null;
+  const pan = (org?.panNumber || (gstin && gstin.length >= 12 ? gstin.substring(2, 12) : null))?.trim() || null;
   const stateCode = gstin && gstin.length >= 2 ? gstin.substring(0, 2) : '33';
   const placeOfSupply = stateCode === '33' ? 'Tamil Nadu (33)' : `State (${stateCode})`;
 
-  const GREKAM_GREEN = '#2DA16D';
-  const VISUALS_ORANGE = '#E1992D';
-  const AGENCY_TEAL = '#49abc9';
+  const DEFAULT_PRIMARY = '#4f46e5';
+  const DEFAULT_SECONDARY = '#10b981';
+  const DEFAULT_ACCENT = '#f59e0b';
 
   const defaultLogo = type === 'ACADEMY' ? 'academy-logo.png' : 'visuals-logo.png';
-  const rawLogo = type === 'ACADEMY' ? (org?.academyLogoUrl || org?.logoUrl || '/academy-logo.png') : (org?.logoUrl || '/visuals-logo.png');
-  const logoUrl = resolveBrandLogo(rawLogo, defaultLogo);
-  const rawFavicon = type === 'ACADEMY' ? (org?.academyFaviconUrl || org?.faviconUrl || '/favicon.ico') : (org?.faviconUrl || '/favicon.ico');
+  const rawLogo = type === 'ACADEMY' ? (org?.academyLogoUrl || org?.logoUrl || null) : (org?.logoUrl || null);
+  const logoUrl = rawLogo ? resolveBrandLogo(rawLogo, defaultLogo) : null;
+  const rawFavicon = type === 'ACADEMY' ? (org?.academyFaviconUrl || org?.faviconUrl || null) : (org?.faviconUrl || null);
 
   if (!org) {
     return {
       logoUrl,
       faviconUrl: rawFavicon,
       companyName: type === 'ACADEMY' ? 'Grekam Academy' : 'Grekam Visuals',
-      tradeName: type === 'ACADEMY' ? 'Grekam Academy of Technology & Design' : 'Grekam Visuals & Technologies Pvt Ltd',
+      tradeName: type === 'ACADEMY' ? 'Grekam Academy' : 'Grekam Visuals',
       gstin,
       pan,
       placeOfSupply,
-      primaryColor: type === 'ACADEMY' ? '#4f46e5' : GREKAM_GREEN,
-      secondaryColor: VISUALS_ORANGE,
-      accentColor: AGENCY_TEAL,
-      grekamGreen: GREKAM_GREEN,
-      visualsOrange: VISUALS_ORANGE,
-      agencyTeal: AGENCY_TEAL,
+      primaryColor: DEFAULT_PRIMARY,
+      secondaryColor: DEFAULT_SECONDARY,
+      accentColor: DEFAULT_ACCENT,
+      grekamGreen: DEFAULT_SECONDARY,
+      visualsOrange: DEFAULT_ACCENT,
+      agencyTeal: DEFAULT_PRIMARY,
       fontFamily: 'Helvetica',
-      website: type === 'ACADEMY' ? 'https://academy.grekam.in' : 'https://grekam.in',
-      contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : 'contact@grekam.in',
+      website: null,
+      contactEmail: null,
       phone: null,
-      address: 'Coimbatore, Tamil Nadu, India',
+      address: null,
       bankName: null,
       accountName: null,
       accountNumber: null,
@@ -134,26 +134,26 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType): Pro
   return {
     logoUrl,
     faviconUrl: rawFavicon,
-    companyName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy` : (org.name || 'Grekam Visuals'),
-    tradeName: type === 'ACADEMY' ? `${org.name || 'Grekam'} Academy of Technology & Design` : `${org.name || 'Grekam'} Visuals & Technologies Pvt Ltd`,
+    companyName: org.companyName?.trim() || org.name || 'Garage SaaS',
+    tradeName: org.companyName?.trim() || org.name || 'Garage SaaS',
     gstin,
     pan,
     placeOfSupply,
-    primaryColor: type === 'ACADEMY' ? '#4f46e5' : (org.primaryColor || GREKAM_GREEN),
-    secondaryColor: org.secondaryColor || VISUALS_ORANGE,
-    accentColor: org.accentColor || AGENCY_TEAL,
-    grekamGreen: GREKAM_GREEN,
-    visualsOrange: VISUALS_ORANGE,
-    agencyTeal: AGENCY_TEAL,
+    primaryColor: org.primaryColor?.trim() || DEFAULT_PRIMARY,
+    secondaryColor: org.secondaryColor?.trim() || DEFAULT_SECONDARY,
+    accentColor: org.accentColor?.trim() || DEFAULT_ACCENT,
+    grekamGreen: org.secondaryColor?.trim() || DEFAULT_SECONDARY,
+    visualsOrange: org.accentColor?.trim() || DEFAULT_ACCENT,
+    agencyTeal: org.primaryColor?.trim() || DEFAULT_PRIMARY,
     fontFamily: 'Helvetica',
-    website: type === 'ACADEMY' ? 'https://academy.grekam.in' : (org.website?.trim() || 'https://grekam.in'),
-    contactEmail: type === 'ACADEMY' ? 'academy@grekam.in' : (org.supportEmail?.trim() || 'contact@grekam.in'),
+    website: org.website?.trim() || null,
+    contactEmail: org.supportEmail?.trim() || null,
     phone: org.phone?.trim() || null,
-    address: org.billingAddress?.trim() || 'Coimbatore, Tamil Nadu, India',
+    address: org.billingAddress?.trim() || null,
     bankName: org.bankName?.trim() || null,
     accountName: org.accountName?.trim() || null,
-    accountNumber: org.accountNumber?.trim() || null,
-    ifscCode: org.ifscCode?.trim() || null,
+    accountNumber: (org.accountNumber || org.bankAccountNo)?.trim() || null,
+    ifscCode: (org.ifscCode || org.bankIfsc)?.trim() || null,
     swiftCode: org.swiftCode?.trim() || null,
     bankBranch: org.bankBranch?.trim() || null,
     upiId,

@@ -14,7 +14,6 @@ import Image from "next/image"
 const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator"), { ssr: false })
 
 import { NotificationMenu } from "./NotificationMenu"
-import { TimerWidget } from "./TimerWidget"
 
 function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string; size?: number }) {
   const [hasError, setHasError] = useState(false)
@@ -59,7 +58,6 @@ function OrgHeader() {
       <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={32} />
       <span className="text-lg font-bold tracking-tight">{org.name}</span>
       <div className="ml-auto flex items-center gap-2">
-        <TimerWidget />
         <NotificationMenu />
         <RealtimeIndicator />
       </div>

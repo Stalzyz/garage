@@ -356,6 +356,9 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
   const isAcademy = invoice.businessUnit === 'ACADEMY';
   const logo = resolveBrandLogo(brand.logoUrl, isAcademy ? 'academy-logo.png' : 'visuals-logo.png');
 
+  const primaryColor = brand.primaryColor || '#4f46e5';
+  const secondaryColor = brand.secondaryColor || '#10b981';
+
   const formattedDate = invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
   const formattedDueDate = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
 
@@ -375,13 +378,13 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
             )}
             
             <Text style={[styles.companyName, { marginTop: 4 }]}>{brand.companyName}</Text>
-            <Text style={styles.supplierMeta}>{brand.address || 'Coimbatore, Tamil Nadu, India - 641024'}</Text>
-            <Text style={styles.supplierMeta}>GSTIN : {brand.gstin || '33HCCPS5424M1Z8'}</Text>
-            <Text style={styles.supplierMeta}>PAN : {brand.pan || 'HCCPS5424M'}</Text>
+            {brand.address && <Text style={styles.supplierMeta}>{brand.address}</Text>}
+            {brand.gstin && <Text style={styles.supplierMeta}>GSTIN : {brand.gstin}</Text>}
+            {brand.pan && <Text style={styles.supplierMeta}>PAN : {brand.pan}</Text>}
           </View>
 
           <View style={styles.headerRight}>
-            <Text style={styles.invoiceTitle}>
+            <Text style={[styles.invoiceTitle, { color: primaryColor }]}>
               {invoice.isProforma ? 'PROFORMA INVOICE' : 'TAX INVOICE'}
             </Text>
 
@@ -404,8 +407,8 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
               <View style={styles.metaRow}>
                 <Text style={styles.metaLabel}>Payment Status</Text>
                 <Text style={styles.metaLabel}>:</Text>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>
+                <View style={[styles.statusBadge, { backgroundColor: invoice.status === 'PAID' ? '#dcfce7' : '#fef3c7' }]}>
+                  <Text style={[styles.statusBadgeText, { color: invoice.status === 'PAID' ? '#15803d' : '#b45309' }]}>
                     {invoice.status === 'PAID' ? 'Paid' : invoice.status === 'OVERDUE' ? 'Overdue' : 'Pending'}
                   </Text>
                 </View>
@@ -424,21 +427,21 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
           </View>
         </View>
 
-        {/* ─── 2. MINT CARDS (BILL TO & THANK YOU) ──────────────────────────── */}
+        {/* ─── 2. THEMED CARDS (BILL TO & THANK YOU) ──────────────────────────── */}
         <View style={styles.gridContainer}>
           {/* Bill To Card */}
-          <View style={styles.mintCard}>
-            <Text style={styles.cardTitle}>Bill To</Text>
+          <View style={[styles.mintCard, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}>
+            <Text style={[styles.cardTitle, { color: primaryColor }]}>Bill To</Text>
             <Text style={styles.cardHeadingText}>{invoice.clientName || 'Valued Client'}</Text>
             {invoice.clientAddress && <Text style={styles.cardBodyText}>{cleanDocumentText(invoice.clientAddress)}</Text>}
-            <Text style={styles.cardBodyText}>GSTIN : {invoice.clientGst?.trim() ? invoice.clientGst : 'N/A'}</Text>
+            {invoice.clientGst?.trim() && <Text style={styles.cardBodyText}>GSTIN : {invoice.clientGst}</Text>}
             <Text style={styles.cardBodyText}>State : Tamil Nadu (33)</Text>
           </View>
 
 
           {/* Greeting Card */}
-          <View style={styles.mintCard}>
-            <Text style={styles.cardHeadingText}>
+          <View style={[styles.mintCard, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}>
+            <Text style={[styles.cardHeadingText, { color: primaryColor }]}>
               Thank you for choosing {brand.companyName}!
             </Text>
             <Text style={styles.cardBodyText}>
@@ -449,7 +452,7 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
 
         {/* ─── 3. LINE ITEMS TABLE ──────────────────────────────────────────── */}
         <View style={styles.table}>
-          <View style={styles.tableHeader}>
+          <View style={[styles.tableHeader, { backgroundColor: primaryColor }]}>
             <Text style={[styles.tableHeaderCell, styles.colNum]}>#</Text>
             <Text style={[styles.tableHeaderCell, styles.colDesc]}>Description</Text>
             <Text style={[styles.tableHeaderCell, styles.colSac]}>HSN/SAC</Text>
@@ -475,8 +478,8 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
         {/* ─── 4. BOTTOM TOTALS & WORDS SECTION ──────────────────────────────── */}
         <View style={styles.bottomGrid}>
           <View style={styles.bottomLeft}>
-            <View style={styles.wordsCard}>
-              <Text style={styles.wordsLabel}>Amount in Words</Text>
+            <View style={[styles.wordsCard, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}>
+              <Text style={[styles.wordsLabel, { color: primaryColor }]}>Amount in Words</Text>
               <Text style={styles.wordsText}>{wordsAmount}</Text>
             </View>
           </View>
@@ -509,9 +512,9 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
                 </View>
               )}
 
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total Amount (₹)</Text>
-                <Text style={styles.totalValue}>₹ {fmt(invoice.totalAmount)}</Text>
+              <View style={[styles.totalRow, { backgroundColor: '#f8fafc', borderTopColor: '#e2e8f0' }]}>
+                <Text style={[styles.totalLabel, { color: primaryColor }]}>Total Amount (₹)</Text>
+                <Text style={[styles.totalValue, { color: primaryColor }]}>₹ {fmt(invoice.totalAmount)}</Text>
               </View>
             </View>
           </View>
@@ -524,7 +527,9 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
             <Text style={styles.noteItem}>1. This is a computer generated invoice and does not require a signature.</Text>
             <Text style={styles.noteItem}>2. Services provided under {brand.companyName}.</Text>
             <Text style={styles.noteItem}>3. Payment once made is non-refundable.</Text>
-            <Text style={styles.noteItem}>4. For any billing queries, contact {brand.contactEmail || 'support@grekam.in'}.</Text>
+            {brand.contactEmail && (
+              <Text style={styles.noteItem}>4. For any billing queries, contact {brand.contactEmail}.</Text>
+            )}
             <Text style={styles.noteItem}>5. Thank you for being a valued client!</Text>
           </View>
 
@@ -538,15 +543,21 @@ export const TemplateInvoice: React.FC<TemplateInvoiceProps> = ({ invoice, brand
         {/* ─── 6. FOOTER BAR ────────────────────────────────────────────────── */}
         <View style={styles.footerBar}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={styles.footerPill}>
-              <Text style={styles.footerPillText}>{brand.phone || '+91 422 123 4567'}</Text>
-            </View>
-            <View style={styles.footerPill}>
-              <Text style={styles.footerPillText}>{brand.contactEmail || 'support@grekam.in'}</Text>
-            </View>
-            <View style={styles.footerPill}>
-              <Text style={styles.footerPillText}>{brand.website || 'agency.grekam.in'}</Text>
-            </View>
+            {brand.phone && (
+              <View style={[styles.footerPill, { backgroundColor: primaryColor }]}>
+                <Text style={styles.footerPillText}>{brand.phone}</Text>
+              </View>
+            )}
+            {brand.contactEmail && (
+              <View style={[styles.footerPill, { backgroundColor: primaryColor }]}>
+                <Text style={styles.footerPillText}>{brand.contactEmail}</Text>
+              </View>
+            )}
+            {brand.website && (
+              <View style={[styles.footerPill, { backgroundColor: primaryColor }]}>
+                <Text style={styles.footerPillText}>{brand.website}</Text>
+              </View>
+            )}
           </View>
 
           <Text style={styles.footerSocials}>Design · Develop · Grow</Text>

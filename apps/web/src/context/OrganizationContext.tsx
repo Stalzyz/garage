@@ -10,6 +10,8 @@ export interface Organization {
   faviconUrl?: string | null;
   academyFaviconUrl?: string | null;
   primaryColor: string;
+  secondaryColor?: string | null;
+  accentColor?: string | null;
   darkModeDefault: boolean;
   supportEmail?: string | null;
   billingAddress?: string | null;
@@ -31,11 +33,13 @@ const defaultOrg: Organization = {
   academyLogoUrl: null,
   faviconUrl: null,
   academyFaviconUrl: null,
-  primaryColor: "#2563eb",
+  primaryColor: "#4f46e5",
+  secondaryColor: "#10b981",
+  accentColor: "#f59e0b",
   darkModeDefault: true,
-  supportEmail: "support@grekam.in",
-  billingAddress: "Chennai, Tamil Nadu, India",
-  website: "https://garage.grekam.in",
+  supportEmail: null,
+  billingAddress: null,
+  website: null,
   phone: null,
   gstNumber: null,
   panNumber: null,
