@@ -8,7 +8,7 @@ import {
   BookOpen, ShieldCheck, Layers, Palette, Megaphone, 
   Film, Code2, Users, ChevronDown, 
   ChevronUp, MessageCircle, Send, Check, Search, Download, Briefcase, ExternalLink, Phone,
-  Star, ChevronLeft, ChevronRight, SlidersHorizontal
+  Star, ChevronLeft, ChevronRight, SlidersHorizontal, Sparkles
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -667,6 +667,337 @@ const STUDENT_REVIEWS = [
   }
 ]
 
+
+// ─────────────────────────────────────────────
+// Mentors & Instructors Data
+// ─────────────────────────────────────────────
+const MENTORS_DATA = [
+  {
+    name: "Ashok Arvind",
+    experience: "4+ Years Experience",
+    role: "Graphic Design & Motion Graphics Lead",
+    skills: ["Graphic Designing", "Motion Graphics", "After Effects", "Photoshop", "Brand Identity"],
+    image: "/downloads/ashok.jpeg",
+    fallbackInitials: "AA",
+    accentGlow: "from-blue-600/20 via-indigo-600/10 to-transparent",
+    borderHover: "hover:border-blue-500/60",
+    avatarBorder: "border-blue-500/50 shadow-[0_0_25px_rgba(59,130,246,0.3)]",
+    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+    bio: "Passionate visual storyteller with 4+ years of industry experience in high-impact visual design, brand systems, and motion graphics for commercial agency clients."
+  },
+  {
+    name: "Velan Madhevan",
+    experience: "3+ Years Experience",
+    role: "Digital Marketing Specialist",
+    skills: ["Digital Marketing", "Meta Lead Ads", "Performance Marketing", "Google Ads", "SEO Strategy"],
+    image: "/downloads/velan.jpeg",
+    fallbackInitials: "VM",
+    accentGlow: "from-purple-600/20 via-pink-600/10 to-transparent",
+    borderHover: "hover:border-purple-500/60",
+    avatarBorder: "border-purple-500/50 shadow-[0_0_25px_rgba(168,85,247,0.3)]",
+    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+    bio: "Data-driven growth strategist with 3+ years of experience executing performance marketing campaigns, lead generation funnels, and organic search optimization."
+  },
+  {
+    name: "Suresh",
+    experience: "11+ Years Experience",
+    role: "Design & Development Lead (Vibe Coding)",
+    subTitle: "Founder of "The Good Folks Club" Coimbatore",
+    skills: ["Design & Development", "AI Vibe Coding", "UX/UI Architecture", "Full-Stack Web Systems"],
+    image: "/downloads/suresh.jpeg",
+    fallbackInitials: "S",
+    accentGlow: "from-amber-600/20 via-orange-600/10 to-transparent",
+    borderHover: "hover:border-amber-500/60",
+    avatarBorder: "border-amber-500/50 shadow-[0_0_25px_rgba(245,158,11,0.3)]",
+    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+    bio: "11+ years leading design and software engineering. Founder of The Good Folks Club Coimbatore, pioneering hands-on AI Vibe Coding workflows."
+  }
+]
+
+// ─────────────────────────────────────────────
+// Real-Time Countdown Timer Component
+// ─────────────────────────────────────────────
+function CountdownTimer() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+
+  useEffect(() => {
+    const targetDate = new Date("2026-10-15T09:30:00+05:30").getTime()
+
+    const updateTimer = () => {
+      const now = new Date().getTime()
+      const diff = targetDate - now
+
+      if (diff > 0) {
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000)
+        })
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+      }
+    }
+
+    updateTimer()
+    const timer = setInterval(updateTimer, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-xl mx-auto">
+      {[
+        { label: "Days", value: timeLeft.days, color: "text-blue-400", border: "border-blue-500/30" },
+        { label: "Hours", value: timeLeft.hours, color: "text-purple-400", border: "border-purple-500/30" },
+        { label: "Minutes", value: timeLeft.minutes, color: "text-emerald-400", border: "border-emerald-500/30" },
+        { label: "Seconds", value: timeLeft.seconds, color: "text-amber-400", border: "border-amber-500/30" },
+      ].map((item, idx) => (
+        <div key={idx} className={`bg-black/40 backdrop-blur-md border ${item.border} rounded-2xl p-2.5 md:p-4 text-center shadow-lg relative overflow-hidden group`}>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <span className={`text-xl md:text-4xl font-extrabold font-mono tracking-tight block ${item.color}`}>
+            {String(item.value).padStart(2, "0")}
+          </span>
+          <span className="text-[9px] md:text-xs font-mono uppercase tracking-widest text-white/50 font-semibold mt-1 block">
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Professional October 2026 Calendar Component
+// ─────────────────────────────────────────────
+function BatchStartCalendar() {
+  const oct2026Days = Array.from({ length: 31 }, (_, i) => i + 1)
+  const emptyPadding = Array.from({ length: 4 }, (_, i) => i)
+
+  return (
+    <section id="schedule" className="py-16 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
+      <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
+        <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/20">
+          Official Batch Launch Schedule
+        </span>
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+          Batch Starts October 15th 2026
+        </h2>
+        <p className="text-sm md:text-base text-white/60 font-mono">
+          Reserve your seat for the upcoming 45-Day Intensive Onsite & Live Online Cohort.
+        </p>
+      </div>
+
+      <div className="mb-10">
+        <CountdownTimer />
+      </div>
+
+      <div className="bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/15 rounded-3xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/10 pb-6 mb-8">
+          <div>
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400">
+              Coimbatore & Live Online
+            </span>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-white mt-1 flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-blue-400" /> October 2026 Batch Calendar
+            </h3>
+          </div>
+          <div className="flex items-center gap-2.5 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-2xl">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-xs font-mono text-emerald-400 font-bold uppercase tracking-wider">
+              Only 20 Seats Per Batch
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Calendar View */}
+          <div className="lg:col-span-7 bg-black/50 border border-white/10 rounded-2xl p-4 md:p-6 shadow-inner">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <span className="text-sm font-mono font-bold text-white uppercase tracking-wider">October 2026</span>
+              <span className="text-xs font-mono text-amber-400 font-bold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Thu, Oct 15 — Launch Day
+              </span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 md:gap-2 text-center text-[10px] md:text-xs font-mono font-bold text-white/40 mb-3">
+              <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1.5 md:gap-2 text-center text-xs font-mono">
+              {emptyPadding.map((_, idx) => (
+                <div key={`pad-${idx}`} className="h-8 md:h-10 rounded-lg bg-transparent" />
+              ))}
+              {oct2026Days.map((d) => {
+                const isBatchStart = d === 15
+                return (
+                  <div
+                    key={d}
+                    className={`h-9 md:h-11 rounded-xl flex flex-col items-center justify-center relative transition-all ${
+                      isBatchStart
+                        ? "bg-gradient-to-tr from-amber-500 to-orange-600 text-black font-black shadow-[0_0_25px_rgba(245,158,11,0.7)] scale-110 z-10 border-2 border-white"
+                        : d < 15
+                        ? "bg-white/[0.02] text-white/30"
+                        : "bg-white/[0.05] text-white/90 hover:bg-white/10"
+                    }`}
+                  >
+                    <span>{d}</span>
+                    {isBatchStart && (
+                      <span className="absolute -bottom-1 w-2 h-2 rounded-full bg-white shadow-sm animate-pulse" />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Batch Details Card */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-purple-500/10 to-blue-500/10 border border-amber-500/30 space-y-3">
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold uppercase tracking-wider">
+                <Sparkles className="w-4 h-4 text-amber-400" /> Batch Start Date
+              </div>
+              <h4 className="text-xl md:text-2xl font-extrabold text-white">Thursday, October 15th 2026</h4>
+              <p className="text-xs text-white/70 font-mono leading-relaxed">
+                45-Day Intensive Hands-on Mastery Program with Grekam × Layart Agency Mentors.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 text-xs font-mono">
+              <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between">
+                <span className="text-white/60">Morning Batch:</span>
+                <span className="text-blue-400 font-bold">9:30 AM – 11:30 AM IST</span>
+              </div>
+              <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between">
+                <span className="text-white/60">Evening Batch:</span>
+                <span className="text-purple-400 font-bold">6:30 PM – 8:30 PM IST</span>
+              </div>
+              <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between">
+                <span className="text-white/60">Location / Mode:</span>
+                <span className="text-emerald-400 font-bold">Coimbatore Onsite & Live Online</span>
+              </div>
+            </div>
+
+            <a
+              href="#enroll"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-mono font-bold text-xs uppercase tracking-wider text-center block shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] transition-all"
+            >
+              Reserve Oct 15th Seat Now →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Mentors Profile Cards Component
+// ─────────────────────────────────────────────
+function MentorsSection() {
+  return (
+    <section id="mentors" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
+      <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+        <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3.5 py-1 rounded-full border border-blue-500/20">
+          Working Industry Practitioners
+        </span>
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+          Your Mentors & Instructors
+        </h2>
+        <p className="text-sm md:text-base text-white/60 font-mono">
+          Learn directly from agency leaders and seasoned creative practitioners with real-world experience.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {MENTORS_DATA.map((mentor) => (
+          <div
+            key={mentor.name}
+            className={`bg-gradient-to-b ${mentor.accentGlow} bg-white/[0.02] border border-white/10 ${mentor.borderHover} rounded-3xl p-6 md:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 shadow-2xl group relative overflow-hidden` }
+          >
+            <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-white/10 transition-all" />
+
+            <div className="space-y-6 relative z-10 text-center">
+              
+              {/* Circle Profile Picture */}
+              <div className="relative w-28 h-28 md:w-32 md:h-32 mx-auto">
+                <div className={`w-full h-full rounded-full border-2 ${mentor.avatarBorder} overflow-hidden bg-black/60 relative flex items-center justify-center transition-transform group-hover:scale-105 duration-300`}>
+                  <img
+                    src={mentor.image}
+                    alt={mentor.name}
+                    className="w-full h-full object-cover object-center"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = "none";
+                      if (target.nextElementSibling) {
+                        (target.nextElementSibling as HTMLElement).style.display = "flex";
+                      }
+                    }}
+                  />
+                  <div className="w-full h-full bg-gradient-to-tr from-slate-800 to-slate-900 text-white font-extrabold font-mono text-2xl flex items-center justify-center hidden">
+                    {mentor.fallbackInitials}
+                  </div>
+                </div>
+
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold tracking-wider uppercase bg-black/90 text-white px-3 py-1 rounded-full border border-white/20 whitespace-nowrap shadow-md">
+                  {mentor.experience}
+                </span>
+              </div>
+
+              {/* Name & Role */}
+              <div className="pt-2 space-y-1">
+                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight group-hover:text-blue-300 transition-colors">
+                  {mentor.name}
+                </h3>
+                <p className="text-xs font-mono font-bold text-blue-400">
+                  {mentor.role}
+                </p>
+                {mentor.subTitle && (
+                  <p className="text-[11px] font-mono text-amber-400/90 font-medium">
+                    {mentor.subTitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Bio */}
+              <p className="text-xs text-white/70 font-mono leading-relaxed text-left">
+                {mentor.bio}
+              </p>
+
+              {/* Highlighted Skills */}
+              <div className="pt-2 text-left">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-white/40 font-bold mb-2">
+                  Highlighted Skills:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {mentor.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className={`text-[10px] font-mono font-semibold px-2.5 py-1 rounded-lg border ${mentor.badgeColor}`}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-white/5 relative z-10">
+              <a
+                href="#enroll"
+                className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all group-hover:border-white/30"
+              >
+                Learn with {mentor.name.split(" ")[0]} →
+              </a>
+            </div>
+
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export default function MasterclassPage() {
   const [selectedModule, setSelectedModule] = useState<number | 'ALL'>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
@@ -825,6 +1156,8 @@ export default function MasterclassPage() {
 
           <div className="hidden lg:flex items-center gap-8 text-xs font-mono uppercase tracking-widest text-white/70">
             <a href="#overview" className="hover:text-blue-400 transition-colors">Program</a>
+            <a href="#schedule" className="hover:text-amber-400 transition-colors">Batch Oct 15</a>
+            <a href="#mentors" className="hover:text-blue-400 transition-colors">Mentors</a>
             <a href="#curriculum" className="hover:text-blue-400 transition-colors">45-Day Syllabus</a>
             <a href="#agency" className="hover:text-amber-400 transition-colors">Agency Internship</a>
             <a href="#reviews" className="hover:text-amber-300 transition-colors">Reviews</a>
@@ -1009,6 +1342,17 @@ export default function MasterclassPage() {
 
         </div>
       </section>
+
+      
+      {/* ─────────────────────────────────────────────
+          BATCH START LAUNCH CALENDAR & COUNTDOWN TIMER
+      ───────────────────────────────────────────── */}
+      <BatchStartCalendar />
+
+      {/* ─────────────────────────────────────────────
+          YOUR MENTORS SECTION
+      ───────────────────────────────────────────── */}
+      <MentorsSection />
 
       {/* ─────────────────────────────────────────────
           IN-BETWEEN CTA BANNER 1 (AFTER HERO)
