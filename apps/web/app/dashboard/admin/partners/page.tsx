@@ -21,7 +21,10 @@ import {
   XCircle,
   Check,
   CreditCard,
-  CheckCheck
+  CheckCheck,
+  Settings2,
+  Sliders,
+  Shield
 } from "lucide-react"
 
 interface Partner {
@@ -31,12 +34,13 @@ interface Partner {
   email: string
   phone?: string
   type: "RESELLER" | "WHITE_LABEL"
-  status: "ACTIVE" | "PENDING" | "SUSPENDED"
+  status: "ACTIVE" | "PENDING" | "SUSPENDED" | "REVOKED"
   kycStatus: "APPROVED" | "PENDING" | "REJECTED"
   walletBalance: number
   customerCount: number
   commissionPercent: number
   whiteLabelEnabled: boolean
+  maxPriceMultiplier?: number
   whiteLabel?: {
     brandName: string
     customDomain?: string
@@ -79,6 +83,24 @@ export default function AdminPartnersPage() {
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
   
+  // Manage Partner Modal
+  const [managePartner, setManagePartner] = useState<Partner | null>(null)
+  const [manageForm, setManageForm] = useState({
+    companyName: "",
+    partnerType: "WHITE_LABEL" as "RESELLER" | "WHITE_LABEL",
+    status: "ACTIVE",
+    commissionPercent: "20",
+    whiteLabelEnabled: true,
+    maxPriceMultiplier: "3.0",
+    brandName: "",
+    customDomain: "",
+    ownerFirstName: "",
+    ownerLastName: "",
+    ownerEmail: "",
+    ownerPhone: "",
+  })
+  const [manageSubmitting, setManageSubmitting] = useState(false)
+
   // Wallet Adjustment form
   const [walletForm, setWalletForm] = useState({
     amount: "",
@@ -134,6 +156,52 @@ export default function AdminPartnersPage() {
     }
   }
 
+  function openManagePartnerModal(partner: Partner) {
+    setManagePartner(partner)
+    const nameParts = (partner.name || "").split(" ")
+    setManageForm({
+      companyName: partner.company || "",
+      partnerType: partner.type || "WHITE_LABEL",
+      status: partner.status || "ACTIVE",
+      commissionPercent: String(partner.commissionPercent ?? 20),
+      whiteLabelEnabled: partner.whiteLabelEnabled ?? true,
+      maxPriceMultiplier: String(partner.maxPriceMultiplier ?? 3.0),
+      brandName: partner.whiteLabel?.brandName || partner.company || "",
+      customDomain: partner.whiteLabel?.customDomain || "",
+      ownerFirstName: nameParts[0] || "",
+      ownerLastName: nameParts.slice(1).join(" ") || "",
+      ownerEmail: partner.email || "",
+      ownerPhone: partner.phone || "",
+    })
+  }
+
+  async function handleSavePartnerControls(e: React.FormEvent) {
+    e.preventDefault()
+    if (!managePartner) return
+    setManageSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/admin/partners/${managePartner.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(manageForm),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        alert(data.message || "Partner controls updated successfully!")
+        setManagePartner(null)
+        fetchPartners()
+      } else {
+        alert(data.error || "Failed to update partner controls")
+      }
+    } catch {
+      alert("Network error updating partner controls")
+    } finally {
+      setManageSubmitting(false)
+    }
+  }
+
   async function handleToggleWhiteLabel(partner: Partner) {
     const nextType = partner.type === "WHITE_LABEL" ? "RESELLER" : "WHITE_LABEL"
     const nextEnabled = nextType === "WHITE_LABEL"
@@ -177,7 +245,7 @@ export default function AdminPartnersPage() {
       } else {
         alert(data.error || "Action failed")
       }
-    } catch (err) {
+    } catch {
       alert("Network error.")
     }
   }
@@ -250,7 +318,7 @@ export default function AdminPartnersPage() {
       } else {
         alert(data.error || "Wallet adjustment failed")
       }
-    } catch (err) {
+    } catch {
       alert("Network error")
     } finally {
       setWalletSubmitting(false)
@@ -283,7 +351,7 @@ export default function AdminPartnersPage() {
       } else {
         alert(data.error || "Failed to create partner")
       }
-    } catch (err) {
+    } catch {
       alert("Network error")
     } finally {
       setAddSubmitting(false)
@@ -301,7 +369,7 @@ export default function AdminPartnersPage() {
   const totalCustomers = partners.reduce((sum, p) => sum + p.customerCount, 0)
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8 font-sans">
+    <div className="max-w-7xl mx-auto p-6 space-y-8 font-sans text-white">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-800/80 pb-6">
         <div>
@@ -309,10 +377,10 @@ export default function AdminPartnersPage() {
             <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
               <Users className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Partner Control Plane & Bank Settlement</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Partner Control Plane & Whitelabel Management</h1>
           </div>
           <p className="text-sm text-zinc-400 mt-1">
-            Zero-gateway offline architecture: Verify direct bank NEFT/IMPS deposits, manage partner wallets, and control white-label permissions.
+            Control reseller & white-label partner entitlements, custom domain mappings, wallet floats, and subscription status.
           </p>
         </div>
 
@@ -526,16 +594,24 @@ export default function AdminPartnersPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleToggleStatus(partner)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
-                              partner.status === "ACTIVE"
-                                ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                                : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                            }`}
-                          >
-                            {partner.status === "ACTIVE" ? "Suspend" : "Approve"}
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openManagePartnerModal(partner)}
+                              className="px-2.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-semibold inline-flex items-center gap-1 transition"
+                            >
+                              <Settings2 className="w-3.5 h-3.5" /> Controls
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(partner)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                                partner.status === "ACTIVE"
+                                  ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                              }`}
+                            >
+                              {partner.status === "ACTIVE" ? "Suspend" : "Approve"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -674,6 +750,176 @@ export default function AdminPartnersPage() {
         </div>
       )}
 
+      {/* ── MODAL: MANAGE PARTNER CONTROLS ── */}
+      {managePartner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-zinc-900 border border-zinc-800 p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-purple-400" /> Manage Partner Entitlements — {managePartner.company}
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">Control partner plan tier, whitelabel domain permissions, commission rates, and access revocation.</p>
+              </div>
+              <button onClick={() => setManagePartner(null)} className="text-zinc-400 hover:text-white text-base">✕</button>
+            </div>
+
+            <form onSubmit={handleSavePartnerControls} className="space-y-4 text-xs">
+              
+              {/* Partner Tier & Status */}
+              <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-3">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-purple-400">
+                  <Shield className="w-3.5 h-3.5" /> Partner Type & Access Status
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Partner Plan Type</label>
+                    <select
+                      value={manageForm.partnerType}
+                      onChange={(e) => setManageForm({ ...manageForm, partnerType: e.target.value as any, whiteLabelEnabled: e.target.value === "WHITE_LABEL" })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-purple-500 font-semibold"
+                    >
+                      <option value="WHITE_LABEL">✨ WHITE_LABEL (Full Whitelabel)</option>
+                      <option value="RESELLER">💼 RESELLER (Standard Agency)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Subscription Access Status</label>
+                    <select
+                      value={manageForm.status}
+                      onChange={(e) => setManageForm({ ...manageForm, status: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl border text-white font-bold focus:outline-none ${
+                        manageForm.status === "ACTIVE"
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                          : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      }`}
+                    >
+                      <option value="ACTIVE">ACTIVE — Full Access</option>
+                      <option value="PENDING">PENDING — Verification Required</option>
+                      <option value="SUSPENDED">SUSPENDED — Blocked</option>
+                      <option value="REVOKED">REVOKED — Cancelled</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Commission Rate (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={manageForm.commissionPercent}
+                      onChange={(e) => setManageForm({ ...manageForm, commissionPercent: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-purple-500 font-mono font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Whitelabel Configuration */}
+              <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-blue-400">
+                    <Globe className="w-3.5 h-3.5" /> Whitelabel Branding & Custom Domain
+                  </h4>
+                  <label className="flex items-center gap-2 cursor-pointer text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={manageForm.whiteLabelEnabled}
+                      onChange={(e) => setManageForm({ ...manageForm, whiteLabelEnabled: e.target.checked })}
+                      className="accent-purple-500 w-4 h-4 rounded"
+                    />
+                    <span>Enable White-Label PDF & Branding</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Whitelabel Agency Brand Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Apex Garage Solutions"
+                      value={manageForm.brandName}
+                      onChange={(e) => setManageForm({ ...manageForm, brandName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Whitelabel Custom Domain / CNAME</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. garage.apexsolutions.com"
+                      value={manageForm.customDomain}
+                      onChange={(e) => setManageForm({ ...manageForm, customDomain: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-purple-500 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Partner Owner Contact Details */}
+              <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-3">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-emerald-400">
+                  <Building2 className="w-3.5 h-3.5" /> Partner Company & Account Contact
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Company Name</label>
+                    <input
+                      type="text"
+                      value={manageForm.companyName}
+                      onChange={(e) => setManageForm({ ...manageForm, companyName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Owner Email *</label>
+                    <input
+                      type="email"
+                      required
+                      value={manageForm.ownerEmail}
+                      onChange={(e) => setManageForm({ ...manageForm, ownerEmail: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Owner First Name</label>
+                    <input
+                      type="text"
+                      value={manageForm.ownerFirstName}
+                      onChange={(e) => setManageForm({ ...manageForm, ownerFirstName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-semibold">Owner Last Name</label>
+                    <input
+                      type="text"
+                      value={manageForm.ownerLastName}
+                      onChange={(e) => setManageForm({ ...manageForm, ownerLastName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+                <button type="button" onClick={() => setManagePartner(null)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white">Cancel</button>
+                <button type="submit" disabled={manageSubmitting} className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg shadow-purple-600/20">
+                  {manageSubmitting ? "Saving Partner Controls..." : "Save Partner Entitlements"}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── MODAL: MANUAL WALLET ADJUSTMENT ── */}
       {showWalletModal && selectedPartner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -800,35 +1046,33 @@ export default function AdminPartnersPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Partner Company / Entity Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={addForm.companyName}
-                  onChange={(e) => setAddForm({ ...addForm, companyName: e.target.value })}
-                  placeholder="e.g. Apex Auto Systems Pvt Ltd"
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Email Address *</label>
+                <label className="block text-zinc-400 mb-1 font-semibold">Login Email *</label>
                 <input
                   type="email"
                   required
                   value={addForm.email}
                   onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                  placeholder="e.g. partner@company.com"
+                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">Company / Agency Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Apex Auto Solutions"
+                  value={addForm.companyName}
+                  onChange={(e) => setAddForm({ ...addForm, companyName: e.target.value })}
                   className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Partner Type *</label>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Partner Plan Type</label>
                   <select
                     value={addForm.partnerType}
-                    onChange={(e) => setAddForm({ ...addForm, partnerType: e.target.value as any })}
+                    onChange={(e) => setAddForm({ ...addForm, partnerType: e.target.value as any, whiteLabelEnabled: e.target.value === "WHITE_LABEL" })}
                     className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="WHITE_LABEL">White-Label Partner</option>
@@ -836,12 +1080,12 @@ export default function AdminPartnersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Commission / Margin %</label>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Commission Rate (%)</label>
                   <input
                     type="number"
                     value={addForm.commissionPercent}
                     onChange={(e) => setAddForm({ ...addForm, commissionPercent: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500 font-mono"
                   />
                 </div>
               </div>
@@ -857,7 +1101,7 @@ export default function AdminPartnersPage() {
                 <button
                   type="submit"
                   disabled={addSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-black font-semibold shadow-lg shadow-emerald-500/20"
+                  className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-black font-semibold shadow-lg shadow-emerald-500/20"
                 >
                   {addSubmitting ? "Creating..." : "Create Partner Account"}
                 </button>

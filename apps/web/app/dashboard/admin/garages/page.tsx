@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Building2, Search, Eye, Edit, PauseCircle, PlayCircle, RefreshCw, LogIn, X, ShieldCheck, Plus, Key, Lock, Copy, Check
+  Building2, Search, Eye, Edit, PauseCircle, PlayCircle, RefreshCw, LogIn, X, ShieldCheck, Plus, Key, Lock, Copy, Check, Calendar, Settings2, Sliders, AlertTriangle, ShieldAlert
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -18,6 +18,31 @@ export default function SuperAdminGaragesPage() {
   const [customResetPassword, setCustomResetPassword] = useState("")
   const [resetLoading, setResetLoading] = useState(false)
   const [copiedPass, setCopiedPass] = useState(false)
+
+  // Edit / Control Modal State
+  const [manageGarage, setManageGarage] = useState<any | null>(null)
+  const [manageLoading, setManageLoading] = useState(false)
+  const [manageSubmitting, setManageSubmitting] = useState(false)
+
+  const [editForm, setEditForm] = useState({
+    name: "",
+    plan: "GROWTH",
+    status: "ACTIVE",
+    renewalDate: "",
+    ownerName: "",
+    ownerEmail: "",
+    ownerPhone: "",
+    features: {
+      crmEnabled: true,
+      hrmEnabled: true,
+      projectsEnabled: true,
+      financeEnabled: true,
+      portalEnabled: true,
+      customDomainAllowed: true,
+      whiteLabelPdfAllowed: true,
+      aiAssistantAllowed: true,
+    }
+  })
 
   const [newForm, setNewForm] = useState({
     name: "",
@@ -53,6 +78,88 @@ export default function SuperAdminGaragesPage() {
   useEffect(() => {
     fetchGarages()
   }, [activeTab])
+
+  const openManageModal = async (garage: any) => {
+    setManageGarage(garage)
+    setManageLoading(true)
+    try {
+      const res = await fetch(`/api/admin/garages/${garage.id}`)
+      const json = await res.json()
+      if (json.success && json.garage) {
+        const g = json.garage
+        setEditForm({
+          name: g.name || garage.name,
+          plan: g.plan || garage.plan || "GROWTH",
+          status: g.status || garage.status || "ACTIVE",
+          renewalDate: g.renewalDate ? g.renewalDate.split("T")[0] : garage.renewal || "",
+          ownerName: g.owner?.name || garage.owner || "",
+          ownerEmail: g.owner?.email || garage.email || "",
+          ownerPhone: g.owner?.phone || garage.phone || "",
+          features: {
+            crmEnabled: g.features?.crmEnabled ?? true,
+            hrmEnabled: g.features?.hrmEnabled ?? true,
+            projectsEnabled: g.features?.projectsEnabled ?? true,
+            financeEnabled: g.features?.financeEnabled ?? true,
+            portalEnabled: g.features?.portalEnabled ?? true,
+            customDomainAllowed: g.features?.customDomainAllowed ?? true,
+            whiteLabelPdfAllowed: g.features?.whiteLabelPdfAllowed ?? true,
+            aiAssistantAllowed: g.features?.aiAssistantAllowed ?? true,
+          }
+        })
+      } else {
+        setEditForm({
+          name: garage.name,
+          plan: garage.plan || "GROWTH",
+          status: garage.status || "ACTIVE",
+          renewalDate: garage.renewal || "",
+          ownerName: garage.owner || "",
+          ownerEmail: garage.email || "",
+          ownerPhone: garage.phone || "",
+          features: {
+            crmEnabled: true,
+            hrmEnabled: true,
+            projectsEnabled: true,
+            financeEnabled: true,
+            portalEnabled: true,
+            customDomainAllowed: true,
+            whiteLabelPdfAllowed: true,
+            aiAssistantAllowed: true,
+          }
+        })
+      }
+    } catch {
+      toast.error("Error loading garage details")
+    } finally {
+      setManageLoading(false)
+    }
+  }
+
+  const handleSaveGarageControl = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!manageGarage) return
+    setManageSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/admin/garages/${manageGarage.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      })
+
+      const json = await res.json()
+      if (json.success) {
+        toast.success(json.message || "Garage configuration updated successfully!")
+        setManageGarage(null)
+        fetchGarages()
+      } else {
+        toast.error(json.error || "Failed to update garage settings")
+      }
+    } catch {
+      toast.error("Network error updating garage controls")
+    } finally {
+      setManageSubmitting(false)
+    }
+  }
 
   const handleCreateGarage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -144,8 +251,10 @@ export default function SuperAdminGaragesPage() {
       {/* Top Header */}
       <div className="border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Garages Directory & Tenancy</h1>
-          <p className="text-xs text-zinc-400 mt-1">Manage and audit all direct garage subscriptions and white-label partner client workshops.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Garages Directory & Tenancy Control</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Manage plans, toggle enabled modules, set custom validity dates, revoke subscriptions, and manage passwords for all workshops.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -257,25 +366,37 @@ export default function SuperAdminGaragesPage() {
                     <td className="py-4 px-6 text-zinc-300 font-medium">{g.plan}</td>
                     <td className="py-4 px-6">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        g.status === "Active" 
+                        g.status === "Active" || g.status === "ACTIVE"
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                          : g.status === "SUSPENDED" || g.status === "REVOKED"
+                            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                       }`}>
                         {g.status}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <button
-                        onClick={() => {
-                          setResetModalGarage(g)
-                          setCustomResetPassword(generateRandomPassword())
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[11px] font-medium inline-flex items-center gap-1.5 transition"
-                        title="Change / Reset Password"
-                      >
-                        <Key className="w-3 h-3 text-amber-400" />
-                        Reset Pass
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openManageModal(g)}
+                          className="px-2.5 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[11px] font-semibold inline-flex items-center gap-1 transition"
+                          title="Control Plan, Modules, Validity & Subscription"
+                        >
+                          <Settings2 className="w-3 h-3" />
+                          Manage Controls
+                        </button>
+                        <button
+                          onClick={() => {
+                            setResetModalGarage(g)
+                            setCustomResetPassword(generateRandomPassword())
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[11px] font-medium inline-flex items-center gap-1 transition"
+                          title="Change / Reset Password"
+                        >
+                          <Key className="w-3 h-3 text-amber-400" />
+                          Passkey
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -284,6 +405,185 @@ export default function SuperAdminGaragesPage() {
           </table>
         </div>
       </div>
+
+      {/* ── MODAL: MANAGE GARAGE & SUBSCRIPTION CONTROLS ── */}
+      {manageGarage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-2xl bg-[#0b101d] border border-white/15 p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-blue-400" /> Manage Garage Controls — {manageGarage.name}
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">Control plan, toggle active modules, adjust subscription validity date, or revoke access.</p>
+              </div>
+              <button onClick={() => setManageGarage(null)} className="text-zinc-400 hover:text-white text-base">✕</button>
+            </div>
+
+            {manageLoading ? (
+              <div className="py-12 text-center text-zinc-500 text-xs">Loading garage entitlements...</div>
+            ) : (
+              <form onSubmit={handleSaveGarageControl} className="space-y-5 text-xs">
+                
+                {/* 1. Plan & Subscription Status */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                  <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-blue-400">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Plan Tier & Subscription Access State
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Assigned Plan Tier</label>
+                      <select
+                        value={editForm.plan}
+                        onChange={(e) => setEditForm({ ...editForm, plan: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="STARTER">Starter Plan (Basic)</option>
+                        <option value="GROWTH">Growth Plan (Standard)</option>
+                        <option value="ENTERPRISE">Enterprise Plan (Full Access)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Subscription Status</label>
+                      <select
+                        value={editForm.status}
+                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                        className={`w-full px-3 py-2 rounded-xl border text-white font-bold focus:outline-none ${
+                          editForm.status === "ACTIVE"
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                            : editForm.status === "SUSPENDED" || editForm.status === "REVOKED"
+                              ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                              : "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                        }`}
+                      >
+                        <option value="ACTIVE">ACTIVE — Full Access</option>
+                        <option value="PENDING">PENDING — Unverified</option>
+                        <option value="SUSPENDED">SUSPENDED — Temporary Block</option>
+                        <option value="REVOKED">REVOKED — Cancelled / Revoked</option>
+                        <option value="EXPIRED">EXPIRED — Renewal Due</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Custom Validity Expiry Date</label>
+                      <input
+                        type="date"
+                        value={editForm.renewalDate}
+                        onChange={(e) => setEditForm({ ...editForm, renewalDate: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-blue-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Module & Entitlement Controls */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                  <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-purple-400">
+                    <Sliders className="w-3.5 h-3.5" /> Enable / Disable Specific Modules & Entitlements
+                  </h4>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.crmEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>CRM Module</span>
+                      <input type="checkbox" checked={editForm.features.crmEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, crmEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.hrmEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>HRM & Payroll</span>
+                      <input type="checkbox" checked={editForm.features.hrmEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, hrmEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.projectsEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Job Cards & Repairs</span>
+                      <input type="checkbox" checked={editForm.features.projectsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, projectsEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.financeEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Invoices & Billing</span>
+                      <input type="checkbox" checked={editForm.features.financeEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, financeEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.portalEnabled ? "bg-purple-500/10 border-purple-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Customer Portal</span>
+                      <input type="checkbox" checked={editForm.features.portalEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, portalEnabled: e.target.checked } })} className="accent-purple-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.whiteLabelPdfAllowed ? "bg-purple-500/10 border-purple-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Whitelabel PDF</span>
+                      <input type="checkbox" checked={editForm.features.whiteLabelPdfAllowed} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, whiteLabelPdfAllowed: e.target.checked } })} className="accent-purple-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.customDomainAllowed ? "bg-emerald-500/10 border-emerald-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Custom Domain</span>
+                      <input type="checkbox" checked={editForm.features.customDomainAllowed} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, customDomainAllowed: e.target.checked } })} className="accent-emerald-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.aiAssistantAllowed ? "bg-amber-500/10 border-amber-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>AI Assistant</span>
+                      <input type="checkbox" checked={editForm.features.aiAssistantAllowed} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, aiAssistantAllowed: e.target.checked } })} className="accent-amber-500" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 3. Garage & Owner Details */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                  <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-emerald-400">
+                    <Building2 className="w-3.5 h-3.5" /> Garage & Owner Contact Info
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Garage Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Owner Name</label>
+                      <input
+                        type="text"
+                        value={editForm.ownerName}
+                        onChange={(e) => setEditForm({ ...editForm, ownerName: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Owner Email</label>
+                      <input
+                        type="email"
+                        value={editForm.ownerEmail}
+                        onChange={(e) => setEditForm({ ...editForm, ownerEmail: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1 font-semibold">Owner Phone</label>
+                      <input
+                        type="text"
+                        value={editForm.ownerPhone}
+                        onChange={(e) => setEditForm({ ...editForm, ownerPhone: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                  <button type="button" onClick={() => setManageGarage(null)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white">Cancel</button>
+                  <button type="submit" disabled={manageSubmitting} className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-600/20">
+                    {manageSubmitting ? "Saving Controls..." : "Save Garage Controls"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add Direct Garage Modal */}
       {showAddModal && (
