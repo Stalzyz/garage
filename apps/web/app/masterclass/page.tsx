@@ -673,11 +673,11 @@ const STUDENT_REVIEWS = [
 // ─────────────────────────────────────────────
 const MENTORS_DATA = [
   {
-    name: "Ashok Arvind",
+    name: "Ashok Aravind",
     experience: "4+ Years Experience",
     role: "Graphic Design & Motion Graphics Lead",
     skills: ["Graphic Designing", "Motion Graphics", "After Effects", "Photoshop", "Brand Identity"],
-    image: "/downloads/ashok.jpg",
+    image: "/downloads/suresh.jpg",
     fallbackInitials: "AA",
     accentGlow: "from-blue-600/20 via-indigo-600/10 to-transparent",
     borderHover: "hover:border-blue-500/60",
@@ -704,7 +704,7 @@ const MENTORS_DATA = [
     role: "Design & Development Lead (Vibe Coding)",
     subTitle: 'Founder of "The Good Folks Club" Coimbatore',
     skills: ["Design & Development", "AI Vibe Coding", "UX/UI Architecture", "Full-Stack Web Systems"],
-    image: "/downloads/suresh.jpg",
+    image: "/downloads/ashok.jpg",
     fallbackInitials: "S",
     accentGlow: "from-amber-600/20 via-orange-600/10 to-transparent",
     borderHover: "hover:border-amber-500/60",
@@ -926,12 +926,9 @@ function MentorsSection() {
                   className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = "/api/placeholder/400/400";
+                    target.style.display = 'none';
                   }}
                 />
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold tracking-wider uppercase bg-black/90 text-white px-3 py-1 rounded-full border border-white/20 whitespace-nowrap shadow-md">
-                  {mentor.experience}
-                </span>
               </div>
 
               {/* Name & Role */}
