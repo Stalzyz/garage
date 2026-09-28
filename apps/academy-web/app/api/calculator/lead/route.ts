@@ -2,8 +2,27 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateWebsiteEstimate, DEFAULT_CALCULATOR_CONFIG, CalculatorState } from '@/lib/calculator/calculator-config';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+const ALGORITHM = 'aes-256-cbc';
+const SECRET = (process.env.ENCRYPTION_SECRET || 'grekam-os-default-secret-32bytes!').slice(0, 32);
+
+function decrypt(text: string): string {
+  if (!text || !text.includes(':')) return text;
+  try {
+    const [ivHex, encryptedHex] = text.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const encrypted = Buffer.from(encryptedHex, 'hex');
+    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(SECRET), iv);
+    let decrypted = decipher.update(encrypted);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch {
+    return text;
+  }
+}
 
 const NOTIFICATION_RECIPIENTS = [
   'greeksacademy@gmail.com',
@@ -33,11 +52,11 @@ async function sendLeadEmailNotification(lead: {
         where: { service: 'SMTP', isActive: true }
       });
       for (const k of keys) {
-        if (k.keyName === 'SMTP_HOST') host = k.encryptedValue;
-        if (k.keyName === 'SMTP_PORT') port = parseInt(k.encryptedValue) || 587;
-        if (k.keyName === 'SMTP_USER') user = k.encryptedValue;
-        if (k.keyName === 'SMTP_PASS') pass = k.encryptedValue;
-        if (k.keyName === 'SMTP_FROM') fromAddress = k.encryptedValue;
+        if (k.keyName === 'SMTP_HOST') host = decrypt(k.encryptedValue);
+        if (k.keyName === 'SMTP_PORT') port = parseInt(decrypt(k.encryptedValue)) || 587;
+        if (k.keyName === 'SMTP_USER') user = decrypt(k.encryptedValue);
+        if (k.keyName === 'SMTP_PASS') pass = decrypt(k.encryptedValue);
+        if (k.keyName === 'SMTP_FROM') fromAddress = decrypt(k.encryptedValue);
       }
     } catch (dbErr) {
       console.error('[EmailNotification] Error checking SMTP keys from DB:', dbErr);
@@ -46,6 +65,11 @@ async function sendLeadEmailNotification(lead: {
     if (!host || !user || !pass) {
       console.log(`[EmailNotification] SMTP not configured. Lead logged: Name=${lead.name}, Phone=${lead.phone}, Email=${lead.email}`);
       return;
+    }
+
+    // Format proper fromAddress if required
+    if (fromAddress && !fromAddress.includes('<') && user) {
+      fromAddress = `"${fromAddress}" <${user}>`;
     }
 
     const transporter = nodemailer.createTransport({
@@ -111,7 +135,7 @@ async function sendLeadEmailNotification(lead: {
       subject: `🔥 New Lead: ${lead.name} - ${lead.courseInterest || lead.company || 'Website Registration'}`,
       html: htmlContent,
     });
-    console.log(`[EmailNotification] Notification sent to ${NOTIFICATION_RECIPIENTS.join(', ')}`);
+    console.log(`[EmailNotification] Notification successfully sent to ${NOTIFICATION_RECIPIENTS.join(', ')}`);
   } catch (emailErr) {
     console.error('[EmailNotification] Failed to send email alert:', emailErr);
   }
@@ -183,6 +207,7 @@ export async function POST(req: Request) {
         source: source || 'WEBSITE',
         businessUnit: 'ACADEMY',
         projectType: projectType || 'MASTERCLASS',
+        courseInterest: courseInterest || '3-in-1 Masterclass (Graphic + Digital Marketing + Motion)',
         estimatedBudget: estimatedBudget || null,
         notes: notes || null,
         status: 'NEW',
@@ -224,7 +249,7 @@ export async function POST(req: Request) {
       email,
       phone,
       company,
-      courseInterest,
+      courseInterest: courseInterest || '3-in-1 Masterclass',
       estimatedBudget,
       source,
       notes,
