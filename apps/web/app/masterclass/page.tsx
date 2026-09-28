@@ -894,12 +894,41 @@ function BatchStartCalendar() {
 // Mentors Profile Cards Component
 // ─────────────────────────────────────────────
 
-function MentorAvatar({ mentor }: { mentor: typeof MENTORS_DATA[0] }) {
-  const [hasError, setHasError] = useState(false);
-
+function MentorsSection() {
   return (
-    <MentorAvatar mentor={mentor} />
+    <section id="mentors" className="py-24 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+      <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+        <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3.5 py-1 rounded-full border border-blue-500/20">
+          Your Mentors
+        </span>
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+          Learn from Industry <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Veterans</span>
+        </h2>
+        <p className="text-sm md:text-base text-white/60 font-mono">
+          Master real-world skills from professionals who lead top design and marketing agencies.
+        </p>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+        {MENTORS_DATA.map((mentor, idx) => (
+          <div
+            key={idx}
+            className="group bg-white/[0.03] backdrop-blur-xl border border-white/10 hover:border-white/20 rounded-3xl p-6 md:p-8 flex flex-col justify-between transition-all hover:bg-white/[0.05] hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden relative"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/[0.05] to-transparent rounded-bl-[100px] pointer-events-none" />
+
+            <div className="space-y-6 relative z-10">
+              {/* Profile Picture */}
+              <div className="relative w-24 h-24 rounded-full border-2 border-white/20 overflow-hidden shadow-lg group-hover:border-white/50 transition-colors mx-auto md:mx-0">
+                <img
+                  src={mentor.image}
+                  alt={mentor.name}
+                  className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/api/placeholder/400/400";
+                  }}
+                />
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold tracking-wider uppercase bg-black/90 text-white px-3 py-1 rounded-full border border-white/20 whitespace-nowrap shadow-md">
                   {mentor.experience}
                 </span>
