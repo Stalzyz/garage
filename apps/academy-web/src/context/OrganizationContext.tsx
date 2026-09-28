@@ -65,10 +65,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
               const root = document.documentElement;
               root.style.setProperty("--org-primary", finalOrg.primaryColor || "#4f46e5");
 
-              // Update page title
-              if (orgData.name) {
-                document.title = `${orgData.name} Academy`;
-              }
+              // Keep Next.js page metadata titles intact
 
               // Update Academy Favicon dynamically in browser tab
               const activeFavicon = orgData.academyFaviconUrl || orgData.faviconUrl;

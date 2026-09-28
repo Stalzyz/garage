@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "curl -s http://localhost:3000/masterclass | python3 -c \"import sys; d=sys.stdin.read(); i=d.find('title'); print(d[i:i+100])\"\r"
+expect "# "
+send "ls /root/grekam-os/apps/web/.next/standalone/apps/web/public/downloads/ 2>/dev/null || echo MISSING\r"
+expect "# "
+send "grep -r Creativex /root/grekam-os/apps/web/.next/standalone/ 2>/dev/null | head -3 || echo NOT_FOUND\r"
+expect "# "
+send "exit\r"
+expect eof

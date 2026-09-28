@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "echo '=== Nginx configs ===' && ls /etc/nginx/sites-enabled/\r"
+expect "# "
+send "echo '=== grekam.in config ===' && cat /etc/nginx/sites-enabled/grekam.in 2>/dev/null || cat /etc/nginx/sites-available/grekam.in 2>/dev/null || echo NOT_FOUND\r"
+expect "# "
+send "echo '=== What is on port 3000 ===' && curl -s http://localhost:3000/masterclass | head -c 500\r"
+expect "# "
+send "echo '=== PM2 env for web ===' && pm2 env 8 | grep -E 'PORT|HOSTNAME|cwd'\r"
+expect "# "
+send "echo '=== Actual server.js path ===' && ls -la /root/grekam-os/apps/web/.next/standalone/apps/web/\r"
+expect "# "
+send "exit\r"
+expect eof

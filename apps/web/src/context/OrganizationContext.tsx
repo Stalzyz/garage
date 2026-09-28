@@ -74,10 +74,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
               const root = document.documentElement;
               root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2DA16D");
 
-              // Update page title if set
-              if (orgData.name) {
-                document.title = orgData.name;
-              }
+              // Keep Next.js page metadata titles intact
 
               // Update Agency Favicon dynamically in browser tab
               if (orgData.faviconUrl) {

@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "echo '=== Title in standalone build ===' && grep -r 'Inertia\\|Creativex\\|CREATIVEX' /root/grekam-os/apps/web/.next/standalone/apps/web/.next/server/app/masterclass/ 2>/dev/null | head -5\r"
+expect "# "
+send "echo '=== Title in standalone HTML ===' && grep -o 'title>[^<]*' /root/grekam-os/apps/web/.next/standalone/apps/web/.next/server/app/masterclass/page.html 2>/dev/null | head -5\r"
+expect "# "
+send "echo '=== Downloads in standalone ===' && ls /root/grekam-os/apps/web/.next/standalone/apps/web/public/downloads/ 2>/dev/null || echo MISSING\r"
+expect "# "
+send "echo '=== Downloads in source ===' && ls /root/grekam-os/apps/web/public/downloads/\r"
+expect "# "
+send "echo '=== Curl title ===' && curl -s http://localhost:3000/masterclass | grep -o '<title>[^<]*</title>'\r"
+expect "# "
+send "exit\r"
+expect eof
