@@ -3918,3 +3918,32 @@ model PartnerActivityLog {
 
   @@map("partner_activity_logs")
 }
+
+model SystemPlan {
+  id                          String   @id @default(cuid())
+  slug                        String   @unique
+  name                        String
+  tagline                     String?
+  badge                       String?
+  monthlyPrice                Float    @default(0)
+  monthlyOfferPrice           Float?
+  yearlyPrice                 Float    @default(0)
+  yearlyOfferPrice            Float?
+  whitelabelMonthlyBasePrice Float?
+  whitelabelYearlyBasePrice  Float?
+  resellerCommissionRate      Float    @default(20)
+  allowWhitelabelCustomMarkup Boolean  @default(true)
+  popular                     Boolean  @default(false)
+  ctaText                     String   @default("Get Started")
+  ctaUrl                      String?
+  status                      String   @default("Active") // Active | Deactivated
+  displayOrder                Int      @default(0)
+  modules                     String[]
+  features                    String[]
+  missing                     String[]
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  @@map("system_plans")
+}
+

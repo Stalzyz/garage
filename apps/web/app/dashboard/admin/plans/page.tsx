@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 const AVAILABLE_MODULES = [
@@ -22,78 +22,28 @@ const AVAILABLE_MODULES = [
 export default function SuperAdminPlansPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
-  
-  const [plans, setPlans] = useState([
-    {
-      id: "plan-1",
-      name: "Basic Garage",
-      monthlyPrice: "1999",
-      monthlyOfferPrice: "1499",
-      yearlyPrice: "19999",
-      yearlyOfferPrice: "14999",
-      whitelabelMonthlyBasePrice: "999",
-      whitelabelYearlyBasePrice: "9999",
-      resellerCommissionRate: "20",
-      allowWhitelabelCustomMarkup: false,
-      status: "Active",
-      modules: [
-        "CRM & Sales (Leads, Proposals, Dialer)",
-        "Finance, Invoicing & P&L",
-        "Support Helpdesk",
-        "Asset Drive Storage"
-      ],
-    },
-    {
-      id: "plan-2",
-      name: "Growth Garage",
-      monthlyPrice: "3999",
-      monthlyOfferPrice: "2999",
-      yearlyPrice: "39999",
-      yearlyOfferPrice: "29999",
-      whitelabelMonthlyBasePrice: "1999",
-      whitelabelYearlyBasePrice: "19999",
-      resellerCommissionRate: "25",
-      allowWhitelabelCustomMarkup: true,
-      status: "Active",
-      modules: [
-        "CRM & Sales (Leads, Proposals, Dialer)",
-        "Kanban Projects & Asset Hub",
-        "Finance, Invoicing & P&L",
-        "HR, Payroll & Attendance",
-        "WhatsApp Automation & Alerts",
-        "Analytics & Intelligence",
-        "Support Helpdesk",
-        "Asset Drive Storage"
-      ],
-    },
-    {
-      id: "plan-3",
-      name: "Enterprise Garage",
-      monthlyPrice: "6999",
-      monthlyOfferPrice: "4999",
-      yearlyPrice: "69999",
-      yearlyOfferPrice: "49999",
-      whitelabelMonthlyBasePrice: "2999",
-      whitelabelYearlyBasePrice: "29999",
-      resellerCommissionRate: "30",
-      allowWhitelabelCustomMarkup: true,
-      status: "Active",
-      modules: [
-        "CRM & Sales (Leads, Proposals, Dialer)",
-        "Kanban Projects & Asset Hub",
-        "Finance, Invoicing & P&L",
-        "HR, Payroll & Attendance",
-        "Marketing Hub & Campaign Scheduler",
-        "CMS & Website Page Builder",
-        "Analytics & Intelligence",
-        "Support Helpdesk",
-        "Automations Engine",
-        "WhatsApp Automation & Alerts",
-        "Asset Drive Storage",
-        "White Label & Custom Domain"
-      ],
-    },
-  ])
+  const [plans, setPlans] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchPlans = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/admin/plans")
+      const data = await res.json()
+      if (data.plans) {
+        setPlans(data.plans)
+      }
+    } catch (err) {
+      console.error("Failed to fetch plans:", err)
+      toast.error("Failed to load plans from server")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPlans()
+  }, [])
 
   const [form, setForm] = useState({
     name: "",
@@ -129,13 +79,13 @@ export default function SuperAdminPlansPage() {
     setEditingPlanId(plan.id)
     setForm({
       name: plan.name,
-      monthlyPrice: plan.monthlyPrice || "",
-      monthlyOfferPrice: plan.monthlyOfferPrice || "",
-      yearlyPrice: plan.yearlyPrice || "",
-      yearlyOfferPrice: plan.yearlyOfferPrice || "",
-      whitelabelMonthlyBasePrice: plan.whitelabelMonthlyBasePrice || "",
-      whitelabelYearlyBasePrice: plan.whitelabelYearlyBasePrice || "",
-      resellerCommissionRate: plan.resellerCommissionRate || "25",
+      monthlyPrice: plan.monthlyPrice !== undefined && plan.monthlyPrice !== null ? String(plan.monthlyPrice) : "",
+      monthlyOfferPrice: plan.monthlyOfferPrice !== undefined && plan.monthlyOfferPrice !== null ? String(plan.monthlyOfferPrice) : "",
+      yearlyPrice: plan.yearlyPrice !== undefined && plan.yearlyPrice !== null ? String(plan.yearlyPrice) : "",
+      yearlyOfferPrice: plan.yearlyOfferPrice !== undefined && plan.yearlyOfferPrice !== null ? String(plan.yearlyOfferPrice) : "",
+      whitelabelMonthlyBasePrice: plan.whitelabelMonthlyBasePrice !== undefined && plan.whitelabelMonthlyBasePrice !== null ? String(plan.whitelabelMonthlyBasePrice) : "",
+      whitelabelYearlyBasePrice: plan.whitelabelYearlyBasePrice !== undefined && plan.whitelabelYearlyBasePrice !== null ? String(plan.whitelabelYearlyBasePrice) : "",
+      resellerCommissionRate: plan.resellerCommissionRate !== undefined && plan.resellerCommissionRate !== null ? String(plan.resellerCommissionRate) : "25",
       allowWhitelabelCustomMarkup: plan.allowWhitelabelCustomMarkup ?? true,
       selectedModules: plan.modules || [],
     })
@@ -153,61 +103,73 @@ export default function SuperAdminPlansPage() {
     })
   }
 
-  const handleSavePlan = (e: React.FormEvent) => {
+  const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name || !form.yearlyPrice) return toast.error("Please fill required fields (Name and Yearly Price)")
 
-    if (editingPlanId) {
-      setPlans(plans.map(p => {
-        if (p.id === editingPlanId) {
-          return {
-            ...p,
-            name: form.name,
-            monthlyPrice: form.monthlyPrice,
-            monthlyOfferPrice: form.monthlyOfferPrice,
-            yearlyPrice: form.yearlyPrice,
-            yearlyOfferPrice: form.yearlyOfferPrice,
-            whitelabelMonthlyBasePrice: form.whitelabelMonthlyBasePrice,
-            whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
-            resellerCommissionRate: form.resellerCommissionRate,
-            allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
-            modules: form.selectedModules,
-          }
+    const payload = {
+      name: form.name,
+      monthlyPrice: form.monthlyPrice,
+      monthlyOfferPrice: form.monthlyOfferPrice,
+      yearlyPrice: form.yearlyPrice,
+      yearlyOfferPrice: form.yearlyOfferPrice,
+      whitelabelMonthlyBasePrice: form.whitelabelMonthlyBasePrice,
+      whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
+      resellerCommissionRate: form.resellerCommissionRate,
+      allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
+      modules: form.selectedModules,
+    }
+
+    try {
+      if (editingPlanId) {
+        const res = await fetch("/api/admin/plans", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingPlanId, ...payload })
+        })
+        if (res.ok) {
+          toast.success(`Plan "${form.name}" updated successfully!`)
+          await fetchPlans()
+        } else {
+          throw new Error("Failed to update plan")
         }
-        return p
-      }))
-      toast.success(`Plan "${form.name}" updated successfully! Offer Price: ₹${Number(form.yearlyOfferPrice || form.yearlyPrice).toLocaleString("en-IN")}/yr + GST`)
-    } else {
-      const created = {
-        id: `plan-${Math.floor(100 + Math.random() * 900)}`,
-        name: form.name,
-        monthlyPrice: form.monthlyPrice,
-        monthlyOfferPrice: form.monthlyOfferPrice,
-        yearlyPrice: form.yearlyPrice,
-        yearlyOfferPrice: form.yearlyOfferPrice,
-        whitelabelMonthlyBasePrice: form.whitelabelMonthlyBasePrice,
-        whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
-        resellerCommissionRate: form.resellerCommissionRate,
-        allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
-        status: "Active",
-        modules: form.selectedModules,
+      } else {
+        const res = await fetch("/api/admin/plans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+        if (res.ok) {
+          toast.success(`Plan "${form.name}" created successfully!`)
+          await fetchPlans()
+        } else {
+          throw new Error("Failed to create plan")
+        }
       }
-      setPlans([...plans, created])
-      toast.success(`Plan "${created.name}" created successfully!`)
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save plan")
     }
 
     setShowModal(false)
   }
 
-  const toggleStatus = (id: string) => {
-    setPlans(plans.map(p => {
-      if (p.id === id) {
-        const nextStatus = p.status === "Active" ? "Deactivated" : "Active"
-        toast.info(`Plan "${p.name}" is now ${nextStatus}`)
-        return { ...p, status: nextStatus }
+  const toggleStatus = async (planOrId: any) => {
+    const plan = typeof planOrId === "string" ? plans.find(p => p.id === planOrId) : planOrId
+    if (!plan) return
+    const nextStatus = plan.status === "Active" ? "Deactivated" : "Active"
+    try {
+      const res = await fetch("/api/admin/plans", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: plan.id, status: nextStatus })
+      })
+      if (res.ok) {
+        toast.info(`Plan "${plan.name}" is now ${nextStatus}`)
+        await fetchPlans()
       }
-      return p
-    }))
+    } catch (err: any) {
+      toast.error("Failed to update status")
+    }
   }
 
   const handleTestCheckout = async (planName: string, amount: string) => {

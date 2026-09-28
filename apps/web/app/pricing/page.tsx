@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -21,11 +21,137 @@ import {
   FileText
 } from "lucide-react"
 
+const DEFAULT_PLANS = [
+  {
+    name: "Starter Studio",
+    tagline: "Ideal for boutique agencies, freelance consultants & solo service businesses.",
+    monthlyPrice: 1899,
+    yearlyPrice: 1499,
+    badge: null,
+    popular: false,
+    ctaText: "Start Free Trial",
+    features: [
+      "Up to 3 Team Logins & 25 Active Client Accounts",
+      "Visual Kanban Sales Pipeline & Lead Tracking",
+      "Interactive Digital Client Proposals",
+      "Standard GST Invoicing & Payment Links",
+      "Basic Client File & Asset Storage",
+      "Email Support & Knowledge Base",
+    ],
+    missing: [
+      "Automated WhatsApp Client Notifications",
+      "Client Self-Service Branded Portal",
+      "Automated Recurring Retainer Invoicing",
+      "Custom Whitelabel Partner Domain",
+    ]
+  },
+  {
+    name: "Growth Agency",
+    tagline: "For scaling digital agencies, dev shops & B2B teams looking to close deals faster.",
+    monthlyPrice: 4299,
+    yearlyPrice: 3499,
+    badge: "Most Popular",
+    popular: true,
+    ctaText: "Get Growth Plan",
+    features: [
+      "Unlimited Team Members & 150 Active Clients",
+      "Automated WhatsApp Alerts (Proposals & Invoices)",
+      "Interactive Proposals with E-Signatures",
+      "Automated Monthly Recurring Retainer Billing",
+      "Client Self-Service Web Portal",
+      "Team Task & Sprint Milestone Tracking",
+      "Team Time Logs & Commission Calculations",
+      "Priority WhatsApp & Phone Support",
+    ],
+    missing: [
+      "Multi-Organization Centralized Switcher",
+      "Custom Whitelabel Partner Domain & Logo",
+    ]
+  },
+  {
+    name: "Pro Enterprise",
+    tagline: "For high-volume digital firms, creative production houses & multi-brand agencies.",
+    monthlyPrice: 8499,
+    yearlyPrice: 6999,
+    badge: "High Performance",
+    popular: false,
+    ctaText: "Upgrade to Pro",
+    features: [
+      "Unlimited Client Accounts & Team Members",
+      "Multi-Organization & Multi-Brand Switcher",
+      "Full HR & Payroll: Attendance, Time & Commissions",
+      "Advanced P&L, Expense Ledgers & Profit Analytics",
+      "Custom Contract Templates & Document Vault",
+      "Custom Workflow Automations & API Access",
+      "Dedicated Account Manager & Onboarding",
+      "99.9% Uptime SLA Guarantee",
+    ],
+    missing: [
+      "Custom Whitelabel Reseller Domain",
+    ]
+  },
+  {
+    name: "Whitelabel Partner",
+    tagline: "For IT resellers, SaaS distributors & networks offering CRM under their own brand.",
+    monthlyPrice: 17999,
+    yearlyPrice: 14999,
+    badge: "White-Label",
+    popular: false,
+    ctaText: "Partner With Us",
+    features: [
+      "Unlimited Sub-Tenant Client Workspaces",
+      "100% Custom Domain & Proprietary Branding",
+      "Wholesale Reseller Dashboard & Margin Control",
+      "Automated Tenant Provisioning & Billing",
+      "Custom SMS & WhatsApp Gateway Integration",
+      "Full Source Config & SLA Guarantee",
+      "24/7 VIP Engineering Escalation",
+    ],
+    missing: []
+  }
+]
+
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [productsOpen, setProductsOpen] = useState(false)
   const [featuresOpen, setFeaturesOpen] = useState(false)
+
+  // Dynamic Plans state with fail-proof fallback
+  const [plans, setPlans] = useState<any[]>(DEFAULT_PLANS)
+
+  useEffect(() => {
+    fetch("/api/admin/plans")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.plans && Array.isArray(data.plans) && data.plans.length > 0) {
+          const activePlans = data.plans.filter((p: any) => p.status === "Active" || !p.status)
+          if (activePlans.length > 0) {
+            const mapped = activePlans.map((p: any) => {
+              const mPrice = p.monthlyOfferPrice || p.monthlyPrice || 0
+              const yPriceTotal = p.yearlyOfferPrice || p.yearlyPrice || 0
+              const yPriceMonthly = yPriceTotal > 0 ? Math.round(yPriceTotal / 12) : mPrice
+
+              return {
+                name: p.name,
+                tagline: p.tagline || "Comprehensive Agency OS & Client CRM workspace.",
+                monthlyPrice: mPrice,
+                yearlyPrice: yPriceMonthly,
+                badge: p.badge || (p.popular ? "Most Popular" : null),
+                popular: Boolean(p.popular),
+                ctaText: p.ctaText || "Get Started",
+                features: (p.features && p.features.length > 0) ? p.features : (p.modules || []),
+                missing: p.missing || [],
+              }
+            })
+            setPlans(mapped)
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Dynamic pricing fetch error, using fail-proof fallback:", err)
+      })
+  }, [])
 
   // Demo Modal state
   const [showDemoModal, setShowDemoModal] = useState(false)
@@ -58,96 +184,6 @@ export default function PricingPage() {
       setDemoSubmitted(true)
     }
   }
-
-  const plans = [
-    {
-      name: "Starter Studio",
-      tagline: "Ideal for boutique agencies, freelance consultants & solo service businesses.",
-      monthlyPrice: 1899,
-      yearlyPrice: 1499,
-      badge: null,
-      popular: false,
-      ctaText: "Start Free Trial",
-      features: [
-        "Up to 3 Team Logins & 25 Active Client Accounts",
-        "Visual Kanban Sales Pipeline & Lead Tracking",
-        "Interactive Digital Client Proposals",
-        "Standard GST Invoicing & Payment Links",
-        "Basic Client File & Asset Storage",
-        "Email Support & Knowledge Base",
-      ],
-      missing: [
-        "Automated WhatsApp Client Notifications",
-        "Client Self-Service Branded Portal",
-        "Automated Recurring Retainer Invoicing",
-        "Custom Whitelabel Partner Domain",
-      ]
-    },
-    {
-      name: "Growth Agency",
-      tagline: "For scaling digital agencies, dev shops & B2B teams looking to close deals faster.",
-      monthlyPrice: 4299,
-      yearlyPrice: 3499,
-      badge: "Most Popular",
-      popular: true,
-      ctaText: "Get Growth Plan",
-      features: [
-        "Unlimited Team Members & 150 Active Clients",
-        "Automated WhatsApp Alerts (Proposals & Invoices)",
-        "Interactive Proposals with E-Signatures",
-        "Automated Monthly Recurring Retainer Billing",
-        "Client Self-Service Web Portal",
-        "Team Task & Sprint Milestone Tracking",
-        "Team Time Logs & Commission Calculations",
-        "Priority WhatsApp & Phone Support",
-      ],
-      missing: [
-        "Multi-Organization Centralized Switcher",
-        "Custom Whitelabel Partner Domain & Logo",
-      ]
-    },
-    {
-      name: "Pro Enterprise",
-      tagline: "For high-volume digital firms, creative production houses & multi-brand agencies.",
-      monthlyPrice: 8499,
-      yearlyPrice: 6999,
-      badge: "High Performance",
-      popular: false,
-      ctaText: "Upgrade to Pro",
-      features: [
-        "Unlimited Client Accounts & Team Members",
-        "Multi-Organization & Multi-Brand Switcher",
-        "Full HR & Payroll: Attendance, Time & Commissions",
-        "Advanced P&L, Expense Ledgers & Profit Analytics",
-        "Custom Contract Templates & Document Vault",
-        "Custom Workflow Automations & API Access",
-        "Dedicated Account Manager & Onboarding",
-        "99.9% Uptime SLA Guarantee",
-      ],
-      missing: [
-        "Custom Whitelabel Reseller Domain",
-      ]
-    },
-    {
-      name: "Whitelabel Partner",
-      tagline: "For IT resellers, SaaS distributors & networks offering CRM under their own brand.",
-      monthlyPrice: 17999,
-      yearlyPrice: 14999,
-      badge: "White-Label",
-      popular: false,
-      ctaText: "Partner With Us",
-      features: [
-        "Unlimited Sub-Tenant Client Workspaces",
-        "100% Custom Domain & Proprietary Branding",
-        "Wholesale Reseller Dashboard & Margin Control",
-        "Automated Tenant Provisioning & Billing",
-        "Custom SMS & WhatsApp Gateway Integration",
-        "Full Source Config & SLA Guarantee",
-        "24/7 VIP Engineering Escalation",
-      ],
-      missing: []
-    }
-  ]
 
   const comparisonCategories = [
     {
