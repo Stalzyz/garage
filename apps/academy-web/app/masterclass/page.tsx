@@ -702,7 +702,7 @@ const MENTORS_DATA = [
     name: "Suresh",
     experience: "11+ Years Experience",
     role: "Design & Development Lead (Vibe Coding)",
-    subTitle: "Founder of "The Good Folks Club" Coimbatore",
+    subTitle: 'Founder of "The Good Folks Club" Coimbatore',
     skills: ["Design & Development", "AI Vibe Coding", "UX/UI Architecture", "Full-Stack Web Systems"],
     image: "/downloads/suresh.jpeg",
     fallbackInitials: "S",
