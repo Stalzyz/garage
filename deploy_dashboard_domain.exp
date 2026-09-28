@@ -1,0 +1,118 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "Photoshop09@"
+set host "72.61.231.187"
+
+spawn ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o PreferredAuthentications=password root@$host
+expect "password:"
+send "$password\r"
+expect "# "
+
+# ── 1. Git pull ──
+send "cd /root/grekam-os && git pull origin main\r"
+expect -timeout 60 "# "
+send "echo '=== PULL DONE ==='\r"
+expect "=== PULL DONE ==="
+expect "# "
+
+# ── 2. Rebuild API ──
+send "cd /root/grekam-os/apps/api && npm run build 2>&1 | tail -5\r"
+expect -timeout 120 "# "
+send "echo '=== API DONE ==='\r"
+expect "=== API DONE ==="
+expect "# "
+
+# ── 3. Create dashboard.grekam.in Nginx config ──
+send {cat > /etc/nginx/sites-available/dashboard.grekam.in << 'NGINXEOF'
+server {
+    server_name dashboard.grekam.in www.dashboard.grekam.in;
+
+    # Static assets — long-lived cache
+    location /_next/static/ {
+        alias /root/grekam-os/apps/web/.next/static/;
+        expires 365d;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+
+    location /public/ {
+        alias /root/grekam-os/apps/web/public/;
+        expires 365d;
+    }
+
+    # API proxy — forward to Express API on port 4000
+    location /api/v1 {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+
+    # Next.js app on port 3000
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+
+    listen 80;
+    listen [::]:80;
+}
+NGINXEOF
+}
+expect "# "
+send "echo '=== NGINX WRITTEN ==='\r"
+expect "=== NGINX WRITTEN ==="
+expect "# "
+
+# ── 4. Enable dashboard site, disable garage ──
+send "ln -sf /etc/nginx/sites-available/dashboard.grekam.in /etc/nginx/sites-enabled/dashboard.grekam.in\r"
+expect "# "
+send "rm -f /etc/nginx/sites-enabled/garage.grekam.in\r"
+expect "# "
+send "nginx -t 2>&1\r"
+expect "# "
+send "echo '=== NGINX TEST DONE ==='\r"
+expect "=== NGINX TEST DONE ==="
+expect "# "
+
+# ── 5. SSL cert for dashboard.grekam.in ──
+send "certbot --nginx -d dashboard.grekam.in --non-interactive --agree-tos -m stalinkumar@grekam.in 2>&1 | tail -10\r"
+expect -timeout 90 "# "
+send "echo '=== CERT DONE ==='\r"
+expect "=== CERT DONE ==="
+expect "# "
+
+# ── 6. Reload Nginx ──
+send "systemctl reload nginx\r"
+expect "# "
+send "echo '=== NGINX RELOADED ==='\r"
+expect "=== NGINX RELOADED ==="
+expect "# "
+
+# ── 7. Reload PM2 with updated env ──
+send "cd /root/grekam-os && pm2 reload ecosystem.config.js --update-env\r"
+expect -timeout 60 "# "
+send "pm2 list\r"
+expect "# "
+send "echo '=== ALL DONE ==='\r"
+expect "=== ALL DONE ==="
+expect "# "
+
+send "exit\r"
+expect eof

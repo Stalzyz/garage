@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+set timeout 600
+
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
+expect "password:"
+send "Photoshop09@\r"
+expect "# "
+send "cd /root/grekam-os\r"
+expect "# "
+send "git pull\r"
+expect "# "
+send "cd apps/web\r"
+expect "# "
+send "pnpm run build\r"
+expect "# "
+send "cp -r public .next/standalone/apps/web/\r"
+expect "# "
+send "cp -r .next/static .next/standalone/apps/web/.next/\r"
+expect "# "
+send "ls .next/standalone/apps/web/public/downloads/\r"
+expect "# "
+send "cd /root/grekam-os\r"
+expect "# "
+send "pm2 restart grekam-os-web\r"
+expect "# "
+send "exit\r"
+expect eof
