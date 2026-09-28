@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
-  Users, Plus, Search, Eye, Edit, PauseCircle, PlayCircle, LogIn, X, Globe, DollarSign, Building2
+  Users, Plus, Search, Eye, Edit, PauseCircle, PlayCircle, LogIn, X, Globe, DollarSign, Building2, RefreshCw
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -10,61 +10,44 @@ export default function SuperAdminResellersPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedReseller, setSelectedReseller] = useState<any | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [resellers, setResellers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [resellers, setResellers] = useState([
-    {
-      id: "rsl-1",
-      name: "Apex SaaS Partners",
-      company: "Apex Tech LLC",
-      email: "contact@apexsaas.com",
-      phone: "+91 98765 00112",
-      garagesCount: 12,
-      activeGaragesCount: 10,
-      sales: "₹4,25,000",
-      earnings: "₹1,06,250",
-      status: "Active",
-      whiteLabelStatus: "Enabled",
-      partnerType: "Master Partner (25%)",
-      garagesList: [
-        { name: "Apex Auto Care", plan: "Enterprise Garage", status: "Active", renewal: "2026-10-15" },
-        { name: "Speedy Motors", plan: "Growth Garage", status: "Active", renewal: "2026-10-02" },
-      ]
-    },
-    {
-      id: "rsl-2",
-      name: "Vanguard Tech Resellers",
-      company: "Vanguard Systems",
-      email: "partner@vanguard.io",
-      phone: "+91 97111 44556",
-      garagesCount: 8,
-      activeGaragesCount: 7,
-      sales: "₹2,80,000",
-      earnings: "₹70,000",
-      status: "Active",
-      whiteLabelStatus: "Enabled",
-      partnerType: "Standard Reseller (20%)",
-      garagesList: [
-        { name: "Vanguard Motor Hub", plan: "Growth Garage", status: "Active", renewal: "2026-11-10" },
-      ]
-    },
-    {
-      id: "rsl-3",
-      name: "Royal Auto Agency",
-      company: "Royal Auto Corp",
-      email: "admin@royalagency.in",
-      phone: "+91 99000 88776",
-      garagesCount: 4,
-      activeGaragesCount: 3,
-      sales: "₹1,15,000",
-      earnings: "₹28,750",
-      status: "Suspended",
-      whiteLabelStatus: "Disabled",
-      partnerType: "Standard Reseller (20%)",
-      garagesList: [
-        { name: "Royal Auto Works", plan: "Basic Garage", status: "Expiring Soon", renewal: "2026-09-29" },
-      ]
-    },
-  ])
+  useEffect(() => {
+    fetchResellers()
+  }, [])
+
+  const fetchResellers = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/admin/partners")
+      const data = await res.json()
+      if (data.success && Array.isArray(data.partners)) {
+        const mapped = data.partners.map((p: any) => ({
+          id: p.id,
+          name: `${p.user?.firstName || ''} ${p.user?.lastName || ''}`.trim() || p.companyName || "Partner",
+          company: p.companyName || "N/A",
+          email: p.user?.email || "N/A",
+          phone: p.user?.phone || "N/A",
+          garagesCount: 0,
+          activeGaragesCount: 0,
+          sales: "₹0",
+          earnings: `₹${p.wallet?.balance || 0}`,
+          status: p.status === "ACTIVE" ? "Active" : "Suspended",
+          whiteLabelStatus: p.whiteLabelEnabled ? "Enabled" : "Disabled",
+          partnerType: p.partnerType || "RESELLER",
+          garagesList: []
+        }))
+        setResellers(mapped)
+      } else {
+        setResellers([])
+      }
+    } catch (e) {
+      setResellers([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // New Reseller form
   const [form, setForm] = useState({

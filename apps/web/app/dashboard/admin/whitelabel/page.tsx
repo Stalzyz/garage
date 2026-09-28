@@ -1,15 +1,43 @@
 "use client"
 
-import { useState } from "react"
-import { Globe, Eye, RotateCcw, Power, ShieldCheck } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Globe, Eye, RotateCcw, Power, ShieldCheck, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 export default function SuperAdminWhiteLabelPage() {
-  const [whitelabels, setWhitelabels] = useState([
-    { id: "wl-1", reseller: "Apex SaaS Partners", garage: "Apex Auto Care", brand: "Apex Auto Network", domain: "apex.autocare.com", status: "Enabled" },
-    { id: "wl-2", reseller: "Vanguard Tech Resellers", garage: "Vanguard Motor Hub", brand: "Vanguard Motors", domain: "vanguard.reseller.com", status: "Enabled" },
-    { id: "wl-3", reseller: "Royal Auto Agency", garage: "Royal Auto Works", brand: "Royal Auto", domain: "royal.garage.in", status: "Disabled" },
-  ])
+  const [whitelabels, setWhitelabels] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchWhitelabels()
+  }, [])
+
+  const fetchWhitelabels = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/admin/partners")
+      const data = await res.json()
+      if (data.success && Array.isArray(data.partners)) {
+        const mapped = data.partners
+          .filter((p: any) => p.whiteLabelEnabled || p.whiteLabel?.customDomain)
+          .map((p: any) => ({
+            id: p.id,
+            reseller: p.companyName || p.user?.firstName || "Partner Agency",
+            garage: "N/A",
+            brand: p.whiteLabel?.brandName || p.companyName || "Custom Brand",
+            domain: p.whiteLabel?.customDomain || "Not Configured",
+            status: p.whiteLabelEnabled ? "Enabled" : "Disabled"
+          }))
+        setWhitelabels(mapped)
+      } else {
+        setWhitelabels([])
+      }
+    } catch (e) {
+      setWhitelabels([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleStatus = (id: string) => {
     setWhitelabels(whitelabels.map(w => {
