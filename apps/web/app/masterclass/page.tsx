@@ -690,7 +690,7 @@ const MENTORS_DATA = [
     experience: "3+ Years Experience",
     role: "Digital Marketing Specialist",
     skills: ["Digital Marketing", "Meta Lead Ads", "Performance Marketing", "Google Ads", "SEO Strategy"],
-    image: "/downloads/velan.jpeg",
+    image: "/downloads/velan.png",
     fallbackInitials: "VM",
     accentGlow: "from-purple-600/20 via-pink-600/10 to-transparent",
     borderHover: "hover:border-purple-500/60",
