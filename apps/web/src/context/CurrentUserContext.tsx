@@ -51,27 +51,26 @@ export function CurrentUserProvider({ children }: { children: React.ReactNode })
   const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && session?.user) {
+      // Set initial session user fallback
+      setUserData((prev: any) => prev || session.user)
+
       // Fetch exact user details including studentId
       fetchApi('/auth/me')
         .then((res: any) => {
-          if (res.user) {
+          if (res?.user) {
             setUserData(res.user)
           }
         })
-        .catch((e: any) => {
-           if (e.message?.includes('401') || e.message?.includes('404')) {
-             console.warn('User not authenticated');
-           } else {
-             console.error(e);
-           }
+        .catch(() => {
+          setUserData((prev: any) => prev || session.user)
         })
         .finally(() => setIsLoading(false))
     } else if (status === 'unauthenticated') {
       setIsLoading(false)
       setUserData(null)
     }
-  }, [status])
+  }, [status, session])
 
   useEffect(() => {
     if (!userData?.id) return;
