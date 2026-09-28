@@ -902,7 +902,7 @@ function MentorsSection() {
           Your Mentors
         </span>
         <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-          Learn from Industry <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Veterans</span>
+          Learn from Creative <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Professionals</span>
         </h2>
         <p className="text-sm md:text-base text-white/60 font-mono">
           Master real-world skills from professionals who lead top design and marketing agencies.
