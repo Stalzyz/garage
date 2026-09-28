@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Creativex-45",
+  title: {
+    absolute: "Creativex-45",
+  },
   description: "CREATIVEX 45 — 45-Day Intensive Masterclass in Graphic Design, Digital Marketing, Motion Graphics & AI Vibe Coding.",
   openGraph: {
     title: "Creativex-45",
