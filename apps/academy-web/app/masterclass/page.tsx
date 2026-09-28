@@ -893,50 +893,12 @@ function BatchStartCalendar() {
 // ─────────────────────────────────────────────
 // Mentors Profile Cards Component
 // ─────────────────────────────────────────────
-function MentorsSection() {
+
+function MentorAvatar({ mentor }: { mentor: typeof MENTORS_DATA[0] }) {
+  const [hasError, setHasError] = useState(false);
+
   return (
-    <section id="mentors" className="py-20 px-4 md:px-8 max-w-7xl mx-auto relative z-10 border-t border-white/10">
-      <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-        <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3.5 py-1 rounded-full border border-blue-500/20">
-          Working Industry Practitioners
-        </span>
-        <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-          Your Mentors & Instructors
-        </h2>
-        <p className="text-sm md:text-base text-white/60 font-mono">
-          Learn directly from agency leaders and seasoned creative practitioners with real-world experience.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {MENTORS_DATA.map((mentor) => (
-          <div
-            key={mentor.name}
-            className={`bg-gradient-to-b ${mentor.accentGlow} bg-white/[0.02] border border-white/10 ${mentor.borderHover} rounded-3xl p-6 md:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 shadow-2xl group relative overflow-hidden` }
-          >
-            <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-white/10 transition-all" />
-
-            <div className="space-y-6 relative z-10 text-center">
-              
-              {/* Circle Profile Picture */}
-              <div className="relative w-28 h-28 md:w-32 md:h-32 mx-auto">
-                <div className={`w-full h-full rounded-full border-2 ${mentor.avatarBorder} overflow-hidden bg-black/60 relative flex items-center justify-center transition-transform group-hover:scale-105 duration-300`}>
-                  <img
-                    src={mentor.image}
-                    alt={mentor.name}
-                    className="w-full h-full object-cover object-center"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = "none";
-                      if (target.nextElementSibling) {
-                        (target.nextElementSibling as HTMLElement).style.display = "flex";
-                      }
-                    }}
-                  />
-                  <div className="w-full h-full bg-gradient-to-tr from-slate-800 to-slate-900 text-white font-extrabold font-mono text-2xl flex items-center justify-center hidden">
-                    {mentor.fallbackInitials}
-                  </div>
-                </div>
+    <MentorAvatar mentor={mentor} />
 
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold tracking-wider uppercase bg-black/90 text-white px-3 py-1 rounded-full border border-white/20 whitespace-nowrap shadow-md">
                   {mentor.experience}

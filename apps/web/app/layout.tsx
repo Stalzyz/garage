@@ -36,8 +36,8 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://grekam.in'),
   title: {
-    default: 'Grekam OS — Enterprise Operating System',
-    template: '%s | Grekam OS'
+    default: 'Creative Academy and Agency | Grekam',
+    template: '%s | Grekam — Creative Academy and Agency'
   },
   description: 'Enterprise operational system and client portal for Grekam Visuals Agency and Grekam Academy.',
   openGraph: {

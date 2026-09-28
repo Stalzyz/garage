@@ -12,8 +12,8 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 export const metadata: Metadata = {
   metadataBase: new URL('https://academy.grekam.in'),
   title: {
-    default: 'Grekam Academy — Master Design & Tech',
-    template: '%s | Grekam Academy'
+    default: 'Creative Academy and Agency | Grekam',
+    template: '%s | Grekam — Creative Academy and Agency'
   },
   description: 'Learn design, visual arts, and digital technology from industry experts. Master professional tools with Grekam Academy.',
   openGraph: {
