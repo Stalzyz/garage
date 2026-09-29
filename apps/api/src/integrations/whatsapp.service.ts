@@ -595,7 +595,10 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
     const isAuto = (provider as string) === 'auto';
     const tryMeta = (isAuto || provider === 'meta') && Boolean(metaToken && metaPhoneNumberId);
-    const tryGrafty = (isAuto || provider === 'grafty') || (tryMeta && !sendResult.success);
+    // tryGrafty is evaluated after Meta runs — re-checked at the Grafty block.
+    // Declared here for the case where Meta is not configured at all.
+    const canTryGrafty = (isAuto || provider === 'grafty') && !!graftyKey;
+    let metaFailedWith132001 = false; // template doesn't exist in Meta WABA
 
     // List of candidate template names to try if the requested templateName gets #132012 parameter mismatch.
     // CRITICAL: If mediaUrl is absent, text-only templates (grafty_welcome) MUST be prioritized over document templates (grafty_proposals).
@@ -655,19 +658,32 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             }
 
             const errSub = d?.error?.error_subcode ?? d?.error?.code;
+            const errMsg132001 =
+              errSub === 132001 ||
+              String(d?.error?.message || '').includes('132001') ||
+              String(d?.error?.message || '').toLowerCase().includes('does not exist in the translation') ||
+              String(d?.error?.message || '').toLowerCase().includes('template name does not exist');
+
+            // #132001 = Template doesn't exist in Meta WABA — retrying with different params is futile.
+            // Break immediately and fall through to Grafty.
+            if (errMsg132001) {
+              metaFailedWith132001 = true;
+              console.warn(`[WhatsApp] Meta: template "${tName}" not found in WABA (#132001) — falling through to Grafty.`);
+              break;
+            }
+
+            // #132012 = Parameter mismatch — worth retrying with different component combos.
             const isRetryableError =
               errSub === 132012 ||
-              errSub === 132001 ||
               String(d?.error?.message || '').includes('132012') ||
-              String(d?.error?.message || '').includes('132001') ||
-              String(d?.error?.message || '').toLowerCase().includes('translation') ||
-              String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match') ||
-              String(d?.error?.message || '').toLowerCase().includes('does not exist');
+              String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match');
 
             if (!isRetryableError) break;
           }
 
           if (metaRes && metaRes.ok && metaData?.messages) break;
+          // Also break outer loop immediately on 132001 — no other template name variation will fix it.
+          if (metaFailedWith132001) break;
         }
 
         if (metaRes && metaRes.ok && metaData?.messages) {
@@ -684,6 +700,9 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     }
 
     // ===== METHOD 2: Grafty API =====
+    // Fall through to Grafty when:
+    //   - Meta failed (any reason: 132001 template not found, 132012 mismatch, network, etc.)
+    //   - OR provider is explicitly 'grafty'
     if ((!sendResult.success && graftyKey) || (provider === 'grafty' && graftyKey)) {
         console.log(`[WhatsApp] Sending via Grafty API — URL: ${graftyUrl}, Template: ${templateName}, To: ${cleanPhone}, Instance: ${graftyInstanceId || 'Default'}`);
 
@@ -912,13 +931,15 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
       // Surface the actual error — include raw details so the router & frontend can present actionable info
       const errDetail = sendResult.error || 'WhatsApp message delivery failed.';
       const is132012 = errDetail.includes('132012') || errDetail.toLowerCase().includes('parameter format does not match');
-      const is132001 = errDetail.includes('132001') || errDetail.toLowerCase().includes('translation');
 
-      if (is132001) {
+      // 132001: Template doesn't exist in Meta WABA. Only show this error if Grafty ALSO wasn't configured.
+      // If Grafty was tried and also failed, the error from Grafty is already in sendResult.error.
+      if (metaFailedWith132001 && !graftyKey) {
         throw new Error(
-          `WhatsApp API Rejection (#132001): The template "${templateName}" does not exist in Meta Manager for the requested language. ` +
-          `Please check template approval status/language in Meta WABA or switch to a verified template like "grafty_welcome". ` +
-          `Details: ${errDetail}`
+          `WhatsApp Template Not Found: The template "${templateName}" does not exist in your Meta WABA. ` +
+          `Please create & approve this template in Meta Business Manager first, ` +
+          `OR configure a GRAFTY_API_KEY under Settings → Integrations → WHATSAPP to use Grafty as a fallback sender. ` +
+          `Details: (#132001) Template name does not exist in the translation`
         );
       }
       if (is132012) {
