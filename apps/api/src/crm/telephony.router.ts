@@ -58,14 +58,23 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/telephony/daily-report (or /calls/daily-report)
   const getDailyCallReport = async (req: any) => {
-    const { date, userId } = req.query as { date?: string; userId?: string };
+    const { date, startDate, endDate, userId } = req.query as { date?: string; startDate?: string; endDate?: string; userId?: string };
 
-    const targetDate = date ? new Date(date) : new Date();
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
+    let startOfDay: Date;
+    let endOfDay: Date;
 
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    if (startDate && endDate) {
+      startOfDay = new Date(startDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+    } else {
+      const targetDate = date ? new Date(date) : new Date();
+      startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+    }
 
     // Query LeadActivity where type = 'CALL'
     const callActivities = await app.prisma.leadActivity.findMany({

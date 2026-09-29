@@ -166,6 +166,21 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     ],
     bodyPattern: 'Welcome {{1}} to Grekam Academy!\n\nThank you for visiting our campus today to inquire about {{2}}.\n\nOur counselor will guide you through the syllabus & lab facilities.',
     buttons: ['Contact Counselor']
+  },
+  {
+    id: 'partner_grafty_call_followup',
+    name: 'Partner Grafty Call Follow-Up',
+    templateName: 'partner_grafty_call_followup',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'Post-call follow-up message to prospect after telecaller phone contact',
+    headerType: 'NONE',
+    variables: [
+      { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
+      { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    buttons: []
   }
 ];
 

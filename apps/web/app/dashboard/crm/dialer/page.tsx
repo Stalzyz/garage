@@ -399,8 +399,27 @@ export default function PowerDialerDashboard() {
   }
 
   const handleNextLead = async () => {
-    if (callState === "wrapup") {
-      if (callNotes.trim() && !selectedDisposition) {
+    if ((callState === "wrapup" || durationSecondsRef.current > 0) && activeLead) {
+      if (!selectedDisposition) {
+        const duration = durationSecondsRef.current || callDurationSeconds || 0
+        if (duration > 0 || callNotes.trim() || recordedAudioUrl) {
+          try {
+            await fetchApi('/crm/telephony/recordings', {
+              method: "POST",
+              body: JSON.stringify({
+                leadId: activeLead.id,
+                durationSeconds: duration,
+                disposition: "COMPLETED",
+                recordingUrl: recordedAudioUrl || undefined,
+                notes: callNotes.trim() ? callNotes.trim() : "Call completed"
+              })
+            })
+            mutate()
+          } catch (e) {
+            console.error("Auto call log error:", e)
+          }
+        }
+      } else if (callNotes.trim()) {
         await saveCallNotes()
       }
     }

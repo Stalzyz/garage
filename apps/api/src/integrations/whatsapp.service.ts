@@ -126,6 +126,21 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
     ],
     bodyPattern: 'Welcome {{1}} to Grekam Academy!\n\nThank you for visiting our campus today to inquire about {{2}}.\n\nOur counselor will guide you through the syllabus & lab facilities.',
     buttons: ['Contact Counselor']
+  },
+  {
+    id: 'partner_grafty_call_followup',
+    name: 'Partner Grafty Call Follow-Up',
+    templateName: 'partner_grafty_call_followup',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'Post-call follow-up message to prospect after telecaller phone contact',
+    headerType: 'NONE',
+    variables: [
+      { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
+      { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    buttons: []
   }
 ];
 
@@ -448,9 +463,10 @@ export class WhatsAppService {
     // Auto-detect matching template language and schema from synced template list
     let targetLanguage = language || 'en_US';
     let matchedTpl: WhatsAppTemplateDef | undefined = undefined;
+    const norm = (s?: string) => (s || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
     try {
       const allTemplates = await this.getTemplates();
-      matchedTpl = allTemplates.find(t => t.templateName === templateName || t.id === templateName);
+      matchedTpl = allTemplates.find(t => norm(t.templateName) === norm(templateName) || norm(t.id) === norm(templateName));
       if (matchedTpl && matchedTpl.language) {
         targetLanguage = matchedTpl.language;
       } else if (matchedTpl && matchedTpl.description) {
@@ -549,7 +565,16 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         expectedVarCount = matches ? matches.length : 0;
       }
     } else {
-      expectedVarCount = variables.length;
+      expectedVarCount = variables ? variables.length : 0;
+    }
+
+    // 3. Prepare activeVars and auto-pad if caller provided fewer parameters than expected
+    let activeVars = variables ? [...variables] : [];
+    if (expectedVarCount > 0) {
+      while (activeVars.length < expectedVarCount) {
+        activeVars.push(activeVars.length === 0 ? (name || 'Client') : 'Details');
+      }
+      activeVars = activeVars.slice(0, expectedVarCount);
     }
 
     // 3. Only add Body Component if template actually expects body parameters (expectedVarCount > 0)
