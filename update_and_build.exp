@@ -18,7 +18,7 @@ send "cp -r .next/static .next/standalone/apps/web/.next/ || true\r"
 expect "# "
 send "cd ../..\r"
 expect "# "
-send "pm2 restart grekam-os-web\r"
+send "pm2 restart grekam-os-web && pm2 restart grekam-os-api\r"
 expect "# "
 send "exit\r"
 expect eof
