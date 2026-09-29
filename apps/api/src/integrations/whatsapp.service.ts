@@ -414,10 +414,11 @@ export class WhatsAppService {
       }
     }
 
-    // Merge default built-in templates with Meta Cloud & Grafty templates (deduplicate)
-    const existingNames = new Set(WHATSAPP_TEMPLATES.map(t => t.templateName));
-    const uniqueCloud = cloudTemplates.filter(t => !existingNames.has(t.templateName));
-    return [...WHATSAPP_TEMPLATES, ...uniqueCloud];
+    // Merge: cloud templates WIN over local built-ins (cloud has actual Meta-approved param count).
+    // Local built-ins only fill in for templates not found on the cloud.
+    const cloudNames = new Set(cloudTemplates.map(t => t.templateName));
+    const localOnlyTemplates = WHATSAPP_TEMPLATES.filter(t => !cloudNames.has(t.templateName));
+    return [...cloudTemplates, ...localOnlyTemplates];
   }
 
   /**
@@ -577,8 +578,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
       activeVars = activeVars.slice(0, expectedVarCount);
     }
 
-    // 3. Only add Body Component if template actually expects body parameters (expectedVarCount > 0)
-    const activeVars = expectedVarCount > 0 ? variables.slice(0, expectedVarCount) : [];
+    // 4. Add Body Component using the padded activeVars (do NOT re-declare — already computed above)
     if (activeVars.length > 0) {
       templateComponents.push({
         type: 'body',

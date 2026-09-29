@@ -281,35 +281,26 @@ export function WhatsAppModal({
       const formData = new FormData();
       formData.append('file', file);
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-      const res = await fetch(`${API_BASE}/storage/upload-local`, {
+      // Use fetchApi (credentials: 'include') — NOT raw fetch with localStorage token.
+      // NextAuth uses httpOnly cookies; localStorage.getItem('token') is always null here.
+      const data = await fetchApi<any>('/storage/upload-local', {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: formData,
       });
 
-      if (!res.ok) {
-        throw new Error(`Upload failed with status ${res.status}`);
-      }
-
-      const data = await res.json();
-      if (data.downloadUrl) {
+      if (data?.downloadUrl) {
         let finalUrl = data.downloadUrl;
         if (finalUrl.includes('localhost:4000') || finalUrl.includes('127.0.0.1:4000')) {
           finalUrl = finalUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
         }
         setMediaUrl(finalUrl);
-        toast.success(`Uploaded "${file.name}" from local drive!`);
+        toast.success(`Uploaded "${file.name}" successfully!`);
       } else {
-        throw new Error('No download URL returned');
+        throw new Error('No download URL returned from server');
       }
     } catch (err: any) {
       console.error('File upload error:', err);
-      toast.error(err.message || 'Failed to upload local file');
+      toast.error(err.message || 'Failed to upload file');
     } finally {
       setIsUploading(false);
     }
