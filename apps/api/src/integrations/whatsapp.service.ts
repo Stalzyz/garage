@@ -571,7 +571,8 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
     // 3. Prepare activeVars and auto-pad if caller provided fewer parameters than expected
     let activeVars = variables ? [...variables] : [];
-    if (expectedVarCount > 0) {
+    // Always enforce the exact parameter count if a template definition was found, even if it's 0.
+    if (matchedTpl !== undefined || expectedVarCount > 0) {
       while (activeVars.length < expectedVarCount) {
         activeVars.push(activeVars.length === 0 ? (name || 'Client') : 'Details');
       }
@@ -614,12 +615,14 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             { desc: `Full components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents },
             { desc: `Full components (${altLang})`, lang: altLang, comps: templateComponents },
           ];
-          if (effectiveHeaderType === 'NONE') {
-            metaCandidates.push(
-              { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-              { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
-            );
-          }
+          
+          // ALWAYS add body-only fallbacks. If the user attached media but the template in Meta
+          // was approved as text-only, sending the header will trigger #132012 parameter mismatch.
+          // Falling back to body-only will allow the message to send successfully.
+          metaCandidates.push(
+            { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
+            { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
+          );
 
           for (const cand of metaCandidates) {
             const payload = {
