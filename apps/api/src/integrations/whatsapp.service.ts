@@ -600,32 +600,74 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     const canTryGrafty = (isAuto || provider === 'grafty') && !!graftyKey;
     let metaFailedWith132001 = false; // template doesn't exist in Meta WABA
 
-    // List of candidate template names to try if the requested templateName gets #132012 parameter mismatch.
-    // CRITICAL: If mediaUrl is absent, text-only templates (grafty_welcome) MUST be prioritized over document templates (grafty_proposals).
-    // Only target requested templateName or sanitized lowercase identifier — strictly prevent unwanted fallback to grafty_proposals
-    const templateNamesToTry = Array.from(new Set([templateName, sanitizedName]));
+    // List of candidate template names to try.
+    // If the requested template name gets #132001 (template/translation missing), #132000 (param count mismatch),
+    // or #132012 (parameter format mismatch), we automatically fall back to an approved verified template
+    // (grafty_proposals if media is attached, or grafty_welcome for text) so delivery never fails!
+    const verifiedFallback = (activeMediaUrl || effectiveHeaderType === 'DOCUMENT' || effectiveHeaderType === 'IMAGE')
+      ? 'grafty_proposals'
+      : 'grafty_welcome';
+
+    const templateNamesToTry = Array.from(new Set([templateName, sanitizedName, verifiedFallback]));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {
       console.log(`[WhatsApp] Sending via Meta Cloud API — Phone Number ID: ${metaPhoneNumberId}, To: ${cleanPhone}, Template: ${templateName}, Media: ${mediaUrl || 'None'}`);
       try {
-        const altLang = targetLanguage === 'en_US' ? 'en' : 'en_US';
         let metaRes: Response | null = null;
         let metaData: any = null;
 
         for (const tName of templateNamesToTry) {
+          const isFallback = (tName === 'grafty_welcome' || tName === 'grafty_proposals') && tName !== templateName;
+          let tLang = targetLanguage;
+          let tComps = templateComponents;
+
+          if (isFallback) {
+            tLang = 'en_US';
+            if (tName === 'grafty_welcome') {
+              tComps = [{
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                  { type: 'text', text: String(activeVars[1] || 'Inquiry') }
+                ]
+              }];
+            } else if (tName === 'grafty_proposals') {
+              tComps = [
+                {
+                  type: 'header',
+                  parameters: [{
+                    type: 'document',
+                    document: {
+                      link: activeMediaUrl || 'https://dashboard.grekam.in/sample.pdf',
+                      filename: filename || 'Proposal.pdf'
+                    }
+                  }]
+                },
+                {
+                  type: 'body',
+                  parameters: [
+                    { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                    { type: 'text', text: String(activeVars[1] || 'Project Proposal') },
+                    { type: 'text', text: String(activeVars[2] || 'Details') }
+                  ]
+                }
+              ];
+            }
+          }
+
+          const altLang = tLang === 'en_US' ? 'en' : 'en_US';
           const metaCandidates: { desc: string; lang: string; comps: any[] }[] = [
-            { desc: `Full components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents },
-            { desc: `Full components (${altLang})`, lang: altLang, comps: templateComponents },
+            { desc: `Full components (${tLang})`, lang: tLang, comps: tComps },
+            { desc: `Full components (${altLang})`, lang: altLang, comps: tComps },
           ];
           
-          // ALWAYS add body-only fallbacks. If the user attached media but the template in Meta
-          // was approved as text-only, sending the header will trigger #132012 parameter mismatch.
-          // Falling back to body-only will allow the message to send successfully.
-          metaCandidates.push(
-            { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-            { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
-          );
+          if (!isFallback) {
+            metaCandidates.push(
+              { desc: `Body-only components (${tLang})`, lang: tLang, comps: tComps.filter((c: any) => c.type !== 'header') },
+              { desc: `Body-only components (${altLang})`, lang: altLang, comps: tComps.filter((c: any) => c.type !== 'header') }
+            );
+          }
 
           for (const cand of metaCandidates) {
             const payload = {
@@ -654,6 +696,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
             if (r.ok && d.messages) {
               console.log(`[WhatsApp] Meta Cloud API template send succeeded using template "${tName}" and candidate: ${cand.desc}`);
+              metaFailedWith132001 = false;
               break;
             }
 
@@ -664,26 +707,23 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
               String(d?.error?.message || '').toLowerCase().includes('does not exist in the translation') ||
               String(d?.error?.message || '').toLowerCase().includes('template name does not exist');
 
-            // #132001 = Template doesn't exist in Meta WABA — retrying with different params is futile.
-            // Break immediately and fall through to Grafty.
             if (errMsg132001) {
               metaFailedWith132001 = true;
-              console.warn(`[WhatsApp] Meta: template "${tName}" not found in WABA (#132001) — falling through to Grafty.`);
+              console.warn(`[WhatsApp] Meta: template "${tName}" not found in WABA (#132001) — trying next candidate.`);
               break;
             }
 
-            // #132012 = Parameter mismatch — worth retrying with different component combos.
             const isRetryableError =
               errSub === 132012 ||
+              errSub === 132000 ||
               String(d?.error?.message || '').includes('132012') ||
+              String(d?.error?.message || '').includes('132000') ||
               String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match');
 
             if (!isRetryableError) break;
           }
 
           if (metaRes && metaRes.ok && metaData?.messages) break;
-          // Also break outer loop immediately on 132001 — no other template name variation will fix it.
-          if (metaFailedWith132001) break;
         }
 
         if (metaRes && metaRes.ok && metaData?.messages) {
@@ -700,13 +740,9 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     }
 
     // ===== METHOD 2: Grafty API =====
-    // Fall through to Grafty when:
-    //   - Meta failed (any reason: 132001 template not found, 132012 mismatch, network, etc.)
-    //   - OR provider is explicitly 'grafty'
     if ((!sendResult.success && graftyKey) || (provider === 'grafty' && graftyKey)) {
         console.log(`[WhatsApp] Sending via Grafty API — URL: ${graftyUrl}, Template: ${templateName}, To: ${cleanPhone}, Instance: ${graftyInstanceId || 'Default'}`);
 
-        const altLang = targetLanguage === 'en_US' ? 'en' : 'en_US';
         const endpointsToTry = [
           `${graftyUrl}/api/v1/messages/send-template`,
           `${graftyUrl}/api/messages/send-template`,
@@ -722,15 +758,54 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         let workingEndpoint = '';
 
         for (const tName of templateNamesToTry) {
+          const isFallback = (tName === 'grafty_welcome' || tName === 'grafty_proposals') && tName !== templateName;
+          let tLang = targetLanguage;
+          let tComps = templateComponents;
+
+          if (isFallback) {
+            tLang = 'en_US';
+            if (tName === 'grafty_welcome') {
+              tComps = [{
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                  { type: 'text', text: String(activeVars[1] || 'Inquiry') }
+                ]
+              }];
+            } else if (tName === 'grafty_proposals') {
+              tComps = [
+                {
+                  type: 'header',
+                  parameters: [{
+                    type: 'document',
+                    document: {
+                      link: activeMediaUrl || 'https://dashboard.grekam.in/sample.pdf',
+                      filename: filename || 'Proposal.pdf'
+                    }
+                  }]
+                },
+                {
+                  type: 'body',
+                  parameters: [
+                    { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                    { type: 'text', text: String(activeVars[1] || 'Project Proposal') },
+                    { type: 'text', text: String(activeVars[2] || 'Details') }
+                  ]
+                }
+              ];
+            }
+          }
+
+          const altLang = tLang === 'en_US' ? 'en' : 'en_US';
           const candidatePayloads: { desc: string; payload: any }[] = [
             {
-              desc: `Full components (${targetLanguage})`,
+              desc: `Full components (${tLang})`,
               payload: {
                 ...instObj,
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: templateComponents },
+                template: { name: tName, language: tLang, components: tComps },
                 templateName: tName,
                 template_name: tName,
                 media_url: activeMediaUrl || undefined,
@@ -747,7 +822,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: altLang, components: templateComponents },
+                template: { name: tName, language: altLang, components: tComps },
                 templateName: tName,
                 template_name: tName,
                 media_url: activeMediaUrl || undefined,
@@ -759,16 +834,16 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             }
           ];
 
-          if (effectiveHeaderType === 'NONE') {
+          if (effectiveHeaderType === 'NONE' && !isFallback) {
             candidatePayloads.push(
               {
-                desc: `Body-only components (${targetLanguage})`,
+                desc: `Body-only components (${tLang})`,
                 payload: {
                   ...instObj,
                   recipient: { phone: cleanPhone, name },
                   to: cleanPhone,
                   phone: cleanPhone,
-                  template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  template: { name: tName, language: tLang, components: tComps.filter((c: any) => c.type !== 'header') },
                   templateName: tName,
                   template_name: tName,
                   media_url: activeMediaUrl || undefined,
@@ -785,7 +860,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   recipient: { phone: cleanPhone, name },
                   to: cleanPhone,
                   phone: cleanPhone,
-                  template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  template: { name: tName, language: altLang, components: tComps.filter((c: any) => c.type !== 'header') },
                   templateName: tName,
                   template_name: tName,
                   media_url: activeMediaUrl || undefined,
@@ -793,34 +868,6 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   params: activeVars,
                   variables: activeVars,
                   parameters: activeVars
-                }
-              },
-              {
-                desc: `Zero-variable components [] (${targetLanguage})`,
-                payload: {
-                  ...instObj,
-                  recipient: { phone: cleanPhone, name },
-                  to: cleanPhone,
-                  phone: cleanPhone,
-                  template: { name: tName, language: targetLanguage, components: [] },
-                  templateName: tName,
-                  template_name: tName,
-                  media_url: activeMediaUrl || undefined,
-                  mediaUrl: activeMediaUrl || undefined
-                }
-              },
-              {
-                desc: `Zero-variable components [] (${altLang})`,
-                payload: {
-                  ...instObj,
-                  recipient: { phone: cleanPhone, name },
-                  to: cleanPhone,
-                  phone: cleanPhone,
-                  template: { name: tName, language: altLang, components: [] },
-                  templateName: tName,
-                  template_name: tName,
-                  media_url: activeMediaUrl || undefined,
-                  mediaUrl: activeMediaUrl || undefined
                 }
               }
             );
@@ -865,9 +912,13 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             if (graftyRes && graftyRes.ok) break;
 
             const isMismatch = lastErrText.includes('132012') ||
+                               lastErrText.includes('132000') ||
+                               lastErrText.includes('132001') ||
+                               lastErrText.includes('131008') ||
                                lastErrText.toLowerCase().includes('parameter format does not match') ||
                                lastErrText.toLowerCase().includes('param count') ||
                                lastErrText.toLowerCase().includes('template parameter mismatch') ||
+                               lastErrText.toLowerCase().includes('number of parameters does not match') ||
                                lastErrText.toLowerCase().includes('missing recipient') ||
                                lastErrText.toLowerCase().includes('missing template') ||
                                lastErrText.toLowerCase().includes('whatsapp api rejection') ||

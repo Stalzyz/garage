@@ -83,7 +83,7 @@ export default async function whatsappRouter(app: FastifyInstance) {
         templateName: data.templateName,
         variables: data.variables,
         buttonVariables: data.buttonVariables,
-        language: data.language || 'en',
+        language: data.language || 'en_US',
         headerType: data.headerType,
         mediaUrl: data.mediaUrl,
         filename: data.filename,

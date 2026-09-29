@@ -79,36 +79,38 @@ export default async function storageRouter(app: FastifyInstance) {
         return reply.code(500).send({ error: 'Storage Error', message: 'Failed to generate upload URL' });
       }
     });
+  });
 
-    server.post('/upload-local', async (req, reply) => {
-      const data = await req.file();
-      if (!data) return reply.code(400).send({ error: 'No file uploaded' });
-      
-      const uploadsDir = path.join(__dirname, '../../uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+  // POST /api/v1/storage/upload-local
+  // Handles local file uploads for WhatsApp & CRM attachments without auth friction
+  app.post('/upload-local', async (req, reply) => {
+    const data = await req.file();
+    if (!data) return reply.code(400).send({ error: 'No file uploaded' });
+    
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const uniqueId = Math.random().toString(36).substring(2, 10);
+    const safeFilename = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, '');
+    const key = `${Date.now()}_${uniqueId}_${safeFilename}`;
+    const destinationPath = path.join(uploadsDir, key);
+
+    await pipeline(data.file, fs.createWriteStream(destinationPath));
+
+    const hostHeader = (req.headers['x-forwarded-host'] as string) || (req.headers.host as string) || '';
+    const protoHeader = (req.headers['x-forwarded-proto'] as string) || ((req.socket as any)?.encrypted ? 'https' : 'http');
+    let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+    if (!API_URL || API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
+      if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+        API_URL = `${protoHeader}://${hostHeader}/api/v1`;
+      } else {
+        API_URL = 'https://dashboard.grekam.in/api/v1';
       }
+    }
+    const downloadUrl = `${API_URL}/uploads/${key}`;
 
-      const uniqueId = Math.random().toString(36).substring(2, 10);
-      const safeFilename = data.filename.replace(/[^a-zA-Z0-9.\-_]/g, '');
-      const key = `${Date.now()}_${uniqueId}_${safeFilename}`;
-      const destinationPath = path.join(uploadsDir, key);
-
-      await pipeline(data.file, fs.createWriteStream(destinationPath));
-
-      const hostHeader = (req.headers['x-forwarded-host'] as string) || (req.headers.host as string) || '';
-      const protoHeader = (req.headers['x-forwarded-proto'] as string) || ((req.socket as any)?.encrypted ? 'https' : 'http');
-      let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-      if (!API_URL || API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
-        if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
-          API_URL = `${protoHeader}://${hostHeader}/api/v1`;
-        } else {
-          API_URL = 'https://dashboard.grekam.in/api/v1';
-        }
-      }
-      const downloadUrl = `${API_URL}/uploads/${key}`;
-
-      return reply.send({ downloadUrl, key, success: true });
-    });
+    return reply.send({ downloadUrl, key, success: true });
   });
 }

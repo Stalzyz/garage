@@ -281,12 +281,23 @@ export function WhatsAppModal({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Use fetchApi (credentials: 'include') — NOT raw fetch with localStorage token.
-      // NextAuth uses httpOnly cookies; localStorage.getItem('token') is always null here.
-      const data = await fetchApi<any>('/storage/upload-local', {
+      // Use dedicated upload proxy route at /api/upload-local which explicitly
+      // forwards session cookies. Do NOT use fetchApi('/storage/upload-local') —
+      // Next.js rewrites strip Cookie headers for multipart/form-data requests,
+      // which causes Fastify's requireAuth to return 401.
+      const uploadRes = await fetch('/api/upload-local', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
+        // Do NOT set Content-Type — browser must set it with the multipart boundary
       });
+
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.json().catch(() => ({}));
+        throw new Error(errBody?.message || errBody?.error || `Upload failed with status ${uploadRes.status}`);
+      }
+
+      const data = await uploadRes.json();
 
       if (data?.downloadUrl) {
         let finalUrl = data.downloadUrl;
@@ -348,6 +359,7 @@ export function WhatsAppModal({
           name,
           event: selectedTemplate.event,
           templateName: selectedTemplate.templateName,
+          language: selectedTemplate.language || 'en_US',
           variables: formattedVars,
           headerType: selectedTemplate.headerType,
           mediaUrl: effectiveMediaUrl || undefined,
