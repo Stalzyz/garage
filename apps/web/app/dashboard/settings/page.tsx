@@ -17,12 +17,23 @@ import {
   Mail, 
   Globe, 
   GraduationCap, 
-  Building2, 
-  Trash2 
+  Building2,
+  Trash2,
+  Share2,
+  CreditCard
 } from "lucide-react"
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
 import { ApiClient } from "@/lib/api"
+
+const PRESET_PALETTES = [
+  { name: 'Indigo', primary: '#4f46e5', secondary: '#6366f1', accent: '#10b981' },
+  { name: 'Blue', primary: '#2563eb', secondary: '#3b82f6', accent: '#06b6d4' },
+  { name: 'Emerald', primary: '#059669', secondary: '#10b981', accent: '#34d399' },
+  { name: 'Rose', primary: '#e11d48', secondary: '#f43f5e', accent: '#f59e0b' },
+  { name: 'Purple', primary: '#7c3aed', secondary: '#8b5cf6', accent: '#ec4899' },
+  { name: 'Slate', primary: '#334155', secondary: '#475569', accent: '#38bdf8' },
+]
 
 export default function SystemSettingsPage() {
   const [activeTab, setActiveTab] = useState('branding')
@@ -39,6 +50,28 @@ export default function SystemSettingsPage() {
   const [website, setWebsite] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
   const [billingAddress, setBillingAddress] = useState('')
+
+  // Brand palette — drives --org-primary via OrganizationContext, so it was
+  // only ever editable on the now-removed Organization & Branding page.
+  const [primaryColor, setPrimaryColor] = useState('#4f46e5')
+  const [secondaryColor, setSecondaryColor] = useState('#7c3aed')
+  const [accentColor, setAccentColor] = useState('#10b981')
+
+  // Public channels (email footers, proposals, client portal)
+  const [instagramUrl, setInstagramUrl] = useState('')
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [twitterUrl, setTwitterUrl] = useState('')
+  const [facebookUrl, setFacebookUrl] = useState('')
+  const [whatsappNumber, setWhatsappNumber] = useState('')
+
+  // Bank settlement (printed on invoice footers for NEFT/RTGS/IMPS)
+  const [bankName, setBankName] = useState('')
+  const [accountName, setAccountName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [ifscCode, setIfscCode] = useState('')
+  const [swiftCode, setSwiftCode] = useState('')
+  const [bankBranch, setBankBranch] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const faviconInputRef = useRef<HTMLInputElement>(null)
@@ -60,6 +93,27 @@ export default function SystemSettingsPage() {
     if (org.website) setWebsite(org.website)
     if (org.supportEmail) setSupportEmail(org.supportEmail)
     if (org.billingAddress) setBillingAddress(org.billingAddress)
+
+    // Brand palette
+    if (org.primaryColor) setPrimaryColor(org.primaryColor)
+    if (org.secondaryColor) setSecondaryColor(org.secondaryColor)
+    if (org.accentColor) setAccentColor(org.accentColor)
+
+    // Public channels
+    if (org.instagramUrl) setInstagramUrl(org.instagramUrl)
+    if (org.youtubeUrl) setYoutubeUrl(org.youtubeUrl)
+    if (org.linkedinUrl) setLinkedinUrl(org.linkedinUrl)
+    if (org.twitterUrl) setTwitterUrl(org.twitterUrl)
+    if (org.facebookUrl) setFacebookUrl(org.facebookUrl)
+    if (org.whatsappNumber) setWhatsappNumber(org.whatsappNumber)
+
+    // Bank settlement
+    if (org.bankName) setBankName(org.bankName)
+    if (org.accountName) setAccountName(org.accountName)
+    if (org.accountNumber) setAccountNumber(org.accountNumber)
+    if (org.ifscCode) setIfscCode(org.ifscCode)
+    if (org.swiftCode) setSwiftCode(org.swiftCode)
+    if (org.bankBranch) setBankBranch(org.bankBranch)
   }, [org])
 
   const handleFileUpload = async (file: File, setter: (val: string) => void) => {
@@ -104,6 +158,21 @@ export default function SystemSettingsPage() {
         faviconUrl: faviconPreview || null,
         academyLogoUrl: academyLogoPreview || null,
         academyFaviconUrl: academyFaviconPreview || null,
+        primaryColor: primaryColor || null,
+        secondaryColor: secondaryColor || null,
+        accentColor: accentColor || null,
+        instagramUrl: instagramUrl ? instagramUrl.trim() : null,
+        youtubeUrl: youtubeUrl ? youtubeUrl.trim() : null,
+        linkedinUrl: linkedinUrl ? linkedinUrl.trim() : null,
+        twitterUrl: twitterUrl ? twitterUrl.trim() : null,
+        facebookUrl: facebookUrl ? facebookUrl.trim() : null,
+        whatsappNumber: whatsappNumber ? whatsappNumber.trim() : null,
+        bankName: bankName ? bankName.trim() : null,
+        accountName: accountName ? accountName.trim() : null,
+        accountNumber: accountNumber ? accountNumber.trim() : null,
+        ifscCode: ifscCode ? ifscCode.trim().toUpperCase() : null,
+        swiftCode: swiftCode ? swiftCode.trim().toUpperCase() : null,
+        bankBranch: bankBranch ? bankBranch.trim() : null,
       }
 
       const res = await fetch('/api/v1/settings/organization', {
@@ -155,12 +224,6 @@ export default function SystemSettingsPage() {
           >
             <Building className="w-4 h-4 text-zinc-400" /> Company Details
           </button>
-          <a 
-            href="/dashboard/settings/organization"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
-          >
-            <Building2 className="w-4 h-4 text-blue-400" /> Full Brand Suite
-          </a>
           <button 
             onClick={() => setActiveTab('notifications')}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${activeTab === 'notifications' ? 'bg-white/[0.08] text-white' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'}`}
@@ -418,6 +481,80 @@ export default function SystemSettingsPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* 5. Brand Color Palette
+                    Relocated from the removed Organization & Branding page.
+                    primaryColor drives --org-primary through OrganizationContext,
+                    so this is what themes the whole dashboard. */}
+                <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5 mt-6">
+                  <div className="border-b border-white/[0.06] pb-4">
+                    <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2.5">
+                      <Palette className="w-5 h-5 text-slate-300" /> Brand Color Palette
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Applied to invoice headers, badges, and the dashboard accent.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-400 block">Palette Presets</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                      {PRESET_PALETTES.map((palette) => {
+                        const isSelected =
+                          primaryColor?.toLowerCase() === palette.primary.toLowerCase() &&
+                          secondaryColor?.toLowerCase() === palette.secondary.toLowerCase() &&
+                          accentColor?.toLowerCase() === palette.accent.toLowerCase();
+                        return (
+                          <button
+                            key={palette.name}
+                            type="button"
+                            onClick={() => {
+                              setPrimaryColor(palette.primary);
+                              setSecondaryColor(palette.secondary);
+                              setAccentColor(palette.accent);
+                            }}
+                            className={`p-2.5 rounded-lg border text-left transition-colors flex items-center justify-between cursor-pointer ${
+                              isSelected
+                                ? 'border-blue-500/60 bg-blue-500/10'
+                                : 'border-white/[0.06] bg-[#0c0e14] hover:border-white/[0.15]'
+                            }`}
+                          >
+                            <span className="text-xs font-medium text-slate-300">{palette.name}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: palette.primary }} />
+                              <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: palette.accent }} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {([
+                      ['Primary Color', primaryColor, setPrimaryColor],
+                      ['Secondary Color', secondaryColor, setSecondaryColor],
+                      ['Accent Highlight', accentColor, setAccentColor],
+                    ] as const).map(([label, value, setter]) => (
+                      <div key={label} className="bg-[#0c0e14] border border-white/[0.06] rounded-lg p-3.5 space-y-2">
+                        <label className="text-xs font-medium text-slate-300 block">{label}</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={value}
+                            onChange={(e) => (setter as (v: string) => void)(e.target.value)}
+                            className="w-8 h-8 rounded border border-white/10 cursor-pointer bg-transparent p-0 overflow-hidden"
+                          />
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => (setter as (v: string) => void)(e.target.value)}
+                            className="w-full bg-black/40 border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs font-mono text-slate-200 uppercase focus:outline-none focus:border-blue-500"
+                            maxLength={7}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
 
@@ -428,12 +565,13 @@ export default function SystemSettingsPage() {
                     <Building className="w-5 h-5 text-slate-300" />
                     <h2 className="text-sm font-semibold text-slate-100">Company & Legal Particulars</h2>
                   </div>
-                  <a
-                    href="/dashboard/settings/organization"
-                    className="text-xs text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1"
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('branding')}
+                    className="text-xs text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    Manage Full Branding & Socials &rarr;
-                  </a>
+                    Manage Branding &amp; Palette &rarr;
+                  </button>
                 </div>
                 <div className="grid grid-cols-2 gap-5">
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
@@ -493,6 +631,71 @@ export default function SystemSettingsPage() {
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
                     <label className="text-xs font-medium text-slate-300 block">Billing & Official Address</label>
                     <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 resize-none" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Public channels + bank settlement.
+                Relocated from the removed Organization & Branding page so the
+                fields stay editable somewhere. */}
+            {activeTab === 'company' && (
+              <div className="max-w-4xl space-y-6">
+                <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5">
+                  <div className="flex items-center gap-2.5 border-b border-white/[0.06] pb-4">
+                    <Share2 className="w-5 h-5 text-slate-300" />
+                    <h2 className="text-sm font-semibold text-slate-100">Social Media &amp; Channels</h2>
+                  </div>
+                  <p className="text-xs text-slate-400 -mt-2">Displayed in email footers, proposals, and client portals.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {([
+                      ['Instagram', instagramUrl, setInstagramUrl, 'https://instagram.com/grekamvisuals'],
+                      ['YouTube', youtubeUrl, setYoutubeUrl, 'https://youtube.com/@grekamvisuals'],
+                      ['LinkedIn', linkedinUrl, setLinkedinUrl, 'https://linkedin.com/company/grekam'],
+                      ['X (Twitter)', twitterUrl, setTwitterUrl, 'https://x.com/grekamvisuals'],
+                      ['Facebook', facebookUrl, setFacebookUrl, 'https://facebook.com/grekamvisuals'],
+                      ['WhatsApp Business', whatsappNumber, setWhatsappNumber, '+91 98400 12345'],
+                    ] as const).map(([label, value, setter, placeholder]) => (
+                      <div key={label} className="space-y-1">
+                        <label className="text-xs font-medium text-slate-400 block">{label}</label>
+                        <input
+                          type="text"
+                          value={value}
+                          onChange={(e) => (setter as (v: string) => void)(e.target.value)}
+                          placeholder={placeholder}
+                          className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-white/20"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5">
+                  <div className="flex items-center gap-2.5 border-b border-white/[0.06] pb-4">
+                    <CreditCard className="w-5 h-5 text-slate-300" />
+                    <h2 className="text-sm font-semibold text-slate-100">Bank Settlement Details</h2>
+                  </div>
+                  <p className="text-xs text-slate-400 -mt-2">Printed on invoice footers for direct NEFT/RTGS/IMPS wire payments.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {([
+                      ['Bank Name', bankName, setBankName, 'e.g. HDFC Bank', false],
+                      ['Account Holder Name', accountName, setAccountName, 'Grekam Visuals and Technologies Pvt Ltd', false],
+                      ['Account Number', accountNumber, setAccountNumber, '50200012345678', true],
+                      ['IFSC Code', ifscCode, setIfscCode, 'HDFC0001234', true],
+                      ['Branch Name', bankBranch, setBankBranch, 'Anna Salai Branch, Chennai', false],
+                      ['SWIFT / BIC (Optional)', swiftCode, setSwiftCode, 'HDFCINBBXXX', true],
+                    ] as const).map(([label, value, setter, placeholder, mono]) => (
+                      <div key={label} className="space-y-1">
+                        <label className="text-xs font-medium text-slate-300 block">{label}</label>
+                        <input
+                          type="text"
+                          value={value}
+                          onChange={(e) => (setter as (v: string) => void)(e.target.value)}
+                          placeholder={placeholder}
+                          className={`w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 ${mono ? 'font-mono uppercase' : ''}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

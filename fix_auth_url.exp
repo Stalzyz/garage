@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 
 set timeout 60
-set password "Photoshop09@"
+set password "$env(VPS_PASSWORD)"
 set host "root@72.61.231.187"
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $host

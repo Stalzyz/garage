@@ -7,5 +7,5 @@ cat /root/.pm2/logs/grekam-os-api-error.log | tail -40
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

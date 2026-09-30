@@ -2,7 +2,7 @@
 set timeout 30
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 send "find /root/grekam-os/node_modules/.pnpm -name 'boundary-components.js' 2>/dev/null | head -5\r"
 expect "# "

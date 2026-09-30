@@ -23,7 +23,7 @@ def scp_file(local_path, remote_path):
     
     idx = child.expect([r'[pP]assword:', pexpect.EOF, pexpect.TIMEOUT])
     if idx == 0:
-        child.sendline('Photoshop09@')
+        child.sendline(os.environ.get('VPS_PASSWORD', ''))
         child.expect(pexpect.EOF)
         print(f"Successfully uploaded {local_path}")
     else:
@@ -39,7 +39,7 @@ def run_remote(cmd, timeout=400):
     ], timeout=timeout)
     idx = child.expect([r'[pP]assword:', pexpect.EOF, pexpect.TIMEOUT])
     if idx == 0:
-        child.sendline('Photoshop09@')
+        child.sendline(os.environ.get('VPS_PASSWORD', ''))
         child.expect(pexpect.EOF)
         output = child.before.decode()
         print(output[-2000:] if len(output) > 2000 else output)

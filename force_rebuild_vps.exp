@@ -3,7 +3,7 @@ set timeout 900
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "#"
 
 send "cd /root/grekam-os && git reset --hard && git --no-pager pull origin main && git --no-pager log -1 --oneline\r"

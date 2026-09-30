@@ -6,5 +6,5 @@ cat /etc/nginx/sites-enabled/agency.grekam.in /etc/nginx/sites-enabled/grekam.in
 
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 $script
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

@@ -2,7 +2,7 @@
 set timeout 120
 spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 send "cd /root/grekam-os && export AUTH_SECRET=\"grekam-os-super-secret-key-2026\" && export AUTH_URL=\"https://academy.grekam.in\" && pnpm --filter=academy-web build\r"
 expect "# "

@@ -2,21 +2,14 @@ import crypto from 'crypto';
 import { FastifyInstance } from 'fastify';
 import { getMetaAccessToken } from '../utils/meta-enrichment';
 import { EventBus, SystemEvents } from '../automations/event-bus';
+import { encryptSecret } from '../utils/secret-vault';
 
-const META_ACCESS_TOKEN_PROVIDED = 'EAAYE8luJYlkBSbdlZAabJsoIiR31ZCGOE9d3kYeRIPOiMLhwtjksqLqlU2ggIZAbdoZAZCXdZAaZAO1IfJpMSZBAMyLXy8tLtPJikJmM3ZCSGuGltAMAX9NugPtjouMZBwVUM8WgEjtWhOWYlbTC80TrZBihIAHojuFGWztl2XKbhX0aDcKQV4BXMyvjagEonx9BgZDZD';
+const META_ACCESS_TOKEN_PROVIDED = process.env.META_ACCESS_TOKEN || '';
 const META_DATASET_ID_DEFAULT = '1353282856878911';
 const META_CAPI_VERSION_DEFAULT = 'v26.0';
 
-const ALGORITHM = 'aes-256-cbc';
-const SECRET = (process.env.ENCRYPTION_SECRET || 'grekam-os-default-secret-32bytes!').slice(0, 32);
-const IV_LENGTH = 16;
-
 function encrypt(text: string): string {
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(SECRET), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString('hex') + ':' + encrypted.toString('hex');
+  return encryptSecret(text);
 }
 
 /**
@@ -68,38 +61,38 @@ export async function getMetaDatasetId(app?: FastifyInstance): Promise<string> {
 
 /**
  * Auto-seeds Meta CAPI Access Token and Dataset ID into IntegrationKey table on server startup.
+ *
+ * Create-if-missing only. The previous version used an `upsert` whose `update`
+ * branch wrote the raw token straight into `encryptedValue` on every boot, which
+ * (a) stored the secret in plaintext and (b) destroyed any correctly encrypted
+ * value an admin had entered in the UI. Seeding is a first-run convenience; it
+ * must never overwrite operator-managed configuration.
  */
 export async function autoSeedMetaCredentials(app: FastifyInstance) {
-  try {
-    app.log.info('[Meta CAPI] Auto-seeding Meta Access Token into IntegrationKey table...');
-    await app.prisma.integrationKey.upsert({
-      where: { service_keyName: { service: 'META', keyName: 'META_ACCESS_TOKEN' } },
-      update: { encryptedValue: META_ACCESS_TOKEN_PROVIDED, isActive: true },
-      create: {
-        service: 'META',
-        keyName: 'META_ACCESS_TOKEN',
-        encryptedValue: META_ACCESS_TOKEN_PROVIDED,
-        isActive: true
-      }
-    });
-
-    const existingDataset = await app.prisma.integrationKey.findFirst({
-      where: { service: 'META', keyName: 'META_DATASET_ID' }
-    });
-
-    if (!existingDataset) {
-      app.log.info('[Meta CAPI] Auto-seeding Meta Dataset ID into IntegrationKey table...');
-      await app.prisma.integrationKey.upsert({
-        where: { service_keyName: { service: 'META', keyName: 'META_DATASET_ID' } },
-        update: { encryptedValue: META_DATASET_ID_DEFAULT, isActive: true },
-        create: {
-          service: 'META',
-          keyName: 'META_DATASET_ID',
-          encryptedValue: META_DATASET_ID_DEFAULT,
-          isActive: true
-        }
-      });
+  const seedIfMissing = async (keyName: string, rawValue: string | undefined, fallback?: string) => {
+    const value = (rawValue || fallback || '').trim();
+    if (!value) {
+      app.log.warn(`[Meta CAPI] ${keyName} not configured and no fallback available; skipping seed.`);
+      return;
     }
+
+    const existing = await app.prisma.integrationKey.findFirst({
+      where: { service: 'META', keyName },
+    });
+    if (existing) {
+      app.log.info(`[Meta CAPI] ${keyName} already present; leaving stored value untouched.`);
+      return;
+    }
+
+    await app.prisma.integrationKey.create({
+      data: { service: 'META', keyName, encryptedValue: encrypt(value), isActive: true },
+    });
+    app.log.info(`[Meta CAPI] Seeded ${keyName} into IntegrationKey (encrypted).`);
+  };
+
+  try {
+    await seedIfMissing('META_ACCESS_TOKEN', process.env.META_ACCESS_TOKEN);
+    await seedIfMissing('META_DATASET_ID', process.env.META_DATASET_ID, META_DATASET_ID_DEFAULT);
   } catch (err: any) {
     app.log.warn(`[Meta CAPI] Auto-seed warning: ${err.message}`);
   }
@@ -118,6 +111,13 @@ export async function sendMetaCapiEvent(
     token = META_ACCESS_TOKEN_PROVIDED;
   }
   const datasetId = await getMetaDatasetId(app);
+
+  if (!token || !datasetId) {
+    return {
+      success: false,
+      error: 'Meta CAPI is not configured (missing access token or dataset id).',
+    };
+  }
 
   try {
     const nameParts = (payload.name || '').trim().split(/\s+/);

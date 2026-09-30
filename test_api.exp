@@ -26,7 +26,7 @@ req.end();
 \""
 expect {
   -re "(assword|assphrase)" {
-    send "Photoshop09@\r"
+    send "$env(VPS_PASSWORD)\r"
     exp_continue
   }
   eof

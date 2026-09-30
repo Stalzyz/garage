@@ -18,7 +18,7 @@ test.describe('Live Production E2E Tests', () => {
     expect(isOldUIVisible).toBeFalsy();
 
     // Take a screenshot of the new UI
-    await page.screenshot({ path: 'test-results/garage-live.png', fullPage: true });
+    await page.screenshot({ path: 'test-results/grekam-os-live.png', fullPage: true });
   });
 
   test('academy.grekam.in should load successfully', async ({ page }) => {

@@ -1,3 +1,4 @@
+import { defaultLeadStatus } from '../crm/lead-status';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 
@@ -255,7 +256,7 @@ async function fetchAndProcessLead(app: FastifyInstance, leadgenId: string, form
         phone: phone || undefined,
         company: company || undefined,
         source: 'META_ADS',
-        status: 'NEW',
+        status: defaultLeadStatus(businessUnit),
         businessUnit,
         notes: `Imported via Meta Webhook (Lead ID: ${leadgenId}, Form: ${formId})`,
       },
@@ -340,7 +341,7 @@ async function processWhatsAppFlowLead(
         phone: phone || undefined,
         company: company || undefined,
         source: 'WHATSAPP',
-        status: 'NEW',
+        status: defaultLeadStatus(businessUnit),
         businessUnit,
         courseInterest: courseInterest || undefined,
         projectType: projectType || undefined,
@@ -413,7 +414,8 @@ async function processIncomingWhatsAppReply(
         name: senderName,
         phone: fromPhone,
         source: 'WHATSAPP',
-        status: 'NEW',
+        // No business unit on this path, so defaultLeadStatus yields AGENCY/NEW.
+        status: defaultLeadStatus(null),
         notes: `Incoming WhatsApp message: ${textContent}`,
       },
     });

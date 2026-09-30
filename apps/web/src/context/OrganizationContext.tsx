@@ -10,14 +10,39 @@ export interface Organization {
   faviconUrl?: string | null;
   academyFaviconUrl?: string | null;
   primaryColor: string;
+  secondaryColor?: string | null;
+  accentColor?: string | null;
   darkModeDefault: boolean;
   supportEmail?: string | null;
   billingAddress?: string | null;
   website?: string | null;
   phone?: string | null;
+
+  // Company & legal identity
+  companyName?: string | null;
+  panNumber?: string | null;
+  gstNumber?: string | null;
+
+  // Public channels
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
+  facebookUrl?: string | null;
+  whatsappNumber?: string | null;
+
+  /**
+   * Bank settlement details.
+   *
+   * Field names here match the Prisma `Organization` columns. The previous
+   * interface declared bankAccountNo / bankIfsc, which no column or API
+   * response ever populated — anything reading those got undefined.
+   */
   bankName?: string | null;
-  bankAccountNo?: string | null;
-  bankIfsc?: string | null;
+  accountName?: string | null;
+  accountNumber?: string | null;
+  ifscCode?: string | null;
+  swiftCode?: string | null;
   bankBranch?: string | null;
 }
 
@@ -29,14 +54,18 @@ const defaultOrg: Organization = {
   faviconUrl: "/favicon.ico",
   academyFaviconUrl: "/favicon.ico",
   primaryColor: "#2DA16D",
+  secondaryColor: "#7c3aed",
+  accentColor: "#10b981",
   darkModeDefault: true,
   supportEmail: "greeksacademy@gmail.com",
   billingAddress: "Coimbatore, Tamil Nadu, India",
   website: "https://grekam.in",
   phone: null,
   bankName: null,
-  bankAccountNo: null,
-  bankIfsc: null,
+  accountName: null,
+  accountNumber: null,
+  ifscCode: null,
+  swiftCode: null,
   bankBranch: null,
 };
 

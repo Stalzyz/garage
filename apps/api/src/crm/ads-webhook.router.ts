@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { EventBus, SystemEvents } from '../automations/event-bus';
 import { getMetaAccessToken } from '../utils/meta-enrichment';
 import { sendMetaCapiEvent, initMetaCapiEventListeners, autoSeedMetaCredentials } from '../services/meta-capi.service';
+import { defaultLeadStatus } from './lead-status';
 
 // Simple scoring calculation helper
 function calculateScore(budget?: number, source?: string, projectType?: string, businessUnit?: string): number {
@@ -203,6 +204,7 @@ export default async function adsWebhookRouter(app: FastifyInstance) {
                 phone: leadPhone || undefined,
                 company: company || undefined,
                 source: 'META_ADS',
+                status: defaultLeadStatus(businessUnit),
                 businessUnit,
                 score,
                 notes: notesContent,
@@ -335,6 +337,7 @@ export default async function adsWebhookRouter(app: FastifyInstance) {
           email,
           phone: phone || undefined,
           source: 'WEBSITE',
+          status: defaultLeadStatus(businessUnit),
           businessUnit,
           score,
           notes: `Ingested from Google Ads Lead Form (Lead ID: ${leadId}, Campaign ID: ${campaignId})`,

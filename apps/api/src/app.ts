@@ -13,6 +13,10 @@ import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fast
 import { prisma } from './db';
 import dotenv from 'dotenv';
 import authPlugin from './plugins/auth.plugin';
+import { authenticateRequest, describeSessionSecretHealth } from './plugins/auth.plugin';
+import authGatePlugin from './plugins/auth-gate.plugin';
+import redactPlugin from './plugins/redact.plugin';
+import { isInlineSafeUpload } from './utils/upload-content-type';
 import storagePlugin from './plugins/storage.plugin';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
@@ -131,15 +135,48 @@ export async function buildApp(opts: any = {}): Promise<any> {
   await app.register(authPlugin);
   await app.register(storagePlugin);
 
+  // Security: deny-by-default authentication gate. Registered after @fastify/cors
+  // so CORS preflight is answered first, and before any module registers routes
+  // so the hook covers all of them. Public endpoints are allowlisted in
+  // auth-gate.plugin.ts.
+  await app.register(authGatePlugin);
+
+  // Security: never serialise password hashes / 2FA secrets to clients.
+  await app.register(redactPlugin);
+
+  const secretHealth = describeSessionSecretHealth();
+  if (!secretHealth.ok) {
+    for (const problem of secretHealth.problems) {
+      app.log.error(`[auth] ${problem}`);
+    }
+  }
+
   await app.register(multipart, {
     limits: {
       fileSize: 50 * 1024 * 1024 // 50MB
     }
   });
 
+  // Uploaded files are now session-gated (see PUBLIC_PREFIXES in
+  // auth-gate.plugin.ts), but anything an authenticated user can upload is
+  // still served from this origin. Without the header hardening below, a
+  // stored `.html` or `.svg` attachment would execute as script on grekam.in
+  // with the session cookie in scope.
   await app.register(fastifyStatic, {
     root: path.join(__dirname, '../uploads'),
     prefix: '/api/v1/uploads/',
+    list: false,
+    index: false,
+    dotfiles: 'deny',
+    setHeaders(res, filePath) {
+      res.header('X-Content-Type-Options', 'nosniff');
+      if (!isInlineSafeUpload(filePath)) {
+        // Not a media type we render in-page — hand it over as a download so
+        // the browser never treats it as active content.
+        res.header('Content-Type', 'application/octet-stream');
+        res.header('Content-Disposition', 'attachment');
+      }
+    },
   });
 
   // Swagger setup
@@ -289,7 +326,15 @@ export async function buildApp(opts: any = {}): Promise<any> {
   // WebSocket — real-time broadcast hub
   const wsClients = new Set<any>();
 
-  app.get('/api/v1/ws', { websocket: true }, (socket) => {
+  app.get('/api/v1/ws', { websocket: true }, async (socket, req) => {
+    // The auth gate skips this path because a WebSocket handshake has no normal
+    // reply; authenticate here and close the socket instead of upgrading.
+    const auth = await authenticateRequest(req as any);
+    if (!auth.ok) {
+      socket.close(4401, 'Unauthorized');
+      return;
+    }
+
     wsClients.add(socket);
     app.log.info(`[WS] Client connected — total: ${wsClients.size}`);
 

@@ -63,8 +63,21 @@ export default async function organizationRouter(app: FastifyInstance) {
       });
     }
 
+    // Never return the two API-key columns in plaintext.
+    //
+    // Both are stored unencrypted on this row, so `...org` handed them to any
+    // authenticated caller — the same class of leak as the payroll endpoints
+    // closed earlier. They are also write-only from here: the UI that used to
+    // echo them back (the duplicate Organization & Branding page) is gone, and
+    // Resend should be configured under Settings > Integrations where it is
+    // encrypted at rest. Signalled with a boolean so a caller can tell
+    // "configured" from "absent" without learning the value.
+    const { openAiKey, resendApiKey, ...safeOrg } = org;
+
     return {
-      ...org,
+      ...safeOrg,
+      openAiKeyConfigured: Boolean(openAiKey && openAiKey.trim().length > 0),
+      resendApiKeyConfigured: Boolean(resendApiKey && resendApiKey.trim().length > 0),
       name: org.name || "Grekam Visuals",
       companyName: org.companyName || "Grekam Visuals & Technologies Pvt Ltd",
       logoUrl: org.logoUrl || "/visuals-logo.png",

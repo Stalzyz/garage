@@ -144,6 +144,123 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
   }
 ];
 
+/**
+ * Words that mark a BSP/Grafty payload as a delivery failure rather than a success blurb.
+ * Used so a friendly "message queued" string is never mistaken for an error.
+ */
+const GRAFTY_FAILURE_WORDS =
+  /(reject|fail|error|invalid|not\s+exist|unsupport|expire|block|authoriz|forbidden|quota|exceed|not\s+found|undeliver|unreach|denied)/i;
+
+const GRAFTY_SUCCESS_STATES = ['success', 'sent', 'accepted', 'queued', 'delivered', 'ok', 'submitted'];
+const GRAFTY_FAILURE_STATES = ['failed', 'failure', 'error', 'rejected', 'undeliverable', 'invalid', 'denied', 'blocked'];
+
+/** Pull a human-readable failure reason out of a loosely-shaped BSP payload. */
+function extractProviderError(obj: any): string | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+
+  const hard = obj.error ?? obj.errors ?? obj.details;
+  if (hard !== undefined && hard !== null && hard !== '') {
+    if (typeof hard === 'string') return hard;
+    if (Array.isArray(hard)) {
+      const parts = hard
+        .map((e: any) => (typeof e === 'string' ? e : e?.message || e?.details || JSON.stringify(e)))
+        .filter(Boolean);
+      if (parts.length) return parts.join('; ');
+    } else if (typeof hard === 'object') {
+      return hard.message || hard.details || hard.reason || JSON.stringify(hard);
+    } else {
+      return String(hard);
+    }
+  }
+
+  // `message`/`reason` are ambiguous (a BSP may say "Message sent"), so only trust them
+  // when they actually contain failure wording.
+  const soft = obj.message ?? obj.reason;
+  if (typeof soft === 'string' && GRAFTY_FAILURE_WORDS.test(soft)) return soft;
+
+  return undefined;
+}
+
+function extractMessageId(obj: any): string | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const id =
+    obj.messageId ?? obj.message_id ?? obj.wamid ?? obj.wamidId ?? obj.wa_message_id ??
+    obj.id ?? obj.messageID ?? obj.data?.id ?? obj.data?.messageId;
+  return typeof id === 'string' && id.length > 0 ? id : undefined;
+}
+
+export interface ProviderVerdict {
+  ok: boolean;
+  /** True only when the payload carried an explicit positive signal. */
+  confirmed: boolean;
+  error?: string;
+  messageId?: string;
+}
+
+/**
+ * Inspect a provider response body to decide whether the message was really accepted.
+ *
+ * WHY THIS EXISTS: Grafty is a BSP/aggregator that relays to the Meta Cloud API. A HTTP 200
+ * from Grafty does NOT mean Meta accepted the message — Grafty can return 200 with a body that
+ * reports a Meta rejection (e.g. #132001 "template name does not exist"). Previously we trusted
+ * `res.ok` alone, which reported those as delivered.
+ *
+ * Policy:
+ *  - explicit negative signal  -> failure (never claim "sent")
+ *  - explicit positive signal  -> success, `confirmed: true`
+ *  - nothing conclusive either way -> allowed through, but `confirmed: false` so the UI can
+ *    say "submitted, awaiting confirmation" instead of asserting delivery.
+ */
+export function inspectProviderBody(body: any): ProviderVerdict {
+  if (!body || typeof body !== 'object') {
+    // Unparseable/empty body: no proof of failure, but also no proof of delivery.
+    return { ok: true, confirmed: false };
+  }
+
+  const scopes = [body, body.data, body.result, body.response, body.message].filter(
+    (v: any) => v && typeof v === 'object'
+  );
+
+  // 1. Explicit `success` boolean wins over everything else.
+  for (const scope of scopes) {
+    if (typeof scope.success === 'boolean') {
+      if (!scope.success) {
+        return {
+          ok: false,
+          confirmed: false,
+          error: extractProviderError(scope) || extractProviderError(body) || 'Provider reported success=false',
+        };
+      }
+      return { ok: true, confirmed: true, messageId: extractMessageId(scope) || extractMessageId(body) };
+    }
+  }
+
+  // 2. Explicit status/state string.
+  for (const scope of [body, ...scopes]) {
+    const state = scope.status ?? scope.state;
+    if (typeof state === 'string') {
+      const low = state.toLowerCase();
+      if (GRAFTY_FAILURE_STATES.includes(low)) {
+        return {
+          ok: false,
+          confirmed: false,
+          error: extractProviderError(scope) || extractProviderError(body) || `Provider status "${state}"`,
+        };
+      }
+      if (GRAFTY_SUCCESS_STATES.includes(low)) {
+        return { ok: true, confirmed: true, messageId: extractMessageId(scope) || extractMessageId(body) };
+      }
+    }
+  }
+
+  // 3. An error-shaped payload with no success marker is a failure.
+  const err = extractProviderError(body) || (scopes.length ? extractProviderError(scopes[0]) : undefined);
+  if (err) return { ok: false, confirmed: false, error: err };
+
+  // 4. Inconclusive — pass through but flag as unconfirmed.
+  return { ok: true, confirmed: false, messageId: extractMessageId(body) };
+}
+
 export class WhatsAppService {
   async getCredentials() {
     const keys = await prisma.integrationKey.findMany({
@@ -587,11 +704,24 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
       });
     }
 
-    let sendResult: { success: boolean; provider: string; data?: any; error?: string } = {
+    let sendResult: {
+      success: boolean;
+      provider: string;
+      data?: any;
+      error?: string;
+      /** True only when the provider payload explicitly confirmed acceptance. */
+      confirmed?: boolean;
+      messageId?: string;
+    } = {
       success: false,
       provider: 'none',
       error: 'No messaging provider configured'
     };
+
+    // Which template was ACTUALLY accepted, and whether we had to substitute a fallback.
+    // Without these the audit trail would claim the requested template was delivered.
+    let deliveredTemplate: string | undefined;
+    let usedFallback = false;
 
     const isAuto = (provider as string) === 'auto';
     const tryMeta = (isAuto || provider === 'meta') && Boolean(metaToken && metaPhoneNumberId);
@@ -602,13 +732,23 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
     // List of candidate template names to try.
     // If the requested template name gets #132001 (template/translation missing), #132000 (param count mismatch),
-    // or #132012 (parameter format mismatch), we automatically fall back to an approved verified template
-    // (grafty_proposals if media is attached, or grafty_welcome for text) so delivery never fails!
+    // or #132012 (parameter format mismatch), we fall back to an approved verified template
+    // (grafty_proposals if media is attached, or grafty_welcome for text).
+    //
+    // The fallback is NO LONGER SILENT: when it is used we report the template that was actually
+    // delivered, flag `usedFallback`, and the UI surfaces the substitution. Set
+    // WHATSAPP_TEMPLATE_FALLBACK=false to disable substitution entirely and have the original
+    // #132001/#132012 error surface to the operator untouched.
     const verifiedFallback = (activeMediaUrl || effectiveHeaderType === 'DOCUMENT' || effectiveHeaderType === 'IMAGE')
       ? 'grafty_proposals'
       : 'grafty_welcome';
 
-    const templateNamesToTry = Array.from(new Set([templateName, sanitizedName, verifiedFallback]));
+    const fallbackEnabled =
+      String(process.env.WHATSAPP_TEMPLATE_FALLBACK ?? 'true').toLowerCase() !== 'false';
+
+    const templateNamesToTry = fallbackEnabled
+      ? Array.from(new Set([templateName, sanitizedName, verifiedFallback]))
+      : Array.from(new Set([templateName, sanitizedName]));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {
@@ -696,6 +836,8 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
             if (r.ok && d.messages) {
               console.log(`[WhatsApp] Meta Cloud API template send succeeded using template "${tName}" and candidate: ${cand.desc}`);
+              deliveredTemplate = tName;
+              usedFallback = isFallback;
               metaFailedWith132001 = false;
               break;
             }
@@ -727,7 +869,15 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
 
         if (metaRes && metaRes.ok && metaData?.messages) {
-          sendResult = { success: true, provider: 'meta_cloud_api', data: metaData };
+          // A wamid only means Meta ACCEPTED the message for delivery. It is not a delivery
+          // receipt — flag it as accepted so callers never assert "delivered" from this alone.
+          sendResult = {
+            success: true,
+            provider: 'meta_cloud_api',
+            data: metaData,
+            confirmed: false,
+            messageId: metaData?.messages?.[0]?.id,
+          };
         } else {
           const errMsg = metaData?.error?.message || `Meta API returned status ${metaRes?.status}`;
           console.error(`[WhatsApp] Meta Cloud API error:`, metaData?.error || metaRes?.status);
@@ -753,6 +903,9 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         const instObj = graftyInstanceId ? { instance_id: graftyInstanceId, instanceId: graftyInstanceId } : {};
 
         let graftyRes: Response | null = null;
+        let graftyBody: any = null;
+        let graftyMessageId: string | undefined;
+        let graftyConfirmed = false;
         let lastErrText = '';
         let successfulStrategy = '';
         let workingEndpoint = '';
@@ -888,19 +1041,41 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   body: JSON.stringify(candidate.payload),
                 });
 
+                // Read the body once — Grafty can return 200 with a Meta rejection inside it,
+                // so `res.ok` alone is NOT proof of delivery.
+                const rawText = await res.text().catch(() => '');
+
                 if (res.ok) {
-                  graftyRes = res;
-                  workingEndpoint = url;
-                  successfulStrategy = `Template "${tName}" — ${candidate.desc}`;
-                  break;
+                  let parsedBody: any = null;
+                  try { parsedBody = rawText ? JSON.parse(rawText) : null; } catch { parsedBody = null; }
+
+                  const verdict = inspectProviderBody(parsedBody);
+
+                  if (verdict.ok) {
+                    graftyRes = res;
+                    graftyBody = parsedBody;
+                    graftyMessageId = verdict.messageId;
+                    graftyConfirmed = verdict.confirmed;
+                    workingEndpoint = url;
+                    successfulStrategy = `Template "${tName}" — ${candidate.desc}`;
+                    deliveredTemplate = tName;
+                    usedFallback = isFallback;
+                    break;
+                  }
+
+                  // HTTP 200 but the body reports a real delivery failure. Do NOT treat as sent —
+                  // record the reason and let the fallback chain decide what to do.
+                  lastErrText = rawText || JSON.stringify({ error: verdict.error || 'Provider returned 200 with a failure payload' });
+                  console.warn(`[WhatsApp] Grafty returned HTTP ${res.status} with a failure body: ${lastErrText.slice(0, 300)}`);
+                  graftyRes = null;
+                  continue;
                 }
 
                 if (res.status === 404) continue;
 
                 workingEndpoint = url;
-                const errBody = await res.text().catch(() => '');
-                if (errBody) {
-                  lastErrText = errBody;
+                if (rawText) {
+                  lastErrText = rawText;
                 }
                 graftyRes = res;
                 break;
@@ -933,9 +1108,23 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
 
         if (graftyRes && graftyRes.ok) {
-          let graftyData = {};
-          try { graftyData = await graftyRes.json(); } catch (e) {}
-          sendResult = { success: true, provider: 'grafty', data: graftyData };
+          // graftyRes is only ever set once inspectProviderBody() approved the payload.
+          if (graftyMessageId && graftyBody && typeof graftyBody === 'object') {
+            (graftyBody as any).messageId = (graftyBody as any).messageId || graftyMessageId;
+          }
+          sendResult = {
+            success: true,
+            provider: 'grafty',
+            data: graftyBody ?? {},
+            confirmed: graftyConfirmed,
+            messageId: graftyMessageId,
+          };
+          if (usedFallback) {
+            console.warn(
+              `[WhatsApp] FALLBACK SUBSTITUTION: requested template "${templateName}" was rejected — ` +
+              `delivered "${deliveredTemplate}" instead. This is reported to the operator, not hidden.`
+            );
+          }
         } else if (!sendResult.success) {
           const statusCode = graftyRes?.status || 'unreachable';
           console.error(`[WhatsApp] Grafty send failed (${statusCode}):`, lastErrText);
@@ -964,12 +1153,24 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
       });
       if (contact) {
+        // Record the template that was ACTUALLY accepted, not the one that was requested.
+        // Previously this always logged the requested name, so a rejected template that had
+        // silently fallen back to grafty_welcome was written to the CRM as "✓ Sent".
+        const outcome = !sendResult.success
+          ? `✗ Failed: ${sendResult.error}`
+          : usedFallback
+            ? `⚠ Sent via FALLBACK — requested "${templateName}" was rejected, delivered "${deliveredTemplate}"`
+            : sendResult.confirmed === false
+              ? `✓ Accepted (delivery unconfirmed) — "${deliveredTemplate || templateName}"`
+              : `✓ Sent — "${deliveredTemplate || templateName}"`;
+
         await prisma.communicationLog.create({
           data: {
             contactId: contact.id,
             type: 'WHATSAPP',
             direction: 'OUTBOUND',
-            summary: `WhatsApp Template "${templateName}" via ${sendResult.provider} — ${sendResult.success ? '✓ Sent' : '✗ Failed: ' + sendResult.error}`,
+            summary: `WhatsApp Template via ${sendResult.provider} — ${outcome}` +
+              (sendResult.messageId ? ` [msg ${sendResult.messageId}]` : ''),
             userId: 'system'
           }
         });
@@ -1006,7 +1207,19 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     return {
       success: true,
       provider: sendResult.provider,
-      data: { status: 'sent', recipient: cleanPhone, template: templateName, ...sendResult.data }
+      // Spread the provider payload first, then our authoritative fields, so a provider
+      // `status`/`template` in the body can never overwrite the truth.
+      data: {
+        ...sendResult.data,
+        // 'accepted' means the provider took the message; 'sent' is only claimed when the
+        // provider explicitly confirmed it. Never assert delivery from a 200 alone.
+        status: sendResult.confirmed === false ? 'accepted_unconfirmed' : 'sent',
+        recipient: cleanPhone,
+        template: deliveredTemplate || templateName,
+        requestedTemplate: templateName,
+        usedFallback,
+        messageId: sendResult.messageId || (sendResult.data as any)?.messageId,
+      }
     };
   }
 

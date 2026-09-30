@@ -212,7 +212,6 @@ export const navigation: NavItem[] = [
     roles: ["SUPER_ADMIN"],
     children: [
       { title: "General", href: "/dashboard/settings" },
-      { title: "Organization & Branding", href: "/dashboard/settings/organization" },
       { title: "Roles & Permissions", href: "/dashboard/settings/roles" },
       { title: "Finance & Currency", href: "/dashboard/settings/finance" },
       { title: "Email Templates", href: "/dashboard/settings/email-templates" },

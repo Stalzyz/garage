@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle, Plus, Trash2, X } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
@@ -219,6 +219,30 @@ export function KanbanBoard({
 
   const columns = activeTab === 'AGENCY' ? agencyCols : academyCols;
 
+  /**
+   * Map a lead's stored status onto the stage column that represents it.
+   *
+   * The two funnels share one status column in the database but the boards do
+   * not overlap: academy columns are ENQUIRY/COUNSELLING/... while agency
+   * columns start at NEW. A lead whose status did not literally equal a column
+   * id matched nothing and simply disappeared from the board — which is how
+   * ACADEMY leads created by the Meta Ads webhook (status NEW) were invisible
+   * in kanban while still appearing in the list view.
+   *
+   * Mirrors canonicalLeadStatus() in apps/api/src/crm/lead-status.ts.
+   */
+  const canonicalStatus = (status: unknown): string => {
+    const value = String(status ?? '').trim().toUpperCase();
+    if (activeTab === 'ACADEMY' && (value === 'NEW' || value === '')) return 'ENQUIRY';
+    if (activeTab === 'AGENCY' && (value === 'ENQUIRY' || value === '')) return 'NEW';
+    return value;
+  };
+
+  const columnIds = useMemo(
+    () => new Set(columns.map((c) => c.id.trim().toUpperCase())),
+    [columns]
+  );
+
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
 
@@ -230,6 +254,18 @@ export function KanbanBoard({
   useEffect(() => {
     setLocalLeads(leads);
   }, [leads]);
+
+  /**
+   * Leads whose stage matches no column on this board.
+   *
+   * Rendered in a holding column rather than dropped, so a bad or legacy status
+   * can never make a lead disappear — which is the whole point, because the
+   * previous silent filter is what hid the academy leads from this view.
+   */
+  const unmappedLeads = useMemo(
+    () => localLeads.filter((l: any) => !columnIds.has(canonicalStatus(l.status))),
+    [localLeads, columnIds, activeTab]
+  );
 
   const handleAddColumn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,10 +338,20 @@ export function KanbanBoard({
     setDragOverColumn(null);
   };
 
+  /** Assign a real stage from the "Needs Stage" holding column. */
+  const handleMoveToStage = (leadId: string, stage: string) => {
+    setLocalLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, status: stage, updatedAt: new Date().toISOString() } : l
+      )
+    );
+    onStatusChange(leadId, stage);
+  };
+
   return (
     <div className="flex gap-4 h-[650px] overflow-x-auto custom-scrollbar pb-4 items-start">
       {columns.map((col) => {
-        const colLeads = localLeads.filter((l) => l.status === col.id);
+        const colLeads = localLeads.filter((l) => canonicalStatus(l.status) === col.id);
         const columnValue = colLeads.reduce((sum, l) => sum + (Number(l.estimatedBudget) || 0), 0);
         const isColumnHovered = dragOverColumn === col.id;
 
@@ -379,6 +425,66 @@ export function KanbanBoard({
           </div>
         );
       })}
+
+      {/*
+        Holding column for leads whose stored status has no matching column.
+
+        This is deliberately NOT a drop target: dropping here would have to
+        invent a status, and a made-up value would just re-enter the unmapped
+        bucket on the next render. Leads are reassigned through the stage
+        picker instead, which persists a real value.
+      */}
+      {unmappedLeads.length > 0 && (
+        <div className="flex flex-col min-w-[285px] w-[285px] border border-amber-500/30 rounded-2xl h-full flex-shrink-0 bg-amber-500/[0.04]">
+          <div className="p-4 border-b border-amber-500/20">
+            <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-amber-400">
+              Needs Stage
+            </h3>
+            <p className="text-[10px] text-amber-300/60 mt-1 leading-relaxed">
+              {unmappedLeads.length} lead{unmappedLeads.length === 1 ? '' : 's'} with a stage that has
+              no column on this board. Assign one below.
+            </p>
+            <span className="inline-block mt-2 bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+              {unmappedLeads.length}
+            </span>
+          </div>
+
+          <div className="p-3 flex-1 overflow-y-auto custom-scrollbar min-h-[150px] space-y-3">
+            {unmappedLeads.map((lead) => (
+              <div key={lead.id} className="space-y-2">
+                <div className="rounded-xl border border-amber-500/20 bg-black/20 p-1">
+                  <LeadCard
+                    lead={lead}
+                    isDragged={draggedLeadId === lead.id}
+                    onOpenLead={onOpenLead}
+                    onLogActivity={onLogActivity}
+                    onSchedule={onSchedule}
+                    onWhatsapp={onWhatsapp}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                  />
+                </div>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (!next) return;
+                    handleMoveToStage(lead.id, next);
+                  }}
+                  className="w-full bg-[#0c0e14] border border-amber-500/25 rounded-lg px-2 py-1.5 text-[11px] text-amber-200 focus:outline-none focus:border-amber-500 cursor-pointer"
+                >
+                  <option value="">Move to stage…</option>
+                  {columns.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add New Stage Column Card */}
       <div className="flex flex-col min-w-[285px] w-[285px] border border-dashed border-white/10 hover:border-blue-500/40 rounded-2xl h-full flex-shrink-0 bg-[var(--dash-bg-card,rgba(255,255,255,0.02))] hover:bg-white/[0.04] transition-all p-4">

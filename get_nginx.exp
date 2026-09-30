@@ -2,7 +2,7 @@
 set timeout 30
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@200.97.163.236
 expect "password:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 send "grep -E 'server_name.*grekam.in' /etc/nginx/sites-enabled/*\r"
 expect "# "

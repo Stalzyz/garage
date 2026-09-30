@@ -2,7 +2,7 @@
 set timeout 120
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 # Kill anything on port 3000
 send "fuser -k 3000/tcp 2>/dev/null; sleep 1\r"

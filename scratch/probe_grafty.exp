@@ -13,5 +13,5 @@ for ep in ['/api/v1/instances', '/api/v1/channels', '/api/v1/phone-numbers', '/a
         print(ep, '-> Error:', e)
 \""
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

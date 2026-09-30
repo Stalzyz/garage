@@ -12,3 +12,7 @@ build/
 coverage/
 .vercel/
 prisma/migrations/*.sql
+
+# Ciphertext backups written by src/scripts/rotate-encryption-secret.ts.
+# Never commit these: this repository is public.
+backups/

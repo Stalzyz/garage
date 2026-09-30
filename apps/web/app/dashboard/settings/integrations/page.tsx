@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plug, Zap, Video, Mail, CreditCard, Save, CheckCircle2, Webhook, Plus, Trash2, Loader2, Eye, EyeOff, X, KeyRound, Copy, Check, Share2, ArrowDownLeft, ExternalLink, ShieldCheck, MessageSquare, Cpu } from "lucide-react"
 
-type Service = "META" | "RAZORPAY" | "PHONEPE" | "STRIPE" | "SMTP" | "WHATSAPP" | "GOOGLE" | "OPENAI" | "GEMINI"
+type Service = "META" | "RAZORPAY" | "PHONEPE" | "STRIPE" | "SMTP" | "WHATSAPP" | "GOOGLE" | "OPENAI" | "GEMINI" | "RESEND"
 
 interface IntegrationKey {
   id: string
@@ -34,9 +34,10 @@ const SERVICE_META: Record<Service, { label: string; icon: any; color: string; b
   GOOGLE:    { label: "Google",    icon: Video,      color: "text-red-400",    bg: "bg-red-500/10",     border: "border-red-500/20",     desc: "OAuth, Meet & Calendar integrations" },
   OPENAI:    { label: "OpenAI",    icon: Cpu,        color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/20", desc: "Integrations for proposals, CRM notes, and email copy" },
   GEMINI:    { label: "Google Gemini", icon: Cpu,    color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", desc: "Gemini Flash — Key for proposal templates, curriculum generation & executive assistant." },
+  RESEND:    { label: "Resend",    icon: Mail,       color: "text-slate-200",  bg: "bg-slate-500/10",   border: "border-slate-500/20",   desc: "Primary transactional email delivery. Takes priority over SMTP when set. Relocated here from the removed Organization & Branding page so the key is stored in the encrypted vault rather than plaintext on the org row." },
 }
 
-const SERVICES: Service[] = ["META", "RAZORPAY", "PHONEPE", "STRIPE", "SMTP", "WHATSAPP", "GOOGLE", "GEMINI", "OPENAI"]
+const SERVICES: Service[] = ["META", "RAZORPAY", "PHONEPE", "STRIPE", "SMTP", "RESEND", "WHATSAPP", "GOOGLE", "GEMINI", "OPENAI"]
 
 const API = process.env.NEXT_PUBLIC_API_URL || "/api/v1"
 
@@ -104,6 +105,7 @@ export default function IntegrationsDashboard() {
     GOOGLE: ["GOOGLE_SERVICE_ACCOUNT_EMAIL", "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY", "GOOGLE_CALENDAR_ID", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
     OPENAI: ["OPENAI_API_KEY"],
     GEMINI: ["GEMINI_API_KEY"],
+    RESEND: ["RESEND_API_KEY"],
   }
 
   const load = useCallback(async () => {

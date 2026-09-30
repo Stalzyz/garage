@@ -3,16 +3,53 @@ import { prisma } from '../db';
 import { decrypt } from '../settings/integrations.router';
 import { Resend } from 'resend';
 
+/**
+ * Resolve the Resend API key, preferring the encrypted vault.
+ *
+ * Order:
+ *   1. integration_keys  (service RESEND / RESEND_API_KEY) — encrypted at rest.
+ *   2. organization.resendApiKey — legacy plaintext column, kept so an existing
+ *      deployment that set it there keeps delivering mail.
+ */
+async function getResendApiKey(): Promise<string | null> {
+  try {
+    const key = await prisma.integrationKey.findFirst({
+      where: { service: 'RESEND', keyName: 'RESEND_API_KEY', isActive: true },
+    });
+    if (key?.encryptedValue) {
+      const value = decrypt(key.encryptedValue);
+      if (value && value.trim().length > 0) return value.trim();
+    }
+  } catch (e) {
+    // Fall through to the legacy column rather than failing the send.
+  }
+
+  try {
+    const org = await prisma.organization.findFirst();
+    if (org?.resendApiKey && org.resendApiKey.trim().length > 0) {
+      return org.resendApiKey.trim();
+    }
+  } catch (e) {
+    // Ignore DB read errors.
+  }
+
+  return null;
+}
+
 export const EmailService = {
   async sendEmail(to: string, subject: string, htmlContent: string, fromOverride?: string) {
     try {
       const defaultCc = 'greeksacademy@gmail.com';
       const ccList = to.toLowerCase() !== defaultCc.toLowerCase() ? [defaultCc] : undefined;
 
-      // 1. Check if Organization has Resend API Key
-      const org = await prisma.organization.findFirst();
-      if (org?.resendApiKey) {
-        const resend = new Resend(org.resendApiKey);
+      // 1. Resend API key, preferring the encrypted IntegrationKey vault.
+      //    The legacy org.resendApiKey column is plaintext and is read only as a
+      //    fallback so an existing deployment keeps working; setting the key under
+      //    Settings > Integrations moves it into the vault. (The org page that
+      //    used to be the only place to enter it has been removed as a duplicate.)
+      const resendKey = await getResendApiKey();
+      if (resendKey) {
+        const resend = new Resend(resendKey);
         const data = await resend.emails.send({
           from: fromOverride || 'Grekam OS <onboarding@resend.dev>', // Should ideally be configured or verified domain
           to: [to],

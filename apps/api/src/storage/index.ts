@@ -7,8 +7,12 @@ import path from 'path';
 import { pipeline } from 'stream/promises';
 
 export default async function storageRouter(app: FastifyInstance) {
-  // PUBLIC GET /api/v1/storage/asset/*
-  // Streams R2 images directly with CORS & caching headers enabled (no auth required)
+  // GET /api/v1/storage/asset/*
+  // Streams R2 objects with CORS & caching headers enabled.
+  //
+  // Access control lives in the auth gate, not here. Only the `cms/` key prefix
+  // is public (the agency marketing site renders it while signed out); any
+  // other key requires a session. Do not "fix" this by trusting the caller.
   app.get('/asset/*', async (req, reply) => {
     const key = (req.params as any)['*'];
     if (!key) return reply.code(400).send({ error: 'Missing key' });

@@ -4,7 +4,7 @@ set timeout 60
 # 1. SCP the script to remote VPS
 spawn scp -o StrictHostKeyChecking=no -o PubkeyAuthentication=no /Users/stalinkumar/Documents/visuals_pro_web/grekam-os/scratch/update_vps_nginx.js root@72.61.231.187:/tmp/update_vps_nginx.js
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof
 
 # 2. Run the script and reload Nginx
@@ -15,5 +15,5 @@ spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.
   rm /tmp/update_vps_nginx.js
 }
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

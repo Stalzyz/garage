@@ -1,3 +1,4 @@
+import { defaultLeadStatus } from './lead-status';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
@@ -161,7 +162,7 @@ export default async function leadsRouter(app: FastifyInstance) {
         email: cleanEmail,
         phone: cleanPhone,
         source: body.source || 'WEBSITE',
-        status: body.status || (body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW'),
+        status: body.status || defaultLeadStatus(body.businessUnit),
         score 
       },
     });

@@ -2,7 +2,7 @@
 set timeout 60
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 # Add PORT to the standalone .env file so it's always picked up
 send "echo 'PORT=3006' >> /root/grekam-os/apps/academy-web/.next/standalone/apps/academy-web/.env\r"

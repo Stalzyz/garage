@@ -28,6 +28,8 @@ export interface TemplateDef {
   headerType?: 'DOCUMENT' | 'IMAGE' | 'NONE';
   defaultMediaUrl?: string;
   buttons?: string[];
+  // Backend (WhatsAppTemplateDef) supplies the approved language code for synced templates.
+  language?: string;
 }
 
 const FALLBACK_TEMPLATES: TemplateDef[] = [
@@ -367,7 +369,25 @@ export function WhatsAppModal({
         }),
       });
 
-      toast.success(`WhatsApp message sent to ${name} (${phone})!`);
+      const sent: any = res?.data || {};
+
+      // Reflect what actually happened rather than asserting a clean "sent".
+      if (sent.usedFallback && sent.template && sent.requestedTemplate && sent.template !== sent.requestedTemplate) {
+        toast.warning(
+          `Template "${sent.requestedTemplate}" was rejected. The customer received "${sent.template}" instead. ` +
+          `Approve the requested template in Meta, or resend with a verified template.`,
+          { duration: 12000 }
+        );
+      } else if (sent.status === 'accepted_unconfirmed') {
+        toast.warning(
+          `Message submitted to ${name} (${phone}) — delivery not yet confirmed. ` +
+          `Check Meta/Grafty status before treating it as delivered.`,
+          { duration: 10000 }
+        );
+      } else {
+        toast.success(`WhatsApp message sent to ${name} (${phone})!`);
+      }
+
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {

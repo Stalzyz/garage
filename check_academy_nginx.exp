@@ -4,7 +4,7 @@ set timeout 60
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "cat /etc/nginx/sites-enabled/academy.grekam.in"
 expect {
   "assword:" {
-    send "Photoshop09@\r"
+    send "$env(VPS_PASSWORD)\r"
   }
 }
 expect eof

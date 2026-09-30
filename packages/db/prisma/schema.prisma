@@ -169,7 +169,7 @@ model Organization {
 
   // Whitelabel Branding
   logoUrl           String? // Agency landscape logo (Invoices, Proposals, HR)
-  faviconUrl        String? // Agency square favicon (Browser tab, Garage OS)
+  faviconUrl        String? // Agency square favicon (Browser tab, Grekam OS)
   academyLogoUrl    String? // Academy landscape logo (Fee Receipts, Certificates, LMS)
   academyFaviconUrl String? // Academy square favicon (Browser tab, Academy Web)
   primaryColor      String  @default("#2563eb") // Default Blue

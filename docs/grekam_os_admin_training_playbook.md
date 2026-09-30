@@ -1,7 +1,7 @@
-# Grekam OS (Garage Admin) Master Staff Training Playbook
+# Grekam OS Admin Master Staff Training Playbook
 ### The Complete Operational Guide & Hands-On Training Tasks
 
-Welcome to the definitive **Grekam OS Garage Admin Dashboard Training Playbook**. This consolidated manual is designed to get operations, administrative, and management team members fully comfortable handling workflows on our platform. 
+Welcome to the definitive **Grekam OS Admin Dashboard Training Playbook**. This consolidated manual is designed to get operations, administrative, and management team members fully comfortable handling workflows on our platform. 
 
 ---
 

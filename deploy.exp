@@ -2,5 +2,5 @@
 set timeout -1
 spawn ssh -o StrictHostKeyChecking=no root@72.61.231.187 "ls -l /root /var/www"
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

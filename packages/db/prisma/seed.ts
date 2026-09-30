@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting massive database seed engine...');
 
-  const passwordHash = await bcrypt.hash('Photoshop09@', 10);
+  const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'GrekamSecure2026!', 10);
 
   // 1. Create Super Admin
   const admin = await prisma.user.upsert({

@@ -90,9 +90,23 @@ export default async function whatsappRouter(app: FastifyInstance) {
         provider: data.provider || 'auto'
       });
 
+      const sent: any = result.data || {};
+
+      // Be explicit when the requested template was rejected and a fallback was delivered
+      // instead — the operator must never read this as "the template I picked was sent".
+      let message = `WhatsApp message accepted via ${result.provider}`;
+      if (sent.usedFallback && sent.requestedTemplate && sent.template !== sent.requestedTemplate) {
+        message =
+          `WhatsApp message accepted via ${result.provider} using FALLBACK template "${sent.template}" — ` +
+          `the requested template "${sent.requestedTemplate}" was rejected by the provider. ` +
+          `The customer received "${sent.template}", not "${sent.requestedTemplate}".`;
+      } else if (sent.status === 'sent') {
+        message = `WhatsApp message sent via ${result.provider}`;
+      }
+
       return reply.send({
-        message: `WhatsApp message sent via ${result.provider}`,
-        data: result.data
+        message,
+        data: sent
       });
     } catch (error: any) {
       const msg: string = error.message || 'WhatsApp delivery failed';

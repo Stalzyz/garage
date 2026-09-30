@@ -2,7 +2,7 @@
 set timeout 30
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect "# "
 send "echo '=== .env (root) ===' && cat /root/grekam-os/.env 2>/dev/null || echo MISSING\r"
 expect "# "

@@ -2,5 +2,5 @@
 set timeout -1
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "kill -9 \$(lsof -t -i:3006) || true; pm2 restart academy-web"
 expect "assword:"
-send "Photoshop09@\r"
+send "$env(VPS_PASSWORD)\r"
 expect eof

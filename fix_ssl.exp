@@ -4,7 +4,7 @@ set timeout 120
 spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@72.61.231.187 "certbot --nginx -d academy.grekam.in --non-interactive"
 expect {
   "assword:" {
-    send "Photoshop09@\r"
+    send "$env(VPS_PASSWORD)\r"
   }
 }
 expect eof

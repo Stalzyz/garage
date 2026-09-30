@@ -4,22 +4,20 @@ import { decrypt } from '../settings/integrations.router';
 
 /**
  * Resolves the OpenAI API key dynamically from:
- * 1. Organization table (org.openAiKey)
- * 2. IntegrationKey table (service = 'OPENAI', keyName = 'OPENAI_API_KEY')
- * 3. Environment variables (process.env.OPENAI_API_KEY)
+ * 1. IntegrationKey table (service = 'OPENAI', keyName = 'OPENAI_API_KEY')
+ * 2. Environment variables (process.env.OPENAI_API_KEY)
+ *
+ * The key used to be read from organization.openAiKey first. That column stores
+ * the secret in plaintext, was echoed back in plaintext by
+ * GET /settings/organization, and took priority over the encrypted vault key —
+ * so a stale value typed there would silently override the real one. The only UI
+ * that could set it (the duplicate Organization & Branding page) is gone, the
+ * column is NULL everywhere in production, and the error message below already
+ * points users at Settings > Integrations, so the branch is removed rather than
+ * left as a shadowing trap.
  */
 export async function getOpenAiApiKey(app: FastifyInstance): Promise<string | null> {
-  // 1. Organization Table
-  try {
-    const org = await app.prisma.organization.findFirst();
-    if (org?.openAiKey && org.openAiKey.trim().length > 0 && org.openAiKey !== 'dummy_key') {
-      return org.openAiKey.trim();
-    }
-  } catch (e) {
-    // Ignore DB read errors
-  }
-
-  // 2. IntegrationKey Table
+  // 1. IntegrationKey Table
   try {
     const keyRecord = await app.prisma.integrationKey.findFirst({
       where: { service: 'OPENAI', keyName: 'OPENAI_API_KEY', isActive: true },
@@ -34,7 +32,7 @@ export async function getOpenAiApiKey(app: FastifyInstance): Promise<string | nu
     // Ignore DB read errors
   }
 
-  // 3. Environment Variable
+  // 2. Environment Variable
   const envKey = process.env.OPENAI_API_KEY;
   if (envKey && envKey.trim().length > 0 && envKey !== 'dummy_key') {
     return envKey.trim();
