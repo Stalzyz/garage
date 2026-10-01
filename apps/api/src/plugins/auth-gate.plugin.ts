@@ -53,6 +53,9 @@ const PUBLIC_EXACT: Array<{ method: string; path: string }> = [
   { method: 'POST', path: '/api/v1/payments/razorpay/webhook' },
   { method: 'POST', path: '/api/v1/payments/phonepe/webhook' },
 
+  // Public organization branding & theme config (read-only for layout & styling)
+  { method: 'GET', path: '/api/v1/settings/organization' },
+
   // Public kiosk on academy.grekam.in submits a walk-in.
   // NOTE: only POST. GET/PATCH on this path list and edit captured walk-ins.
   { method: 'POST', path: '/api/v1/academy/walk-ins' },
@@ -75,8 +78,9 @@ const DEFERRED_PATHS = new Set(['/api/v1/ws']);
 
 /** CORS preflight is answered by @fastify/cors before this hook runs. */
 function isPublic(method: string, pathname: string): boolean {
-  const upper = String(method || 'GET').toUpperCase();
+  let upper = String(method || 'GET').toUpperCase();
   if (upper === 'OPTIONS') return true;
+  if (upper === 'HEAD') upper = 'GET';
   if (DEFERRED_PATHS.has(pathname)) return true;
 
   const matchedPrefix = PUBLIC_PREFIXES.find((p) => pathname.startsWith(p));
@@ -85,6 +89,12 @@ function isPublic(method: string, pathname: string): boolean {
       (s) => pathname === `${matchedPrefix}${s.replace(/^\//, '')}` || pathname.endsWith(s)
     );
     if (!excluded) return true;
+  }
+
+  // Public read-only CMS pages and academy public showcase
+  if (upper === 'GET') {
+    if (pathname === '/api/v1/cms/pages' || pathname.startsWith('/api/v1/cms/pages/')) return true;
+    if (pathname.startsWith('/api/v1/cms/academy/')) return true;
   }
 
   return PUBLIC_EXACT.some((r) => r.path === pathname && (r.method === ANY || r.method === upper));
