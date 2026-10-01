@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Plus, ArrowRight, Play, Settings, Save, Trash2, CheckCircle2, AlertCircle } from "lucide-react"
+import { Zap, Plus, ArrowRight, Play, Settings, Save, Trash2, CheckCircle2, AlertCircle, RefreshCw, ShieldCheck, Clock, Users, Activity } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -14,11 +14,31 @@ export default function AutomationsPage() {
   const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isAddActionOpen, setIsAddActionOpen] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   
   const [newWorkflow, setNewWorkflow] = useState({ name: "", triggerType: "WEBHOOK" })
   const [newAction, setNewAction] = useState({ actionType: "EMAIL", configStr: "{}" })
 
   const activeWorkflow = workflows.find((w: any) => w.id === activeWorkflowId)
+
+  const handleRunAutonomousSync = async () => {
+    setIsSyncing(true)
+    try {
+      const res = await fetchApi<any>("/automations/workflows/run-autonomous-sync", { method: "POST" })
+      const tasks = res?.results?.stagnantTasks
+      const leads = res?.results?.leadSla
+      const kickoff = res?.results?.morningKickoff
+      const rollup = res?.results?.eodRollup
+
+      toast.success(
+        `Autonomous Operations Run: Scanned ${tasks?.scanned || 0} tasks (${tasks?.escalated || 0} escalated) | ${leads?.breached || 0} leads audited (${leads?.reassigned || 0} reassigned) | ${kickoff?.staffNotified || 0} kickoff notifications sent!`
+      )
+    } catch (err: any) {
+      toast.error(err.message || "Failed to trigger autonomous sync")
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   const handleCreateWorkflow = async () => {
     if (!newWorkflow.name) return toast.error("Name required")
@@ -61,14 +81,62 @@ export default function AutomationsPage() {
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">
       {/* Header */}
-      <div className="flex-none px-8 py-6 border-b border-white/10 flex items-center justify-between">
+      <div className="flex-none px-8 py-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Automation Engine</h1>
-          <p className="text-sm text-white/50 mt-2">Build visual workflows to put your business on autopilot.</p>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            Automation & Autopilot Engine
+            <span className="text-[10px] font-mono uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
+              Autonomous
+            </span>
+          </h1>
+          <p className="text-sm text-white/50 mt-1">Autonomous systems running your company operations without daily management follow-up.</p>
         </div>
-        <button onClick={() => setIsCreateOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
-          <Plus className="w-4 h-4" /> Create Workflow
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleRunAutonomousSync} 
+            disabled={isSyncing}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-all border border-white/10 text-sm disabled:opacity-50"
+            title="Immediately audit stagnant tasks, lead SLAs, and generate EOD rollups"
+          >
+            <RefreshCw className={`w-4 h-4 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? "Running Audit..." : "Run Autopilot Check Now"}
+          </button>
+          <button onClick={() => setIsCreateOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] text-sm">
+            <Plus className="w-4 h-4" /> Create Custom Workflow
+          </button>
+        </div>
+      </div>
+
+      {/* Autonomous Operations Live Status Strip */}
+      <div className="flex-none bg-black/40 border-b border-white/10 px-8 py-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="text-xs">
+            <span className="font-bold text-white block">Task Auto-Escalation</span>
+            <span className="text-[10px] text-white/40 font-mono">48h Warning • 72h Critical</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="text-xs">
+            <span className="font-bold text-white block">Lead SLA Reassignment</span>
+            <span className="text-[10px] text-white/40 font-mono">30-Min First-Touch Window</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="text-xs">
+            <span className="font-bold text-white block">Daily 9:30 AM Kickoff</span>
+            <span className="text-[10px] text-white/40 font-mono">Auto Priority Queue to Staff</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="text-xs">
+            <span className="font-bold text-white block">6:30 PM EOD Rollup</span>
+            <span className="text-[10px] text-white/40 font-mono">Daily Executive Summary</span>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">

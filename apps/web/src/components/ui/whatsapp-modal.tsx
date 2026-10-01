@@ -28,6 +28,8 @@ export interface TemplateDef {
   headerType?: 'DOCUMENT' | 'IMAGE' | 'NONE';
   defaultMediaUrl?: string;
   buttons?: string[];
+  // Backend (WhatsAppTemplateDef) supplies the approved language code for synced templates.
+  language?: string;
 }
 
 const FALLBACK_TEMPLATES: TemplateDef[] = [
@@ -39,7 +41,7 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     event: 'CRM_LEAD_FOLLOWUP',
     description: 'Shopify store migration assessment pitch with image banner and quick reply button',
     headerType: 'IMAGE',
-    defaultMediaUrl: 'https://garage.grekam.in/og-image.png',
+    defaultMediaUrl: 'https://dashboard.grekam.in/og-image.png',
     variables: [],
     bodyPattern: 'Stop Renting Your Shopify Store.\n\nOwn your platform. Save thousands every month.\n\nFind out if your Shopify store is eligible for a FREE Migration Assessment.',
     buttons: ['Check Eligibility']
@@ -52,7 +54,7 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     event: 'CRM_LEAD_FOLLOWUP',
     description: 'All industries WhatsApp API overview with image banner and link',
     headerType: 'IMAGE',
-    defaultMediaUrl: 'https://garage.grekam.in/og-image.png',
+    defaultMediaUrl: 'https://dashboard.grekam.in/og-image.png',
     variables: [],
     bodyPattern: 'Grow Your Business with WhatsApp\n\nConnect with your customers instantly using WhatsApp API.\n\n• Send notifications & updates\n• Automate customer conversations\n• Follow up with leads\n• Send offers & campaigns\n• Manage customer communication',
     buttons: ['Free Login']
@@ -151,6 +153,36 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
     ],
     bodyPattern: 'Hi {{1}},\n\nThis is a friendly reminder that invoice #{{2}} for {{3}} is due on {{4}}.\n\nPlease click below to complete the payment seamlessly.',
     buttons: ['Pay Invoice']
+  },
+  {
+    id: 'walkin_welcome_v1',
+    name: 'Academy Walk-In Welcome',
+    templateName: 'walkin_welcome_v1',
+    category: 'ACADEMY',
+    event: 'WALKIN_REGISTERED',
+    description: 'Greet new walk-in student visiting Grekam Academy',
+    headerType: 'NONE',
+    variables: [
+      { name: 'studentName', label: 'Student Name', placeholder: 'Alex Martin' },
+      { name: 'courseName', label: 'Course Interest', placeholder: 'Fullstack & AI Bootcamp' }
+    ],
+    bodyPattern: 'Welcome {{1}} to Grekam Academy!\n\nThank you for visiting our campus today to inquire about {{2}}.\n\nOur counselor will guide you through the syllabus & lab facilities.',
+    buttons: ['Contact Counselor']
+  },
+  {
+    id: 'partner_grafty_call_followup',
+    name: 'Partner Grafty Call Follow-Up',
+    templateName: 'partner_grafty_call_followup',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'Post-call follow-up message to prospect after telecaller phone contact',
+    headerType: 'NONE',
+    variables: [
+      { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
+      { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    buttons: []
   }
 ];
 
@@ -199,7 +231,12 @@ export function WhatsAppModal({
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string>('');
   const [provider, setProvider] = useState<'grafty' | 'meta' | 'auto'>('auto');
   const [isSending, setIsSending] = useState(false);
-  const [mismatchErrorNotice, setMismatchErrorNotice] = useState<string | null>(null);
+  const [metaDiagnosticError, setMetaDiagnosticError] = useState<{
+    code?: string;
+    title: string;
+    details: string;
+    hint?: string;
+  } | null>(null);
 
   useEffect(() => {
     setPhone(defaultPhone);
@@ -213,7 +250,7 @@ export function WhatsAppModal({
 
   useEffect(() => {
     // Reset any error notice when switching templates
-    setMismatchErrorNotice(null);
+    setMetaDiagnosticError(null);
     // When selected template changes, pre-populate default variables if available
     const template = templates.find((t) => t.id === selectedTemplateId) || templates[0];
     if (template) {
@@ -251,35 +288,37 @@ export function WhatsAppModal({
       const formData = new FormData();
       formData.append('file', file);
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-      const res = await fetch(`${API_BASE}/storage/upload-local`, {
+      // Use dedicated upload proxy route at /api/upload-local which explicitly
+      // forwards session cookies. Do NOT use fetchApi('/storage/upload-local') —
+      // Next.js rewrites strip Cookie headers for multipart/form-data requests,
+      // which causes Fastify's requireAuth to return 401.
+      const uploadRes = await fetch('/api/upload-local', {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        credentials: 'include',
         body: formData,
+        // Do NOT set Content-Type — browser must set it with the multipart boundary
       });
 
-      if (!res.ok) {
-        throw new Error(`Upload failed with status ${res.status}`);
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.json().catch(() => ({}));
+        throw new Error(errBody?.message || errBody?.error || `Upload failed with status ${uploadRes.status}`);
       }
 
-      const data = await res.json();
-      if (data.downloadUrl) {
+      const data = await uploadRes.json();
+
+      if (data?.downloadUrl) {
         let finalUrl = data.downloadUrl;
         if (finalUrl.includes('localhost:4000') || finalUrl.includes('127.0.0.1:4000')) {
-          finalUrl = finalUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://garage.grekam.in');
+          finalUrl = finalUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
         }
         setMediaUrl(finalUrl);
-        toast.success(`Uploaded "${file.name}" from local drive!`);
+        toast.success(`Uploaded "${file.name}" successfully!`);
       } else {
-        throw new Error('No download URL returned');
+        throw new Error('No download URL returned from server');
       }
     } catch (err: any) {
       console.error('File upload error:', err);
-      toast.error(err.message || 'Failed to upload local file');
+      toast.error(err.message || 'Failed to upload file');
     } finally {
       setIsUploading(false);
     }
@@ -308,7 +347,7 @@ export function WhatsAppModal({
     }
 
     setIsSending(true);
-    setMismatchErrorNotice(null);
+    setMetaDiagnosticError(null);
 
     try {
       const formattedVars = selectedTemplate.variables.map(
@@ -317,7 +356,7 @@ export function WhatsAppModal({
 
       let effectiveMediaUrl = (mediaUrl.trim() || selectedTemplate.defaultMediaUrl || '').trim();
       if (effectiveMediaUrl.includes('localhost:4000') || effectiveMediaUrl.includes('127.0.0.1:4000')) {
-        effectiveMediaUrl = effectiveMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://garage.grekam.in');
+        effectiveMediaUrl = effectiveMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
       }
 
       const res = await fetchApi<any>('/integrations/whatsapp/send-template', {
@@ -327,6 +366,7 @@ export function WhatsAppModal({
           name,
           event: selectedTemplate.event,
           templateName: selectedTemplate.templateName,
+          language: selectedTemplate.language || 'en_US',
           variables: formattedVars,
           headerType: selectedTemplate.headerType,
           mediaUrl: effectiveMediaUrl || undefined,
@@ -334,34 +374,43 @@ export function WhatsAppModal({
         }),
       });
 
-      toast.success(`WhatsApp message sent to ${name} (${phone})!`);
+      const sent: any = res?.data || {};
+
+      // Reflect what actually happened rather than asserting a clean "sent".
+      if (sent.usedFallback && sent.template && sent.requestedTemplate && sent.template !== sent.requestedTemplate) {
+        toast.warning(
+          `Template "${sent.requestedTemplate}" was rejected. The customer received "${sent.template}" instead. ` +
+          `Approve the requested template in Meta, or resend with a verified template.`,
+          { duration: 12000 }
+        );
+      } else if (sent.status === 'accepted_unconfirmed') {
+        toast.warning(
+          `Message submitted to ${name} (${phone}) — delivery not yet confirmed. ` +
+          `Check Meta/Grafty status before treating it as delivered.`,
+          { duration: 10000 }
+        );
+      } else {
+        toast.success(`WhatsApp message sent to ${name} (${phone})!`);
+      }
+
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      console.error(err);
-      // Read structured error from API: { error, details, message }
+      console.error('[WhatsApp Modal] Send error:', err);
       const responseBody = err?.response || {};
-      let errMsg =
-        responseBody?.details ||
-        responseBody?.message ||
-        responseBody?.error ||
-        err?.message ||
-        'Failed to send WhatsApp message';
+      const errDetails = responseBody?.details || responseBody?.message || err?.message || 'Failed to send WhatsApp message';
+      const errTitle = responseBody?.error || 'WhatsApp Delivery Error';
+      const hint = responseBody?.hint;
+      const code = responseBody?.code;
 
-      const is132012 =
-        errMsg.includes('132012') ||
-        errMsg.toLowerCase().includes('parameter format does not match') ||
-        errMsg.toLowerCase().includes('param count') ||
-        errMsg.toLowerCase().includes('whatsapp api rejection');
+      setMetaDiagnosticError({
+        code: code || (errDetails.includes('190') ? 'META_190_TOKEN_EXPIRED' : errDetails.includes('131030') ? 'META_131030_DEV_MODE' : errDetails.includes('132012') ? 'META_132012_PARAM_MISMATCH' : undefined),
+        title: errTitle,
+        details: errDetails,
+        hint,
+      });
 
-      if (is132012) {
-        setMismatchErrorNotice(
-          `The template "${selectedTemplate?.name || 'Selected Template'}" parameter format did not match (#132012). ` +
-          `Switch to "Grafty Welcome" or verify the header media attachment and retry.`
-        );
-        errMsg = `Meta Template Mismatch (#132012): "${selectedTemplate?.name}" parameters did not match. Use the quick-fix actions below.`;
-      }
-      toast.error(errMsg, { duration: 9000 });
+      toast.error(`${errTitle}: ${hint || errDetails}`, { duration: 10000 });
     } finally {
       setIsSending(false);
     }
@@ -532,39 +581,72 @@ export function WhatsAppModal({
                   </button>
                 </div>
               )}
-              {mismatchErrorNotice && (
-                <div className="mt-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-amber-200 text-xs space-y-2 font-sans">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-amber-300">Meta Template Parameter Mismatch (#132012)</p>
-                      <p className="text-[11px] text-amber-200/80 mt-0.5">{mismatchErrorNotice}</p>
+              {metaDiagnosticError && (
+                <div className="mt-3 bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-200 text-xs space-y-2.5 font-sans animate-in fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-red-300 text-sm">{metaDiagnosticError.title}</span>
+                        {metaDiagnosticError.code && (
+                          <span className="text-[10px] font-mono bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded-md font-semibold">
+                            {metaDiagnosticError.code}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-red-200/90 leading-relaxed">{metaDiagnosticError.details}</p>
+                      {metaDiagnosticError.hint && (
+                        <p className="text-[11px] text-amber-300 font-medium bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg mt-1.5">
+                          💡 <strong>How to fix:</strong> {metaDiagnosticError.hint}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 pt-1 font-mono">
+                  <div className="flex items-center gap-2 pt-1 font-mono flex-wrap">
+                    {(metaDiagnosticError.details.includes('132012') || metaDiagnosticError.details.includes('132001')) && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTemplateId('grafty_welcome');
+                            setMetaDiagnosticError(null);
+                            toast.info('Switched template to "Grafty Welcome"!');
+                          }}
+                          className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
+                        >
+                          <CheckCircle2 className="w-3 h-3" /> Select "Grafty Welcome"
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMediaUrl('');
+                            setLocalPreviewUrl('');
+                            setUploadedFileName('');
+                            setMetaDiagnosticError(null);
+                            toast.info('Cleared media attachment. Try sending again!');
+                          }}
+                          className="px-3 py-1 bg-white/10 text-white rounded-lg text-[11px] hover:bg-white/20 transition-all"
+                        >
+                          Send Without Attachment
+                        </button>
+                      </>
+                    )}
+                    {(metaDiagnosticError.details.includes('190') || metaDiagnosticError.details.includes('Code 100') || metaDiagnosticError.details.includes('Settings')) && (
+                      <a
+                        href="/dashboard/settings/integrations"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-blue-500 text-white font-bold rounded-lg text-[11px] hover:bg-blue-400 transition-all flex items-center gap-1 shadow"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Open Meta Integration Settings
+                      </a>
+                    )}
                     <button
                       type="button"
-                      onClick={() => {
-                        setSelectedTemplateId('grafty_welcome');
-                        setMismatchErrorNotice(null);
-                        toast.info('Switched template to "Grafty Welcome"!');
-                      }}
-                      className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
+                      onClick={() => setMetaDiagnosticError(null)}
+                      className="px-2.5 py-1 text-white/50 hover:text-white rounded-lg text-[11px] transition-all ml-auto"
                     >
-                      <CheckCircle2 className="w-3 h-3" /> Select "Grafty Welcome"
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaUrl('');
-                        setLocalPreviewUrl('');
-                        setUploadedFileName('');
-                        setMismatchErrorNotice(null);
-                        toast.info('Cleared media attachment. Try sending again!');
-                      }}
-                      className="px-3 py-1 bg-white/10 text-white rounded-lg text-[11px] hover:bg-white/20 transition-all"
-                    >
-                      Send Without Attachment
+                      Dismiss
                     </button>
                   </div>
                 </div>

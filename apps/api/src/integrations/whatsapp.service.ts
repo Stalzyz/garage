@@ -29,7 +29,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
       { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service Interested', placeholder: 'Shopify / Web Development' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://dashboard.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
   },
   {
@@ -76,7 +76,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
       { name: 'leadName', label: 'Lead Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service / Requirement', placeholder: 'Next.js App & AI Bot' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nExplore our portfolio: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nExplore our portfolio: https://dashboard.grekam.in',
     buttons: ['Call Support', 'View Portfolio']
   },
   {
@@ -126,8 +126,140 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
     ],
     bodyPattern: 'Welcome {{1}} to Grekam Academy!\n\nThank you for visiting our campus today to inquire about {{2}}.\n\nOur counselor will guide you through the syllabus & lab facilities.',
     buttons: ['Contact Counselor']
+  },
+  {
+    id: 'partner_grafty_call_followup',
+    name: 'Partner Grafty Call Follow-Up',
+    templateName: 'partner_grafty_call_followup',
+    category: 'CRM',
+    event: 'CRM_LEAD_FOLLOWUP',
+    description: 'Post-call follow-up message to prospect after telecaller phone contact',
+    headerType: 'NONE',
+    variables: [
+      { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
+      { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
+    ],
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    buttons: []
   }
 ];
+
+/**
+ * Words that mark a BSP/Grafty payload as a delivery failure rather than a success blurb.
+ * Used so a friendly "message queued" string is never mistaken for an error.
+ */
+const GRAFTY_FAILURE_WORDS =
+  /(reject|fail|error|invalid|not\s+exist|unsupport|expire|block|authoriz|forbidden|quota|exceed|not\s+found|undeliver|unreach|denied)/i;
+
+const GRAFTY_SUCCESS_STATES = ['success', 'sent', 'accepted', 'queued', 'delivered', 'ok', 'submitted'];
+const GRAFTY_FAILURE_STATES = ['failed', 'failure', 'error', 'rejected', 'undeliverable', 'invalid', 'denied', 'blocked'];
+
+/** Pull a human-readable failure reason out of a loosely-shaped BSP payload. */
+function extractProviderError(obj: any): string | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+
+  const hard = obj.error ?? obj.errors ?? obj.details;
+  if (hard !== undefined && hard !== null && hard !== '') {
+    if (typeof hard === 'string') return hard;
+    if (Array.isArray(hard)) {
+      const parts = hard
+        .map((e: any) => (typeof e === 'string' ? e : e?.message || e?.details || JSON.stringify(e)))
+        .filter(Boolean);
+      if (parts.length) return parts.join('; ');
+    } else if (typeof hard === 'object') {
+      return hard.message || hard.details || hard.reason || JSON.stringify(hard);
+    } else {
+      return String(hard);
+    }
+  }
+
+  // `message`/`reason` are ambiguous (a BSP may say "Message sent"), so only trust them
+  // when they actually contain failure wording.
+  const soft = obj.message ?? obj.reason;
+  if (typeof soft === 'string' && GRAFTY_FAILURE_WORDS.test(soft)) return soft;
+
+  return undefined;
+}
+
+function extractMessageId(obj: any): string | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const id =
+    obj.messageId ?? obj.message_id ?? obj.wamid ?? obj.wamidId ?? obj.wa_message_id ??
+    obj.id ?? obj.messageID ?? obj.data?.id ?? obj.data?.messageId;
+  return typeof id === 'string' && id.length > 0 ? id : undefined;
+}
+
+export interface ProviderVerdict {
+  ok: boolean;
+  /** True only when the payload carried an explicit positive signal. */
+  confirmed: boolean;
+  error?: string;
+  messageId?: string;
+}
+
+/**
+ * Inspect a provider response body to decide whether the message was really accepted.
+ *
+ * WHY THIS EXISTS: Grafty is a BSP/aggregator that relays to the Meta Cloud API. A HTTP 200
+ * from Grafty does NOT mean Meta accepted the message — Grafty can return 200 with a body that
+ * reports a Meta rejection (e.g. #132001 "template name does not exist"). Previously we trusted
+ * `res.ok` alone, which reported those as delivered.
+ *
+ * Policy:
+ *  - explicit negative signal  -> failure (never claim "sent")
+ *  - explicit positive signal  -> success, `confirmed: true`
+ *  - nothing conclusive either way -> allowed through, but `confirmed: false` so the UI can
+ *    say "submitted, awaiting confirmation" instead of asserting delivery.
+ */
+export function inspectProviderBody(body: any): ProviderVerdict {
+  if (!body || typeof body !== 'object') {
+    // Unparseable/empty body: no proof of failure, but also no proof of delivery.
+    return { ok: true, confirmed: false };
+  }
+
+  const scopes = [body, body.data, body.result, body.response, body.message].filter(
+    (v: any) => v && typeof v === 'object'
+  );
+
+  // 1. Explicit `success` boolean wins over everything else.
+  for (const scope of scopes) {
+    if (typeof scope.success === 'boolean') {
+      if (!scope.success) {
+        return {
+          ok: false,
+          confirmed: false,
+          error: extractProviderError(scope) || extractProviderError(body) || 'Provider reported success=false',
+        };
+      }
+      return { ok: true, confirmed: true, messageId: extractMessageId(scope) || extractMessageId(body) };
+    }
+  }
+
+  // 2. Explicit status/state string.
+  for (const scope of [body, ...scopes]) {
+    const state = scope.status ?? scope.state;
+    if (typeof state === 'string') {
+      const low = state.toLowerCase();
+      if (GRAFTY_FAILURE_STATES.includes(low)) {
+        return {
+          ok: false,
+          confirmed: false,
+          error: extractProviderError(scope) || extractProviderError(body) || `Provider status "${state}"`,
+        };
+      }
+      if (GRAFTY_SUCCESS_STATES.includes(low)) {
+        return { ok: true, confirmed: true, messageId: extractMessageId(scope) || extractMessageId(body) };
+      }
+    }
+  }
+
+  // 3. An error-shaped payload with no success marker is a failure.
+  const err = extractProviderError(body) || (scopes.length ? extractProviderError(scopes[0]) : undefined);
+  if (err) return { ok: false, confirmed: false, error: err };
+
+  // 4. Inconclusive — pass through but flag as unconfirmed.
+  return { ok: true, confirmed: false, messageId: extractMessageId(body) };
+}
 
 export class WhatsAppService {
   async getCredentials() {
@@ -399,10 +531,11 @@ export class WhatsAppService {
       }
     }
 
-    // Merge default built-in templates with Meta Cloud & Grafty templates (deduplicate)
-    const existingNames = new Set(WHATSAPP_TEMPLATES.map(t => t.templateName));
-    const uniqueCloud = cloudTemplates.filter(t => !existingNames.has(t.templateName));
-    return [...WHATSAPP_TEMPLATES, ...uniqueCloud];
+    // Merge: cloud templates WIN over local built-ins (cloud has actual Meta-approved param count).
+    // Local built-ins only fill in for templates not found on the cloud.
+    const cloudNames = new Set(cloudTemplates.map(t => t.templateName));
+    const localOnlyTemplates = WHATSAPP_TEMPLATES.filter(t => !cloudNames.has(t.templateName));
+    return [...cloudTemplates, ...localOnlyTemplates];
   }
 
   /**
@@ -448,9 +581,10 @@ export class WhatsAppService {
     // Auto-detect matching template language and schema from synced template list
     let targetLanguage = language || 'en_US';
     let matchedTpl: WhatsAppTemplateDef | undefined = undefined;
+    const norm = (s?: string) => (s || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
     try {
       const allTemplates = await this.getTemplates();
-      matchedTpl = allTemplates.find(t => t.templateName === templateName || t.id === templateName);
+      matchedTpl = allTemplates.find(t => norm(t.templateName) === norm(templateName) || norm(t.id) === norm(templateName));
       if (matchedTpl && matchedTpl.language) {
         targetLanguage = matchedTpl.language;
       } else if (matchedTpl && matchedTpl.description) {
@@ -473,12 +607,12 @@ export class WhatsAppService {
     }
 
 const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
-  shopify_to_ecommerce: 'https://garage.grekam.in/og-image.png',
-  grafty_common_template_all_industries: 'https://garage.grekam.in/og-image.png',
-  grafty_for_shopify: 'https://garage.grekam.in/og-image.png',
-  ecommerce_webdevelopment: 'https://garage.grekam.in/og-image.png',
-  grafty_partnership_intro: 'https://garage.grekam.in/og-image.png',
-  ecommerce_start: 'https://garage.grekam.in/og-image.png'
+  shopify_to_ecommerce: 'https://dashboard.grekam.in/og-image.png',
+  grafty_common_template_all_industries: 'https://dashboard.grekam.in/og-image.png',
+  grafty_for_shopify: 'https://dashboard.grekam.in/og-image.png',
+  ecommerce_webdevelopment: 'https://dashboard.grekam.in/og-image.png',
+  grafty_partnership_intro: 'https://dashboard.grekam.in/og-image.png',
+  ecommerce_start: 'https://dashboard.grekam.in/og-image.png'
 };
 
     // Build components array for Meta Cloud API & Grafty
@@ -487,12 +621,12 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
 
     // Resolve effective media URL:
-    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public https://garage.grekam.in domain).
+    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public https://agency.grekam.in domain).
     // If the template requires an IMAGE, DOCUMENT, or VIDEO header and no mediaUrl was supplied,
     // automatically fall back to the template's approved defaultMediaUrl (e.g. Meta sample image header_handle)!
     let resolvedMediaUrl = mediaUrl ? mediaUrl.trim() : '';
     if (resolvedMediaUrl.includes('localhost:4000') || resolvedMediaUrl.includes('127.0.0.1:4000')) {
-      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://garage.grekam.in');
+      resolvedMediaUrl = resolvedMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://dashboard.grekam.in');
     }
 
     const knownMedia = KNOWN_TEMPLATE_MEDIA[templateName] || KNOWN_TEMPLATE_MEDIA[sanitizedName] || '';
@@ -549,11 +683,20 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         expectedVarCount = matches ? matches.length : 0;
       }
     } else {
-      expectedVarCount = variables.length;
+      expectedVarCount = variables ? variables.length : 0;
     }
 
-    // 3. Only add Body Component if template actually expects body parameters (expectedVarCount > 0)
-    const activeVars = expectedVarCount > 0 ? variables.slice(0, expectedVarCount) : [];
+    // 3. Prepare activeVars and auto-pad if caller provided fewer parameters than expected
+    let activeVars = variables ? [...variables] : [];
+    // Always enforce the exact parameter count if a template definition was found, even if it's 0.
+    if (matchedTpl !== undefined || expectedVarCount > 0) {
+      while (activeVars.length < expectedVarCount) {
+        activeVars.push(activeVars.length === 0 ? (name || 'Client') : 'Details');
+      }
+      activeVars = activeVars.slice(0, expectedVarCount);
+    }
+
+    // 4. Add Body Component using the padded activeVars (do NOT re-declare — already computed above)
     if (activeVars.length > 0) {
       templateComponents.push({
         type: 'body',
@@ -561,38 +704,108 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
       });
     }
 
-    let sendResult: { success: boolean; provider: string; data?: any; error?: string } = {
+    let sendResult: {
+      success: boolean;
+      provider: string;
+      data?: any;
+      error?: string;
+      /** True only when the provider payload explicitly confirmed acceptance. */
+      confirmed?: boolean;
+      messageId?: string;
+    } = {
       success: false,
       provider: 'none',
       error: 'No messaging provider configured'
     };
 
+    // Which template was ACTUALLY accepted, and whether we had to substitute a fallback.
+    // Without these the audit trail would claim the requested template was delivered.
+    let deliveredTemplate: string | undefined;
+    let usedFallback = false;
+
     const isAuto = (provider as string) === 'auto';
     const tryMeta = (isAuto || provider === 'meta') && Boolean(metaToken && metaPhoneNumberId);
-    const tryGrafty = (isAuto || provider === 'grafty') || (tryMeta && !sendResult.success);
+    // tryGrafty is evaluated after Meta runs — re-checked at the Grafty block.
+    // Declared here for the case where Meta is not configured at all.
+    const canTryGrafty = (isAuto || provider === 'grafty') && !!graftyKey;
+    let metaFailedWith132001 = false; // template doesn't exist in Meta WABA
 
-    // List of candidate template names to try if the requested templateName gets #132012 parameter mismatch.
-    // CRITICAL: If mediaUrl is absent, text-only templates (grafty_welcome) MUST be prioritized over document templates (grafty_proposals).
-    // Only target requested templateName or sanitized lowercase identifier — strictly prevent unwanted fallback to grafty_proposals
-    const templateNamesToTry = Array.from(new Set([templateName, sanitizedName]));
+    // List of candidate template names to try.
+    // If the requested template name gets #132001 (template/translation missing), #132000 (param count mismatch),
+    // or #132012 (parameter format mismatch), we fall back to an approved verified template
+    // (grafty_proposals if media is attached, or grafty_welcome for text).
+    //
+    // The fallback is NO LONGER SILENT: when it is used we report the template that was actually
+    // delivered, flag `usedFallback`, and the UI surfaces the substitution. Set
+    // WHATSAPP_TEMPLATE_FALLBACK=false to disable substitution entirely and have the original
+    // #132001/#132012 error surface to the operator untouched.
+    const verifiedFallback = (activeMediaUrl || effectiveHeaderType === 'DOCUMENT' || effectiveHeaderType === 'IMAGE')
+      ? 'grafty_proposals'
+      : 'grafty_welcome';
+
+    const fallbackEnabled =
+      String(process.env.WHATSAPP_TEMPLATE_FALLBACK ?? 'true').toLowerCase() !== 'false';
+
+    const templateNamesToTry = fallbackEnabled
+      ? Array.from(new Set([templateName, sanitizedName, verifiedFallback]))
+      : Array.from(new Set([templateName, sanitizedName]));
 
     // ===== METHOD 1: Meta Cloud API Direct (Official) =====
     if (tryMeta) {
       console.log(`[WhatsApp] Sending via Meta Cloud API — Phone Number ID: ${metaPhoneNumberId}, To: ${cleanPhone}, Template: ${templateName}, Media: ${mediaUrl || 'None'}`);
       try {
-        const altLang = targetLanguage === 'en_US' ? 'en' : 'en_US';
         let metaRes: Response | null = null;
         let metaData: any = null;
 
         for (const tName of templateNamesToTry) {
+          const isFallback = (tName === 'grafty_welcome' || tName === 'grafty_proposals') && tName !== templateName;
+          let tLang = targetLanguage;
+          let tComps = templateComponents;
+
+          if (isFallback) {
+            tLang = 'en_US';
+            if (tName === 'grafty_welcome') {
+              tComps = [{
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                  { type: 'text', text: String(activeVars[1] || 'Inquiry') }
+                ]
+              }];
+            } else if (tName === 'grafty_proposals') {
+              tComps = [
+                {
+                  type: 'header',
+                  parameters: [{
+                    type: 'document',
+                    document: {
+                      link: activeMediaUrl || 'https://dashboard.grekam.in/sample.pdf',
+                      filename: filename || 'Proposal.pdf'
+                    }
+                  }]
+                },
+                {
+                  type: 'body',
+                  parameters: [
+                    { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                    { type: 'text', text: String(activeVars[1] || 'Project Proposal') },
+                    { type: 'text', text: String(activeVars[2] || 'Details') }
+                  ]
+                }
+              ];
+            }
+          }
+
+          const altLang = tLang === 'en_US' ? 'en' : 'en_US';
           const metaCandidates: { desc: string; lang: string; comps: any[] }[] = [
-            { desc: `Full components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents },
-            { desc: `Full components (${altLang})`, lang: altLang, comps: templateComponents },
+            { desc: `Full components (${tLang})`, lang: tLang, comps: tComps },
+            { desc: `Full components (${altLang})`, lang: altLang, comps: tComps },
           ];
-          if (effectiveHeaderType === 'NONE') {
+          
+          if (!isFallback) {
             metaCandidates.push(
-              { desc: `Body-only components (${targetLanguage})`, lang: targetLanguage, comps: templateComponents.filter((c: any) => c.type !== 'header') },
-              { desc: `Body-only components (${altLang})`, lang: altLang, comps: templateComponents.filter((c: any) => c.type !== 'header') }
+              { desc: `Body-only components (${tLang})`, lang: tLang, comps: tComps.filter((c: any) => c.type !== 'header') },
+              { desc: `Body-only components (${altLang})`, lang: altLang, comps: tComps.filter((c: any) => c.type !== 'header') }
             );
           }
 
@@ -623,18 +836,37 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
 
             if (r.ok && d.messages) {
               console.log(`[WhatsApp] Meta Cloud API template send succeeded using template "${tName}" and candidate: ${cand.desc}`);
+              deliveredTemplate = tName;
+              usedFallback = isFallback;
+              metaFailedWith132001 = false;
               break;
             }
 
             const errSub = d?.error?.error_subcode ?? d?.error?.code;
+            const errCode = d?.error?.code;
+            const errMsg = d?.error?.message || '';
+
+            const errMsg132001 =
+              errSub === 132001 ||
+              errCode === 132001 ||
+              String(errMsg).includes('132001') ||
+              String(errMsg).toLowerCase().includes('does not exist in the translation') ||
+              String(errMsg).toLowerCase().includes('template name does not exist');
+
+            if (errMsg132001) {
+              metaFailedWith132001 = true;
+              console.warn(`[WhatsApp] Meta: template "${tName}" not found in WABA (#132001) — trying next candidate.`);
+              break;
+            }
+
             const isRetryableError =
               errSub === 132012 ||
-              errSub === 132001 ||
-              String(d?.error?.message || '').includes('132012') ||
-              String(d?.error?.message || '').includes('132001') ||
-              String(d?.error?.message || '').toLowerCase().includes('translation') ||
-              String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match') ||
-              String(d?.error?.message || '').toLowerCase().includes('does not exist');
+              errSub === 132000 ||
+              errCode === 132012 ||
+              errCode === 132000 ||
+              String(errMsg).includes('132012') ||
+              String(errMsg).includes('132000') ||
+              String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match');
 
             if (!isRetryableError) break;
           }
@@ -643,11 +875,36 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
 
         if (metaRes && metaRes.ok && metaData?.messages) {
-          sendResult = { success: true, provider: 'meta_cloud_api', data: metaData };
+          // A wamid only means Meta ACCEPTED the message for delivery. It is not a delivery
+          // receipt — flag it as accepted so callers never assert "delivered" from this alone.
+          sendResult = {
+            success: true,
+            provider: 'meta_cloud_api',
+            data: metaData,
+            confirmed: false,
+            messageId: metaData?.messages?.[0]?.id,
+          };
         } else {
-          const errMsg = metaData?.error?.message || `Meta API returned status ${metaRes?.status}`;
-          console.error(`[WhatsApp] Meta Cloud API error:`, metaData?.error || metaRes?.status);
-          sendResult = { success: false, provider: 'meta_cloud_api', error: errMsg, data: metaData };
+          const errObj = metaData?.error || {};
+          const code = errObj.code || metaRes?.status;
+          const subcode = errObj.error_subcode;
+          const rawMsg = errObj.message || `Meta API returned status ${metaRes?.status}`;
+
+          let diagnosticMsg = rawMsg;
+          if (code === 190) {
+            diagnosticMsg = `Meta Access Token Expired (Code 190): Your META_ACCESS_TOKEN has expired. In Meta Business Suite → System Users, generate a permanent System User Token with 'whatsapp_business_messaging' and 'whatsapp_business_management' permissions, then update Settings → Integrations → META.`;
+          } else if (code === 131030 || subcode === 131030 || rawMsg.includes('131030') || rawMsg.toLowerCase().includes('not in allowed list')) {
+            diagnosticMsg = `Meta Development Mode Restriction (#131030): Your Meta App is in Development mode, which restricts outbound messages to pre-approved test numbers only. Switch your Meta App to 'Live' mode in developers.facebook.com, or add recipient ${cleanPhone} to WhatsApp → API Setup → Manage phone number list.`;
+          } else if (code === 131047 || subcode === 131047 || rawMsg.includes('131047') || rawMsg.toLowerCase().includes('24 hours') || rawMsg.toLowerCase().includes('re-engagement')) {
+            diagnosticMsg = `24-Hour Customer Window Expired (#131047): More than 24 hours have passed since the client last messaged. You must send an approved template with matching variables.`;
+          } else if (code === 100 && (rawMsg.includes('recipient_type') || rawMsg.includes('Invalid parameter'))) {
+            diagnosticMsg = `Meta Parameter Mismatch (Code 100): Invalid parameter or Phone Number ID. Check Settings → Integrations → META to verify that META_PHONE_NUMBER_ID contains the 15-digit Phone Number ID (from WhatsApp → API Setup), NOT the WABA ID or App ID.`;
+          } else if (rawMsg.toLowerCase().includes('payment') || rawMsg.toLowerCase().includes('billing')) {
+            diagnosticMsg = `Meta Billing Required: Outbound WhatsApp conversation failed due to payment method requirements. Please ensure an active payment card is linked to your WhatsApp Business Account in Meta Business Manager → Billing & Payments.`;
+          }
+
+          console.error(`[WhatsApp] Meta Cloud API error [Code ${code}/${subcode}]:`, diagnosticMsg);
+          sendResult = { success: false, provider: 'meta_cloud_api', error: diagnosticMsg, data: metaData };
         }
       } catch (err: any) {
         console.error(`[WhatsApp] Meta Cloud API network error:`, err.message);
@@ -659,7 +916,6 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     if ((!sendResult.success && graftyKey) || (provider === 'grafty' && graftyKey)) {
         console.log(`[WhatsApp] Sending via Grafty API — URL: ${graftyUrl}, Template: ${templateName}, To: ${cleanPhone}, Instance: ${graftyInstanceId || 'Default'}`);
 
-        const altLang = targetLanguage === 'en_US' ? 'en' : 'en_US';
         const endpointsToTry = [
           `${graftyUrl}/api/v1/messages/send-template`,
           `${graftyUrl}/api/messages/send-template`,
@@ -670,20 +926,62 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         const instObj = graftyInstanceId ? { instance_id: graftyInstanceId, instanceId: graftyInstanceId } : {};
 
         let graftyRes: Response | null = null;
+        let graftyBody: any = null;
+        let graftyMessageId: string | undefined;
+        let graftyConfirmed = false;
         let lastErrText = '';
         let successfulStrategy = '';
         let workingEndpoint = '';
 
         for (const tName of templateNamesToTry) {
+          const isFallback = (tName === 'grafty_welcome' || tName === 'grafty_proposals') && tName !== templateName;
+          let tLang = targetLanguage;
+          let tComps = templateComponents;
+
+          if (isFallback) {
+            tLang = 'en_US';
+            if (tName === 'grafty_welcome') {
+              tComps = [{
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                  { type: 'text', text: String(activeVars[1] || 'Inquiry') }
+                ]
+              }];
+            } else if (tName === 'grafty_proposals') {
+              tComps = [
+                {
+                  type: 'header',
+                  parameters: [{
+                    type: 'document',
+                    document: {
+                      link: activeMediaUrl || 'https://dashboard.grekam.in/sample.pdf',
+                      filename: filename || 'Proposal.pdf'
+                    }
+                  }]
+                },
+                {
+                  type: 'body',
+                  parameters: [
+                    { type: 'text', text: String(activeVars[0] || name || 'Client') },
+                    { type: 'text', text: String(activeVars[1] || 'Project Proposal') },
+                    { type: 'text', text: String(activeVars[2] || 'Details') }
+                  ]
+                }
+              ];
+            }
+          }
+
+          const altLang = tLang === 'en_US' ? 'en' : 'en_US';
           const candidatePayloads: { desc: string; payload: any }[] = [
             {
-              desc: `Full components (${targetLanguage})`,
+              desc: `Full components (${tLang})`,
               payload: {
                 ...instObj,
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: targetLanguage, components: templateComponents },
+                template: { name: tName, language: tLang, components: tComps },
                 templateName: tName,
                 template_name: tName,
                 media_url: activeMediaUrl || undefined,
@@ -700,7 +998,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                 recipient: { phone: cleanPhone, name },
                 to: cleanPhone,
                 phone: cleanPhone,
-                template: { name: tName, language: altLang, components: templateComponents },
+                template: { name: tName, language: altLang, components: tComps },
                 templateName: tName,
                 template_name: tName,
                 media_url: activeMediaUrl || undefined,
@@ -712,16 +1010,16 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             }
           ];
 
-          if (effectiveHeaderType === 'NONE') {
+          if (effectiveHeaderType === 'NONE' && !isFallback) {
             candidatePayloads.push(
               {
-                desc: `Body-only components (${targetLanguage})`,
+                desc: `Body-only components (${tLang})`,
                 payload: {
                   ...instObj,
                   recipient: { phone: cleanPhone, name },
                   to: cleanPhone,
                   phone: cleanPhone,
-                  template: { name: tName, language: targetLanguage, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  template: { name: tName, language: tLang, components: tComps.filter((c: any) => c.type !== 'header') },
                   templateName: tName,
                   template_name: tName,
                   media_url: activeMediaUrl || undefined,
@@ -738,7 +1036,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   recipient: { phone: cleanPhone, name },
                   to: cleanPhone,
                   phone: cleanPhone,
-                  template: { name: tName, language: altLang, components: templateComponents.filter((c: any) => c.type !== 'header') },
+                  template: { name: tName, language: altLang, components: tComps.filter((c: any) => c.type !== 'header') },
                   templateName: tName,
                   template_name: tName,
                   media_url: activeMediaUrl || undefined,
@@ -746,34 +1044,6 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   params: activeVars,
                   variables: activeVars,
                   parameters: activeVars
-                }
-              },
-              {
-                desc: `Zero-variable components [] (${targetLanguage})`,
-                payload: {
-                  ...instObj,
-                  recipient: { phone: cleanPhone, name },
-                  to: cleanPhone,
-                  phone: cleanPhone,
-                  template: { name: tName, language: targetLanguage, components: [] },
-                  templateName: tName,
-                  template_name: tName,
-                  media_url: activeMediaUrl || undefined,
-                  mediaUrl: activeMediaUrl || undefined
-                }
-              },
-              {
-                desc: `Zero-variable components [] (${altLang})`,
-                payload: {
-                  ...instObj,
-                  recipient: { phone: cleanPhone, name },
-                  to: cleanPhone,
-                  phone: cleanPhone,
-                  template: { name: tName, language: altLang, components: [] },
-                  templateName: tName,
-                  template_name: tName,
-                  media_url: activeMediaUrl || undefined,
-                  mediaUrl: activeMediaUrl || undefined
                 }
               }
             );
@@ -794,19 +1064,41 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
                   body: JSON.stringify(candidate.payload),
                 });
 
+                // Read the body once — Grafty can return 200 with a Meta rejection inside it,
+                // so `res.ok` alone is NOT proof of delivery.
+                const rawText = await res.text().catch(() => '');
+
                 if (res.ok) {
-                  graftyRes = res;
-                  workingEndpoint = url;
-                  successfulStrategy = `Template "${tName}" — ${candidate.desc}`;
-                  break;
+                  let parsedBody: any = null;
+                  try { parsedBody = rawText ? JSON.parse(rawText) : null; } catch { parsedBody = null; }
+
+                  const verdict = inspectProviderBody(parsedBody);
+
+                  if (verdict.ok) {
+                    graftyRes = res;
+                    graftyBody = parsedBody;
+                    graftyMessageId = verdict.messageId;
+                    graftyConfirmed = verdict.confirmed;
+                    workingEndpoint = url;
+                    successfulStrategy = `Template "${tName}" — ${candidate.desc}`;
+                    deliveredTemplate = tName;
+                    usedFallback = isFallback;
+                    break;
+                  }
+
+                  // HTTP 200 but the body reports a real delivery failure. Do NOT treat as sent —
+                  // record the reason and let the fallback chain decide what to do.
+                  lastErrText = rawText || JSON.stringify({ error: verdict.error || 'Provider returned 200 with a failure payload' });
+                  console.warn(`[WhatsApp] Grafty returned HTTP ${res.status} with a failure body: ${lastErrText.slice(0, 300)}`);
+                  graftyRes = null;
+                  continue;
                 }
 
                 if (res.status === 404) continue;
 
                 workingEndpoint = url;
-                const errBody = await res.text().catch(() => '');
-                if (errBody) {
-                  lastErrText = errBody;
+                if (rawText) {
+                  lastErrText = rawText;
                 }
                 graftyRes = res;
                 break;
@@ -818,9 +1110,13 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             if (graftyRes && graftyRes.ok) break;
 
             const isMismatch = lastErrText.includes('132012') ||
+                               lastErrText.includes('132000') ||
+                               lastErrText.includes('132001') ||
+                               lastErrText.includes('131008') ||
                                lastErrText.toLowerCase().includes('parameter format does not match') ||
                                lastErrText.toLowerCase().includes('param count') ||
                                lastErrText.toLowerCase().includes('template parameter mismatch') ||
+                               lastErrText.toLowerCase().includes('number of parameters does not match') ||
                                lastErrText.toLowerCase().includes('missing recipient') ||
                                lastErrText.toLowerCase().includes('missing template') ||
                                lastErrText.toLowerCase().includes('whatsapp api rejection') ||
@@ -835,9 +1131,23 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
 
         if (graftyRes && graftyRes.ok) {
-          let graftyData = {};
-          try { graftyData = await graftyRes.json(); } catch (e) {}
-          sendResult = { success: true, provider: 'grafty', data: graftyData };
+          // graftyRes is only ever set once inspectProviderBody() approved the payload.
+          if (graftyMessageId && graftyBody && typeof graftyBody === 'object') {
+            (graftyBody as any).messageId = (graftyBody as any).messageId || graftyMessageId;
+          }
+          sendResult = {
+            success: true,
+            provider: 'grafty',
+            data: graftyBody ?? {},
+            confirmed: graftyConfirmed,
+            messageId: graftyMessageId,
+          };
+          if (usedFallback) {
+            console.warn(
+              `[WhatsApp] FALLBACK SUBSTITUTION: requested template "${templateName}" was rejected — ` +
+              `delivered "${deliveredTemplate}" instead. This is reported to the operator, not hidden.`
+            );
+          }
         } else if (!sendResult.success) {
           const statusCode = graftyRes?.status || 'unreachable';
           console.error(`[WhatsApp] Grafty send failed (${statusCode}):`, lastErrText);
@@ -866,12 +1176,24 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
         }
       });
       if (contact) {
+        // Record the template that was ACTUALLY accepted, not the one that was requested.
+        // Previously this always logged the requested name, so a rejected template that had
+        // silently fallen back to grafty_welcome was written to the CRM as "✓ Sent".
+        const outcome = !sendResult.success
+          ? `✗ Failed: ${sendResult.error}`
+          : usedFallback
+            ? `⚠ Sent via FALLBACK — requested "${templateName}" was rejected, delivered "${deliveredTemplate}"`
+            : sendResult.confirmed === false
+              ? `✓ Accepted (delivery unconfirmed) — "${deliveredTemplate || templateName}"`
+              : `✓ Sent — "${deliveredTemplate || templateName}"`;
+
         await prisma.communicationLog.create({
           data: {
             contactId: contact.id,
             type: 'WHATSAPP',
             direction: 'OUTBOUND',
-            summary: `WhatsApp Template "${templateName}" via ${sendResult.provider} — ${sendResult.success ? '✓ Sent' : '✗ Failed: ' + sendResult.error}`,
+            summary: `WhatsApp Template via ${sendResult.provider} — ${outcome}` +
+              (sendResult.messageId ? ` [msg ${sendResult.messageId}]` : ''),
             userId: 'system'
           }
         });
@@ -884,13 +1206,15 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
       // Surface the actual error — include raw details so the router & frontend can present actionable info
       const errDetail = sendResult.error || 'WhatsApp message delivery failed.';
       const is132012 = errDetail.includes('132012') || errDetail.toLowerCase().includes('parameter format does not match');
-      const is132001 = errDetail.includes('132001') || errDetail.toLowerCase().includes('translation');
 
-      if (is132001) {
+      // 132001: Template doesn't exist in Meta WABA. Only show this error if Grafty ALSO wasn't configured.
+      // If Grafty was tried and also failed, the error from Grafty is already in sendResult.error.
+      if (metaFailedWith132001 && !graftyKey) {
         throw new Error(
-          `WhatsApp API Rejection (#132001): The template "${templateName}" does not exist in Meta Manager for the requested language. ` +
-          `Please check template approval status/language in Meta WABA or switch to a verified template like "grafty_welcome". ` +
-          `Details: ${errDetail}`
+          `WhatsApp Template Not Found: The template "${templateName}" does not exist in your Meta WABA. ` +
+          `Please create & approve this template in Meta Business Manager first, ` +
+          `OR configure a GRAFTY_API_KEY under Settings → Integrations → WHATSAPP to use Grafty as a fallback sender. ` +
+          `Details: (#132001) Template name does not exist in the translation`
         );
       }
       if (is132012) {
@@ -906,7 +1230,19 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     return {
       success: true,
       provider: sendResult.provider,
-      data: { status: 'sent', recipient: cleanPhone, template: templateName, ...sendResult.data }
+      // Spread the provider payload first, then our authoritative fields, so a provider
+      // `status`/`template` in the body can never overwrite the truth.
+      data: {
+        ...sendResult.data,
+        // 'accepted' means the provider took the message; 'sent' is only claimed when the
+        // provider explicitly confirmed it. Never assert delivery from a 200 alone.
+        status: sendResult.confirmed === false ? 'accepted_unconfirmed' : 'sent',
+        recipient: cleanPhone,
+        template: deliveredTemplate || templateName,
+        requestedTemplate: templateName,
+        usedFallback,
+        messageId: sendResult.messageId || (sendResult.data as any)?.messageId,
+      }
     };
   }
 

@@ -1,9 +1,37 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { 
+  runStagnantTaskEscalation, 
+  runLeadSlaReassignment, 
+  runMorningKickoffAgenda, 
+  runEodRollupDigest 
+} from './cron';
 
 export default async function workflowsRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
+
+  // POST /api/v1/automations/workflows/run-autonomous-sync — Run all 4 autonomous engines on demand
+  server.post('/run-autonomous-sync', async (req, reply) => {
+    const [tasks, leads, kickoff, rollup] = await Promise.all([
+      runStagnantTaskEscalation(),
+      runLeadSlaReassignment(),
+      runMorningKickoffAgenda(),
+      runEodRollupDigest(),
+    ]);
+
+    return {
+      success: true,
+      message: 'Autonomous operations engines executed successfully.',
+      timestamp: new Date().toISOString(),
+      results: {
+        stagnantTasks: tasks,
+        leadSla: leads,
+        morningKickoff: kickoff,
+        eodRollup: rollup
+      }
+    };
+  });
 
   server.get('/', async (req, reply) => {
     const workflows = await server.prisma.workflow.findMany({
