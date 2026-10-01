@@ -58,12 +58,21 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/telephony/daily-report (or /calls/daily-report)
   const getDailyCallReport = async (req: any) => {
-    const { date, startDate, endDate, userId } = req.query as { date?: string; startDate?: string; endDate?: string; userId?: string };
+    const { date, startDate, endDate, userId, all } = req.query as {
+      date?: string;
+      startDate?: string;
+      endDate?: string;
+      userId?: string;
+      all?: string;
+    };
 
     let startOfDay: Date;
     let endOfDay: Date;
 
-    if (startDate && endDate) {
+    if (all === 'true' || date === 'ALL') {
+      startOfDay = new Date(0);
+      endOfDay = new Date(Date.now() + 86400000);
+    } else if (startDate && endDate) {
       startOfDay = new Date(startDate);
       startOfDay.setHours(0, 0, 0, 0);
       endOfDay = new Date(endDate);
@@ -101,10 +110,45 @@ export default async function telephonyRouter(app: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Fetch user details for telecallers
-    const userIds = Array.from(new Set(callActivities.map(a => a.userId).filter(Boolean)));
+    // Query CommunicationLog where type = 'CALL' (Calls made to Contacts)
+    const contactCommLogs = await app.prisma.communicationLog.findMany({
+      where: {
+        type: 'CALL',
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        ...(userId && userId !== 'ALL' ? { userId } : {}),
+      },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            company: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Fetch user details for telecallers across both lead activities and contact comm logs
+    const allUserIds = Array.from(
+      new Set([
+        ...callActivities.map(a => a.userId),
+        ...contactCommLogs.map(c => c.userId),
+      ].filter(Boolean))
+    );
+
     const users = await app.prisma.user.findMany({
-      where: { id: { in: userIds } },
+      where: { id: { in: allUserIds } },
       select: { id: true, firstName: true, lastName: true, email: true },
     });
 
@@ -121,21 +165,21 @@ export default async function telephonyRouter(app: FastifyInstance) {
       callbacks: number;
       notInterested: number;
       voicemails: number;
-      uniqueLeads: Set<string>;
+      uniqueProspects: Set<string>;
       hourlyDistribution: Record<number, number>;
     }>();
 
-    for (const act of callActivities) {
-      const uId = act.userId || 'system';
-      const uInfo = userMap.get(uId);
+    const processLogForStats = (uId: string, content: string, prospectKey: string, createdAt: Date) => {
+      const resolvedUId = uId || 'system';
+      const uInfo = userMap.get(resolvedUId);
       const userName = uInfo
         ? `${uInfo.firstName || ''} ${uInfo.lastName || ''}`.trim() || uInfo.email
-        : (uId === 'system' ? 'System Dialer' : uId);
+        : (resolvedUId === 'system' ? 'System Dialer' : resolvedUId);
       const email = uInfo?.email || '';
 
-      if (!telecallerStatsMap.has(uId)) {
-        telecallerStatsMap.set(uId, {
-          userId: uId,
+      if (!telecallerStatsMap.has(resolvedUId)) {
+        telecallerStatsMap.set(resolvedUId, {
+          userId: resolvedUId,
           userName,
           email,
           totalCalls: 0,
@@ -144,20 +188,20 @@ export default async function telephonyRouter(app: FastifyInstance) {
           callbacks: 0,
           notInterested: 0,
           voicemails: 0,
-          uniqueLeads: new Set<string>(),
+          uniqueProspects: new Set<string>(),
           hourlyDistribution: {},
         });
       }
 
-      const stat = telecallerStatsMap.get(uId)!;
+      const stat = telecallerStatsMap.get(resolvedUId)!;
       stat.totalCalls += 1;
-      
-      const durationSec = extractDurationSeconds(act.content || '');
+
+      const durationSec = extractDurationSeconds(content || '');
       stat.totalDurationSeconds += durationSec;
 
-      if (act.leadId) stat.uniqueLeads.add(act.leadId);
+      if (prospectKey) stat.uniqueProspects.add(prospectKey);
 
-      const contentUpper = (act.content || '').toUpperCase();
+      const contentUpper = (content || '').toUpperCase();
       if (contentUpper.includes('MEETING BOOKED') || contentUpper.includes('WON')) {
         stat.meetingsBooked += 1;
       } else if (contentUpper.includes('CALL BACK') || contentUpper.includes('CONTACTED')) {
@@ -168,8 +212,16 @@ export default async function telephonyRouter(app: FastifyInstance) {
         stat.voicemails += 1;
       }
 
-      const hour = new Date(act.createdAt).getHours();
+      const hour = new Date(createdAt).getHours();
       stat.hourlyDistribution[hour] = (stat.hourlyDistribution[hour] || 0) + 1;
+    };
+
+    for (const act of callActivities) {
+      processLogForStats(act.userId, act.content || '', act.leadId || '', act.createdAt);
+    }
+
+    for (const comm of contactCommLogs) {
+      processLogForStats(comm.userId, comm.summary || '', comm.contactId || '', comm.createdAt);
     }
 
     const telecallersSummary = Array.from(telecallerStatsMap.values()).map(st => {
@@ -183,7 +235,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
         formattedTalkTime: formatTalkTime(st.totalDurationSeconds),
         avgCallDurationSeconds: avgSec,
         formattedAvgCallDuration: formatTalkTime(avgSec),
-        uniqueLeadsCount: st.uniqueLeads.size,
+        uniqueLeadsCount: st.uniqueProspects.size,
         meetingsBooked: st.meetingsBooked,
         callbacks: st.callbacks,
         notInterested: st.notInterested,
@@ -194,15 +246,20 @@ export default async function telephonyRouter(app: FastifyInstance) {
 
     const grandTotalDurationSeconds = telecallersSummary.reduce((acc, curr) => acc + curr.totalDurationSeconds, 0);
 
-    const detailedLogs = callActivities.map(a => {
+    const leadLogs = callActivities.map(a => {
       const u = userMap.get(a.userId);
       const durSec = extractDurationSeconds(a.content || '');
-      // Use a greedy match (all chars up to the closing bracket) to capture full URLs including query strings
       const recMatch = a.content ? a.content.match(/\[(?:Recording|Audio):\s*([^\]]+?)\s*\]/i) : null;
       const recordingUrl = recMatch ? recMatch[1].trim() : null;
 
+      // Extract disposition
+      const dispMatch = a.content ? a.content.match(/\[Disposition:\s*([^\]]+?)\s*\]/i) : null;
+      const disposition = dispMatch ? dispMatch[1].trim() : null;
+
       return {
         id: a.id,
+        recordType: 'LEAD' as const,
+        recordId: a.leadId,
         userId: a.userId,
         telecallerName: u
           ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
@@ -212,6 +269,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
         leadPhone: a.lead?.phone || 'N/A',
         leadCompany: a.lead?.company || 'N/A',
         content: a.content,
+        disposition,
         durationSeconds: durSec,
         formattedDuration: formatTalkTime(durSec),
         recordingUrl,
@@ -219,9 +277,45 @@ export default async function telephonyRouter(app: FastifyInstance) {
       };
     });
 
+    const contactLogs = contactCommLogs.map(c => {
+      const u = userMap.get(c.userId);
+      const durSec = extractDurationSeconds(c.summary || '');
+      const recMatch = c.summary ? c.summary.match(/\[(?:Recording|Audio):\s*([^\]]+?)\s*\]/i) : null;
+      const recordingUrl = recMatch ? recMatch[1].trim() : null;
+
+      const dispMatch = c.summary ? c.summary.match(/\[Disposition:\s*([^\]]+?)\s*\]/i) : null;
+      const disposition = dispMatch ? dispMatch[1].trim() : null;
+
+      const contactName = `${c.contact?.firstName || ''} ${c.contact?.lastName || ''}`.trim() || 'Unknown Contact';
+
+      return {
+        id: c.id,
+        recordType: 'CONTACT' as const,
+        recordId: c.contactId,
+        userId: c.userId,
+        telecallerName: u
+          ? `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+          : (c.userId === 'system' ? 'System' : c.userId),
+        telecallerEmail: u?.email || '',
+        leadName: contactName,
+        leadPhone: c.contact?.phone || 'N/A',
+        leadCompany: c.contact?.company?.name || 'N/A',
+        content: c.summary,
+        disposition,
+        durationSeconds: durSec,
+        formattedDuration: formatTalkTime(durSec),
+        recordingUrl,
+        timestamp: c.createdAt,
+      };
+    });
+
+    const detailedLogs = [...leadLogs, ...contactLogs].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
     return {
       date: startOfDay.toISOString().split('T')[0],
-      totalCallsToday: callActivities.length,
+      totalCallsToday: detailedLogs.length,
       totalTalkTimeSeconds: grandTotalDurationSeconds,
       formattedTotalTalkTime: formatTalkTime(grandTotalDurationSeconds),
       telecallersCount: telecallersSummary.length,
@@ -238,7 +332,9 @@ export default async function telephonyRouter(app: FastifyInstance) {
   // POST /api/v1/crm/telephony/recordings — log call with audio recording URL
   const handleRecordings = async (req: any, reply: any) => {
     const body = req.body as {
-      leadId: string;
+      leadId?: string;
+      contactId?: string;
+      recordType?: 'LEAD' | 'CONTACT';
       userId?: string;
       recordingUrl?: string;
       durationSeconds?: number;
@@ -246,8 +342,9 @@ export default async function telephonyRouter(app: FastifyInstance) {
       notes?: string;
     };
 
-    if (!body.leadId) {
-      return reply.status(400).send({ error: 'leadId is required' });
+    const targetId = body.leadId || body.contactId;
+    if (!targetId) {
+      return reply.status(400).send({ error: 'leadId or contactId is required' });
     }
 
     const durationSec = body.durationSeconds || 0;
@@ -259,25 +356,101 @@ export default async function telephonyRouter(app: FastifyInstance) {
     const content = `[Call Duration: ${durStr}]${dispositionTag}${audioTag}${notesStr}`.trim();
 
     // Resolve the actual userId:
-    // - If frontend sends a real staff userId (not "ALL" or blank), use it.
-    // - Otherwise fall back to the currently logged-in user (sub = NextAuth JWT user ID) or 'system'.
     const resolvedUserId =
       body.userId && body.userId !== 'ALL'
         ? body.userId
         : ((req as any).user?.sub || (req as any).user?.id || 'system');
 
+    // Determine whether targetId is a Contact or a Lead
+    let isContact = body.recordType === 'CONTACT' || !!body.contactId;
+
+    if (!isContact && body.leadId) {
+      // Check if leadId exists in Lead table
+      const leadExists = await app.prisma.lead.findUnique({
+        where: { id: body.leadId },
+        select: { id: true },
+      });
+      if (!leadExists) {
+        // Check if it exists in Contact table
+        const contactExists = await app.prisma.contact.findUnique({
+          where: { id: body.leadId },
+          select: { id: true },
+        });
+        if (contactExists) {
+          isContact = true;
+        }
+      }
+    }
+
+    if (isContact) {
+      const contactId = body.contactId || body.leadId!;
+      const commLog = await app.prisma.communicationLog.create({
+        data: {
+          contactId,
+          type: 'CALL',
+          direction: 'OUTBOUND',
+          summary: content,
+          userId: resolvedUserId,
+        },
+      });
+      return { success: true, log: commLog, recordType: 'CONTACT' };
+    }
+
     const activity = await app.prisma.leadActivity.create({
       data: {
-        leadId: body.leadId,
+        leadId: body.leadId!,
         type: 'CALL',
         content,
         userId: resolvedUserId,
       },
     });
 
-    return { success: true, activity };
+    return { success: true, activity, recordType: 'LEAD' };
   };
 
   app.post('/recordings', handleRecordings);
   app.post('/telephony/recordings', handleRecordings);
+
+  // PATCH /api/v1/crm/telephony/recordings/:id — attach or update recording link
+  const handleAttachRecording = async (req: any, reply: any) => {
+    const { id } = req.params as { id: string };
+    const { recordingUrl, notes } = req.body as { recordingUrl: string; notes?: string };
+
+    if (!recordingUrl) {
+      return reply.status(400).send({ error: 'recordingUrl is required' });
+    }
+
+    const audioTag = ` [Recording: ${recordingUrl.trim()}]`;
+
+    // Try finding in LeadActivity
+    const leadAct = await app.prisma.leadActivity.findUnique({ where: { id } });
+    if (leadAct) {
+      let newContent = (leadAct.content || '').replace(/\[(?:Recording|Audio):\s*[^\]]+?\]/gi, '').trim();
+      newContent = `${newContent}${audioTag}`.trim();
+      if (notes) newContent += ` Notes: ${notes}`;
+      const updated = await app.prisma.leadActivity.update({
+        where: { id },
+        data: { content: newContent },
+      });
+      return { success: true, activity: updated, recordType: 'LEAD' };
+    }
+
+    // Try finding in CommunicationLog
+    const commLog = await app.prisma.communicationLog.findUnique({ where: { id } });
+    if (commLog) {
+      let newSummary = (commLog.summary || '').replace(/\[(?:Recording|Audio):\s*[^\]]+?\]/gi, '').trim();
+      newSummary = `${newSummary}${audioTag}`.trim();
+      if (notes) newSummary += ` Notes: ${notes}`;
+      const updated = await app.prisma.communicationLog.update({
+        where: { id },
+        data: { summary: newSummary },
+      });
+      return { success: true, log: updated, recordType: 'CONTACT' };
+    }
+
+    return reply.status(404).send({ error: 'Call log not found' });
+  };
+
+  app.patch('/recordings/:id', handleAttachRecording);
+  app.patch('/telephony/recordings/:id', handleAttachRecording);
 }
