@@ -42,7 +42,19 @@ export default auth((req) => {
       return NextResponse.redirect(portalLoginUrl)
     }
   } else {
+    // Check if user must change password
+    const mustChangePassword = (req.auth?.user as any)?.mustChangePassword
+    if (mustChangePassword) {
+      if (pathname !== '/auth/change-password' && !pathname.startsWith('/api/auth')) {
+        return NextResponse.redirect(new URL('/auth/change-password', req.url))
+      }
+      return NextResponse.next()
+    } else if (pathname === '/auth/change-password') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
     // 3. Logged-in users visiting login pages
+
     const role = (req.auth?.user as any)?.role
     if (isLoginPage) {
       if (role === 'CLIENT') {

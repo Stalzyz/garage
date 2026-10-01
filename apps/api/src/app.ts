@@ -246,6 +246,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const settingsModule = (await import('./settings')).default;
   await app.register(settingsModule, { prefix: '/api/v1/settings' });
 
+  const adminUsersRouter = (await import('./settings/users.router')).default;
+  await app.register(adminUsersRouter, { prefix: '/api/v1/admin' });
+
   const teamModule = (await import('./team')).default;
   await app.register(teamModule, { prefix: '/api/v1/team' });
 

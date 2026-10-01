@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { ApiClient } from "@/lib/api";
-import { Shield, QrCode, Key, CheckCircle, Loader2, Copy, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { Shield, QrCode, Key, CheckCircle, Loader2, Copy, AlertTriangle, Lock, Eye, EyeOff, Users, KeyRound, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 type Step = "idle" | "setup" | "verify" | "done";
@@ -75,13 +76,35 @@ export default function SecuritySettingsPage() {
   };
 
   return (
-    <div className="p-8 max-w-2xl space-y-10">
+    <div className="p-8 max-w-2xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
           <Shield className="w-7 h-7 text-blue-400" /> Security & Access
         </h1>
         <p className="text-[#a1a1aa] mt-2">Manage your admin credentials, passwords, and two-factor authentication.</p>
       </div>
+
+      {/* ADMIN USER ACCESS GOVERNANCE BANNER */}
+      <Link 
+        href="/dashboard/settings/users"
+        className="block bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 hover:border-amber-500/40 rounded-2xl p-5 transition-all group"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+                User Access & Password Governance
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded-full border border-amber-500/30">Admin Only</span>
+              </h3>
+              <p className="text-xs text-white/50 mt-0.5">Reset passwords for Staff, Clients, Students, Educators, and Vendors</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
+        </div>
+      </Link>
 
       {/* CHANGE PASSWORD CARD */}
       <div className="bg-[#111] border border-[#222] rounded-2xl p-6 space-y-6">

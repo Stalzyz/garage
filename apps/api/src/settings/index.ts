@@ -5,6 +5,7 @@ import financeSettingsRouter from './finance.router';
 import integrationKeysRouter from './integrations.router';
 import auditLogsRouter from './audit-logs.router';
 import emailTemplatesRouter from './emailTemplates.router';
+import adminUsersRouter from './users.router';
 
 export default async function settingsModule(app: FastifyInstance) {
   await app.register(rbacRoutes);
@@ -13,4 +14,5 @@ export default async function settingsModule(app: FastifyInstance) {
   await app.register(integrationKeysRouter);
   await app.register(auditLogsRouter);
   await app.register(emailTemplatesRouter, { prefix: '/templates' });
+  await app.register(adminUsersRouter);
 }

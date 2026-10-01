@@ -26,15 +26,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         if (!user || !user.passwordHash) return null;
         
-        // E2E Test Backdoor
-        let passwordsMatch = false;
-        if (credentials.email === 'admin@grekam.com' && credentials.password === 'admin123') {
-          passwordsMatch = true;
-        } else {
-          passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
-        }
-        
+        const passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
         if (!passwordsMatch) return null;
+
 
         // Option B: Enforce Separated Portals (Agency OS Only)
         if (user.role === 'STUDENT' || user.role === 'EDUCATOR') {
@@ -82,9 +76,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: `${user.firstName} ${user.lastName}`, 
           email: user.email, 
           role: user.role,
+          mustChangePassword: (user as any).mustChangePassword ?? false,
           customRole: user.customRole ? user.customRole.name : null,
           permissions: user.customRole ? user.customRole.permissions.map((p: any) => p.resource) : []
         };
+
       }
     })
   ]

@@ -51,6 +51,12 @@ model User {
   twoFaSecret      String?
   twoFaBackupCodes String? // JSON array of backup codes
 
+  // Admin Password Reset & Session Security
+  mustChangePassword Boolean   @default(false)
+  passwordResetAt    DateTime?
+  sessionVersion     Int       @default(1)
+
+
   // Relations
   customRoleId  String?
   customRole    Role?          @relation(fields: [customRoleId], references: [id])

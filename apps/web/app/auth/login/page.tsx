@@ -192,11 +192,9 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between ml-2 mr-2">
                     <label htmlFor="password" className="text-xs font-mono tracking-widest text-white/50 uppercase">Passkey</label>
-                    <Link href="/auth/forgot-password" className="text-xs font-mono tracking-widest text-blue-400 hover:text-blue-300 transition-colors uppercase">
-                      Recover?
-                    </Link>
                   </div>
                   <div className="relative group/input">
+
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/30 group-focus-within/input:text-blue-400 transition-colors">
                       <Lock className="w-5 h-5" strokeWidth={1.5} />
                     </div>

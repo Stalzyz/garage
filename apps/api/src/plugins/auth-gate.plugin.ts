@@ -53,10 +53,6 @@ const PUBLIC_EXACT: Array<{ method: string; path: string }> = [
   { method: 'POST', path: '/api/v1/payments/razorpay/webhook' },
   { method: 'POST', path: '/api/v1/payments/phonepe/webhook' },
 
-  // Password recovery runs while the user is signed out.
-  { method: 'POST', path: '/api/v1/auth/forgot-password' },
-  { method: 'POST', path: '/api/v1/auth/password' },
-
   // Public kiosk on academy.grekam.in submits a walk-in.
   // NOTE: only POST. GET/PATCH on this path list and edit captured walk-ins.
   { method: 'POST', path: '/api/v1/academy/walk-ins' },

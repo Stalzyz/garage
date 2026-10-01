@@ -18,10 +18,7 @@ export default function ClientPortalLogin() {
   const [error, setError] = useState("")
 
   const [isForgotPassword, setIsForgotPassword] = useState(false)
-  const [forgotEmail, setForgotEmail] = useState("")
-  const [forgotSuccess, setForgotSuccess] = useState("")
-  const [forgotError, setForgotError] = useState("")
-  const [isForgotLoading, setIsForgotLoading] = useState(false)
+
 
   const [isClient, setIsClient] = useState(false)
 
@@ -78,33 +75,6 @@ export default function ClientPortalLogin() {
     }
   }
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setForgotError("")
-    setForgotSuccess("")
-    setIsForgotLoading(true)
-
-    try {
-      const res = await fetch("/api/v1/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: forgotEmail, portalType: "CLIENT" })
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        setForgotError(data.message || "Failed to submit request.")
-      } else {
-        setForgotSuccess("A temporary password has been sent to your email address.")
-      }
-    } catch (err) {
-      setForgotError("Unable to connect to recovery server.")
-    } finally {
-      setIsForgotLoading(false)
-    }
-  }
 
 
   return (
@@ -221,9 +191,9 @@ export default function ClientPortalLogin() {
                     <input type="checkbox" className="rounded border-white/20 bg-white/5" />
                     Remember me
                   </label>
-                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-violet-400 hover:text-violet-300 transition-colors">
-                    Forgot password?
-                  </button>
+                  <span className="text-white/40 text-[11px]">
+                    Reset: Contact Admin
+                  </span>
                 </div>
 
                 <button type="submit" disabled={isLoading}
@@ -236,45 +206,26 @@ export default function ClientPortalLogin() {
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-white mb-1">Access Recovery</h2>
-              <p className="text-white/50 text-sm mb-8">Enter your registered email to request a temporary password.</p>
+              <h2 className="text-2xl font-bold text-white mb-1">Account Support</h2>
+              <p className="text-white/50 text-sm mb-6">Self-service password recovery is disabled.</p>
 
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                {forgotError && (
-                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {forgotError}
-                  </div>
-                )}
-                {forgotSuccess && (
-                  <div className="px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
-                    {forgotSuccess}
-                  </div>
-                )}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm space-y-3">
+                <p>For account security, password resets are exclusively managed by authorized administrators.</p>
+                <p>Please reach out to your Grekam project manager or account administrator to receive a secure temporary passkey.</p>
+              </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
-                  <input
-                    type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required
-                    placeholder="you@company.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end text-xs">
-                  <button type="button" onClick={() => { setIsForgotPassword(false); setForgotSuccess(""); setForgotError(""); }} className="text-violet-400 hover:text-violet-300 transition-colors">
-                    Back to Sign In
-                  </button>
-                </div>
-
-                <button type="submit" disabled={isForgotLoading}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
                 >
-                  {isForgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  {isForgotLoading ? "Sending Recovery..." : "Send Recovery Email"}
+                  Return to Sign In
                 </button>
-              </form>
+              </div>
             </>
           )}
+
 
           <p className="text-xs text-white/30 mt-8 text-center">
             This portal is for {org?.name || "Grekam OS"} clients only.
