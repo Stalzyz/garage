@@ -87,7 +87,7 @@ export default function ESSDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Workspace (ESS)</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Employee Workspace (EOS / ESS)</h1>
           <p className="text-sm text-white/50 mt-2">Welcome back, {employee?.user?.firstName || session?.user?.name || "Employee"}</p>
         </div>
       </div>

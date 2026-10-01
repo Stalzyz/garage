@@ -36,6 +36,7 @@ initSentry();
 export async function buildApp(opts: any = {}): Promise<any> {
   const app = Fastify({
     logger: true,
+    bodyLimit: 30 * 1024 * 1024, // 30MB payload limit to support high-res telemetry screenshots
     ...opts,
   });
 

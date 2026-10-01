@@ -255,4 +255,264 @@ export function initializeCronJobs() {
       console.error('[Cron] Error processing meeting reminders:', err);
     }
   });
+
+  // 6. Stagnant Task Escalation Engine
+  // 6. Stagnant Task Escalation Engine (Runs every 3 hours)
+  cron.schedule('0 */3 * * *', async () => {
+    await runStagnantTaskEscalation();
+  });
+
+  // 7. Lead Response SLA Auto-Reassignment Engine (Runs every 15 minutes between 9 AM and 7 PM)
+  cron.schedule('*/15 9-19 * * 1-6', async () => {
+    await runLeadSlaReassignment();
+  });
+
+  // 8. Autonomous Morning Kickoff Agenda (Runs Mon-Fri at 9:30 AM)
+  cron.schedule('30 9 * * 1-5', async () => {
+    await runMorningKickoffAgenda();
+  });
+
+  // 9. Autonomous 6:30 PM EOD Rollup Digest for Management (Runs Mon-Fri at 6:30 PM)
+  cron.schedule('30 18 * * 1-5', async () => {
+    await runEodRollupDigest();
+  });
+}
+
+/**
+ * 6. Stagnant Task Escalation Engine
+ * Finds tasks in progress or review untouched for >48 hours, auto-escalates priority to CRITICAL if >72h,
+ * and notifies assignees and managers without any manual intervention.
+ */
+export async function runStagnantTaskEscalation() {
+  console.log('[Autopilot] Running Stagnant Task Escalation...');
+  try {
+    const now = new Date();
+    const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
+
+    const stagnantTasks = await prisma.task.findMany({
+      where: {
+        status: { in: ['IN_PROGRESS', 'IN_REVIEW'] },
+        updatedAt: { lte: twoDaysAgo }
+      },
+      include: { project: true }
+    });
+
+    let escalatedCount = 0;
+    for (const task of stagnantTasks) {
+      const isCritical = task.updatedAt <= threeDaysAgo;
+      
+      if (isCritical && task.priority !== 'CRITICAL') {
+        await prisma.task.update({
+          where: { id: task.id },
+          data: { priority: 'CRITICAL' }
+        });
+        escalatedCount++;
+      }
+
+      if (task.assigneeId) {
+        await prisma.notification.create({
+          data: {
+            userId: task.assigneeId,
+            type: isCritical ? 'DEADLINE_APPROACHING' : 'WARNING',
+            title: isCritical ? `🚨 Task Auto-Escalated: ${task.title}` : `⚠️ Stagnant Task Reminder: ${task.title}`,
+            body: isCritical
+              ? `Task has had no activity for >72h and was auto-escalated to CRITICAL. Please update progress or flag blockers immediately.`
+              : `Task '${task.title}' has had no activity for >48h. Please update status or log an update.`,
+            link: task.projectId ? `/dashboard/projects/${task.projectId}` : `/dashboard/projects`
+          }
+        });
+      }
+    }
+    return { scanned: stagnantTasks.length, escalated: escalatedCount };
+  } catch (err: any) {
+    console.error('[Autopilot] Error in runStagnantTaskEscalation:', err);
+    return { error: err.message };
+  }
+}
+
+/**
+ * 7. Lead Response SLA Auto-Reassignment Engine
+ * Automatically revokes and transfers uncontacted leads if the assigned staff member
+ * does not dial or message them within 30 minutes of creation during business hours.
+ */
+export async function runLeadSlaReassignment() {
+  console.log('[Autopilot] Running Lead SLA Auto-Reassignment...');
+  try {
+    const now = new Date();
+    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const breachedLeads = await prisma.lead.findMany({
+      where: {
+        createdAt: { gte: todayStart, lte: thirtyMinutesAgo },
+        status: 'NEW',
+        assignedToId: { not: null },
+        activities: { none: {} }
+      }
+    });
+
+    let reassignedCount = 0;
+    if (breachedLeads.length > 0) {
+      const activeStaff = await prisma.user.findMany({
+        where: {
+          role: { in: ['STAFF', 'MANAGER'] },
+          status: 'ACTIVE'
+        },
+        select: { id: true, firstName: true, lastName: true, email: true }
+      });
+
+      if (activeStaff.length > 1) {
+        for (const lead of breachedLeads) {
+          const candidateStaff = activeStaff.filter(s => s.id !== lead.assignedToId);
+          if (candidateStaff.length === 0) continue;
+
+          const randomPick = candidateStaff[Math.floor(Math.random() * candidateStaff.length)];
+          const oldAssigneeId = lead.assignedToId!;
+
+          await prisma.lead.update({
+            where: { id: lead.id },
+            data: { assignedToId: randomPick.id }
+          });
+
+          await prisma.leadActivity.create({
+            data: {
+              leadId: lead.id,
+              type: 'STATUS_CHANGE',
+              content: `[SLA Auto-Reassignment] Lead automatically transferred due to 30-minute first-touch SLA breach.`,
+              userId: 'system'
+            }
+          });
+
+          await prisma.notification.create({
+            data: {
+              userId: randomPick.id,
+              type: 'TASK_ASSIGNED',
+              title: `🔥 Hot Lead Auto-Transferred: ${lead.name}`,
+              body: `Lead ${lead.name} (${lead.phone}) was transferred to you due to SLA response window. Dial immediately!`,
+              link: `/dashboard/crm/dialer`
+            }
+          });
+
+          await prisma.notification.create({
+            data: {
+              userId: oldAssigneeId,
+              type: 'WARNING',
+              title: `⚠️ Lead Reassigned: ${lead.name}`,
+              body: `Lead ${lead.name} was auto-reassigned to ${randomPick.firstName || 'another staff'} due to 30-minute inactivity.`,
+              link: `/dashboard/crm`
+            }
+          });
+
+          reassignedCount++;
+        }
+      }
+    }
+    return { breached: breachedLeads.length, reassigned: reassignedCount };
+  } catch (err: any) {
+    console.error('[Autopilot] Error in runLeadSlaReassignment:', err);
+    return { error: err.message };
+  }
+}
+
+/**
+ * 8. Autonomous Morning Kickoff Agenda
+ * Assembles and sends the top 3 highest priority tasks directly to staff notifications and portal.
+ */
+export async function runMorningKickoffAgenda() {
+  console.log('[Autopilot] Running Morning Kickoff Agenda...');
+  try {
+    const activeStaff = await prisma.user.findMany({
+      where: {
+        role: { in: ['STAFF', 'MANAGER', 'INTERN'] },
+        status: 'ACTIVE'
+      },
+      select: { id: true, firstName: true, email: true }
+    });
+
+    let notifiedCount = 0;
+    for (const staff of activeStaff) {
+      const topTasks = await prisma.task.findMany({
+        where: {
+          assigneeId: staff.id,
+          status: { in: ['TODO', 'IN_PROGRESS'] }
+        },
+        orderBy: [
+          { priority: 'desc' },
+          { dueDate: 'asc' }
+        ],
+        take: 3,
+        select: { title: true, priority: true }
+      });
+
+      if (topTasks.length > 0) {
+        const taskListStr = topTasks.map((t, idx) => `${idx + 1}. ${t.title}`).join(' | ');
+        await prisma.notification.create({
+          data: {
+            userId: staff.id,
+            type: 'TASK_ASSIGNED',
+            title: `🎯 Morning Kickoff: Your Top Priorities Today`,
+            body: `Good morning ${staff.firstName || 'there'}! Top deliverables for today: ${taskListStr}. Clock in and focus on these first!`,
+            link: `/dashboard/projects`
+          }
+        });
+        notifiedCount++;
+      }
+    }
+    return { staffNotified: notifiedCount };
+  } catch (err: any) {
+    console.error('[Autopilot] Error in runMorningKickoffAgenda:', err);
+    return { error: err.message };
+  }
+}
+
+/**
+ * 9. Autonomous 6:30 PM EOD Rollup Digest for Management
+ * Automatically compiles tasks, calls, leads, and revenue into an executive summary.
+ */
+export async function runEodRollupDigest() {
+  console.log('[Autopilot] Running EOD Rollup Digest...');
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [tasksDone, callsCount, newLeadsCount, paidInvoices] = await Promise.all([
+      prisma.task.count({ where: { status: 'DONE', completedAt: { gte: todayStart } } }),
+      prisma.leadActivity.count({ where: { type: 'CALL', createdAt: { gte: todayStart } } }),
+      prisma.lead.count({ where: { createdAt: { gte: todayStart } } }),
+      prisma.invoice.findMany({
+        where: { status: 'PAID', updatedAt: { gte: todayStart } },
+        select: { totalAmount: true }
+      })
+    ]);
+
+    const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+
+    const managers = await prisma.user.findMany({
+      where: {
+        role: { in: ['SUPER_ADMIN', 'MANAGER'] },
+        status: 'ACTIVE'
+      },
+      select: { id: true, email: true }
+    });
+
+    const summaryText = `Daily Rollup: ${tasksDone} tasks completed | ${callsCount} calls logged | ${newLeadsCount} new leads | ₹${totalRevenue.toLocaleString('en-IN')} revenue collected today.`;
+
+    for (const mgr of managers) {
+      await prisma.notification.create({
+        data: {
+          userId: mgr.id,
+          type: 'INFO',
+          title: `📊 EOD Company Rollup (${new Date().toLocaleDateString()})`,
+          body: summaryText,
+          link: `/dashboard/analytics`
+        }
+      });
+    }
+
+    return { tasksDone, callsCount, newLeadsCount, revenue: totalRevenue, managersNotified: managers.length };
+  } catch (err: any) {
+    console.error('[Autopilot] Error in runEodRollupDigest:', err);
+    return { error: err.message };
+  }
 }

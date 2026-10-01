@@ -7,8 +7,8 @@ import { useCurrentUser } from "@/context/CurrentUserContext"
 import { JibblePunchModal, ClockAction } from "./JibblePunchModal"
 
 export function GlobalClockWidget() {
-  const { user } = useCurrentUser()
-  const employeeId = user?.id || ""
+  const { userId, employeeId: ctxEmpId } = useCurrentUser()
+  const employeeId = ctxEmpId || userId || ""
 
   const { data, mutate } = useApi<any>(employeeId ? `/hr/attendance/telemetry/${employeeId}` : null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)

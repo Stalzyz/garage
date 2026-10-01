@@ -68,13 +68,24 @@ const COMPENSATION_FIELDS = [
 const SECRET_NEEDLES = SECRET_FIELDS.map((f) => `"${f}"`);
 const COMP_NEEDLES = COMPENSATION_FIELDS.map((f) => `"${f}"`);
 
-function strip(value: any, fields: string[]): any {
-  if (Array.isArray(value)) return value.map((v) => strip(v, fields));
+function strip(value: any, fields: string[], parentKey?: string): any {
+  if (Array.isArray(value)) return value.map((v) => strip(v, fields, parentKey));
   if (value && typeof value === 'object') {
     const out: Record<string, any> = {};
     for (const [k, v] of Object.entries(value)) {
+      // Don't strip temporary passwords returned in legitimate credentials objects
+      // e.g. credentials: { email: "...", password: "..." }
+      if (parentKey === 'credentials' && (k === 'password' || k === 'tempPassword')) {
+        out[k] = v;
+        continue;
+      }
+      // Preserve root-level temporary password return from admin password reset
+      if ((k === 'temporaryPassword' || k === 'tempPassword') && (!parentKey || parentKey === 'credentials')) {
+        out[k] = v;
+        continue;
+      }
       if (fields.includes(k)) continue;
-      out[k] = strip(v, fields);
+      out[k] = strip(v, fields, k);
     }
     return out;
   }

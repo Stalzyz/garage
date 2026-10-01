@@ -843,11 +843,15 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             }
 
             const errSub = d?.error?.error_subcode ?? d?.error?.code;
+            const errCode = d?.error?.code;
+            const errMsg = d?.error?.message || '';
+
             const errMsg132001 =
               errSub === 132001 ||
-              String(d?.error?.message || '').includes('132001') ||
-              String(d?.error?.message || '').toLowerCase().includes('does not exist in the translation') ||
-              String(d?.error?.message || '').toLowerCase().includes('template name does not exist');
+              errCode === 132001 ||
+              String(errMsg).includes('132001') ||
+              String(errMsg).toLowerCase().includes('does not exist in the translation') ||
+              String(errMsg).toLowerCase().includes('template name does not exist');
 
             if (errMsg132001) {
               metaFailedWith132001 = true;
@@ -858,8 +862,10 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             const isRetryableError =
               errSub === 132012 ||
               errSub === 132000 ||
-              String(d?.error?.message || '').includes('132012') ||
-              String(d?.error?.message || '').includes('132000') ||
+              errCode === 132012 ||
+              errCode === 132000 ||
+              String(errMsg).includes('132012') ||
+              String(errMsg).includes('132000') ||
               String(d?.error?.error_data || '').toLowerCase().includes('parameter format does not match');
 
             if (!isRetryableError) break;
@@ -879,9 +885,26 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
             messageId: metaData?.messages?.[0]?.id,
           };
         } else {
-          const errMsg = metaData?.error?.message || `Meta API returned status ${metaRes?.status}`;
-          console.error(`[WhatsApp] Meta Cloud API error:`, metaData?.error || metaRes?.status);
-          sendResult = { success: false, provider: 'meta_cloud_api', error: errMsg, data: metaData };
+          const errObj = metaData?.error || {};
+          const code = errObj.code || metaRes?.status;
+          const subcode = errObj.error_subcode;
+          const rawMsg = errObj.message || `Meta API returned status ${metaRes?.status}`;
+
+          let diagnosticMsg = rawMsg;
+          if (code === 190) {
+            diagnosticMsg = `Meta Access Token Expired (Code 190): Your META_ACCESS_TOKEN has expired. In Meta Business Suite → System Users, generate a permanent System User Token with 'whatsapp_business_messaging' and 'whatsapp_business_management' permissions, then update Settings → Integrations → META.`;
+          } else if (code === 131030 || subcode === 131030 || rawMsg.includes('131030') || rawMsg.toLowerCase().includes('not in allowed list')) {
+            diagnosticMsg = `Meta Development Mode Restriction (#131030): Your Meta App is in Development mode, which restricts outbound messages to pre-approved test numbers only. Switch your Meta App to 'Live' mode in developers.facebook.com, or add recipient ${cleanPhone} to WhatsApp → API Setup → Manage phone number list.`;
+          } else if (code === 131047 || subcode === 131047 || rawMsg.includes('131047') || rawMsg.toLowerCase().includes('24 hours') || rawMsg.toLowerCase().includes('re-engagement')) {
+            diagnosticMsg = `24-Hour Customer Window Expired (#131047): More than 24 hours have passed since the client last messaged. You must send an approved template with matching variables.`;
+          } else if (code === 100 && (rawMsg.includes('recipient_type') || rawMsg.includes('Invalid parameter'))) {
+            diagnosticMsg = `Meta Parameter Mismatch (Code 100): Invalid parameter or Phone Number ID. Check Settings → Integrations → META to verify that META_PHONE_NUMBER_ID contains the 15-digit Phone Number ID (from WhatsApp → API Setup), NOT the WABA ID or App ID.`;
+          } else if (rawMsg.toLowerCase().includes('payment') || rawMsg.toLowerCase().includes('billing')) {
+            diagnosticMsg = `Meta Billing Required: Outbound WhatsApp conversation failed due to payment method requirements. Please ensure an active payment card is linked to your WhatsApp Business Account in Meta Business Manager → Billing & Payments.`;
+          }
+
+          console.error(`[WhatsApp] Meta Cloud API error [Code ${code}/${subcode}]:`, diagnosticMsg);
+          sendResult = { success: false, provider: 'meta_cloud_api', error: diagnosticMsg, data: metaData };
         }
       } catch (err: any) {
         console.error(`[WhatsApp] Meta Cloud API network error:`, err.message);

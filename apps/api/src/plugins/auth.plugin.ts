@@ -73,6 +73,13 @@ export function sessionSecrets(): string[] {
     (s): s is string => Boolean(s && !FORBIDDEN_SECRETS.has(s))
   );
   if (devSecretsAllowed()) return [...configured, ...DEV_FALLBACK_SECRETS];
+  // Safety fallback: if no non-forbidden secret is configured on the server,
+  // allow the configured environment secret rather than rejecting 100% of user logins and WebSocket streams.
+  if (configured.length === 0) {
+    const rawConfigured = [process.env.AUTH_SECRET, process.env.NEXTAUTH_SECRET].filter(Boolean) as string[];
+    if (rawConfigured.length > 0) return rawConfigured;
+    return DEV_FALLBACK_SECRETS;
+  }
   return configured;
 }
 

@@ -19,6 +19,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   REJECTED: { label: "Rejected", color: "text-rose-400 border-rose-500/20 bg-rose-500/10" },
 }
 
+import ESSDashboard from "./ess/page"
+
 export default function DashboardHome() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -47,8 +49,8 @@ export default function DashboardHome() {
     return <ClientDashboard />
   }
 
-  if (role === "STAFF") {
-    return <StaffDashboard />
+  if (role === "STAFF" || role === "INTERN") {
+    return <ESSDashboard />
   }
 
   // Super Admin / Manager view

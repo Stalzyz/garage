@@ -231,7 +231,12 @@ export function WhatsAppModal({
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string>('');
   const [provider, setProvider] = useState<'grafty' | 'meta' | 'auto'>('auto');
   const [isSending, setIsSending] = useState(false);
-  const [mismatchErrorNotice, setMismatchErrorNotice] = useState<string | null>(null);
+  const [metaDiagnosticError, setMetaDiagnosticError] = useState<{
+    code?: string;
+    title: string;
+    details: string;
+    hint?: string;
+  } | null>(null);
 
   useEffect(() => {
     setPhone(defaultPhone);
@@ -245,7 +250,7 @@ export function WhatsAppModal({
 
   useEffect(() => {
     // Reset any error notice when switching templates
-    setMismatchErrorNotice(null);
+    setMetaDiagnosticError(null);
     // When selected template changes, pre-populate default variables if available
     const template = templates.find((t) => t.id === selectedTemplateId) || templates[0];
     if (template) {
@@ -342,7 +347,7 @@ export function WhatsAppModal({
     }
 
     setIsSending(true);
-    setMismatchErrorNotice(null);
+    setMetaDiagnosticError(null);
 
     try {
       const formattedVars = selectedTemplate.variables.map(
@@ -391,30 +396,21 @@ export function WhatsAppModal({
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      console.error(err);
-      // Read structured error from API: { error, details, message }
+      console.error('[WhatsApp Modal] Send error:', err);
       const responseBody = err?.response || {};
-      let errMsg =
-        responseBody?.details ||
-        responseBody?.message ||
-        responseBody?.error ||
-        err?.message ||
-        'Failed to send WhatsApp message';
+      const errDetails = responseBody?.details || responseBody?.message || err?.message || 'Failed to send WhatsApp message';
+      const errTitle = responseBody?.error || 'WhatsApp Delivery Error';
+      const hint = responseBody?.hint;
+      const code = responseBody?.code;
 
-      const is132012 =
-        errMsg.includes('132012') ||
-        errMsg.toLowerCase().includes('parameter format does not match') ||
-        errMsg.toLowerCase().includes('param count') ||
-        errMsg.toLowerCase().includes('whatsapp api rejection');
+      setMetaDiagnosticError({
+        code: code || (errDetails.includes('190') ? 'META_190_TOKEN_EXPIRED' : errDetails.includes('131030') ? 'META_131030_DEV_MODE' : errDetails.includes('132012') ? 'META_132012_PARAM_MISMATCH' : undefined),
+        title: errTitle,
+        details: errDetails,
+        hint,
+      });
 
-      if (is132012) {
-        setMismatchErrorNotice(
-          `The template "${selectedTemplate?.name || 'Selected Template'}" parameter format did not match (#132012). ` +
-          `Switch to "Grafty Welcome" or verify the header media attachment and retry.`
-        );
-        errMsg = `Meta Template Mismatch (#132012): "${selectedTemplate?.name}" parameters did not match. Use the quick-fix actions below.`;
-      }
-      toast.error(errMsg, { duration: 9000 });
+      toast.error(`${errTitle}: ${hint || errDetails}`, { duration: 10000 });
     } finally {
       setIsSending(false);
     }
@@ -585,39 +581,72 @@ export function WhatsAppModal({
                   </button>
                 </div>
               )}
-              {mismatchErrorNotice && (
-                <div className="mt-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-amber-200 text-xs space-y-2 font-sans">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-amber-300">Meta Template Parameter Mismatch (#132012)</p>
-                      <p className="text-[11px] text-amber-200/80 mt-0.5">{mismatchErrorNotice}</p>
+              {metaDiagnosticError && (
+                <div className="mt-3 bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-200 text-xs space-y-2.5 font-sans animate-in fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-red-300 text-sm">{metaDiagnosticError.title}</span>
+                        {metaDiagnosticError.code && (
+                          <span className="text-[10px] font-mono bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded-md font-semibold">
+                            {metaDiagnosticError.code}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-red-200/90 leading-relaxed">{metaDiagnosticError.details}</p>
+                      {metaDiagnosticError.hint && (
+                        <p className="text-[11px] text-amber-300 font-medium bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg mt-1.5">
+                          💡 <strong>How to fix:</strong> {metaDiagnosticError.hint}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 pt-1 font-mono">
+                  <div className="flex items-center gap-2 pt-1 font-mono flex-wrap">
+                    {(metaDiagnosticError.details.includes('132012') || metaDiagnosticError.details.includes('132001')) && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTemplateId('grafty_welcome');
+                            setMetaDiagnosticError(null);
+                            toast.info('Switched template to "Grafty Welcome"!');
+                          }}
+                          className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
+                        >
+                          <CheckCircle2 className="w-3 h-3" /> Select "Grafty Welcome"
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMediaUrl('');
+                            setLocalPreviewUrl('');
+                            setUploadedFileName('');
+                            setMetaDiagnosticError(null);
+                            toast.info('Cleared media attachment. Try sending again!');
+                          }}
+                          className="px-3 py-1 bg-white/10 text-white rounded-lg text-[11px] hover:bg-white/20 transition-all"
+                        >
+                          Send Without Attachment
+                        </button>
+                      </>
+                    )}
+                    {(metaDiagnosticError.details.includes('190') || metaDiagnosticError.details.includes('Code 100') || metaDiagnosticError.details.includes('Settings')) && (
+                      <a
+                        href="/dashboard/settings/integrations"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-blue-500 text-white font-bold rounded-lg text-[11px] hover:bg-blue-400 transition-all flex items-center gap-1 shadow"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Open Meta Integration Settings
+                      </a>
+                    )}
                     <button
                       type="button"
-                      onClick={() => {
-                        setSelectedTemplateId('grafty_welcome');
-                        setMismatchErrorNotice(null);
-                        toast.info('Switched template to "Grafty Welcome"!');
-                      }}
-                      className="px-3 py-1 bg-emerald-500 text-black font-bold rounded-lg text-[11px] hover:bg-emerald-400 transition-all flex items-center gap-1 shadow"
+                      onClick={() => setMetaDiagnosticError(null)}
+                      className="px-2.5 py-1 text-white/50 hover:text-white rounded-lg text-[11px] transition-all ml-auto"
                     >
-                      <CheckCircle2 className="w-3 h-3" /> Select "Grafty Welcome"
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaUrl('');
-                        setLocalPreviewUrl('');
-                        setUploadedFileName('');
-                        setMismatchErrorNotice(null);
-                        toast.info('Cleared media attachment. Try sending again!');
-                      }}
-                      className="px-3 py-1 bg-white/10 text-white rounded-lg text-[11px] hover:bg-white/20 transition-all"
-                    >
-                      Send Without Attachment
+                      Dismiss
                     </button>
                   </div>
                 </div>

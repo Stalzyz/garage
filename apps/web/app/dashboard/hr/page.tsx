@@ -7,7 +7,7 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { SlideOver } from "@/components/SlideOver"
 import { EmployeeActivity } from "./EmployeeActivity"
-import { CheckCircle2, File } from "lucide-react"
+import { CheckCircle2, File, Copy } from "lucide-react"
 import { ClockWidget } from "@/components/hr/ClockWidget"
 
 const DEPARTMENTS = ["All Modules", "Design", "Development", "Management", "Marketing", "Finance"]
@@ -875,20 +875,37 @@ export default function EmployeeDirectory() {
               <h2 className="text-xl font-bold text-white mb-2">Account Provisioned</h2>
               <p className="text-sm text-white/60 mb-6">A new secure account has been created. Please share these temporary credentials safely.</p>
               
-              <div className="w-full bg-black/40 border border-white/10 rounded-xl p-4 mb-6 space-y-4">
+              <div className="w-full bg-black/40 border border-white/10 rounded-xl p-4 mb-6 space-y-4 text-left">
                 <div>
                   <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mb-1">Email / Login ID</p>
-                  <p className="font-mono text-emerald-400 font-bold">{credentialsModal.email}</p>
+                  <p className="font-mono text-emerald-400 font-bold select-all">{credentialsModal.email}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mb-1">Temporary Password</p>
-                  <p className="font-mono text-emerald-400 font-bold tracking-widest">{credentialsModal.password}</p>
+                  <p className="font-mono text-emerald-400 font-bold tracking-widest select-all">{credentialsModal.password}</p>
                 </div>
               </div>
 
-              <button onClick={() => setCredentialsModal(null)} className="w-full py-3 bg-emerald-500 text-black font-bold font-mono uppercase tracking-widest rounded-lg hover:bg-emerald-400 transition-colors">
-                I have copied them
-              </button>
+              <div className="w-full flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const text = `Grekam OS Staff Login Credentials:\nEmail: ${credentialsModal.email}\nTemporary Password: ${credentialsModal.password}`;
+                    navigator.clipboard.writeText(text);
+                    toast.success("Credentials copied to clipboard");
+                  }} 
+                  className="flex-1 py-3 bg-white/10 text-white font-bold font-mono uppercase tracking-widest rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-2 text-xs"
+                >
+                  <Copy className="w-4 h-4" /> Copy
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setCredentialsModal(null)} 
+                  className="flex-1 py-3 bg-emerald-500 text-black font-bold font-mono uppercase tracking-widest rounded-lg hover:bg-emerald-400 transition-colors text-xs"
+                >
+                  I have copied them
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

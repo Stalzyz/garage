@@ -4,7 +4,16 @@ import { useState, useRef } from "react"
 import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, BookOpen, RefreshCw, X, Send, Calendar, Users, PhoneCall, Phone, UserCheck, Clock, Plus, Volume2, Activity, ExternalLink, Loader2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
-import { format } from "date-fns"
+export function formatAudioStreamingUrl(url: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  // Transform Google Drive links to direct streaming endpoints
+  const driveMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://docs.google.com/uc?export=download&id=${driveMatch[1]}`;
+  }
+  return trimmed;
+}
 
 export default function CallIntelligenceDashboard() {
   const todayStr = new Date().toISOString().split("T")[0]
@@ -611,7 +620,7 @@ export default function CallIntelligenceDashboard() {
                         <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                           {log.recordingUrl ? (
                             <div className="flex items-center justify-center gap-1.5">
-                              <audio controls src={log.recordingUrl} className="h-7 w-44" preload="none" />
+                              <audio controls src={formatAudioStreamingUrl(log.recordingUrl)} className="h-7 w-44" preload="none" />
                               <a 
                                 href={log.recordingUrl} 
                                 target="_blank" 
@@ -927,15 +936,19 @@ export default function CallIntelligenceDashboard() {
                       type="text"
                       value={logCallForm.recordingUrl}
                       onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
-                      placeholder="https://... or auto-record call above"
+                      placeholder="Paste audio URL or Google Drive link (e.g. from Vivo phone)"
                       className="flex-1 bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary min-w-[200px]"
                     />
                   </div>
 
+                  <p className="text-[10px] text-muted-foreground/80">
+                    💡 <strong className="text-foreground">Vivo / Google Drive Tip:</strong> Google Drive recording links (shared from Google Dialer) are automatically streamed directly in CRM. Or dial <code className="text-primary font-mono">*#*#556688#*#*</code> on Vivo to save directly to phone files.
+                  </p>
+
                   {logCallForm.recordingUrl && (
                     <div className="bg-muted/30 border border-border/40 p-2 rounded-xl flex items-center justify-between gap-2">
                       <span className="text-[10px] font-mono text-emerald-400 font-bold shrink-0">Audio Preview:</span>
-                      <audio controls src={logCallForm.recordingUrl} className="h-7 w-64" />
+                      <audio controls src={formatAudioStreamingUrl(logCallForm.recordingUrl)} className="h-7 w-64" />
                       <button
                         type="button"
                         onClick={() => setLogCallForm({ ...logCallForm, recordingUrl: "" })}

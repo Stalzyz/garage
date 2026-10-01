@@ -5,6 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function formatAudioStreamingUrl(url: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  // Transform Google Drive links to direct streaming endpoints
+  const driveMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://docs.google.com/uc?export=download&id=${driveMatch[1]}`;
+  }
+  return trimmed;
+}
+
 export function numberToWordsIN(num: number): string {
   if (!num || num === 0) return 'Rupees Zero Only';
 

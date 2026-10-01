@@ -56,6 +56,9 @@ const PUBLIC_EXACT: Array<{ method: string; path: string }> = [
   // Public organization branding & theme config (read-only for layout & styling)
   { method: 'GET', path: '/api/v1/settings/organization' },
 
+  // Public currency settings & symbol (read-only for pricing & currency formatters)
+  { method: 'GET', path: '/api/v1/settings/finance' },
+
   // Public kiosk on academy.grekam.in submits a walk-in.
   // NOTE: only POST. GET/PATCH on this path list and edit captured walk-ins.
   { method: 'POST', path: '/api/v1/academy/walk-ins' },

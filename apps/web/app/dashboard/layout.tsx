@@ -8,6 +8,7 @@ import { GlobalClockWidget } from "@/components/hr/GlobalClockWidget"
 import { WebSocketProvider } from "@/components/providers/WebSocketProvider"
 
 import { CurrentUserProvider } from "@/context/CurrentUserContext"
+import { LiveTelemetryCollector } from "@/components/hr/LiveTelemetryCollector"
 
 export default async function DashboardLayout({
   children,
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
                 <GlobalClockWidget />
                 <CommandPalette />
                 <TelemetryNotifier />
+                <LiveTelemetryCollector />
               </div>
 
             </CurrentUserProvider>

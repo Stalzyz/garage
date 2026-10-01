@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Phone, Mic, PhoneOff, User, Zap, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone, Loader2, ExternalLink } from "lucide-react"
+import { Phone, Mic, PhoneOff, User, Zap, Voicemail, FileText, CheckCircle2, ChevronRight, Volume2, Pause, Smartphone, Loader2, ExternalLink, Link2, HardDrive, X } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
+import { formatAudioStreamingUrl } from "@/lib/utils"
 
 
 export default function PowerDialerDashboard() {
@@ -18,6 +19,8 @@ export default function PowerDialerDashboard() {
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null)
   const [isUploadingAudio, setIsUploadingAudio] = useState(false)
   const [isMicMuted, setIsMicMuted] = useState(false)
+  const [externalAudioInput, setExternalAudioInput] = useState("")
+  const [showDriveInput, setShowDriveInput] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -750,23 +753,96 @@ export default function PowerDialerDashboard() {
                     <span className="text-xs font-mono text-muted-foreground">{formatDuration(callDurationSeconds)}</span>
                   </div>
 
-                  {/* Audio Recording Status & Player */}
-                  {recordedAudioUrl && (
-                    <div className="mb-3 p-3 bg-card border border-border/80 rounded-xl space-y-1.5 shadow-xs">
+                  {/* Audio Recording Status, Player & Google Drive Linker */}
+                  {recordedAudioUrl ? (
+                    <div className="mb-3 p-3 bg-card border border-border/80 rounded-xl space-y-2 shadow-xs">
                       <div className="text-xs font-bold text-foreground flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-emerald-400">
-                          <Volume2 className="w-3.5 h-3.5" /> Call Recording Captured
+                          <Volume2 className="w-3.5 h-3.5" /> Call Recording Ready
                         </span>
-                        <a 
-                          href={recordedAudioUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" /> View Audio
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <a 
+                            href={recordedAudioUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3 h-3" /> Open Audio
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecordedAudioUrl(null)
+                              toast.info("Call recording detached.")
+                            }}
+                            className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-0.5"
+                            title="Remove attached recording"
+                          >
+                            <X className="w-3 h-3" /> Remove
+                          </button>
+                        </div>
                       </div>
-                      <audio controls src={recordedAudioUrl} className="h-8 w-full" />
+                      <audio controls src={formatAudioStreamingUrl(recordedAudioUrl)} className="h-8 w-full" preload="metadata" />
+                    </div>
+                  ) : (
+                    <div className="mb-3 space-y-2">
+                      {!showDriveInput ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowDriveInput(true)}
+                          className="w-full py-1.5 px-3 rounded-lg border border-dashed border-border/70 hover:border-primary/50 bg-muted/20 hover:bg-muted/40 text-xs font-medium text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <HardDrive className="w-3.5 h-3.5 text-primary" />
+                          Link Android / Google Drive Call Recording
+                        </button>
+                      ) : (
+                        <div className="p-3 bg-card border border-border/80 rounded-xl space-y-2 shadow-xs animate-in fade-in">
+                          <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                            <span className="flex items-center gap-1.5 text-primary">
+                              <HardDrive className="w-3.5 h-3.5" /> Link Android (Vivo) / Drive Audio
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowDriveInput(false)
+                                setExternalAudioInput("")
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="url"
+                              value={externalAudioInput}
+                              onChange={(e) => setExternalAudioInput(e.target.value)}
+                              placeholder="Paste Google Drive link (e.g. drive.google.com/file/d/...)"
+                              className="flex-1 bg-background border border-border/60 rounded-lg px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!externalAudioInput.trim()) {
+                                  toast.error("Please paste an audio URL or Google Drive link.")
+                                  return
+                                }
+                                const cleanUrl = formatAudioStreamingUrl(externalAudioInput.trim())
+                                setRecordedAudioUrl(cleanUrl)
+                                setShowDriveInput(false)
+                                setExternalAudioInput("")
+                                toast.success("Google Drive call recording linked!")
+                              }}
+                              className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90 transition-all shrink-0 flex items-center gap-1"
+                            >
+                              <Link2 className="w-3 h-3" /> Attach
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            Tip: For Vivo/Android calls saved to Google Drive, paste the share link here to stream directly in CRM.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 

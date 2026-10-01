@@ -51,7 +51,7 @@ export const navigation: NavItem[] = [
   },
 
   {
-    title: "My Workspace (ESS)",
+    title: "Employee Workspace (EOS / ESS)",
     href: "/dashboard/ess",
     icon: UserCheck,
     roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
@@ -221,10 +221,15 @@ export const navigation: NavItem[] = [
 ]
 
 export const getNavItemsByRole = (role: string, customPermissions?: string[]) => {
+  const normRole = (role || "").toUpperCase()
   return navigation.filter((item) => {
+    // Core workspace and productivity links are always available to roles that include them
+    if (["/dashboard", "/dashboard/ess", "/dashboard/tasks", "/dashboard/team-hub", "/dashboard/notifications", "/dashboard/chat"].includes(item.href)) {
+      return item.roles.includes(normRole as Role)
+    }
     if (customPermissions && customPermissions.length > 0 && item.resource) {
       return customPermissions.includes(item.resource)
     }
-    return item.roles.includes(role as Role)
+    return item.roles.includes(normRole as Role)
   })
 }
