@@ -5,7 +5,8 @@ import {
   Phone, Mic, PhoneOff, User, Zap, Voicemail, FileText, CheckCircle2, 
   ChevronRight, Volume2, Smartphone, Loader2, ExternalLink, Link2, 
   HardDrive, X, Settings, Disc, Search, Filter, Clock, Calendar, 
-  Users, SlidersHorizontal, RefreshCw, Play, AlertCircle, Info, Sparkles, Plus, Check
+  Users, SlidersHorizontal, RefreshCw, Play, AlertCircle, Info, Sparkles, Plus, Check,
+  QrCode, Radio, ArrowRight, ShieldCheck, DollarSign, TrendingUp, HelpCircle, Copy
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -35,16 +36,18 @@ interface DialerSettings {
   defaultQueueSource: "ALL" | "LEADS" | "CONTACTS"
   defaultSortBy: "score" | "name" | "recent"
   mobileCallerPhone?: string
+  cloudRecordingsFolderUrl?: string
 }
 
 const DEFAULT_SETTINGS: DialerSettings = {
-  routeThroughMobile: false,
+  routeThroughMobile: true, // Default to physical SIM calling on Vivo / Android
   enableCallRecording: true,
   autoAdvanceOnDisposition: false,
   wrapupCooldownSeconds: 5,
   defaultQueueSource: "ALL",
   defaultSortBy: "score",
   mobileCallerPhone: "",
+  cloudRecordingsFolderUrl: "",
 }
 
 export default function PowerDialerDashboard() {
@@ -53,9 +56,18 @@ export default function PowerDialerDashboard() {
   // Navigation tab view: 'dialer' or 'recordings'
   const [viewMode, setViewMode] = useState<"dialer" | "recordings">("dialer")
 
-  // Settings State
+  // Settings Modal State & Tabs
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<"routing" | "phone_integration" | "auto_record" | "savings">("routing")
   const [settings, setSettings] = useState<DialerSettings>(DEFAULT_SETTINGS)
+
+  // Test mobile ping state
+  const [isTestingMobileDial, setIsTestingMobileDial] = useState(false)
+
+  // Savings Calculator interactive state
+  const [calcAgents, setCalcAgents] = useState(3)
+  const [calcCallsPerDay, setCalcCallsPerDay] = useState(60)
+  const [calcAvgDurationMins, setCalcAvgDurationMins] = useState(2.5)
 
   // Dialer Core State
   const [callState, setCallState] = useState<"idle" | "dialing" | "connected" | "voicemail" | "wrapup">("idle")
@@ -129,17 +141,17 @@ export default function PowerDialerDashboard() {
     setSettings(newSettings)
     try {
       localStorage.setItem("crm_dialer_settings", JSON.stringify(newSettings))
-      toast.success("Dialer settings saved successfully!")
+      toast.success("Dialer & Phone settings saved successfully!")
     } catch (e) {
       console.warn("Failed to save settings to localStorage:", e)
     }
   }
 
   // 1. Fetch leads & contacts concurrently from API
-  const { data: leadsResponse, mutate: mutateLeads, isLoading: isLoadingLeads } = useApi<any>("/crm/leads")
-  const { data: contactsResponse, mutate: mutateContacts, isLoading: isLoadingContacts } = useApi<any>("/crm/contacts")
+  const { data: leadsResponse, mutate: mutateLeads } = useApi<any>("/crm/leads")
+  const { data: contactsResponse, mutate: mutateContacts } = useApi<any>("/crm/contacts")
   const { data: dncResponse, mutate: mutateDnc } = useApi<any>(isDncOpen ? "/crm/dnc" : null)
-  const { data: dailyReportResponse, mutate: mutateRecordings, isLoading: isLoadingRecordings } = useApi<any>(
+  const { data: dailyReportResponse, mutate: mutateRecordings } = useApi<any>(
     viewMode === "recordings" ? "/crm/telephony/daily-report?all=true" : null
   )
 
@@ -268,6 +280,31 @@ export default function PowerDialerDashboard() {
       setMeetingSummary(`Discovery Call with ${activeRecord.name}`)
     }
   }, [activeRecord])
+
+  // Handler: Test Mobile Dial Trigger
+  const handleTestMobileDial = async () => {
+    const email = session?.user?.email
+    if (!email) {
+      toast.error("Please ensure you are logged in to test mobile dial.")
+      return
+    }
+
+    setIsTestingMobileDial(true)
+    try {
+      await fetchApi("/crm/dial-mobile", {
+        method: "POST",
+        body: JSON.stringify({
+          leadPhone: "+919999999999",
+          email,
+        }),
+      })
+      toast.success("Signal sent! If your phone has Grekam OS open, it will trigger the dialer.")
+    } catch (err: any) {
+      toast.error("Failed to send test trigger: " + (err.message || "Network error"))
+    } finally {
+      setIsTestingMobileDial(false)
+    }
+  }
 
   // Handler: Schedule Meeting
   const handleScheduleMeeting = async () => {
@@ -407,7 +444,7 @@ export default function PowerDialerDashboard() {
       console.warn("Could not open native dialer URI:", e)
     }
 
-    // Route through mobile trigger if enabled
+    // Route through mobile trigger if enabled (Vivo / Android SIM WebSocket Sync)
     if (settings.routeThroughMobile) {
       const email = session?.user?.email
       if (!email) {
@@ -421,7 +458,7 @@ export default function PowerDialerDashboard() {
           method: "POST",
           body: JSON.stringify({ leadPhone: activeRecord.phone, email }),
         })
-        toast.info(`Dial signal broadcast to your mobile device: ${activeRecord.phone}`)
+        toast.info(`Dial signal broadcast to your Vivo/Mobile SIM: ${activeRecord.phone}`)
       } catch (err) {
         console.error("Failed to trigger mobile dial:", err)
         toast.error("Could not trigger mobile dial. Check connection.")
@@ -730,6 +767,26 @@ export default function PowerDialerDashboard() {
     (r: any) => (r.disposition || "").toUpperCase().includes("MEETING") || (r.content || "").toUpperCase().includes("MEETING")
   ).length
 
+  // Savings Calculations
+  const calculatedSavings = useMemo(() => {
+    const workingDays = 25
+    const totalMinutesMonthly = calcAgents * calcCallsPerDay * calcAvgDurationMins * workingDays
+    // Cloud Telephony (Twilio / Exotel / TeleCMI) ~ ₹0.85/min + ₹0.20/min recording + ₹500/agent line rent
+    const cloudCostMonthly = Math.round(totalMinutesMonthly * 1.05 + calcAgents * 500)
+    // Physical SIM Plan (Jio / Airtel Unlimited Call Pack) ~ ₹299 / agent / month
+    const simCostMonthly = calcAgents * 299
+    const monthlyNetSavings = Math.max(0, cloudCostMonthly - simCostMonthly)
+    const annualNetSavings = monthlyNetSavings * 12
+
+    return {
+      totalMinutesMonthly,
+      cloudCostMonthly,
+      simCostMonthly,
+      monthlyNetSavings,
+      annualNetSavings,
+    }
+  }, [calcAgents, calcCallsPerDay, calcAvgDurationMins])
+
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Top Header Bar */}
@@ -747,6 +804,11 @@ export default function PowerDialerDashboard() {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
                   Pro CRM
                 </span>
+                {settings.routeThroughMobile && (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <Smartphone className="w-3 h-3" /> Vivo / SIM Active
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {settings.routeThroughMobile
@@ -800,13 +862,33 @@ export default function PowerDialerDashboard() {
 
           {/* Header Action Controls */}
           <div className="flex items-center flex-wrap gap-2">
-            {/* Quick Status Pill */}
-            {settings.routeThroughMobile && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Mobile SIM Active</span>
-              </div>
-            )}
+            
+            {/* Quick Android / Vivo Setup Button */}
+            <button
+              onClick={() => {
+                setSettingsTab("phone_integration")
+                setIsSettingsOpen(true)
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30 transition-all flex items-center gap-1.5"
+              title="Vivo / Android Phone Integration Guide"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Phone & SIM Setup</span>
+              <span className="sm:hidden">SIM</span>
+            </button>
+
+            {/* Savings Calculator Button */}
+            <button
+              onClick={() => {
+                setSettingsTab("savings")
+                setIsSettingsOpen(true)
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30 transition-all flex items-center gap-1.5"
+              title="View Telecom Cost Savings"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">₹ Savings</span>
+            </button>
 
             {/* Manage DNC */}
             <button
@@ -817,9 +899,12 @@ export default function PowerDialerDashboard() {
               <span>DNC ({dncPhones.length})</span>
             </button>
 
-            {/* Dialer Settings Button */}
+            {/* Full Dialer Settings Button */}
             <button
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={() => {
+                setSettingsTab("routing")
+                setIsSettingsOpen(true)
+              }}
               className="px-3 py-1.5 rounded-lg bg-muted/50 hover:bg-muted/80 text-foreground text-xs font-bold border border-border/60 transition-all flex items-center gap-1.5 shadow-xs"
             >
               <Settings className="w-3.5 h-3.5 text-primary" />
@@ -1112,7 +1197,7 @@ export default function PowerDialerDashboard() {
                     {callState === "idle" && (
                       <span className="text-muted-foreground font-semibold text-sm flex items-center gap-1.5">
                         <Check className="w-4 h-4 text-emerald-500" />
-                        Ready to connect • Click to dial
+                        Ready to connect • Click to dial via {settings.routeThroughMobile ? "Vivo SIM" : "Softphone"}
                       </span>
                     )}
 
@@ -1537,11 +1622,13 @@ export default function PowerDialerDashboard() {
 
             <div className="bg-card border border-border/60 rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">Meetings Booked</span>
-                <Calendar className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-semibold text-muted-foreground">Monthly Net Savings</span>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
-              <p className="text-2xl font-black text-foreground mt-2">{totalMeetingsBooked}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Calendar invites dispatched</p>
+              <p className="text-2xl font-black text-emerald-400 mt-2">
+                ₹{calculatedSavings.monthlyNetSavings.toLocaleString()}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">By using SIM instead of Cloud PBX</p>
             </div>
           </div>
 
@@ -1589,6 +1676,18 @@ export default function PowerDialerDashboard() {
                   <option value="LEAD">Leads Only</option>
                   <option value="CONTACT">Contacts Only</option>
                 </select>
+
+                {settings.cloudRecordingsFolderUrl && (
+                  <a
+                    href={settings.cloudRecordingsFolderUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold border border-primary/30 transition-all flex items-center gap-1"
+                    title="Open Shared Cloud Drive Folder"
+                  >
+                    <HardDrive className="w-3 h-3" /> Open Drive
+                  </a>
+                )}
 
                 <button
                   onClick={() => {
@@ -1791,21 +1890,21 @@ export default function PowerDialerDashboard() {
       )}
 
       {/* ============================================================== */}
-      {/* MODAL 2: DIALER SETTINGS DIALOG                                */}
+      {/* MODAL 2: COMPREHENSIVE DIALER & PHONE SETTINGS DIALOG          */}
       {/* ============================================================== */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95">
+          <div className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95">
             
             {/* Modal Header */}
             <div className="p-5 border-b border-border/60 flex items-center justify-between bg-muted/20">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Dialer Configuration & Telephony Settings</h3>
-                  <p className="text-xs text-muted-foreground">Configure device routing, audio capture, and queue pacing</p>
+                  <h3 className="text-base font-bold text-foreground">Phone, Dialer & Call Recording Hub</h3>
+                  <p className="text-xs text-muted-foreground">Pair your Android/Vivo phone, configure automatic recording, and track savings</p>
                 </div>
               </div>
               <button
@@ -1816,158 +1915,463 @@ export default function PowerDialerDashboard() {
               </button>
             </div>
 
-            {/* Modal Body */}
+            {/* Modal Navigation Tabs */}
+            <div className="flex items-center gap-1 px-5 pt-3 border-b border-border/50 bg-muted/10 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setSettingsTab("routing")}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
+                  settingsTab === "routing"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Routing & Pacing
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab("phone_integration")}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
+                  settingsTab === "phone_integration"
+                    ? "border-emerald-500 text-emerald-400"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                Vivo / Android Phone Integration
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab("auto_record")}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
+                  settingsTab === "auto_record"
+                    ? "border-rose-500 text-rose-400"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Mic className="w-3.5 h-3.5" />
+                Automatic Recording Setup
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsTab("savings")}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
+                  settingsTab === "savings"
+                    ? "border-amber-500 text-amber-300"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                Telecom ₹ Savings
+              </button>
+            </div>
+
+            {/* Modal Body Content */}
             <div className="p-6 overflow-y-auto space-y-6">
               
-              {/* Telephony / Device Routing Mode */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-primary" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Call Routing & Telephony</h4>
-                </div>
+              {/* TAB 1: ROUTING & PACING */}
+              {settingsTab === "routing" && (
+                <div className="space-y-5 animate-in fade-in">
+                  
+                  {/* Routing selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <Radio className="w-4 h-4 text-primary" /> Active Call Outbound Route
+                    </h4>
 
-                <div className="space-y-2">
-                  <label className="flex items-start gap-3 p-3 rounded-xl border border-border/60 hover:border-primary/40 bg-muted/10 cursor-pointer transition-all">
-                    <input
-                      type="radio"
-                      name="routingMode"
-                      checked={!settings.routeThroughMobile}
-                      onChange={() => setSettings({ ...settings, routeThroughMobile: false })}
-                      className="mt-1"
-                    />
-                    <div>
-                      <div className="text-xs font-bold text-foreground">Browser Softphone & Native Dialer (Default)</div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Triggers device native telephone URI handler (`tel:`) or your web softphone.
-                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all ${
+                        settings.routeThroughMobile
+                          ? "bg-primary/10 border-primary shadow-xs ring-1 ring-primary/40"
+                          : "bg-muted/10 border-border/60 hover:border-primary/40"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                            <Smartphone className="w-4 h-4 text-emerald-400" />
+                            Route Through Vivo / Mobile SIM
+                          </span>
+                          <input
+                            type="radio"
+                            name="routing"
+                            checked={settings.routeThroughMobile}
+                            onChange={() => setSettings({ ...settings, routeThroughMobile: true })}
+                            className="text-primary"
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Recommended. Sends real-time dial signal to your mobile phone over WebSockets so calls originate through your cellular SIM card.
+                        </p>
+                      </label>
+
+                      <label className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all ${
+                        !settings.routeThroughMobile
+                          ? "bg-primary/10 border-primary shadow-xs ring-1 ring-primary/40"
+                          : "bg-muted/10 border-border/60 hover:border-primary/40"
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-primary" />
+                            Browser Softphone (Native `tel:`)
+                          </span>
+                          <input
+                            type="radio"
+                            name="routing"
+                            checked={!settings.routeThroughMobile}
+                            onChange={() => setSettings({ ...settings, routeThroughMobile: false })}
+                            className="text-primary"
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Opens the telephone handler (`tel:`) on your computer or softphone app like FaceTime, Skype, or MicroSIP.
+                        </p>
+                      </label>
                     </div>
-                  </label>
+                  </div>
 
-                  <label className="flex items-start gap-3 p-3 rounded-xl border border-border/60 hover:border-primary/40 bg-muted/10 cursor-pointer transition-all">
-                    <input
-                      type="radio"
-                      name="routingMode"
-                      checked={settings.routeThroughMobile}
-                      onChange={() => setSettings({ ...settings, routeThroughMobile: true })}
-                      className="mt-1"
-                    />
-                    <div>
-                      <div className="text-xs font-bold text-foreground">Route Through Mobile / Vivo SIM Card</div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Broadcasts real-time WebSocket signals to your logged-in mobile phone to dial via your physical SIM card.
-                      </p>
+                  {/* Auto advance pacing */}
+                  <div className="space-y-3 pt-3 border-t border-border/50">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-emerald-400" /> Dialer Automation & Pacing
+                    </h4>
+
+                    <label className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/10 cursor-pointer">
+                      <div>
+                        <div className="text-xs font-bold text-foreground">Auto-Advance Queue After Disposition</div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Immediately loads the next prospect once a call outcome is saved.
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={settings.autoAdvanceOnDisposition}
+                        onChange={(e) => setSettings({ ...settings, autoAdvanceOnDisposition: e.target.checked })}
+                        className="w-4 h-4 rounded text-primary"
+                      />
+                    </label>
+
+                    {settings.autoAdvanceOnDisposition && (
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-muted-foreground">Wrap-up Countdown Seconds</label>
+                        <select
+                          value={settings.wrapupCooldownSeconds}
+                          onChange={(e) => setSettings({ ...settings, wrapupCooldownSeconds: parseInt(e.target.value, 10) || 5 })}
+                          className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
+                        >
+                          <option value={3}>3 seconds (Ultra Fast)</option>
+                          <option value={5}>5 seconds (Recommended)</option>
+                          <option value={10}>10 seconds (Standard)</option>
+                          <option value={15}>15 seconds (Extended)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Queue default source and sort */}
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">Default Queue Source</label>
+                      <select
+                        value={settings.defaultQueueSource}
+                        onChange={(e) => setSettings({ ...settings, defaultQueueSource: e.target.value as any })}
+                        className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
+                      >
+                        <option value="ALL">All (Leads & Contacts)</option>
+                        <option value="LEADS">Leads Only</option>
+                        <option value="CONTACTS">Contacts Only</option>
+                      </select>
                     </div>
-                  </label>
-                </div>
-              </div>
 
-              {/* Call Audio Recording Settings */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Mic className="w-4 h-4 text-rose-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Call Recording & Audio</h4>
-                </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">Default Sorting Order</label>
+                      <select
+                        value={settings.defaultSortBy}
+                        onChange={(e) => setSettings({ ...settings, defaultSortBy: e.target.value as any })}
+                        className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
+                      >
+                        <option value="score">Lead Score (Highest First)</option>
+                        <option value="name">Alphabetical</option>
+                        <option value="recent">Recently Added</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <label className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/10 cursor-pointer">
-                  <div>
-                    <div className="text-xs font-bold text-foreground">Auto-Record Outbound Calls</div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Automatically captures browser microphone during calls and saves audio to CRM.
+                </div>
+              )}
+
+              {/* TAB 2: VIVO / ANDROID PHONE INTEGRATION */}
+              {settingsTab === "phone_integration" && (
+                <div className="space-y-5 animate-in fade-in">
+                  
+                  {/* Overview Hero Card */}
+                  <div className="bg-gradient-to-br from-emerald-500/10 via-primary/5 to-transparent border border-emerald-500/20 rounded-2xl p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-5 h-5 text-emerald-400" />
+                        <h4 className="text-sm font-bold text-foreground">How Vivo / Android SIM Calling Works</h4>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 uppercase">
+                        Zero Telecom Cost
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      You use your computer for viewing prospect context, AI talking points, and CRM notes, while your Vivo phone dials the customer over your unlimited cellular SIM card.
                     </p>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.enableCallRecording}
-                    onChange={(e) => setSettings({ ...settings, enableCallRecording: e.target.checked })}
-                    className="w-4 h-4 rounded text-primary"
-                  />
-                </label>
 
-                {/* Vivo Phone Auto-Recording Tips */}
-                <div className="bg-primary/5 border border-primary/20 rounded-xl p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                    <Info className="w-3.5 h-3.5" /> Vivo & Android SIM Call Recording Guide
+                  {/* 3 Step Integration Process */}
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      3-Step Device Linking Process
+                    </h5>
+
+                    {/* Step 1 */}
+                    <div className="p-3.5 bg-muted/20 border border-border/60 rounded-xl space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">1</span>
+                        <span className="text-xs font-bold text-foreground">Open Grekam OS on your Vivo/Android Phone</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground pl-7 leading-relaxed">
+                        On your Vivo phone's Chrome browser, navigate to <strong className="text-foreground">https://dashboard.grekam.in</strong> and log in with your staff account (<strong>{session?.user?.email || "your email"}</strong>).
+                      </p>
+                      <div className="pl-7 pt-1 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://dashboard.grekam.in/dashboard/crm/dialer")
+                            toast.success("Mobile CRM link copied to clipboard!")
+                          }}
+                          className="px-2.5 py-1 bg-background border border-border rounded-lg text-[10px] font-bold text-foreground hover:bg-muted flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" /> Copy Mobile Link
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="p-3.5 bg-muted/20 border border-border/60 rounded-xl space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">2</span>
+                        <span className="text-xs font-bold text-foreground">Leave Web Tab Open in Background</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground pl-7 leading-relaxed">
+                        Keep the browser tab active or add Grekam OS to your Android home screen as a Web App (PWA). The phone maintains a lightweight WebSocket connection to receive instant dial triggers.
+                      </p>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="p-3.5 bg-muted/20 border border-border/60 rounded-xl space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">3</span>
+                        <span className="text-xs font-bold text-foreground">Click "Start Calling" from your Laptop</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground pl-7 leading-relaxed">
+                        When you click Start Calling on your computer screen, your phone will instantly pop open its native dialer with the prospect's number ready. Just press the green call button!
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Vivo and Android smartphones have built-in cellular call recording under <em>Settings &gt; Phone &gt; Record Settings &gt; Record all calls automatically</em>. Recorded calls save to internal storage and can auto-sync to Google Drive. Simply paste the Google Drive link into the Call Recordings tab to stream anywhere.
-                  </p>
-                </div>
-              </div>
 
-              {/* Pacing & Queue Automation */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Pacing & Auto-Advance</h4>
-                </div>
+                  {/* Test Dial Trigger Button */}
+                  <div className="p-4 bg-card border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div>
+                      <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Radio className="w-4 h-4 text-emerald-400" />
+                        Test Mobile Signal Connection
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Broadcast a test ping to verify your phone receives the trigger.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleTestMobileDial}
+                      disabled={isTestingMobileDial}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 shrink-0"
+                    >
+                      {isTestingMobileDial ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Smartphone className="w-3.5 h-3.5" />}
+                      Send Ping to My Phone
+                    </button>
+                  </div>
 
-                <label className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/10 cursor-pointer">
-                  <div>
-                    <div className="text-xs font-bold text-foreground">Auto-Advance After Disposition</div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Automatically moves to the next prospect in queue once a disposition is selected.
+                </div>
+              )}
+
+              {/* TAB 3: AUTOMATIC RECORDING & CLOUD SYNC */}
+              {settingsTab === "auto_record" && (
+                <div className="space-y-5 animate-in fade-in">
+                  
+                  {/* Vivo Phone Built-in Call Recording Step */}
+                  <div className="bg-muted/20 border border-border/60 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-4 h-4 text-rose-400" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                        Step 1: Enable Native Auto-Call Recording on Vivo
+                      </h4>
+                    </div>
+
+                    <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+                      <p>Vivo phones (Funtouch OS & OriginOS) have direct two-way hardware call recording built into the dialer with zero third-party software needed:</p>
+                      <ol className="list-decimal pl-5 space-y-1 font-medium text-foreground">
+                        <li>Open the native <strong>Phone / Dialer</strong> app on your Vivo.</li>
+                        <li>Tap the <strong>three dots</strong> or gear icon at the top right to open <strong>Call Settings</strong>.</li>
+                        <li>Select <strong>Record Settings</strong>.</li>
+                        <li>Choose <strong>Record all calls automatically</strong>.</li>
+                      </ol>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        All recordings will be saved automatically to internal storage at: <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-primary font-mono">/Recordings/Call/</code>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Auto-Syncing Call Audio into the Cloud */}
+                  <div className="bg-muted/20 border border-border/60 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="w-4 h-4 text-primary" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                        Step 2: Automatic Background Cloud Sync
+                      </h4>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      To have recordings available inside Grekam OS automatically without manually plugging in a cable:
+                    </p>
+
+                    <div className="space-y-2 text-xs">
+                      <div className="p-3 bg-background border border-border/60 rounded-xl space-y-1">
+                        <strong className="text-foreground">Method A: Google Drive Folder Sync (Recommended)</strong>
+                        <p className="text-muted-foreground text-[11px]">
+                          Install the free Google Drive app or FolderSync on your Vivo phone. Set the folder <code>/Recordings/Call/</code> to auto-upload to a shared Google Drive folder upon WiFi or cellular data.
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-background border border-border/60 rounded-xl space-y-1">
+                        <strong className="text-foreground">Method B: Browser Mic Capture (Backup)</strong>
+                        <p className="text-muted-foreground text-[11px]">
+                          Grekam OS also includes browser microphone capture during dialer calls. When enabled, your voice notes are uploaded straight to CRM storage upon hangup.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shared Google Drive Folder Input */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
+                      <span>Shared Cloud Drive / Recordings Folder Link</span>
+                      <span className="text-[10px] text-muted-foreground">Optional Quick Access</span>
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      value={settings.cloudRecordingsFolderUrl || ""}
+                      onChange={(e) => setSettings({ ...settings, cloudRecordingsFolderUrl: e.target.value })}
+                      className="w-full bg-background border border-border/80 rounded-xl p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Saving this link adds an "Open Drive" button right inside the Call Recordings tab for instant access.
                     </p>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.autoAdvanceOnDisposition}
-                    onChange={(e) => setSettings({ ...settings, autoAdvanceOnDisposition: e.target.checked })}
-                    className="w-4 h-4 rounded text-primary"
-                  />
-                </label>
 
-                {settings.autoAdvanceOnDisposition && (
-                  <div className="space-y-1 pl-1">
-                    <label className="text-[11px] font-bold text-muted-foreground">Wrap-up Cooldown (Seconds)</label>
-                    <select
-                      value={settings.wrapupCooldownSeconds}
-                      onChange={(e) => setSettings({ ...settings, wrapupCooldownSeconds: parseInt(e.target.value, 10) || 5 })}
-                      className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
-                    >
-                      <option value={3}>3 seconds (Fastest)</option>
-                      <option value={5}>5 seconds (Recommended)</option>
-                      <option value={10}>10 seconds (Standard)</option>
-                      <option value={15}>15 seconds (Extended wrap-up)</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {/* Queue Default Preferences */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-blue-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Queue Defaults</h4>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground">Default Queue Source</label>
-                    <select
-                      value={settings.defaultQueueSource}
-                      onChange={(e) => setSettings({ ...settings, defaultQueueSource: e.target.value as any })}
-                      className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
-                    >
-                      <option value="ALL">All (Leads & Contacts)</option>
-                      <option value="LEADS">Leads Only</option>
-                      <option value="CONTACTS">Contacts Only</option>
-                    </select>
+              {/* TAB 4: TELECOM SAVINGS CALCULATOR */}
+              {settingsTab === "savings" && (
+                <div className="space-y-5 animate-in fade-in">
+                  
+                  {/* Hero Savings Card */}
+                  <div className="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/30 rounded-2xl p-5 text-center space-y-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center justify-center gap-1.5">
+                      <TrendingUp className="w-4 h-4" /> Estimated Annual Telecom Cost Savings
+                    </span>
+                    <div className="text-3xl md:text-4xl font-black text-emerald-400 tracking-tight">
+                      ₹{calculatedSavings.annualNetSavings.toLocaleString()} / year
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Net money saved by using physical SIM cards & Vivo native recording over Twilio/Exotel
+                    </p>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground">Default Sort</label>
-                    <select
-                      value={settings.defaultSortBy}
-                      onChange={(e) => setSettings({ ...settings, defaultSortBy: e.target.value as any })}
-                      className="w-full bg-background border border-border/80 rounded-xl p-2 text-xs font-semibold text-foreground focus:outline-none"
-                    >
-                      <option value="score">Lead Score</option>
-                      <option value="name">Alphabetical</option>
-                      <option value="recent">Recently Added</option>
-                    </select>
+                  {/* Interactive Sliders */}
+                  <div className="space-y-4 bg-muted/20 p-4 rounded-2xl border border-border/60">
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Customize Your Team Parameters
+                    </h5>
+
+                    {/* Agents Slider */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold text-foreground">
+                        <span>Number of Telecallers / Sales Staff:</span>
+                        <strong className="text-primary font-mono">{calcAgents} Staff</strong>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={25}
+                        value={calcAgents}
+                        onChange={(e) => setCalcAgents(parseInt(e.target.value, 10))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+
+                    {/* Calls Per Day */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold text-foreground">
+                        <span>Calls per agent per day:</span>
+                        <strong className="text-primary font-mono">{calcCallsPerDay} Calls</strong>
+                      </div>
+                      <input
+                        type="range"
+                        min={10}
+                        max={150}
+                        step={5}
+                        value={calcCallsPerDay}
+                        onChange={(e) => setCalcCallsPerDay(parseInt(e.target.value, 10))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+
+                    {/* Avg Duration */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold text-foreground">
+                        <span>Average call talk time (minutes):</span>
+                        <strong className="text-primary font-mono">{calcAvgDurationMins} Mins</strong>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={8}
+                        step={0.5}
+                        value={calcAvgDurationMins}
+                        onChange={(e) => setCalcAvgDurationMins(parseFloat(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
                   </div>
+
+                  {/* Cost Comparison Table */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 bg-card border border-rose-500/20 rounded-xl space-y-1">
+                      <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Cloud PBX / Twilio / Exotel</span>
+                      <div className="text-xl font-bold text-foreground font-mono">
+                        ₹{calculatedSavings.cloudCostMonthly.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">/mo</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Includes pulse rate + per-min recording charges</p>
+                    </div>
+
+                    <div className="p-4 bg-card border border-emerald-500/20 rounded-xl space-y-1">
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Your Vivo SIM + Native Setup</span>
+                      <div className="text-xl font-bold text-emerald-400 font-mono">
+                        ₹{calculatedSavings.simCostMonthly.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">/mo</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Unlimited calling pack included on phone</p>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
+              )}
 
             </div>
 
@@ -1990,7 +2394,7 @@ export default function PowerDialerDashboard() {
                   onClick={() => setIsSettingsOpen(false)}
                   className="px-3.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   type="button"
@@ -2000,7 +2404,7 @@ export default function PowerDialerDashboard() {
                   }}
                   className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm"
                 >
-                  Save & Apply
+                  Save & Apply Settings
                 </button>
               </div>
             </div>
