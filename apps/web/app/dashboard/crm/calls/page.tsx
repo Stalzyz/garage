@@ -4,13 +4,56 @@ import { useState, useRef } from "react"
 import { Mic, Play, Pause, BarChart2, Zap, TrendingUp, FileText, CheckCircle2, BookOpen, RefreshCw, X, Send, Calendar, Users, PhoneCall, Phone, UserCheck, Clock, Plus, Volume2, Activity, ExternalLink, Loader2 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
-import { format } from "date-fns"
+export function formatAudioStreamingUrl(url: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  // Transform Google Drive links to direct streaming endpoints
+  const driveMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://docs.google.com/uc?export=download&id=${driveMatch[1]}`;
+  }
+  return trimmed;
+}
 
 export default function CallIntelligenceDashboard() {
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0])
+  const todayStr = new Date().toISOString().split("T")[0]
+  const [dateFilterMode, setDateFilterMode] = useState<'today' | 'yesterday' | 'last7' | 'thisMonth' | 'custom'>('today')
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr)
+  const [startDate, setStartDate] = useState<string>(todayStr)
+  const [endDate, setEndDate] = useState<string>(todayStr)
   const [selectedStaffId, setSelectedStaffId] = useState<string>("ALL")
 
-  const { data: dailyReportData, mutate: mutateDailyReport } = useApi<any>(`/crm/telephony/daily-report?date=${selectedDate}&userId=${selectedStaffId}`, { refreshInterval: 15000 })
+  const reportApiUrl = (dateFilterMode !== 'today' && dateFilterMode !== 'yesterday')
+    ? `/crm/telephony/daily-report?startDate=${startDate}&endDate=${endDate}&userId=${selectedStaffId}`
+    : `/crm/telephony/daily-report?date=${selectedDate}&userId=${selectedStaffId}`
+
+  const { data: dailyReportData, mutate: mutateDailyReport } = useApi<any>(reportApiUrl, { refreshInterval: 15000 })
+
+  const handleDatePreset = (mode: 'today' | 'yesterday' | 'last7' | 'thisMonth' | 'custom') => {
+    setDateFilterMode(mode)
+    const now = new Date()
+    if (mode === 'today') {
+      const t = now.toISOString().split("T")[0]
+      setSelectedDate(t)
+      setStartDate(t)
+      setEndDate(t)
+    } else if (mode === 'yesterday') {
+      const y = new Date(now.setDate(now.getDate() - 1)).toISOString().split("T")[0]
+      setSelectedDate(y)
+      setStartDate(y)
+      setEndDate(y)
+    } else if (mode === 'last7') {
+      const end = now.toISOString().split("T")[0]
+      const start = new Date(now.setDate(now.getDate() - 6)).toISOString().split("T")[0]
+      setStartDate(start)
+      setEndDate(end)
+    } else if (mode === 'thisMonth') {
+      const end = now.toISOString().split("T")[0]
+      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0]
+      setStartDate(start)
+      setEndDate(end)
+    }
+  }
   const { data: employeesData } = useApi<any>("/hr/employees")
   const { data: leadsData } = useApi<any>("/crm/leads")
 
@@ -224,7 +267,7 @@ export default function CallIntelligenceDashboard() {
     if (!t.trim()) return toast.error("Please select a call from the table or paste a call transcript")
     setIsAnalyzing(true)
     try {
-      const res = await fetchApi("/crm/ai/analyze-call", {
+      const res = await fetchApi<any>("/crm/ai/analyze-call", {
         method: "POST",
         body: JSON.stringify({ transcript: t, prospectName: p || "Prospect", repName: r || "Sales Rep" })
       })
@@ -244,7 +287,7 @@ export default function CallIntelligenceDashboard() {
     if (!logCallForm.leadId) return toast.error("Please select a lead")
     setIsSubmittingCall(true)
     try {
-      const res = await fetchApi("/crm/telephony/recordings", {
+      const res = await fetchApi<any>("/crm/telephony/recordings", {
         method: "POST",
         body: JSON.stringify({
           leadId: logCallForm.leadId,
@@ -291,7 +334,7 @@ export default function CallIntelligenceDashboard() {
     e.preventDefault()
     setIsGeneratingScript(true)
     try {
-      const res = await fetchApi("/crm/ai/generate-call-script", {
+      const res = await fetchApi<any>("/crm/ai/generate-call-script", {
         method: "POST",
         body: JSON.stringify(scriptForm)
       })
@@ -355,6 +398,40 @@ export default function CallIntelligenceDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              {/* Preset Date Range Buttons */}
+              <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/50 text-[11px]">
+                <button
+                  onClick={() => handleDatePreset('today')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${dateFilterMode === 'today' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => handleDatePreset('yesterday')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${dateFilterMode === 'yesterday' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Yesterday
+                </button>
+                <button
+                  onClick={() => handleDatePreset('last7')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${dateFilterMode === 'last7' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Last 7 Days
+                </button>
+                <button
+                  onClick={() => handleDatePreset('thisMonth')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${dateFilterMode === 'thisMonth' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  This Month
+                </button>
+                <button
+                  onClick={() => setDateFilterMode('custom')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${dateFilterMode === 'custom' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Custom
+                </button>
+              </div>
+
               {/* Staff Selector Dropdown */}
               <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
                 <Users className="w-4 h-4 text-primary" />
@@ -372,16 +449,39 @@ export default function CallIntelligenceDashboard() {
                 </select>
               </div>
 
-              {/* Date Picker */}
-              <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-xs text-foreground font-mono focus:outline-none"
-                />
-              </div>
+              {/* Date Inputs */}
+              {(dateFilterMode === 'today' || dateFilterMode === 'yesterday') ? (
+                <div className="flex items-center gap-2 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value)
+                      setStartDate(e.target.value)
+                      setEndDate(e.target.value)
+                    }}
+                    className="bg-transparent text-xs text-foreground font-mono focus:outline-none"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-muted/30 border border-border/50 px-3 py-1.5 rounded-xl text-xs font-mono">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="bg-transparent text-foreground focus:outline-none w-28"
+                  />
+                  <span className="text-muted-foreground">to</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="bg-transparent text-foreground focus:outline-none w-28"
+                  />
+                </div>
+              )}
 
               <button
                 onClick={() => mutateDailyReport()}
@@ -509,7 +609,7 @@ export default function CallIntelligenceDashboard() {
                         className={`transition-all cursor-pointer ${selectedLogId === log.id ? 'bg-primary/20 border-l-4 border-l-primary font-semibold' : 'hover:bg-muted/15'}`}
                       >
                         <td className="px-3 py-2 font-mono text-muted-foreground">
-                          {format(new Date(log.timestamp), "hh:mm a")}
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td className="px-3 py-2 font-bold text-foreground">{log.telecallerName}</td>
                         <td className="px-3 py-2">
@@ -520,7 +620,7 @@ export default function CallIntelligenceDashboard() {
                         <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                           {log.recordingUrl ? (
                             <div className="flex items-center justify-center gap-1.5">
-                              <audio controls src={log.recordingUrl} className="h-7 w-44" preload="none" />
+                              <audio controls src={formatAudioStreamingUrl(log.recordingUrl)} className="h-7 w-44" preload="none" />
                               <a 
                                 href={log.recordingUrl} 
                                 target="_blank" 
@@ -836,15 +936,19 @@ export default function CallIntelligenceDashboard() {
                       type="text"
                       value={logCallForm.recordingUrl}
                       onChange={(e) => setLogCallForm({ ...logCallForm, recordingUrl: e.target.value })}
-                      placeholder="https://... or auto-record call above"
+                      placeholder="Paste audio URL or Google Drive link (e.g. from Vivo phone)"
                       className="flex-1 bg-background border border-border/60 rounded-xl px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-primary min-w-[200px]"
                     />
                   </div>
 
+                  <p className="text-[10px] text-muted-foreground/80">
+                    💡 <strong className="text-foreground">Vivo / Google Drive Tip:</strong> Google Drive recording links (shared from Google Dialer) are automatically streamed directly in CRM. Or dial <code className="text-primary font-mono">*#*#556688#*#*</code> on Vivo to save directly to phone files.
+                  </p>
+
                   {logCallForm.recordingUrl && (
                     <div className="bg-muted/30 border border-border/40 p-2 rounded-xl flex items-center justify-between gap-2">
                       <span className="text-[10px] font-mono text-emerald-400 font-bold shrink-0">Audio Preview:</span>
-                      <audio controls src={logCallForm.recordingUrl} className="h-7 w-64" />
+                      <audio controls src={formatAudioStreamingUrl(logCallForm.recordingUrl)} className="h-7 w-64" />
                       <button
                         type="button"
                         onClick={() => setLogCallForm({ ...logCallForm, recordingUrl: "" })}

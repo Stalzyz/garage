@@ -2,39 +2,35 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
 import { cn } from "@/lib/utils"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, BookOpen, Briefcase, Building2, ChevronDown, ChevronRight, DollarSign, Layers, LayoutDashboard, LogOut, Menu, MessageSquare, Moon, ShieldCheck, Sun, User, X } from "lucide-react"
+import { Bell, BookOpen, Briefcase, ChevronDown, ChevronRight, DollarSign, Layers, LayoutDashboard, LogOut, Menu, MessageSquare, Moon, ShieldCheck, Sun, User, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 
 const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator"), { ssr: false })
 
 import { NotificationMenu } from "./NotificationMenu"
+import { TimerWidget } from "./TimerWidget"
+import { useCurrentUser } from "@/context/CurrentUserContext"
 
 function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string; size?: number }) {
   const [hasError, setHasError] = useState(false)
-
-  // Reset error state whenever the URL prop changes
-  useEffect(() => {
-    setHasError(false)
-  }, [url])
   
   if (url && !hasError) {
     return (
       <div 
         style={{ width: size, height: size }}
-        className="rounded-xl overflow-hidden shrink-0 border border-dash-border-strong bg-white/5 flex items-center justify-center p-0.5 shadow-sm"
+        className="rounded-xl overflow-hidden shrink-0 border border-dash-border-strong bg-white/5 flex items-center justify-center p-0.5"
       >
         <img 
-          key={url}
           src={url} 
           alt={name} 
           onError={() => setHasError(true)} 
-          className="w-full h-full object-cover rounded-lg" 
+          className="w-full h-full object-contain" 
         />
       </div>
     )
@@ -43,9 +39,9 @@ function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string
   return (
     <div 
       style={{ width: size, height: size }}
-      className="rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.2)] font-bold text-xs text-blue-400"
+      className="rounded-xl bg-dash-bg-elevated border border-dash-border-strong flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
     >
-      {name ? name.charAt(0).toUpperCase() : <ShieldCheck className="w-4 h-4 text-blue-400" strokeWidth={2} />}
+      <ShieldCheck className="w-4 h-4 text-blue-400" strokeWidth={2} />
     </div>
   )
 }
@@ -55,16 +51,10 @@ function OrgHeader() {
 
   return (
     <div className="flex h-16 items-center px-6 gap-3 relative z-10">
-      <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={32} />
-      <div className="flex flex-col min-w-0 flex-1">
-        <span className="text-sm font-bold tracking-tight text-dash-text-primary truncate">{org.name}</span>
-        {org.id && (
-          <span className="text-[10px] font-mono text-zinc-400 truncate tracking-tight">
-            ID: {org.id.slice(0, 10)}...
-          </span>
-        )}
-      </div>
+      <BrandLogo url={org.logoUrl} name={org.name} size={32} />
+      <span className="text-lg font-bold tracking-tight">{org.name}</span>
       <div className="ml-auto flex items-center gap-2">
+        <TimerWidget />
         <NotificationMenu />
         <RealtimeIndicator />
       </div>
@@ -159,29 +149,26 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const currentUser = useCurrentUser()
   const [mobileOpen, setMobileOpen] = useState(false)
   const org = useOrganization()
 
-  let rawRole = session?.user?.role || "INTERN"
-  if (rawRole === "Super Admin" || rawRole === "SUPER_ADMIN") rawRole = "SUPER_ADMIN"
-  else if (rawRole === "Partner" || rawRole === "PARTNER") rawRole = "PARTNER"
-  else if (rawRole === "Reseller" || rawRole === "RESELLER" || rawRole === "RESELLER_ADMIN") rawRole = "PARTNER"
-  else if (rawRole === "Admin" || rawRole === "ADMIN" || rawRole === "GARAGE_ADMIN" || rawRole === "TENANT_ADMIN" || rawRole === "Garage Owner" || rawRole === "Manager" || rawRole === "MANAGER") rawRole = "MANAGER"
-  else if (rawRole === "Staff" || rawRole === "STAFF") rawRole = "STAFF"
-  else if (rawRole === "Client" || rawRole === "CLIENT") rawRole = "CLIENT"
-  else if (rawRole === "Student" || rawRole === "STUDENT") rawRole = "STUDENT"
-  else if (rawRole === "Vendor" || rawRole === "VENDOR") rawRole = "VENDOR"
-  else if (rawRole === "Intern" || rawRole === "INTERN") rawRole = "INTERN"
+  let rawRole = session?.user?.role || currentUser?.role || "INTERN"
+  if (rawRole === "Super Admin") rawRole = "SUPER_ADMIN"
+  if (rawRole === "Manager") rawRole = "MANAGER"
+  if (rawRole === "Staff") rawRole = "STAFF"
+  if (rawRole === "Client") rawRole = "CLIENT"
+  if (rawRole === "Student") rawRole = "STUDENT"
+  if (rawRole === "Vendor") rawRole = "VENDOR"
+  if (rawRole === "Intern") rawRole = "INTERN"
+  if (rawRole === "Freelancer" || rawRole === "FREELANCE") rawRole = "FREELANCER"
   
   const role = rawRole as Role
   
-  // Retrieve custom permissions from next-auth session if available
-  const customPermissions = (session?.user as any)?.permissions || []
+  // Retrieve custom permissions from next-auth session and CurrentUserContext
+  const customPermissions = (session?.user as any)?.permissions || (currentUser as any)?.permissions || []
   
-  const navItems = getNavItemsByRole(role, customPermissions, pathname)
-
-  const isPartnerRoute = pathname?.startsWith("/dashboard/partner")
-  const isAdminRoute = pathname?.startsWith("/dashboard/admin")
+  const navItems = getNavItemsByRole(role, customPermissions)
 
   const getBottomTabs = (role: Role) => {
     switch (role) {
@@ -223,15 +210,13 @@ export function Sidebar() {
       {/* Header / Logo — Dynamic Whitelabel */}
       <OrgHeader />
 
-      {/* Role badge & Mode Switcher */}
-      <div className="px-4 py-2 relative z-10 flex items-center justify-between">
+      {/* Role badge */}
+      <div className="px-5 py-2 relative z-10">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-[11px] font-medium text-zinc-400 capitalize">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {isPartnerRoute ? "Partner Mode" : role.toLowerCase().replace('_', ' ')}
+          {role.toLowerCase().replace('_', ' ')}
         </span>
       </div>
-
-
 
       {/* Nav items */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-3 space-y-0.5 pb-6 relative z-10">
@@ -242,28 +227,16 @@ export function Sidebar() {
 
       {/* User footer */}
       <div className="p-3 relative z-10 border-t border-white/[0.08] bg-dash-bg-base">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex-1 flex items-center gap-2.5 p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] min-w-0">
-            <div className="h-8 w-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-200 font-medium text-xs shrink-0">
+        <div className="flex items-center gap-3">
+          <div onClick={() => signOut()} className="flex-1 flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer border border-transparent hover:border-white/[0.08]" title="Click to logout">
+            <div className="h-9 w-9 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-200 font-medium text-sm shrink-0">
               {session?.user?.name?.charAt(0) || "U"}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-medium leading-none truncate text-zinc-200">{session?.user?.name || "User"}</span>
-              <span className="text-[10px] text-zinc-500 mt-1 truncate">{session?.user?.email}</span>
+              <span className="text-[11px] text-zinc-500 mt-1 truncate">{session?.user?.email}</span>
             </div>
           </div>
-          <button
-            onClick={async () => {
-              try {
-                await signOut({ redirect: false })
-              } catch {}
-              window.location.href = "/auth/login"
-            }}
-            className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-            title="Log Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </div>
@@ -279,7 +252,7 @@ export function Sidebar() {
       {/* Mobile Top Header Bar */}
       <div className="print:hidden md:hidden fixed top-0 left-0 right-0 h-16 bg-dash-bg-surface/90 backdrop-blur-md border-b border-dash-border-strong z-40 flex items-center justify-between px-5">
         <div className="flex items-center gap-2.5">
-          <BrandLogo url={org.faviconUrl || org.logoUrl} name={org.name} size={28} />
+          <BrandLogo url={org.logoUrl} name={org.name} size={28} />
           <span className="text-xs font-bold tracking-wider uppercase text-dash-text-primary/90 truncate max-w-[120px]">{org.name}</span>
         </div>
         <div className="flex items-center gap-2.5">

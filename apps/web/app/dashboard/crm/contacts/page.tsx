@@ -24,7 +24,9 @@ import {
   List as ListIcon,
   ExternalLink,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
+  Target,
+  Copy
 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -110,6 +112,7 @@ export default function ContactsAndCompaniesPage() {
   })
 
   // Company Modal State
+  const [isKioskModalOpen, setIsKioskModalOpen] = useState(false)
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false)
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null)
   const [isSubmittingCompany, setIsSubmittingCompany] = useState(false)
@@ -277,20 +280,20 @@ export default function ContactsAndCompaniesPage() {
     passcode?: string;
     loginUrl: string;
     alreadyExisted?: boolean;
-  }>({ isOpen: false, title: "", email: "", loginUrl: "https://garage.grekam.in/portal" })
+  }>({ isOpen: false, title: "", email: "", loginUrl: "https://dashboard.grekam.in/portal" })
 
   const handleInvitePortal = async (c: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
     if (!c.email) return toast.error("Contact must have an email address to generate portal credentials.")
     try {
-      const res = await fetchApi(`/crm/contacts/${c.id}/invite`, { method: "POST" })
+      const res = await fetchApi<any>(`/crm/contacts/${c.id}/invite`, { method: "POST" })
       if (res?.credentials) {
         setPortalModalData({
           isOpen: true,
           title: "Client Portal Credentials Created",
           email: res.credentials.email,
           passcode: res.credentials.password,
-          loginUrl: "https://garage.grekam.in/portal",
+          loginUrl: "https://dashboard.grekam.in/portal",
           alreadyExisted: false
         })
         toast.success("Client portal credentials generated & sent to email!")
@@ -299,7 +302,7 @@ export default function ContactsAndCompaniesPage() {
           isOpen: true,
           title: "Client Portal Account Active",
           email: c.email,
-          loginUrl: "https://garage.grekam.in/portal",
+          loginUrl: "https://dashboard.grekam.in/portal",
           alreadyExisted: true
         })
         toast.info("Portal account already active. Instructions sent to client!")
@@ -481,6 +484,16 @@ export default function ContactsAndCompaniesPage() {
           >
             <Plus className="w-4 h-4" />
             Add Contact
+          </button>
+
+          
+          <button
+            onClick={() => setIsKioskModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:scale-105"
+            title="Open Tablet Kiosk or scan QR for company enrolment"
+          >
+            <Target className="w-4 h-4 text-emerald-400" />
+            Company Kiosk QR
           </button>
 
           <button
@@ -1357,6 +1370,63 @@ export default function ContactsAndCompaniesPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {/* ── MODAL 4: COMPANY KIOSK QR & TABLET LAUNCHER ── */}
+      {isKioskModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-[#0f121a] border border-white/10 rounded-3xl w-full max-w-md p-8 flex flex-col items-center relative overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-36 h-36 bg-blue-500/20 blur-[80px] rounded-full pointer-events-none" />
+
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+              <Building2 className="w-6 h-6" />
+            </div>
+
+            <h2 className="text-xl font-bold text-white mb-2 relative z-10 text-center">Company Enrolment Kiosk</h2>
+            <p className="text-xs text-white/50 text-center mb-6 relative z-10 max-w-xs">
+              Place a tablet at your reception or let B2B clients scan this code to self-enroll their company, GSTIN & tax particulars.
+            </p>
+
+            <div className="p-4 bg-white rounded-2xl mb-6 relative z-10 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent((typeof window !== "undefined" ? window.location.origin : "https://grekam.in") + "/kiosk/company")}`}
+                alt="Company Kiosk QR Code" 
+                className="w-48 h-48"
+              />
+            </div>
+
+            <div className="w-full space-y-2.5 relative z-10">
+              <button
+                onClick={() => {
+                  window.open("/kiosk/company", "_blank")
+                }}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center justify-center gap-2 text-xs"
+              >
+                <ExternalLink className="w-4 h-4" /> Open Fullscreen Kiosk Mode
+              </button>
+
+              <button
+                onClick={() => {
+                  const url = `${typeof window !== "undefined" ? window.location.origin : "https://grekam.in"}/kiosk/company`
+                  navigator.clipboard.writeText(url)
+                  toast.success("Kiosk link copied to clipboard!")
+                }}
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copy Kiosk Link
+              </button>
+
+              <button 
+                onClick={() => setIsKioskModalOpen(false)}
+                className="w-full text-white/40 hover:text-white font-medium text-xs py-2 transition-all"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

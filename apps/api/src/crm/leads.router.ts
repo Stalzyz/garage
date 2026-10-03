@@ -1,3 +1,4 @@
+import { defaultLeadStatus } from './lead-status';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { EventBus, SystemEvents } from '../automations/event-bus';
@@ -24,7 +25,7 @@ async function notifyAssignedStaff(app: FastifyInstance, assignedToId: string, l
           email: lead.email || 'N/A',
           leadSource: lead.source || 'Website',
           interestTier: lead.tier || lead.courseInterest || 'General Enquiry',
-          crmLink: 'https://garage.grekam.in/dashboard/crm'
+          crmLink: 'https://dashboard.grekam.in/dashboard/crm'
         }
       });
     }
@@ -48,7 +49,7 @@ const CreateLeadSchema = z.object({
   projectType: z.string().optional(),
   notes: z.string().optional(),
   assignedToId: z.union([z.string(), z.literal("")]).optional().transform(val => val === "" ? undefined : val),
-  businessUnit: z.preprocess((val) => (val === 'ACADEMY' ? 'ACADEMY' : val === 'BOTH' ? 'BOTH' : 'AGENCY'), z.enum(['AGENCY', 'ACADEMY', 'BOTH'])).default('AGENCY'),
+  businessUnit: z.enum(['AGENCY', 'ACADEMY']).optional(),
   courseInterest: z.string().optional(),
   batchId: z.string().optional(),
 });
@@ -101,11 +102,22 @@ export default async function leadsRouter(app: FastifyInstance) {
       select: { phone: true }
     });
     const dncPhones = dncList.map(d => d.phone.trim()).filter(Boolean);
+    let assignedFilter: any = undefined;
+    if (assignedToId) {
+      const emp = await app.prisma.employee.findFirst({
+        where: { OR: [{ id: assignedToId }, { userId: assignedToId }] },
+        select: { id: true, userId: true }
+      });
+      const ids = [assignedToId];
+      if (emp?.id) ids.push(emp.id);
+      if (emp?.userId) ids.push(emp.userId);
+      assignedFilter = { in: Array.from(new Set(ids)) };
+    }
 
     const leads = await app.prisma.lead.findMany({
       where: {
         ...(status && { status: status as any }),
-        ...(assignedToId && { assignedToId }),
+        ...(assignedFilter && { assignedToId: assignedFilter }),
         ...(businessUnit && { businessUnit }),
         ...(search && {
           OR: [
@@ -161,7 +173,7 @@ export default async function leadsRouter(app: FastifyInstance) {
         email: cleanEmail,
         phone: cleanPhone,
         source: body.source || 'WEBSITE',
-        status: body.status || (body.businessUnit === 'ACADEMY' ? 'ENQUIRY' : 'NEW'),
+        status: body.status || defaultLeadStatus(body.businessUnit),
         score 
       },
     });

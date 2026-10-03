@@ -14,6 +14,8 @@ interface CurrentUserContextType {
   employeeId: string | null;
   clientId: string | null;
   avatarUrl: string | null;
+  customRole: string | null;
+  permissions: string[];
   isLoading: boolean;
   
   // Notification fields (Phase 3)
@@ -33,6 +35,8 @@ const CurrentUserContext = createContext<CurrentUserContextType>({
   employeeId: null,
   clientId: null,
   avatarUrl: null,
+  customRole: null,
+  permissions: [],
   isLoading: true,
   notifications: [],
   unreadCount: 0,
@@ -51,26 +55,27 @@ export function CurrentUserProvider({ children }: { children: React.ReactNode })
   const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      // Set initial session user fallback
-      setUserData((prev: any) => prev || session.user)
-
+    if (status === 'authenticated') {
       // Fetch exact user details including studentId
       fetchApi('/auth/me')
         .then((res: any) => {
-          if (res?.user) {
+          if (res.user) {
             setUserData(res.user)
           }
         })
-        .catch(() => {
-          setUserData((prev: any) => prev || session.user)
+        .catch((e: any) => {
+           if (e.message?.includes('401') || e.message?.includes('404')) {
+             console.warn('User not authenticated');
+           } else {
+             console.error(e);
+           }
         })
         .finally(() => setIsLoading(false))
     } else if (status === 'unauthenticated') {
       setIsLoading(false)
       setUserData(null)
     }
-  }, [status, session])
+  }, [status])
 
   useEffect(() => {
     if (!userData?.id) return;
@@ -127,6 +132,8 @@ export function CurrentUserProvider({ children }: { children: React.ReactNode })
       employeeId: userData?.employeeId || null,
       clientId: userData?.clientId || null,
       avatarUrl: userData?.avatarUrl || null,
+      customRole: userData?.customRole || null,
+      permissions: userData?.permissions || [],
       isLoading: isLoading || status === 'loading',
       notifications,
       unreadCount,

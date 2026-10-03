@@ -98,11 +98,15 @@ export function JibblePunchModal({ action, employeeId, onClose, onSuccess }: Jib
     if (typeof window !== "undefined" && navigator.geolocation) {
       try {
         const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+          navigator.geolocation.getCurrentPosition(resolve, reject, { 
+            timeout: 10000, 
+            enableHighAccuracy: true,
+            maximumAge: 60000 
+          })
         })
         coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
-      } catch {
-        // Optional
+      } catch (geoErr) {
+        console.warn('[Jibble] Geolocation capture deferred/denied:', geoErr)
       }
     }
 
