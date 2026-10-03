@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useApi } from "@/lib/useApi"
 import { ClockWidget } from "@/components/hr/ClockWidget"
-import { Calendar, CheckCircle, Clock, ListTodo, Target, FileText, Lock, Shuffle, Monitor, DollarSign, Send, HelpCircle, AlertCircle } from "lucide-react"
+import { Calendar, CheckCircle, Clock, ListTodo, Target, FileText, Lock, Shuffle, Monitor, DollarSign, Send, HelpCircle, AlertCircle, Layers, Phone, ArrowRight, ExternalLink } from "lucide-react"
 import { useCurrency } from "@/hooks/useCurrency"
 import { useSession } from "next-auth/react"
 
@@ -63,8 +64,12 @@ export default function ESSDashboard() {
   const myPayslips = [
     { id: '1', month: 6, year: 2026, netSalary: 45000, paidAt: new Date(2026, 5, 30) },
     { id: '2', month: 5, year: 2026, netSalary: 45000, paidAt: new Date(2026, 4, 31) }
-
   ]
+
+  // 7. Fetch Assigned CRM Leads
+  const effectiveStaffId = activeEmployeeId || userId
+  const { data: leadsData } = useApi<any>(effectiveStaffId ? `/crm/leads?assignedToId=${effectiveStaffId}` : null)
+  const myLeads = leadsData?.data || []
 
   const { symbol } = useCurrency()
 
@@ -129,6 +134,61 @@ export default function ESSDashboard() {
         {/* Right Column: Tasks & Timesheets */}
         <div className="col-span-1 lg:col-span-2 space-y-8">
           
+          {/* Assigned CRM Leads */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Layers className="w-5 h-5 text-emerald-400" /> Assigned CRM Leads & Prospects
+              </h3>
+              <Link 
+                href="/dashboard/crm"
+                className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-wider"
+              >
+                <span>Open Pipeline</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              {myLeads.length > 0 ? myLeads.slice(0, 6).map((lead: any) => (
+                <div key={lead.id} className="flex items-center justify-between p-4 bg-black/40 rounded-xl border border-white/5 hover:border-emerald-500/30 transition-colors">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold text-sm text-white">{lead.name}</h4>
+                      {lead.company && <span className="text-xs text-white/50">({lead.company})</span>}
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-white/50">
+                      {lead.phone && (
+                        <span className="flex items-center gap-1 font-mono text-emerald-400/90">
+                          <Phone className="w-3 h-3 text-emerald-400" /> {lead.phone}
+                        </span>
+                      )}
+                      {lead.courseInterest && <span>Interest: {lead.courseInterest}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {lead.status}
+                    </span>
+                    <Link
+                      href={`/dashboard/crm?leadId=${lead.id}`}
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                      title="View Lead Details"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-white/40 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center">
+                  <Layers className="w-8 h-8 mb-3 opacity-40 text-emerald-400" />
+                  <p className="text-sm">No CRM leads currently assigned to you.</p>
+                  <p className="text-[10px] font-mono tracking-widest uppercase mt-2 text-white/30">New assigned leads will appear here automatically.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* My Tasks */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">

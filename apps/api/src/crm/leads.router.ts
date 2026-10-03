@@ -102,11 +102,22 @@ export default async function leadsRouter(app: FastifyInstance) {
       select: { phone: true }
     });
     const dncPhones = dncList.map(d => d.phone.trim()).filter(Boolean);
+    let assignedFilter: any = undefined;
+    if (assignedToId) {
+      const emp = await app.prisma.employee.findFirst({
+        where: { OR: [{ id: assignedToId }, { userId: assignedToId }] },
+        select: { id: true, userId: true }
+      });
+      const ids = [assignedToId];
+      if (emp?.id) ids.push(emp.id);
+      if (emp?.userId) ids.push(emp.userId);
+      assignedFilter = { in: Array.from(new Set(ids)) };
+    }
 
     const leads = await app.prisma.lead.findMany({
       where: {
         ...(status && { status: status as any }),
-        ...(assignedToId && { assignedToId }),
+        ...(assignedFilter && { assignedToId: assignedFilter }),
         ...(businessUnit && { businessUnit }),
         ...(search && {
           OR: [

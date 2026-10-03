@@ -6,10 +6,10 @@ import { getGeminiApiKey, generateJsonFromGemini } from '../utils/gemini';
 
 const HeartbeatSchema = z.object({
   employeeId: z.string().min(1),
-  activeMinutes: z.number().min(0),
-  idleMinutes: z.number().min(0),
-  keyboardStrokes: z.number().min(0),
-  mouseClicks: z.number().min(0),
+  activeMinutes: z.coerce.number().min(0).default(0),
+  idleMinutes: z.coerce.number().min(0).default(0),
+  keyboardStrokes: z.coerce.number().min(0).default(0),
+  mouseClicks: z.coerce.number().min(0).default(0),
   appCategory: z.enum(['DEEP_WORK', 'COMMUNICATION', 'NEUTRAL', 'DISTRACTION']).optional().default('DEEP_WORK'),
   activeAppTitle: z.string().optional()
 });
@@ -43,7 +43,7 @@ async function resolveEmployee(app: FastifyInstance, idOrUserId: string, authUse
     },
     include: {
       user: {
-        select: { id: true, firstName: true, lastName: true, avatar: true, email: true, role: true }
+        select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, role: true }
       }
     }
   });
@@ -61,7 +61,7 @@ async function resolveEmployee(app: FastifyInstance, idOrUserId: string, authUse
       },
       include: {
         user: {
-          select: { id: true, firstName: true, lastName: true, avatar: true, email: true, role: true }
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, role: true }
         }
       }
     });
@@ -92,7 +92,7 @@ async function resolveEmployee(app: FastifyInstance, idOrUserId: string, authUse
         },
         include: {
           user: {
-            select: { id: true, firstName: true, lastName: true, avatar: true, email: true, role: true }
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, role: true }
           }
         }
       });
@@ -102,7 +102,7 @@ async function resolveEmployee(app: FastifyInstance, idOrUserId: string, authUse
       return app.prisma.employee.findUnique({
         where: { userId: user.id },
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, avatar: true, email: true, role: true } }
+          user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, role: true } }
         }
       });
     }
@@ -154,50 +154,60 @@ export default async function telemetryRouter(app: FastifyInstance) {
   
   // POST /api/v1/hr/telemetry/heartbeat
   app.post('/heartbeat', async (req, reply) => {
-    const body = HeartbeatSchema.parse(req.body);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const authUserId = (req as any).user?.id;
-    const employee = await resolveEmployee(app, body.employeeId, authUserId);
-    if (!employee) {
-      return reply.code(404).send({ error: 'Employee profile not found' });
-    }
-
-    const telemetry = await app.prisma.employeeTelemetry.create({
-      data: {
-        employeeId: employee.id,
-        date: today,
-        activeMinutes: Math.round(body.activeMinutes),
-        idleMinutes: Math.round(body.idleMinutes),
-        keyboardStrokes: body.keyboardStrokes,
-        mouseClicks: body.mouseClicks
+    try {
+      const parsedBody = HeartbeatSchema.safeParse(req.body);
+      if (!parsedBody.success) {
+        return reply.code(200).send({ success: true, ignored: true, error: parsedBody.error.message });
       }
-    });
+      const body = parsedBody.data;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    // Real-time broadcast to connected supervisor/monitoring dashboards
-    if (typeof (app as any).broadcast === 'function') {
-      try {
-        (app as any).broadcast('TELEMETRY_HEARTBEAT', {
+      const authUserId = (req as any).user?.id;
+      const employee = await resolveEmployee(app, body.employeeId, authUserId);
+      if (!employee) {
+        return reply.code(200).send({ success: true, skipped: true, note: 'Employee not resolved' });
+      }
+
+      const telemetry = await app.prisma.employeeTelemetry.create({
+        data: {
           employeeId: employee.id,
-          userId: employee.userId,
-          name: `${employee.user?.firstName || 'Staff'} ${employee.user?.lastName || ''}`.trim(),
-          avatar: employee.user?.avatar,
-          activeMinutes: body.activeMinutes,
-          idleMinutes: body.idleMinutes,
+          date: today,
+          activeMinutes: Math.round(body.activeMinutes),
+          idleMinutes: Math.round(body.idleMinutes),
           keyboardStrokes: body.keyboardStrokes,
-          mouseClicks: body.mouseClicks,
-          appCategory: body.appCategory,
-          activeAppTitle: body.activeAppTitle || 'Grekam OS Workstation',
-          timestamp: new Date().toISOString()
-        });
-      } catch (wsErr) {
-        app.log.warn(`[Telemetry] WS Broadcast warning: ${wsErr}`);
-      }
-    }
+          mouseClicks: body.mouseClicks
+        }
+      });
 
-    reply.code(201);
-    return { success: true, telemetry };
+      // Real-time broadcast to connected supervisor/monitoring dashboards
+      if (typeof (app as any).broadcast === 'function') {
+        try {
+          (app as any).broadcast('TELEMETRY_HEARTBEAT', {
+            employeeId: employee.id,
+            userId: employee.userId,
+            name: `${employee.user?.firstName || 'Staff'} ${employee.user?.lastName || ''}`.trim(),
+            avatar: employee.user?.avatarUrl,
+            activeMinutes: body.activeMinutes,
+            idleMinutes: body.idleMinutes,
+            keyboardStrokes: body.keyboardStrokes,
+            mouseClicks: body.mouseClicks,
+            appCategory: body.appCategory,
+            activeAppTitle: body.activeAppTitle || 'Grekam OS Workstation',
+            timestamp: new Date().toISOString()
+          });
+        } catch (wsErr) {
+          app.log.warn(`[Telemetry] WS Broadcast warning: ${wsErr}`);
+        }
+      }
+
+      reply.code(201);
+      return { success: true, telemetry };
+    } catch (err: any) {
+      app.log.error(`[Telemetry Heartbeat Error]: ${err.message}`);
+      // Fail-proof: never return 500 to telemetry collector
+      return reply.code(200).send({ success: true, fallback: true });
+    }
   });
 
   // POST /api/v1/hr/telemetry/screenshot
@@ -276,7 +286,7 @@ export default async function telemetryRouter(app: FastifyInstance) {
   app.get('/leaderboard', async (req, reply) => {
     const employees = await app.prisma.employee.findMany({
       include: {
-        user: { select: { firstName: true, lastName: true, avatar: true } },
+        user: { select: { firstName: true, lastName: true, avatarUrl: true } },
         telemetry: {
           take: 7,
           orderBy: { date: 'desc' }
@@ -298,7 +308,7 @@ export default async function telemetryRouter(app: FastifyInstance) {
       return {
         id: emp.id,
         name: `${emp.user?.firstName || 'Employee'} ${emp.user?.lastName || ''}`.trim(),
-        avatar: emp.user?.avatar,
+        avatar: emp.user?.avatarUrl,
         jobTitle: emp.jobTitle || 'Team Member',
         deepWorkHours,
         focusScore,
@@ -445,7 +455,7 @@ Return ONLY valid JSON matching this exact structure:
         id: employee.id,
         userId: employee.userId,
         name: `${employee.user?.firstName || ''} ${employee.user?.lastName || ''}`.trim(),
-        avatar: employee.user?.avatar,
+        avatar: employee.user?.avatarUrl,
         jobTitle: employee.jobTitle,
         departmentId: employee.departmentId
       } : null,

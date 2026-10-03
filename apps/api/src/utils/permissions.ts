@@ -24,13 +24,15 @@ export const ACTION_VIEW = 'VIEW';
 /** Maps the coarse UserRole enum onto the configurable Role rows. */
 const BASE_ROLE_TO_SYSTEM_ROLE: Record<string, string> = {
   MANAGER: 'Management',
-  STAULT: 'Staff',
+  STAFF: 'Staff',
   INTERN: 'Staff',
   EDUCATOR: 'Academy Staff',
+  FREELANCER: 'Staff',
+  VENDOR: 'Staff',
 };
 
-/** Roles that must never resolve to compensation access. */
-const NEVER_ELEVATED = new Set(['CLIENT', 'STUDENT', 'VENDOR']);
+/** Roles that must never resolve to compensation access unless explicitly given custom role. */
+const NEVER_ELEVATED = new Set(['CLIENT', 'STUDENT']);
 
 type PermissionCache = WeakMap<object, Promise<Set<string>>>;
 const caches = new WeakMap<FastifyInstance, PermissionCache>();
@@ -40,16 +42,30 @@ async function loadPermissionSet(app: FastifyInstance, user: any): Promise<Set<s
   // Super admins bypass RBAC entirely.
   if (user?.role === 'SUPER_ADMIN') return new Set(['*|*']);
   if (!user?.id) return new Set();
-  if (NEVER_ELEVATED.has(user.role)) return new Set();
 
   const record = await (app as any).prisma.user.findUnique({
     where: { id: user.id },
-    select: { role: true, customRoleId: true, customRole: { select: { name: true } } },
+    select: { role: true, customRoleId: true, customRole: { select: { id: true, name: true } } },
   });
   if (!record) return new Set();
 
-  // An explicitly assigned custom role wins over the coarse base role.
-  const roleName = record.customRole?.name ?? BASE_ROLE_TO_SYSTEM_ROLE[record.role ?? ''];
+  // An explicitly assigned custom role always wins and loads directly
+  if (record.customRoleId || record.customRole) {
+    const perms = await (app as any).prisma.permission.findMany({
+      where: {
+        OR: [
+          ...(record.customRoleId ? [{ roleId: record.customRoleId }] : []),
+          ...(record.customRole?.name ? [{ role: { name: record.customRole.name } }] : [])
+        ]
+      },
+      select: { resource: true, action: true },
+    });
+    return new Set(perms.map((p: any) => `${p.resource}|${p.action}`));
+  }
+
+  if (NEVER_ELEVATED.has(record.role)) return new Set();
+
+  const roleName = BASE_ROLE_TO_SYSTEM_ROLE[record.role ?? ''];
   if (!roleName) return new Set();
 
   const perms = await (app as any).prisma.permission.findMany({

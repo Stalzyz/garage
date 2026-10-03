@@ -267,7 +267,7 @@ export default function CallIntelligenceDashboard() {
     if (!t.trim()) return toast.error("Please select a call from the table or paste a call transcript")
     setIsAnalyzing(true)
     try {
-      const res = await fetchApi("/crm/ai/analyze-call", {
+      const res = await fetchApi<any>("/crm/ai/analyze-call", {
         method: "POST",
         body: JSON.stringify({ transcript: t, prospectName: p || "Prospect", repName: r || "Sales Rep" })
       })
@@ -287,7 +287,7 @@ export default function CallIntelligenceDashboard() {
     if (!logCallForm.leadId) return toast.error("Please select a lead")
     setIsSubmittingCall(true)
     try {
-      const res = await fetchApi("/crm/telephony/recordings", {
+      const res = await fetchApi<any>("/crm/telephony/recordings", {
         method: "POST",
         body: JSON.stringify({
           leadId: logCallForm.leadId,
@@ -334,7 +334,7 @@ export default function CallIntelligenceDashboard() {
     e.preventDefault()
     setIsGeneratingScript(true)
     try {
-      const res = await fetchApi("/crm/ai/generate-call-script", {
+      const res = await fetchApi<any>("/crm/ai/generate-call-script", {
         method: "POST",
         body: JSON.stringify(scriptForm)
       })
@@ -609,7 +609,7 @@ export default function CallIntelligenceDashboard() {
                         className={`transition-all cursor-pointer ${selectedLogId === log.id ? 'bg-primary/20 border-l-4 border-l-primary font-semibold' : 'hover:bg-muted/15'}`}
                       >
                         <td className="px-3 py-2 font-mono text-muted-foreground">
-                          {format(new Date(log.timestamp), "hh:mm a")}
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td className="px-3 py-2 font-bold text-foreground">{log.telecallerName}</td>
                         <td className="px-3 py-2">

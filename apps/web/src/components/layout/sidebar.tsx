@@ -15,6 +15,7 @@ const RealtimeIndicator = dynamic(() => import("@/components/RealtimeIndicator")
 
 import { NotificationMenu } from "./NotificationMenu"
 import { TimerWidget } from "./TimerWidget"
+import { useCurrentUser } from "@/context/CurrentUserContext"
 
 function BrandLogo({ url, name, size = 32 }: { url?: string | null; name: string; size?: number }) {
   const [hasError, setHasError] = useState(false)
@@ -148,10 +149,11 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const currentUser = useCurrentUser()
   const [mobileOpen, setMobileOpen] = useState(false)
   const org = useOrganization()
 
-  let rawRole = session?.user?.role || "INTERN"
+  let rawRole = session?.user?.role || currentUser?.role || "INTERN"
   if (rawRole === "Super Admin") rawRole = "SUPER_ADMIN"
   if (rawRole === "Manager") rawRole = "MANAGER"
   if (rawRole === "Staff") rawRole = "STAFF"
@@ -159,11 +161,12 @@ export function Sidebar() {
   if (rawRole === "Student") rawRole = "STUDENT"
   if (rawRole === "Vendor") rawRole = "VENDOR"
   if (rawRole === "Intern") rawRole = "INTERN"
+  if (rawRole === "Freelancer" || rawRole === "FREELANCE") rawRole = "FREELANCER"
   
   const role = rawRole as Role
   
-  // Retrieve custom permissions from next-auth session if available
-  const customPermissions = (session?.user as any)?.permissions || []
+  // Retrieve custom permissions from next-auth session and CurrentUserContext
+  const customPermissions = (session?.user as any)?.permissions || (currentUser as any)?.permissions || []
   
   const navItems = getNavItemsByRole(role, customPermissions)
 

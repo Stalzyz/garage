@@ -12,6 +12,7 @@ export default async function meRouter(app: FastifyInstance) {
         student: { select: { id: true } },
         employee: { select: { id: true } },
         clientProfile: { select: { id: true } },
+        customRole: { include: { permissions: true } },
       }
     });
 
@@ -31,6 +32,8 @@ export default async function meRouter(app: FastifyInstance) {
         employeeId: user.employee?.id || null,
         clientId: user.clientProfile?.id || null,
         avatarUrl: user.avatarUrl,
+        customRole: user.customRole ? user.customRole.name : null,
+        permissions: user.customRole ? user.customRole.permissions.map((p: any) => p.resource) : [],
       }
     };
   });

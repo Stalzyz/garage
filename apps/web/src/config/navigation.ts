@@ -19,7 +19,7 @@ import {
   Trophy,
 } from "lucide-react"
 
-export type Role = "SUPER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "STUDENT" | "VENDOR" | "INTERN"
+export type Role = "SUPER_ADMIN" | "MANAGER" | "STAFF" | "CLIENT" | "STUDENT" | "VENDOR" | "INTERN" | "FREELANCER"
 
 export interface NavItem {
   title: string
@@ -35,33 +35,33 @@ export const navigation: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "CLIENT", "VENDOR", "INTERN", "STUDENT", "FREELANCER"],
   },
   {
     title: "Staff Tasks",
     href: "/dashboard/tasks",
     icon: CheckSquare,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "FREELANCER"],
   },
   {
     title: "Team Culture & Wins",
     href: "/dashboard/team-hub",
     icon: Trophy,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "FREELANCER"],
   },
 
   {
     title: "Employee Workspace (EOS / ESS)",
     href: "/dashboard/ess",
     icon: UserCheck,
-    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "INTERN", "FREELANCER", "VENDOR"],
   },
   {
     title: "CRM & Sales",
     href: "/dashboard/crm",
     icon: Layers,
     resource: "CRM & Sales",
-    roles: ["SUPER_ADMIN", "MANAGER"],
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF", "FREELANCER", "VENDOR", "INTERN"],
     children: [
       { title: "Lead Pipeline",  href: "/dashboard/crm" },
       { title: "Contacts",       href: "/dashboard/crm/contacts" },
@@ -221,14 +221,20 @@ export const navigation: NavItem[] = [
 ]
 
 export const getNavItemsByRole = (role: string, customPermissions?: string[]) => {
-  const normRole = (role || "").toUpperCase()
+  let normRole = (role || "").toUpperCase()
+  if (normRole === "FREELANCE") normRole = "FREELANCER"
   return navigation.filter((item) => {
     // Core workspace and productivity links are always available to roles that include them
     if (["/dashboard", "/dashboard/ess", "/dashboard/tasks", "/dashboard/team-hub", "/dashboard/notifications", "/dashboard/chat"].includes(item.href)) {
       return item.roles.includes(normRole as Role)
     }
     if (customPermissions && customPermissions.length > 0 && item.resource) {
-      return customPermissions.includes(item.resource)
+      const hasExplicitPermission = customPermissions.some(cp => 
+        cp.toLowerCase() === item.resource?.toLowerCase() ||
+        cp.toLowerCase().includes(item.resource?.toLowerCase() || '') ||
+        (item.resource && cp.toLowerCase().includes('crm') && item.resource.toLowerCase().includes('crm'))
+      )
+      if (hasExplicitPermission) return true
     }
     return item.roles.includes(normRole as Role)
   })

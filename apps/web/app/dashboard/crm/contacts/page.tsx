@@ -24,7 +24,9 @@ import {
   List as ListIcon,
   ExternalLink,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
+  Target,
+  Copy
 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -284,7 +286,7 @@ export default function ContactsAndCompaniesPage() {
     if (e) e.stopPropagation()
     if (!c.email) return toast.error("Contact must have an email address to generate portal credentials.")
     try {
-      const res = await fetchApi(`/crm/contacts/${c.id}/invite`, { method: "POST" })
+      const res = await fetchApi<any>(`/crm/contacts/${c.id}/invite`, { method: "POST" })
       if (res?.credentials) {
         setPortalModalData({
           isOpen: true,

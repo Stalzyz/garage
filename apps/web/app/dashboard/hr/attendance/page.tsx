@@ -4,7 +4,7 @@ import { useState } from "react"
 import { 
   Search, Plus, Filter, UserCheck, Clock, CheckCircle2, XCircle, LogIn, LogOut, 
   Calendar, Download, Eye, MapPin, Shuffle, Moon, Shield, Settings, Mail, ShieldAlert,
-  CalendarDays, Trash2, CheckCircle, AlertCircle
+  CalendarDays, Trash2, CheckCircle, AlertCircle, ExternalLink
 } from "lucide-react"
 import { SlideOver } from "@/components/SlideOver"
 import { toast } from "sonner"
@@ -503,10 +503,11 @@ export default function StaffAttendanceDashboard() {
                   <thead className="bg-muted/50 text-muted-foreground border-b border-border/50">
                     <tr>
                       <th className="px-6 py-4 font-medium">Employee</th>
+                      <th className="px-6 py-4 font-medium">Date</th>
                       <th className="px-6 py-4 font-medium">Status</th>
                       <th className="px-6 py-4 font-medium">Check In</th>
                       <th className="px-6 py-4 font-medium">Check Out</th>
-                      <th className="px-6 py-4 font-medium">Telemetry/Details</th>
+                      <th className="px-6 py-4 font-medium">Geo & Telemetry</th>
                       <th className="px-6 py-4 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
@@ -516,6 +517,14 @@ export default function StaffAttendanceDashboard() {
                         <td className="px-6 py-4">
                           <div className="font-medium text-foreground">{log.employee?.user?.firstName} {log.employee?.user?.lastName}</div>
                           <div className="text-xs text-muted-foreground">{log.employee?.jobTitle}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5 text-foreground font-mono text-xs font-semibold">
+                            <CalendarDays className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                            <span>
+                              {log.date ? new Date(log.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : (log.clockIn ? new Date(log.clockIn).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "--")}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border ${
@@ -544,10 +553,34 @@ export default function StaffAttendanceDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-xs space-y-0.5 text-muted-foreground">
-                            {log.isGeofenced && <div className="text-emerald-500 font-semibold flex items-center gap-1"> Verified GPS location</div>}
-                            {log.isRegularized && <div className="text-blue-500 font-semibold flex items-center gap-1">️ Regularized record</div>}
-                            {!log.isGeofenced && !log.isRegularized && <div>Standard web verification</div>}
+                          <div className="text-xs space-y-1">
+                            {log.latitude && log.longitude ? (
+                              <a
+                                href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-mono hover:underline bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-[11px]"
+                                title="View GPS Punch Location on Google Maps"
+                              >
+                                <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <span>{log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}</span>
+                                <ExternalLink className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                              </a>
+                            ) : (
+                              <div className="flex items-center gap-1 text-zinc-500 text-[11px] font-mono">
+                                <MapPin className="w-3 h-3 text-zinc-600 shrink-0" />
+                                <span>No GPS logged</span>
+                              </div>
+                            )}
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              {log.isGeofenced ? (
+                                <span className="text-emerald-400 font-medium">✓ Office Geofence Verified</span>
+                              ) : log.isRegularized ? (
+                                <span className="text-blue-400 font-medium">ℹ Regularized Record</span>
+                              ) : (
+                                <span>Standard Web Punch</span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -1259,13 +1292,23 @@ export default function StaffAttendanceDashboard() {
       {/* Review Log Modal */}
       {selectedLog && (
         <Modal onClose={() => setSelectedLog(null)}>
-          <div className="p-6 w-[500px] text-white">
-            <h2 className="text-xl font-bold mb-4">Review Attendance Log</h2>
-            <p className="text-xs text-white/50 mb-6 font-mono">
-              Employee: {selectedLog.employee?.user?.firstName} {selectedLog.employee?.user?.lastName}
-            </p>
+          <div className="p-6 w-[520px] text-white">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+              <div>
+                <h2 className="text-xl font-bold text-white">Review Attendance Log</h2>
+                <p className="text-xs text-white/60 font-mono mt-0.5">
+                  Employee: {selectedLog.employee?.user?.firstName} {selectedLog.employee?.user?.lastName} ({selectedLog.employee?.jobTitle || "Staff"})
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : (selectedLog.clockIn ? new Date(selectedLog.clockIn).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "Today")}
+                </span>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mb-2">Check In Photo</p>
                 <div className="w-full aspect-video bg-black/40 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center">
@@ -1293,6 +1336,40 @@ export default function StaffAttendanceDashboard() {
                   {selectedLog.clockOut ? new Date(selectedLog.clockOut).toLocaleTimeString() : "N/A"}
                 </p>
               </div>
+            </div>
+
+            {/* GPS Geo Logging Information Box */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-white/50 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Geo Location Logging
+                </span>
+                {selectedLog.isGeofenced && (
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                    ✓ Office Geofence Verified
+                  </span>
+                )}
+              </div>
+              {selectedLog.latitude && selectedLog.longitude ? (
+                <div className="flex items-center justify-between pt-1">
+                  <div className="text-xs font-mono text-white/80">
+                    Lat: <span className="text-emerald-400 font-bold">{selectedLog.latitude.toFixed(6)}</span>, Lon: <span className="text-emerald-400 font-bold">{selectedLog.longitude.toFixed(6)}</span>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps?q=${selectedLog.latitude},${selectedLog.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-mono text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
+                  >
+                    <span>Open in Google Maps</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              ) : (
+                <p className="text-xs text-white/40 font-mono italic">
+                  No GPS coordinates recorded for this punch session.
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">
