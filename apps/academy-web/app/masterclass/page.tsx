@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import Script from "next/script"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   CheckCircle2, ArrowRight, Calendar, Clock, Award, 
@@ -765,6 +766,15 @@ export default function MasterclassPage() {
         })
       })
 
+      // Track Meta Pixel Lead event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'Lead', {
+          content_name: '3-in-1 Masterclass',
+          value: 24999,
+          currency: 'INR',
+        })
+      }
+
       setIsSubmitted(true)
       toast.success("Enrollment enquiry submitted successfully! Our counselor will reach out within 2 hours.")
     } catch {
@@ -778,6 +788,35 @@ export default function MasterclassPage() {
   return (
     <div className="min-h-screen bg-[#0A0D14] text-white selection:bg-blue-500 selection:text-white font-sans relative overflow-x-hidden">
       
+      {/* Meta Pixel Code (ID: 1141630427850672) */}
+      <Script
+        id="meta-pixel-masterclass"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '1141630427850672');
+            fbq('track', 'PageView');
+          `,
+        }}
+      />
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: 'none' }}
+          src="https://www.facebook.com/tr?id=1141630427850672&ev=PageView&noscript=1"
+          alt="facebook-pixel"
+        />
+      </noscript>
+
       {/* Background Ambient Glows */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-r from-blue-600/15 via-purple-600/15 to-pink-600/15 blur-[140px] pointer-events-none z-0" />
       <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-emerald-600/10 blur-[160px] pointer-events-none z-0" />
