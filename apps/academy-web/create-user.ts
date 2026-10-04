@@ -2,7 +2,7 @@ import { prisma } from "./src/lib/prisma";
 import bcrypt from "bcryptjs";
 
 async function main() {
-  const hash = await bcrypt.hash('password123', 10);
+  const hash = await bcrypt.hash('Medusa11@', 10);
   await prisma.user.upsert({
     where: { email: 'admin@grekam.com' },
     update: { passwordHash: hash, role: 'SUPER_ADMIN' },
@@ -14,7 +14,7 @@ async function main() {
       role: 'SUPER_ADMIN'
     }
   });
-  console.log("User admin@grekam.com created successfully. Password: password123");
+  console.log("User admin@grekam.com created successfully. Password: Medusa11@");
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
