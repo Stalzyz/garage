@@ -673,7 +673,7 @@ const STUDENT_REVIEWS = [
 // ─────────────────────────────────────────────
 const MENTORS_DATA = [
   {
-    name: "Ashok Arvind",
+    name: "Ashok Aravind",
     experience: "4+ Years Experience",
     role: "Graphic Design & Motion Graphics Lead",
     skills: ["Graphic Designing", "Motion Graphics", "After Effects", "Photoshop", "Brand Identity"],
