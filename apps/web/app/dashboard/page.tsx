@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { 
-  Building2, LayoutTemplate, Users, GraduationCap, DollarSign, Briefcase, AlertCircle, 
+  Building2, Users, GraduationCap, DollarSign, Briefcase, AlertCircle, 
   TrendingUp, Phone, Plus, CheckCircle2, Clock, Calendar, ArrowUpRight, 
   Layers, ChevronRight, Activity, Award, UserCheck, FileText, CheckSquare,
   Compass, Filter, ExternalLink, ShieldCheck, PieChart, BarChart3, RefreshCw
@@ -15,7 +15,7 @@ import { motion } from "framer-motion"
 
 export default function CombinedGrekamOSDashboard() {
   const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState<"COMBINED" | "CRM" | "HRM" | "LMS" | "CMS">("COMBINED")
+  const [activeTab, setActiveTab] = useState<"COMBINED" | "CRM" | "HRM">("COMBINED")
 
   const { data: overview, isLoading, mutate: refreshOverview } = useApi<any>("/analytics/overview")
   const { data: revenueData } = useApi<any>("/analytics/revenue?months=6")
@@ -111,28 +111,6 @@ export default function CombinedGrekamOSDashboard() {
             }`}
           >
             <Users className="w-3.5 h-3.5" /> Team & Attendance
-          </button>
-
-          <button
-            onClick={() => setActiveTab("LMS")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors shrink-0 ${
-              activeTab === "LMS" 
-                ? "bg-white/[0.12] text-white shadow-xs" 
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <GraduationCap className="w-3.5 h-3.5" /> Academy
-          </button>
-
-          <button
-            onClick={() => setActiveTab("CMS")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors shrink-0 ${
-              activeTab === "CMS" 
-                ? "bg-white/[0.12] text-white shadow-xs" 
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <LayoutTemplate className="w-3.5 h-3.5" /> Page Builder
           </button>
         </div>
       </div>
@@ -414,128 +392,6 @@ export default function CombinedGrekamOSDashboard() {
                 <div className="text-2xl font-semibold text-[#30D158] tabular-nums">98%</div>
                 <p className="text-[11px] text-zinc-500">On-time check-in compliance</p>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ==================== TAB 4: LMS & ACADEMY ==================== */}
-        {activeTab === "LMS" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[#f5f5f7] flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-zinc-400" /> Academy Operations
-              </h2>
-              <Link href="/academy" className="px-3 py-1.5 bg-white text-black hover:bg-white/90 font-medium text-xs rounded-lg flex items-center gap-1.5 transition-colors">
-                <GraduationCap className="w-3.5 h-3.5" /> Academy Site
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] space-y-1">
-                <span className="text-[11px] text-zinc-400 font-medium">Total Students</span>
-                <div className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{students.toLocaleString()}</div>
-                <p className="text-[11px] text-zinc-500">Active student accounts</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] space-y-1">
-                <span className="text-[11px] text-zinc-400 font-medium">Active Cohorts</span>
-                <div className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{activeBatches} Live</div>
-                <p className="text-[11px] text-zinc-500">Ongoing cohorts</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] space-y-1">
-                <span className="text-[11px] text-zinc-400 font-medium">Hiring Network</span>
-                <div className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">18 Partners</div>
-                <p className="text-[11px] text-zinc-500">Corporate placement partners</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ==================== TAB 5: CMS & PAGE BUILDER ==================== */}
-        {activeTab === "CMS" && (
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold text-[#f5f5f7] flex items-center gap-2">
-                  <LayoutTemplate className="w-4 h-4 text-zinc-400" /> CMS & Page Builder
-                </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">Drag-and-drop website builder and landing pages.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link 
-                  href="/dashboard/cms/pages/builder" 
-                  className="px-3 py-1.5 bg-white text-black hover:bg-white/90 font-medium text-xs rounded-lg flex items-center gap-1.5 transition-colors"
-                >
-                  <Layers className="w-3.5 h-3.5" /> Visual Builder
-                </Link>
-                <Link 
-                  href="/dashboard/cms" 
-                  className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.12] text-zinc-200 border border-white/[0.08] font-medium text-xs rounded-lg flex items-center gap-1.5 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5" /> All Pages
-                </Link>
-              </div>
-            </div>
-
-            {/* CMS Operations Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link 
-                href="/dashboard/cms/pages/builder"
-                className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] hover:border-white/[0.12] transition-colors block group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2 rounded-lg bg-white/[0.05] text-zinc-300">
-                    <LayoutTemplate className="w-4 h-4" />
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/[0.05] text-zinc-400">
-                    Visual Editor
-                  </span>
-                </div>
-                <h3 className="text-sm font-medium text-[#f5f5f7] group-hover:text-white transition-colors">Page Builder</h3>
-                <p className="text-xs text-zinc-400 mt-1 leading-normal">Design custom landing pages block-by-block with live drag & drop preview.</p>
-                <div className="flex items-center gap-1 text-xs text-[#0A84FF] font-medium mt-3">
-                  Open Builder <ArrowUpRight className="w-3.5 h-3.5" />
-                </div>
-              </Link>
-
-              <Link 
-                href="/dashboard/cms/courses"
-                className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] hover:border-white/[0.12] transition-colors block group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2 rounded-lg bg-white/[0.05] text-zinc-300">
-                    <GraduationCap className="w-4 h-4" />
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/[0.05] text-zinc-400">
-                    Courses
-                  </span>
-                </div>
-                <h3 className="text-sm font-medium text-[#f5f5f7] group-hover:text-white transition-colors">Courses & Modules</h3>
-                <p className="text-xs text-zinc-400 mt-1 leading-normal">Manage course curriculum, modules, pricing, and enrollments.</p>
-                <div className="flex items-center gap-1 text-xs text-[#0A84FF] font-medium mt-3">
-                  Manage Courses <ArrowUpRight className="w-3.5 h-3.5" />
-                </div>
-              </Link>
-
-              <Link 
-                href="/dashboard/cms/portfolio"
-                className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] hover:border-white/[0.12] transition-colors block group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2 rounded-lg bg-white/[0.05] text-zinc-300">
-                    <Compass className="w-4 h-4" />
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/[0.05] text-zinc-400">
-                    Showcase
-                  </span>
-                </div>
-                <h3 className="text-sm font-medium text-[#f5f5f7] group-hover:text-white transition-colors">Portfolio</h3>
-                <p className="text-xs text-zinc-400 mt-1 leading-normal">Curate case studies, video reels, and client production showcases.</p>
-                <div className="flex items-center gap-1 text-xs text-[#0A84FF] font-medium mt-3">
-                  Manage Portfolio <ArrowUpRight className="w-3.5 h-3.5" />
-                </div>
-              </Link>
             </div>
           </div>
         )}

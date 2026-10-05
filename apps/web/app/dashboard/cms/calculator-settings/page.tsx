@@ -76,7 +76,7 @@ export default function CalculatorSettingsAdminPage() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Link
-              href="/dashboard/cms"
+              href="/dashboard"
               className="text-xs font-mono text-slate-500 hover:text-slate-900 flex items-center gap-1"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to CMS

@@ -209,8 +209,6 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const hrModule = (await import('./hr')).default;
   await app.register(hrModule, { prefix: '/api/v1/hr' });
 
-  const academyModule = (await import('./academy')).default;
-  await app.register(academyModule, { prefix: '/api/v1/academy' });
 
   const projectsModule = (await import('./projects')).default;
   await app.register(projectsModule, { prefix: '/api/v1/projects' });
@@ -268,8 +266,6 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const storageModule = (await import('./storage')).default;
   await app.register(storageModule, { prefix: '/api/v1/storage' });
 
-  const cmsModule = (await import('./cms')).default;
-  await app.register(cmsModule, { prefix: '/api/v1/cms' });
 
   const workspaceModule = (await import('./workspace')).default;
   await app.register(workspaceModule, { prefix: '/api/v1/workspace' });

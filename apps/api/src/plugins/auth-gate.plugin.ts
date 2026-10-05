@@ -30,12 +30,6 @@ const PUBLIC_PREFIXES: string[] = [
   // marketing pages. NOTE: apps/web/app/agency does not exist in this repo, so
   // re-check this allowance against the real pages once that route is built.
   //
-  // Scoped to the `cms/` prefix deliberately: /storage/asset/* is a wildcard
-  // over the whole R2 bucket, which also holds client documents and invoices.
-  // Widening this to the full route would publish those to the internet.
-  // Every other /asset/ key, and all of /uploads/, now requires a session.
-  '/api/v1/storage/asset/cms/',
-  // Audio call recordings for in-browser playback in CRM
   '/api/v1/uploads/recordings/',
 ];
 
@@ -61,10 +55,6 @@ const PUBLIC_EXACT: Array<{ method: string; path: string }> = [
   // Password recovery runs while the user is signed out.
   { method: 'POST', path: '/api/v1/auth/forgot-password' },
   { method: 'POST', path: '/api/v1/auth/password' },
-
-  // Public kiosk on academy.grekam.in submits a walk-in.
-  // NOTE: only POST. GET/PATCH on this path list and edit captured walk-ins.
-  { method: 'POST', path: '/api/v1/academy/walk-ins' },
 ];
 
 /**
