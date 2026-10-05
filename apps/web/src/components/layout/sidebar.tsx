@@ -153,15 +153,18 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const org = useOrganization()
 
-  let rawRole = session?.user?.role || currentUser?.role || "INTERN"
-  if (rawRole === "Super Admin") rawRole = "SUPER_ADMIN"
-  if (rawRole === "Manager") rawRole = "MANAGER"
-  if (rawRole === "Staff") rawRole = "STAFF"
-  if (rawRole === "Client") rawRole = "CLIENT"
-  if (rawRole === "Student") rawRole = "STUDENT"
-  if (rawRole === "Vendor") rawRole = "VENDOR"
-  if (rawRole === "Intern") rawRole = "INTERN"
-  if (rawRole === "Freelancer" || rawRole === "FREELANCE") rawRole = "FREELANCER"
+  let rawRole = (session?.user?.role || currentUser?.role || "INTERN").toUpperCase()
+  if (rawRole === "SUPER ADMIN") rawRole = "SUPER_ADMIN"
+  if (rawRole === "ADMIN" || rawRole === "GARAGE_OWNER" || rawRole === "OWNER") rawRole = "ADMIN"
+  if (rawRole === "MANAGER") rawRole = "MANAGER"
+  if (rawRole === "STAFF") rawRole = "STAFF"
+  if (rawRole === "CLIENT") rawRole = "CLIENT"
+  if (rawRole === "STUDENT") rawRole = "STUDENT"
+  if (rawRole === "VENDOR") rawRole = "VENDOR"
+  if (rawRole === "INTERN") rawRole = "INTERN"
+  if (rawRole === "FREELANCER" || rawRole === "FREELANCE") rawRole = "FREELANCER"
+  if (rawRole === "PARTNER") rawRole = "PARTNER"
+  if (rawRole === "RESELLER" || rawRole === "RESELLER_ADMIN" || rawRole === "RESELLER ADMIN") rawRole = "RESELLER_ADMIN"
   
   const role = rawRole as Role
   
@@ -194,7 +197,15 @@ export function Sidebar() {
           { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
           { title: "Alerts", href: "/dashboard/notifications", icon: Bell },
         ]
-      default: // SUPER_ADMIN, MANAGER, STAFF
+      case "PARTNER":
+      case "RESELLER_ADMIN":
+        return [
+          { title: "Overview", href: "/dashboard/partner", icon: LayoutDashboard },
+          { title: "Garages", href: "/dashboard/partner/customers", icon: Briefcase },
+          { title: "Wallet", href: "/dashboard/partner/wallet", icon: DollarSign },
+          { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
+        ]
+      default: // SUPER_ADMIN, ADMIN, MANAGER, STAFF
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "CRM", href: "/dashboard/crm", icon: Layers },

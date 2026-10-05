@@ -6,6 +6,7 @@ import { CommandPalette } from "@/components/ui/CommandPalette"
 import { TelemetryNotifier } from "@/components/TelemetryNotifier"
 import { GlobalClockWidget } from "@/components/hr/GlobalClockWidget"
 import { WebSocketProvider } from "@/components/providers/WebSocketProvider"
+import { DemoRoleSwitcherBar } from "@/components/layout/DemoRoleSwitcherBar"
 
 import { LiveTelemetryCollector } from "@/components/hr/LiveTelemetryCollector"
 import { CurrentUserProvider } from "@/context/CurrentUserContext"
@@ -35,22 +36,24 @@ export default async function DashboardLayout({
   return (
       <SessionProvider session={session}>
         <TenantProvider>
-          <div className="flex h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300 print:h-auto print:block print:overflow-visible">
-            <WebSocketProvider>
-            <CurrentUserProvider>
-              <Sidebar />
-              <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-w-0 bg-dash-bg-surface md:border-l border-dash-border-subtle relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-200 print:overflow-visible print:h-auto print:block print:p-0 print:m-0 print:border-none print:shadow-none">
-                {children}
-              </main>
-              <div className="print:hidden">
-                <GlobalClockWidget />
-                <CommandPalette />
-                <TelemetryNotifier />
-                <LiveTelemetryCollector />
-              </div>
-
-            </CurrentUserProvider>
-          </WebSocketProvider>
+          <div className="flex flex-col h-screen overflow-hidden bg-dash-bg-base text-dash-text-primary selection:bg-blue-500/30 font-sans transition-colors duration-300 print:h-auto print:block print:overflow-visible">
+            <DemoRoleSwitcherBar />
+            <div className="flex flex-1 overflow-hidden relative">
+              <WebSocketProvider>
+                <CurrentUserProvider>
+                  <Sidebar />
+                  <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-w-0 bg-dash-bg-surface md:border-l border-dash-border-subtle relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-200 print:overflow-visible print:h-auto print:block print:p-0 print:m-0 print:border-none print:shadow-none">
+                    {children}
+                  </main>
+                  <div className="print:hidden">
+                    <GlobalClockWidget />
+                    <CommandPalette />
+                    <TelemetryNotifier />
+                    <LiveTelemetryCollector />
+                  </div>
+                </CurrentUserProvider>
+              </WebSocketProvider>
+            </div>
           </div>
         </TenantProvider>
       </SessionProvider>
