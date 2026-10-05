@@ -64,13 +64,13 @@ function LeadCard({
 
   // Calculate Status Badge
   const getAiBadge = () => {
-    if (lead.status === 'WON') return { label: 'Deal Won', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
-    if (lead.status === 'LOST' || lead.status === 'DROPPED') return { label: 'Closed', color: 'bg-white/5 text-slate-400 border-white/10' };
-    if (lead.score >= 80 || lead.status === 'NEGOTIATION') return { label: 'High Intent', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' };
-    if (lead.status === 'PROPOSAL_SENT') return { label: 'Proposal Review', color: 'bg-blue-500/10 text-blue-300 border-blue-500/20' };
-    if (lead.status === 'QUALIFIED') return { label: 'Qualified', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' };
-    if (isStale) return { label: 'Follow-up Due', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20' };
-    return { label: 'New Lead', color: 'bg-white/5 text-slate-400 border-white/10' };
+    if (lead.status === 'WON') return { label: 'Won', color: 'bg-[#30D158]/15 text-[#30D158] border-[#30D158]/20' };
+    if (lead.status === 'LOST' || lead.status === 'DROPPED') return { label: 'Closed', color: 'bg-white/[0.05] text-zinc-400 border-white/[0.08]' };
+    if (lead.status === 'INTERESTED' || lead.score >= 80 || lead.status === 'NEGOTIATION') return { label: 'Booked', color: 'bg-[#30D158]/15 text-[#30D158] border-[#30D158]/20' };
+    if (lead.status === 'PROPOSAL_SENT') return { label: 'Proposal Sent', color: 'bg-[#0A84FF]/15 text-[#0A84FF] border-[#0A84FF]/20' };
+    if (lead.status === 'QUALIFIED') return { label: 'Qualified', color: 'bg-[#0A84FF]/15 text-[#0A84FF] border-[#0A84FF]/20' };
+    if (lead.status === 'FOLLOW_UP' || isStale) return { label: 'Follow-up', color: 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/20' };
+    return { label: 'New', color: 'bg-white/[0.05] text-zinc-400 border-white/[0.08]' };
   };
 
   const aiBadge = getAiBadge();
@@ -81,22 +81,22 @@ function LeadCard({
       onDragStart={(e) => onDragStart(e, lead.id)}
       onDragEnd={onDragEnd}
       onClick={() => onOpenLead(lead)}
-      className={`bg-[var(--dash-bg-surface,#111)] border rounded-xl p-4 cursor-grab active:cursor-grabbing mb-3 transition-all relative group select-none ${
+      className={`bg-[#1c1c1e] border rounded-xl p-3.5 cursor-grab active:cursor-grabbing mb-2.5 transition-colors relative group select-none ${
         isDragged
-          ? 'opacity-40 scale-95 border-dashed border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+          ? 'opacity-40 border-dashed border-white/30'
           : isHighRisk
-          ? 'border-red-500/40 bg-red-950/10 hover:border-red-500/60'
+          ? 'border-[#FF453A]/30 hover:border-[#FF453A]/50'
           : isStale
-          ? 'border-amber-500/30 hover:border-amber-500/50'
-          : 'border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] hover:border-blue-500/40 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:-translate-y-0.5'
+          ? 'border-[#FF9F0A]/30 hover:border-[#FF9F0A]/50'
+          : 'border-white/[0.08] hover:border-white/[0.16] hover:bg-[#222225]'
       }`}
     >
-      <div className="flex justify-between items-start mb-2 gap-2">
-        <h4 className="font-bold text-sm text-[var(--dash-text-primary)] truncate flex-1 group-hover:text-blue-400 transition-colors">
+      <div className="flex justify-between items-start mb-1.5 gap-2">
+        <h4 className="font-medium text-xs text-[#f5f5f7] truncate flex-1 group-hover:text-white transition-colors">
           {lead.name}
         </h4>
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${aiBadge.color}`}>
+          <span className={`text-[10px] font-medium px-1.5 py-0.2 rounded-md border ${aiBadge.color}`}>
             {aiBadge.label}
           </span>
           <div className="flex items-center gap-0.5 bg-black/40 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-blue-400 border border-white/10">
@@ -316,20 +316,20 @@ export function KanbanBoard({
             onDragOver={(e) => handleDragOver(e, col.id)}
             onDrop={(e) => handleDrop(e, col.id)}
             onDragLeave={() => setDragOverColumn(null)}
-            className={`flex flex-col min-w-[285px] w-[285px] border rounded-2xl h-full flex-shrink-0 transition-all duration-150 ${
+            className={`flex flex-col min-w-[270px] w-[270px] border rounded-xl h-full flex-shrink-0 transition-colors ${
               isColumnHovered
-                ? 'bg-blue-500/10 border-blue-500/50 border-dashed ring-2 ring-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
-                : 'bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border-white/5'
+                ? 'bg-[#1c1c1e] border-[#0A84FF]/60 border-dashed'
+                : 'bg-[#121214] border-white/[0.06]'
             }`}
           >
             {/* Column Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between group/hdr">
+            <div className="p-3 border-b border-white/[0.06] flex items-center justify-between group/hdr">
               <div>
-                <h3 className="font-bold text-xs font-mono tracking-widest uppercase text-[var(--dash-text-primary)]/70">
+                <h3 className="font-semibold text-xs text-[#f5f5f7]">
                   {col.title}
                 </h3>
                 {columnValue > 0 && (
-                  <p className="text-[10px] font-mono text-emerald-400 font-bold mt-0.5">
+                  <p className="text-[10px] text-zinc-400 tabular-nums mt-0.5">
                     {symbol}{columnValue.toLocaleString('en-IN')}
                   </p>
                 )}
@@ -339,13 +339,13 @@ export function KanbanBoard({
                   <button
                     type="button"
                     onClick={() => handleRemoveColumn(col.id)}
-                    className="opacity-0 group-hover/hdr:opacity-100 text-red-400/60 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition-all"
+                    className="opacity-0 group-hover/hdr:opacity-100 text-zinc-500 hover:text-red-400 p-1 rounded transition-colors"
                     title="Remove Custom Stage Column"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
                 )}
-                <span className="bg-white/10 text-[var(--dash-text-primary)]/50 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+                <span className="bg-white/[0.06] text-zinc-400 text-[10px] px-1.5 py-0.2 rounded-md font-medium tabular-nums">
                   {colLeads.length}
                 </span>
               </div>

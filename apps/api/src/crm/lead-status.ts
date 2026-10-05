@@ -41,6 +41,8 @@ const AGENCY_STAGES = new Set<LeadStatus>([
   'NEGOTIATION',
   'WON',
   'LOST',
+  'FOLLOW_UP',
+  'INTERESTED',
 ]);
 
 /** Is this a known stage at all? */

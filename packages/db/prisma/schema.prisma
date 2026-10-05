@@ -517,6 +517,8 @@ enum LeadStatus {
   TRIAL
   ENROLLED_ACADEMY
   DROPPED
+  FOLLOW_UP
+  INTERESTED
 }
 
 enum LeadSource {
