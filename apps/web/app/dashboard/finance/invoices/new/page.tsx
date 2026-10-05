@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchApi, useApi } from "@/lib/useApi";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Trash2, Save, Calculator, User, Users, Eye, Building2, BookmarkPlus, Zap } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Save, Calculator, User, Users, Eye, Building2, BookmarkPlus } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency"
@@ -217,9 +217,7 @@ export default function NewInvoicePage() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-6 lg:p-10 text-white relative">
-      <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
-      
+    <div className="flex flex-col h-full overflow-y-auto p-6 lg:p-8 text-white relative">
       <div className="max-w-4xl w-full mx-auto relative z-10">
         <Link href="/dashboard/finance" className="inline-flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white transition-colors mb-6">
           <ChevronLeft className="w-3.5 h-3.5" /> Back to Finance Hub
@@ -227,50 +225,50 @@ export default function NewInvoicePage() {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoice Builder</h1>
-            <p className="text-xs font-mono text-white/40 mt-1 tracking-widest uppercase">
-              {docType === 'PROFORMA' ? 'Create new proforma invoice / estimate' : 'Create new tax invoice'}
+            <h1 className="text-2xl font-semibold tracking-tight text-white">Invoice Builder</h1>
+            <p className="text-xs text-white/40 mt-1">
+              {docType === 'PROFORMA' ? 'Create new proforma invoice / estimate' : 'Create new standard tax invoice'}
             </p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
             <button 
               onClick={() => setShowPreview(true)}
-              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 text-xs px-5 py-3 rounded-xl transition-all min-h-[44px]"
+              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/90 hover:text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-colors"
             >
-              <Eye className="w-4 h-4" /> Preview
+              <Eye className="w-3.5 h-3.5" /> Preview
             </button>
             <button 
               onClick={handleSave} 
               disabled={isSubmitting}
-              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 min-h-[44px]"
+              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-[#0A84FF] hover:bg-[#0071E3] text-white font-medium text-xs px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
+              <Save className="w-3.5 h-3.5" /> {isSubmitting ? "Saving..." : "Save Invoice"}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-5">
             
             {/* Invoice Meta */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
-              <h2 className="text-sm font-bold mb-4 font-mono uppercase tracking-widest text-white/50 border-b border-white/10 pb-2">Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-[#161618] border border-white/[0.08] p-5 rounded-xl">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50 border-b border-white/[0.06] pb-2.5 mb-4">Document Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Document Type</label>
+                  <label className="block text-[11px] font-medium text-white/50 mb-1.5">Document Type</label>
                   <select 
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 text-emerald-400"
+                    className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-medium outline-none focus:border-[#0A84FF] text-white"
                     value={docType}
                     onChange={e => handleDocTypeChange(e.target.value as "TAX" | "PROFORMA")}
                   >
-                    <option value="TAX" className="bg-slate-900 text-white">Tax Invoice (INV-)</option>
-                    <option value="PROFORMA" className="bg-slate-900 text-amber-400">Proforma Invoice (PI-)</option>
+                    <option value="TAX">Tax Invoice (INV-)</option>
+                    <option value="PROFORMA">Proforma Invoice (PI-)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Invoice Number</label>
+                  <label className="block text-[11px] font-medium text-white/50 mb-1.5">Invoice Number</label>
                   <input 
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500"
+                    className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-[#0A84FF] text-white"
                     value={invoice.invoiceNumber}
                     onChange={e => {
                       const val = e.target.value;
@@ -281,45 +279,45 @@ export default function NewInvoicePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Due Date</label>
+                  <label className="block text-[11px] font-medium text-white/50 mb-1.5">Due Date</label>
                   <input 
                     type="date"
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] text-white"
                     value={invoice.dueDate}
                     onChange={e => setInvoice({...invoice, dueDate: e.target.value})}
                   />
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Client Info */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
-              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
-                <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white/50">Bill To</h2>
+            <div className="bg-[#161618] border border-white/[0.08] p-5 rounded-xl">
+              <div className="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-2.5">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50">Bill To</h2>
                 
                 {/* CRM Autofill */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-1"><Users className="w-3 h-3"/> Auto-fill:</span>
+                  <span className="text-[11px] text-white/40 flex items-center gap-1"><Users className="w-3 h-3"/> Auto-fill:</span>
                   <select
-                    className="bg-black/40 border border-white/10 rounded text-xs px-2 py-1 outline-none focus:border-emerald-500 text-emerald-400 font-semibold"
+                    className="bg-[#121214] border border-white/[0.08] rounded-md text-xs px-2.5 py-1 outline-none focus:border-[#0A84FF] text-white/90 font-medium"
                     value={assignType}
                     onChange={(e) => setAssignType(e.target.value as any)}
                   >
-                    <option value="MANUAL" className="bg-slate-900 text-white">Manual Entry</option>
-                    <option value="CONTACT" className="bg-slate-900 text-emerald-400">From Contacts ({contacts.length})</option>
-                    <option value="LEAD" className="bg-slate-900 text-blue-400">From Leads ({leads.length})</option>
-                    <option value="COMPANY" className="bg-slate-900 text-indigo-400">From Saved Companies ({companies.length})</option>
+                    <option value="MANUAL">Manual Entry</option>
+                    <option value="CONTACT">From Contacts ({contacts.length})</option>
+                    <option value="LEAD">From Leads ({leads.length})</option>
+                    <option value="COMPANY">From Saved Companies ({companies.length})</option>
                   </select>
                 </div>
               </div>
 
               {assignType !== "MANUAL" && (
-                <div className="mb-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg">
-                  <label className="block text-[10px] uppercase tracking-widest text-emerald-400 mb-1">
+                <div className="mb-4 bg-[#121214] border border-white/[0.08] p-3 rounded-lg">
+                  <label className="block text-[11px] font-medium text-white/60 mb-1.5">
                     Select {assignType === "LEAD" ? "Lead" : assignType === "CONTACT" ? "Contact" : "Saved Company"}
                   </label>
                   <select
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] text-white"
                     onChange={(e) => handleCrmSelect(e.target.value)}
                     defaultValue=""
                   >
@@ -337,44 +335,44 @@ export default function NewInvoicePage() {
               
               <div className="space-y-4">
                 {/* 🏢 Company Particulars */}
-                <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-bold text-blue-400 font-mono uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5"><Building2 className="w-4 h-4 text-blue-400" /> Company / Organization (Legal Entity)</span>
+                <div className="bg-[#121214] p-4 rounded-xl border border-white/[0.06] space-y-3">
+                  <div className="flex items-center justify-between text-xs font-medium text-white/70">
+                    <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-[#0A84FF]" /> Company / Organization</span>
                     {invoice.companyName.trim() && (
                       <button
                         type="button"
                         onClick={handleSaveCompanyToCrm}
                         disabled={isSavingCompany}
-                        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all disabled:opacity-50"
+                        className="text-[11px] bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors disabled:opacity-50"
                         title="Save this company name & GSTIN to CRM database for future invoices"
                       >
-                        <BookmarkPlus className="w-3 h-3" /> {isSavingCompany ? "Saving..." : "Save to CRM"}
+                        <BookmarkPlus className="w-3 h-3 text-[#0A84FF]" /> {isSavingCompany ? "Saving..." : "Save to CRM"}
                       </button>
                     )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Company Legal Name</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Company Legal Name</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 placeholder:text-white/20"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 text-white"
                         placeholder="e.g. Raaghas Retail Pvt Ltd"
                         value={invoice.companyName}
                         onChange={e => setInvoice({...invoice, companyName: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Company GSTIN</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Company GSTIN</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-blue-500 placeholder:text-white/20 uppercase"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-[#0A84FF] placeholder:text-white/20 uppercase text-white"
                         placeholder="33AAAAA0000A1Z5"
                         value={invoice.clientGst}
                         onChange={e => setInvoice({...invoice, clientGst: e.target.value})}
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Registered Billing Address</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Registered Billing Address</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 placeholder:text-white/20"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 text-white"
                         placeholder="No. 42 Anna Salai, Chennai, Tamil Nadu – 600002"
                         value={invoice.clientAddress}
                         onChange={e => setInvoice({...invoice, clientAddress: e.target.value})}
@@ -384,35 +382,35 @@ export default function NewInvoicePage() {
                 </div>
 
                 {/* 👤 Contact Person Particulars */}
-                <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 font-mono uppercase tracking-wider">
-                    <User className="w-4 h-4 text-emerald-400" />
-                    <span>Contact Person (Attention To / SPOC)</span>
+                <div className="bg-[#121214] p-4 rounded-xl border border-white/[0.06] space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-medium text-white/70">
+                    <User className="w-3.5 h-3.5 text-[#30D158]" />
+                    <span>Contact Person</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Contact Name</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Contact Name</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 text-white"
                         placeholder="e.g. Stalin Kumar"
                         value={invoice.contactName}
                         onChange={e => setInvoice({...invoice, contactName: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Direct Email</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Email Address</label>
                       <input 
                         type="email"
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 text-white"
                         placeholder="stalin@raaghas.com"
                         value={invoice.clientEmail}
                         onChange={e => setInvoice({...invoice, clientEmail: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Direct Phone / WhatsApp</label>
+                      <label className="block text-[10px] font-medium text-white/40 mb-1">Phone / WhatsApp</label>
                       <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20"
+                        className="w-full bg-[#161618] border border-white/[0.08] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 text-white"
                         placeholder="+91 98400 12345"
                         value={invoice.clientPhone}
                         onChange={e => setInvoice({...invoice, clientPhone: e.target.value})}
@@ -421,56 +419,56 @@ export default function NewInvoicePage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Line Items & Presets */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
-              <div className="flex justify-between items-end mb-3 border-b border-white/10 pb-2">
+            <div className="bg-[#161618] border border-white/[0.08] p-5 rounded-xl">
+              <div className="flex justify-between items-end mb-3 border-b border-white/[0.06] pb-2.5">
                 <div>
-                  <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white/50">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50">
                     {invoice.businessUnit === 'ACADEMY' ? 'Academy Fee Items' : 'Service Line Items'}
                   </h2>
-                  <p className="text-[10px] text-white/40 mt-0.5">
-                    {invoice.businessUnit === 'ACADEMY' ? 'SAC 9992 — Vocational & Education Services' : 'SAC 9983 — Information Technology & Digital Agency'}
+                  <p className="text-[11px] text-white/40 mt-0.5">
+                    {invoice.businessUnit === 'ACADEMY' ? 'SAC 9992 — Vocational & Education Services' : 'SAC 9983 — Information Technology & Digital Services'}
                   </p>
                 </div>
-                <button onClick={addItem} className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 text-emerald-400 hover:text-emerald-300">
+                <button onClick={addItem} className="text-xs font-medium flex items-center gap-1 text-[#0A84FF] hover:underline">
                   <Plus className="w-3.5 h-3.5" /> Add Item
                 </button>
               </div>
 
               {/* Quick Presets */}
-              <div className="mb-5 flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-[10px] text-white/40 uppercase tracking-widest self-center mr-1 flex items-center gap-1.5 font-medium">
-                  <Zap className="w-3 h-3 text-amber-400" /> Presets:
+              <div className="mb-4 flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[11px] text-white/40 self-center mr-1 flex items-center gap-1 font-medium">
+                  <BookmarkPlus className="w-3 h-3 text-[#FF9F0A]" /> Presets:
                 </span>
                 {invoice.businessUnit === 'ACADEMY' ? (
                   <>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Fullstack Web & AI Bootcamp Tuition Fee", quantity: 1, unitPrice: 35000, discountRate: 0, taxRate: 18, hsnCode: "999293" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + Web Bootcamp (₹35k, SAC 999293)
+                      + Web Bootcamp (₹35k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Student Registration & Admission Fee", quantity: 1, unitPrice: 3000, discountRate: 0, taxRate: 18, hsnCode: "999299" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + Admission Fee (₹3k, SAC 999299)
+                      + Admission (₹3k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Student Course Kit & Cloud Lab Access", quantity: 1, unitPrice: 5000, discountRate: 0, taxRate: 18, hsnCode: "999299" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
                       + Study Kit & Lab (₹5k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Vocational Certification Course (GST-Exempt)", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 0, hsnCode: "999293" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
                       + Exempt Course (0% GST)
                     </button>
@@ -480,138 +478,138 @@ export default function NewInvoicePage() {
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Next.js Web Application & API Engine", quantity: 1, unitPrice: 45000, discountRate: 0, taxRate: 18, hsnCode: "998314" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + Web & API (₹45k, SAC 998314)
+                      + Web & API (₹45k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "UI/UX Prototyping & Brand Design System", quantity: 1, unitPrice: 25000, discountRate: 0, taxRate: 18, hsnCode: "998313" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + UI/UX & Brand (₹25k, SAC 998313)
+                      + UI/UX & Brand (₹25k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "WhatsApp Cloud API & Bot Automation (Grafty)", quantity: 1, unitPrice: 15000, discountRate: 0, taxRate: 18, hsnCode: "998413" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + WhatsApp Automation (₹15k, SAC 998413)
+                      + WhatsApp Automation (₹15k)
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems([...items, { id: Date.now(), description: "Monthly Website Maintenance & Cloud Ops", quantity: 1, unitPrice: 8000, discountRate: 0, taxRate: 18, hsnCode: "998315" }])}
-                      className="text-[10px] px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all font-medium"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 transition-colors font-medium"
                     >
-                      + Cloud Maintenance (₹8k, SAC 998315)
+                      + Cloud Maintenance (₹8k)
                     </button>
                   </>
                 )}
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {items.map((item, idx) => (
-                  <div key={item.id} className="flex gap-3 items-start bg-black/20 p-4 rounded-xl border border-white/5">
-                    <div className="flex-1 space-y-3">
+                  <div key={item.id} className="flex gap-3 items-start bg-[#121214] p-3.5 rounded-xl border border-white/[0.06]">
+                    <div className="flex-1 space-y-2.5">
                       <div>
                         <input 
-                          className="w-full bg-transparent border-b border-white/10 px-1 py-1.5 text-sm outline-none focus:border-emerald-500 placeholder:text-white/20 font-medium"
+                          className="w-full bg-transparent border-b border-white/[0.08] px-1 py-1 text-xs outline-none focus:border-[#0A84FF] placeholder:text-white/20 font-medium text-white"
                           placeholder="Description (e.g. Brand Identity Design)"
                           value={item.description}
                           onChange={e => handleItemChange(item.id, 'description', e.target.value)}
                         />
                       </div>
-                      <div className="flex gap-3">
-                        <div className="w-20">
-                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Qty</label>
+                      <div className="flex flex-wrap gap-2.5">
+                        <div className="w-16">
+                          <label className="block text-[10px] font-medium text-white/40 mb-1">Qty</label>
                           <input 
                             type="number" min="1"
-                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 text-center font-mono"
+                            className="w-full bg-[#161618] border border-white/[0.08] rounded-md px-2 py-1 text-xs outline-none focus:border-[#0A84FF] text-center font-mono text-white"
                             value={item.quantity}
                             onChange={e => handleItemChange(item.id, 'quantity', e.target.value)}
                           />
                         </div>
-                        <div className="w-40">
-                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Rate ({invoice.currency})</label>
+                        <div className="w-32">
+                          <label className="block text-[10px] font-medium text-white/40 mb-1">Rate ({invoice.currency})</label>
                           <input 
                             type="number" min="0"
-                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 font-mono"
+                            className="w-full bg-[#161618] border border-white/[0.08] rounded-md px-2 py-1 text-xs outline-none focus:border-[#0A84FF] font-mono text-white"
                             value={item.unitPrice}
                             onChange={e => handleItemChange(item.id, 'unitPrice', e.target.value)}
                           />
                         </div>
                         <div className="w-16">
-                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Disc %</label>
+                          <label className="block text-[10px] font-medium text-white/40 mb-1">Disc %</label>
                           <input 
                             type="number" min="0" max="100"
-                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 font-mono text-center"
+                            className="w-full bg-[#161618] border border-white/[0.08] rounded-md px-2 py-1 text-xs outline-none focus:border-[#0A84FF] font-mono text-center text-white"
                             value={item.discountRate}
                             onChange={e => handleItemChange(item.id, 'discountRate', e.target.value)}
                           />
                         </div>
-                        <div className="w-24">
-                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">HSN/SAC</label>
+                        <div className="w-20">
+                          <label className="block text-[10px] font-medium text-white/40 mb-1">HSN/SAC</label>
                           <input 
-                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 font-mono text-center"
-                            placeholder="e.g. 9983"
+                            className="w-full bg-[#161618] border border-white/[0.08] rounded-md px-2 py-1 text-xs outline-none focus:border-[#0A84FF] font-mono text-center text-white"
+                            placeholder="9983"
                             value={item.hsnCode || ""}
                             onChange={e => handleItemChange(item.id, 'hsnCode', e.target.value)}
                           />
                         </div>
-                        <div className="w-20">
-                          <label className="block text-[9px] uppercase tracking-widest text-white/40 mb-1">Tax %</label>
+                        <div className="w-16">
+                          <label className="block text-[10px] font-medium text-white/40 mb-1">Tax %</label>
                           <input 
                             type="number" min="0" max="100"
-                            className="w-full bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-sm outline-none focus:border-emerald-500 font-mono text-center"
+                            className="w-full bg-[#161618] border border-white/[0.08] rounded-md px-2 py-1 text-xs outline-none focus:border-[#0A84FF] font-mono text-center text-white"
                             value={item.taxRate}
                             onChange={e => handleItemChange(item.id, 'taxRate', e.target.value)}
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="pt-8 w-24 text-right">
-                      <p className="font-mono text-sm font-bold text-white mb-2">{((item.quantity * item.unitPrice * (1 - (item.discountRate || 0)/100)) * (1 + (item.taxRate || 0)/100)).toLocaleString()}</p>
-                      <button onClick={() => removeItem(item.id)} className="text-white/20 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-                        <Trash2 className="w-4 h-4" />
+                    <div className="pt-6 w-24 text-right">
+                      <p className="font-mono text-xs font-semibold text-white mb-2">{((item.quantity * item.unitPrice * (1 - (item.discountRate || 0)/100)) * (1 + (item.taxRate || 0)/100)).toLocaleString()}</p>
+                      <button onClick={() => removeItem(item.id)} className="text-white/30 hover:text-[#FF453A] p-1 rounded-md hover:bg-white/[0.04] transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
           </div>
 
           {/* Right Sidebar - Summary */}
           <div className="lg:col-span-1">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl backdrop-blur-md sticky top-6">
-              <div className="flex items-center gap-2 mb-6 text-emerald-400">
-                <Calculator className="w-5 h-5" />
-                <h2 className="text-sm font-bold font-mono uppercase tracking-widest">Summary</h2>
+            <div className="bg-[#161618] border border-white/[0.08] p-5 rounded-xl sticky top-6">
+              <div className="flex items-center gap-2 mb-5 text-white/70">
+                <Calculator className="w-4 h-4 text-[#0A84FF]" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-white/60">Invoice Summary</h2>
               </div>
               
-              <div className="space-y-4 text-sm mb-6">
+              <div className="space-y-3.5 text-xs mb-5">
                 <div className="flex justify-between items-center text-white/60">
                   <span>Subtotal</span>
-                  <span className="font-mono text-white font-semibold">{symbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono text-white font-medium">{symbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
 
                 {/* Discount Control Block */}
-                <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/10">
+                <div className="space-y-2 bg-[#121214] p-3 rounded-lg border border-white/[0.06]">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/70 font-medium">Overall Discount</span>
-                    <div className="flex items-center bg-black/60 rounded-lg p-0.5 border border-white/10">
+                    <span className="text-[11px] text-white/60 font-medium">Overall Discount</span>
+                    <div className="flex items-center bg-[#161618] rounded-md p-0.5 border border-white/[0.08]">
                       <button
                         type="button"
                         onClick={() => setInvoice({ ...invoice, discountType: 'PERCENT' })}
-                        className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${invoice.discountType === 'PERCENT' ? 'bg-emerald-500 text-black shadow' : 'text-white/50 hover:text-white'}`}
+                        className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${invoice.discountType === 'PERCENT' ? 'bg-[#0A84FF] text-white' : 'text-white/40 hover:text-white'}`}
                       >
                         %
                       </button>
                       <button
                         type="button"
                         onClick={() => setInvoice({ ...invoice, discountType: 'FLAT' })}
-                        className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${invoice.discountType === 'FLAT' ? 'bg-emerald-500 text-black shadow' : 'text-white/50 hover:text-white'}`}
+                        className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${invoice.discountType === 'FLAT' ? 'bg-[#0A84FF] text-white' : 'text-white/40 hover:text-white'}`}
                       >
                         {symbol} Flat
                       </button>
@@ -620,25 +618,25 @@ export default function NewInvoicePage() {
 
                   {invoice.discountType === 'PERCENT' ? (
                     <div className="flex justify-between items-center pt-1">
-                      <span className="text-[11px] text-white/40">Discount Rate</span>
+                      <span className="text-[10px] text-white/40">Discount Rate</span>
                       <div className="flex items-center gap-1">
                         <input 
                           type="number" min="0" max="100" step="0.5"
-                          className="w-20 bg-black/60 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono focus:border-emerald-400"
+                          className="w-16 bg-[#161618] border border-white/[0.08] rounded px-2 py-1 text-right text-xs outline-none text-white font-mono focus:border-[#0A84FF]"
                           value={invoice.discountRate}
                           onChange={e => setInvoice({...invoice, discountRate: Number(e.target.value)})}
                         />
-                        <span className="text-xs font-mono text-emerald-400">%</span>
+                        <span className="text-xs font-mono text-white/40">%</span>
                       </div>
                     </div>
                   ) : (
                     <div className="flex justify-between items-center pt-1">
-                      <span className="text-[11px] text-white/40">Flat Off Amount</span>
+                      <span className="text-[10px] text-white/40">Flat Off Amount</span>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs font-mono text-emerald-400">{symbol}</span>
+                        <span className="text-xs font-mono text-white/40">{symbol}</span>
                         <input 
                           type="number" min="0" step="100"
-                          className="w-24 bg-black/60 border border-emerald-500/30 rounded px-2 py-1 text-right text-xs outline-none text-emerald-400 font-mono focus:border-emerald-400"
+                          className="w-20 bg-[#161618] border border-white/[0.08] rounded px-2 py-1 text-right text-xs outline-none text-white font-mono focus:border-[#0A84FF]"
                           value={invoice.discountFlat}
                           onChange={e => setInvoice({...invoice, discountFlat: Number(e.target.value)})}
                         />
@@ -647,9 +645,9 @@ export default function NewInvoicePage() {
                   )}
 
                   {overallDiscountAmt > 0 && (
-                    <div className="flex justify-between items-center pt-1.5 border-t border-white/5 text-xs text-emerald-400 font-medium">
+                    <div className="flex justify-between items-center pt-1.5 border-t border-white/[0.06] text-xs text-[#30D158] font-medium">
                       <span>Discount Applied</span>
-                      <span className="font-mono font-bold">-{symbol}{overallDiscountAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      <span className="font-mono font-medium">-{symbol}{overallDiscountAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
                   )}
                 </div>
@@ -665,23 +663,23 @@ export default function NewInvoicePage() {
                 </div>
               </div>
               
-              <div className="border-t border-emerald-500/20 pt-4 flex justify-between items-center">
-                <span className="font-bold text-white">Total ({invoice.currency})</span>
-                <span className="text-2xl font-black font-mono text-emerald-400">{symbol}{grandTotal.toLocaleString()}</span>
+              <div className="border-t border-white/[0.08] pt-4 flex justify-between items-center">
+                <span className="font-medium text-xs text-white/70">Total ({invoice.currency})</span>
+                <span className="text-xl font-bold font-mono text-white">{symbol}{grandTotal.toLocaleString()}</span>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Sticky Action Bar */}
-      <div className="md:hidden sticky bottom-0 -mx-6 lg:-mx-10 -mb-6 lg:-mb-10 p-4 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-50 mt-8">
+      <div className="md:hidden sticky bottom-0 -mx-6 lg:-mx-8 -mb-6 lg:-mb-8 p-4 bg-[#121214]/90 backdrop-blur-xl border-t border-white/[0.08] z-50 mt-8">
         <button 
           onClick={handleSave} 
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold tracking-widest uppercase text-xs px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 min-h-[44px]"
+          className="w-full flex items-center justify-center gap-2 bg-[#0A84FF] hover:bg-[#0071E3] text-white font-medium text-xs px-5 py-3 rounded-lg transition-colors disabled:opacity-50"
         >
-          <Save className="w-4 h-4" /> {isSubmitting ? "Saving..." : "Save Invoice"}
+          <Save className="w-3.5 h-3.5" /> {isSubmitting ? "Saving..." : "Save Invoice"}
         </button>
       </div>
 

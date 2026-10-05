@@ -25,7 +25,7 @@ export default function SuperAdminSettingsPage() {
     darkModeDefault: true,
     supportEmail: "support@grekam.in",
     phone: "+91 99000 00000",
-    website: "https://garage.grekam.in",
+    website: "https://grekam.in",
     billingAddress: "MG Road, Tech Park, Bangalore, Karnataka, India",
     gstNumber: "29AAAAA0000A1Z5",
     panNumber: "AAAAA0000A",
@@ -43,10 +43,10 @@ export default function SuperAdminSettingsPage() {
     host: "smtp.gmail.com",
     port: 587,
     secure: false,
-    user: "notifications@garage.grekam.in",
+    user: "notifications@grekam.in",
     pass: "",
     senderName: "Grekam Garage OS",
-    senderEmail: "notifications@garage.grekam.in",
+    senderEmail: "notifications@grekam.in",
     isConfigured: false,
   })
 
@@ -492,7 +492,7 @@ export default function SuperAdminSettingsPage() {
                 <label className="text-zinc-400 font-semibold">Outbound From Email Address</label>
                 <input
                   type="email"
-                  placeholder="notifications@garage.grekam.in"
+                  placeholder="notifications@grekam.in"
                   value={smtpForm.senderEmail}
                   onChange={(e) => setSmtpForm({ ...smtpForm, senderEmail: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500"

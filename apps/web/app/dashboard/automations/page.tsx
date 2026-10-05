@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, Plus, ArrowRight, Play, Settings, Save, Trash2, CheckCircle2, AlertCircle, RefreshCw, ShieldCheck, Clock, Users, Activity } from "lucide-react"
+import { Workflow, Plus, ArrowRight, Play, Settings, Save, Trash2, CheckCircle2, AlertCircle, RefreshCw, ShieldCheck, Clock, Users, Activity } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -147,7 +147,7 @@ export default function AutomationsPage() {
             <div className="text-center text-white/40 py-8">Loading workflows...</div>
           ) : workflows.length === 0 ? (
             <div className="text-center text-white/40 py-8 border border-dashed border-white/10 rounded-xl">
-              <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <Workflow className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p>No workflows created</p>
             </div>
           ) : (
@@ -162,7 +162,7 @@ export default function AutomationsPage() {
                   <div className={`w-2 h-2 rounded-full ${wf.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-white/20'}`} />
                 </div>
                 <div className="flex items-center gap-2 text-xs text-white/40 font-mono">
-                  <Zap className="w-3 h-3 text-amber-400" />
+                  <Play className="w-3 h-3 text-[#0A84FF]" />
                   <span className="truncate">{wf.triggerType}</span>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function AutomationsPage() {
                   {/* Trigger Block */}
                   <div className="bg-black/60 border border-amber-500/30 w-80 rounded-2xl p-5 shadow-[0_8px_30px_rgba(245,158,11,0.1)] mb-6 relative">
                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-amber-500/20 border border-amber-500/50 rounded-full flex items-center justify-center text-amber-400">
-                      <Zap className="w-4 h-4" />
+                      <Workflow className="w-4 h-4" />
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400/80 mb-1 pl-4">Trigger</div>
                     <div className="font-bold text-white pl-4">{activeWorkflow.triggerType}</div>

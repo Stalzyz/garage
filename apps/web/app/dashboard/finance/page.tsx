@@ -8,13 +8,13 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { useCurrency } from "@/hooks/useCurrency"
 
 const STATUS_CONFIG = {
-  DRAFT:          { label: "Draft",          color: "text-slate-400 bg-slate-500/10 border-slate-500/20", glow: "" },
-  SENT:           { label: "Sent",           color: "text-blue-400 bg-blue-500/10 border-blue-500/20", glow: "shadow-[0_0_10px_rgba(59,130,246,0.2)]" },
-  VIEWED:         { label: "Viewed",         color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20", glow: "shadow-[0_0_10px_rgba(99,102,241,0.2)]" },
-  PARTIALLY_PAID: { label: "Partial",        color: "text-amber-400 bg-amber-500/10 border-amber-500/20", glow: "shadow-[0_0_10px_rgba(251,191,36,0.2)]" },
-  PAID:           { label: "Paid",           color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20", glow: "shadow-[0_0_10px_rgba(16,185,129,0.2)]" },
-  OVERDUE:        { label: "Overdue",        color: "text-red-400 bg-red-500/10 border-red-500/20", glow: "shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-pulse" },
-  CANCELLED:      { label: "Cancelled",      color: "text-slate-500 bg-slate-500/10 border-slate-500/20", glow: "" },
+  DRAFT:          { label: "Draft",          color: "text-zinc-400 bg-white/[0.06] border-white/[0.08]" },
+  SENT:           { label: "Sent",           color: "text-[#0A84FF] bg-[#0A84FF]/10 border-[#0A84FF]/20" },
+  VIEWED:         { label: "Viewed",         color: "text-[#5E5CE6] bg-[#5E5CE6]/10 border-[#5E5CE6]/20" },
+  PARTIALLY_PAID: { label: "Partial",        color: "text-[#FF9F0A] bg-[#FF9F0A]/10 border-[#FF9F0A]/20" },
+  PAID:           { label: "Paid",           color: "text-[#30D158] bg-[#30D158]/10 border-[#30D158]/20" },
+  OVERDUE:        { label: "Overdue",        color: "text-[#FF453A] bg-[#FF453A]/10 border-[#FF453A]/20" },
+  CANCELLED:      { label: "Cancelled",      color: "text-zinc-500 bg-white/[0.04] border-white/[0.06]" },
 }
 
 export default function FinanceDashboard() {
@@ -54,139 +54,124 @@ export default function FinanceDashboard() {
   const totalPaidThisMonth = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + i.totalAmount, 0)
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar bg-transparent text-white relative">
-      
-      {/* Background ambient light */}
-      <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[20%] left-[10%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl w-full mx-auto p-8 relative z-10">
+    <div className="flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar bg-black text-[#f5f5f7]">
+      <div className="max-w-7xl w-full mx-auto p-6 md:p-8 space-y-6">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
-              <div className="absolute inset-0 bg-emerald-500/20 animate-pulse mix-blend-overlay" />
-              <DollarSign className="w-6 h-6 text-emerald-400 relative z-10" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#161618] border border-white/[0.08] flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-[#30D158]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Finance Engine</h1>
-              <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Invoicing, Expenses & Tax Telemetry</p>
+              <h1 className="text-base font-semibold text-[#f5f5f7]">Invoices &amp; Revenue</h1>
+              <p className="text-xs text-zinc-400">Finance overview, receivable accounts, and tax reporting</p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2">
             <button 
               onClick={handleExportGST}
-              className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white/5 text-white font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-md min-h-[44px]">
-              <Download className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" /> Export GST Report
+              className="flex items-center gap-1.5 bg-transparent hover:bg-white/[0.06] text-zinc-300 text-xs font-medium px-3.5 py-2 rounded-lg border border-white/[0.08] transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-zinc-400" /> Export GST
             </button>
             <Link 
               href="/dashboard/finance/invoices/new"
-              className="w-full md:w-auto justify-center group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden min-h-[44px]"
+              className="flex items-center gap-1.5 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white font-medium text-xs px-3.5 py-2 rounded-lg transition-colors"
             >
-              <div className="absolute inset-0 -translate-x-[150%] animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-              <Plus className="w-4 h-4" /> New Invoice
+              <Plus className="w-3.5 h-3.5" /> New Invoice
             </Link>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard 
             title="Outstanding" 
             value={formatCurrency(totalOutstanding, true)} 
-            icon={<Activity className="w-5 h-5 text-blue-400" />} 
-            color="blue" 
-            delay={0} 
+            icon={<Activity className="w-4 h-4 text-[#0A84FF]" />} 
           />
           <StatCard 
             title="Overdue" 
             value={formatCurrency(totalOverdue, true)} 
-            icon={<Clock className="w-5 h-5 text-red-400" />} 
-            color="red" 
-            delay={0.1} 
+            icon={<Clock className="w-4 h-4 text-[#FF453A]" />} 
           />
           <StatCard 
             title="Paid This Month" 
             value={formatCurrency(totalPaidThisMonth, true)} 
-            icon={<CheckCircle className="w-5 h-5 text-emerald-400" />} 
-            color="emerald" 
-            delay={0.2} 
+            icon={<CheckCircle className="w-4 h-4 text-[#30D158]" />} 
           />
           <StatCard 
             title="Pending Expenses" 
             value={`${symbol}24.5k`} 
-            icon={<ArrowDownRight className="w-5 h-5 text-amber-400" />} 
-            color="amber" 
-            delay={0.3} 
+            icon={<ArrowDownRight className="w-4 h-4 text-[#FF9F0A]" />} 
           />
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center justify-end mb-6">
-          <div className="relative w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+        <div className="flex items-center justify-end">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search invoices..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all backdrop-blur-md"
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#f5f5f7] placeholder:text-zinc-500 focus:outline-none transition-colors"
             />
           </div>
         </div>
 
         {/* Ledger */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-xl">
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/10 bg-black/40 text-[10px] font-mono tracking-widest text-white/40 uppercase">
-                  <th className="px-6 py-4 font-bold">Invoice Ref</th>
-                  <th className="px-6 py-4 font-bold">Client / Student</th>
-                  <th className="px-6 py-4 font-bold">Amount (INR)</th>
-                  <th className="px-6 py-4 font-bold">Status</th>
-                  <th className="px-6 py-4 font-bold">Due Date</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
+                <tr className="border-b border-white/[0.06] bg-[#121214] text-[11px] font-medium text-zinc-400">
+                  <th className="px-4 py-3">Invoice Ref</th>
+                  <th className="px-4 py-3">Client</th>
+                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Due Date</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
-                <AnimatePresence>
-                  {filtered.map((invoice, i) => {
-                    const statusCfg = STATUS_CONFIG[invoice.status as keyof typeof STATUS_CONFIG]
-                    return (
-                      <motion.tr 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        key={invoice.id} 
-                        className="hover:bg-white/5 transition-colors group cursor-default"
-                      >
-                        <td className="px-6 py-5">
-                          <Link href={`/dashboard/finance/invoices/${invoice.id}`} className="font-mono text-xs font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-2">
-                            <FileSpreadsheet className="w-4 h-4 text-white/20 group-hover:text-blue-400 transition-colors" />
-                            {invoice.invoiceNumber}
-                          </Link>
-                          <p className="text-[9px] uppercase font-bold text-white/30 mt-1.5 tracking-widest">{invoice.businessUnit}</p>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className="font-bold text-white/90">{invoice.clientName}</span>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className="font-black text-lg text-white tracking-tight">{formatCurrency(invoice.totalAmount)}</span>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-lg border ${statusCfg?.color || ''} ${statusCfg?.glow || ''}`}>
-                            {statusCfg?.label || invoice.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className="font-mono text-xs text-white/50">{new Date(invoice.dueDate).toLocaleDateString()}</span>
-                        </td>
-                        <td className="px-6 py-5 text-right flex items-center justify-end gap-2">
+              <tbody className="divide-y divide-white/[0.04] text-xs">
+                {filtered.map((invoice) => {
+                  const statusCfg = STATUS_CONFIG[invoice.status as keyof typeof STATUS_CONFIG]
+                  return (
+                    <tr 
+                      key={invoice.id} 
+                      className="hover:bg-white/[0.02] transition-colors group cursor-default"
+                    >
+                      <td className="px-4 py-3">
+                        <Link href={`/dashboard/finance/invoices/${invoice.id}`} className="text-xs font-medium text-[#f5f5f7] group-hover:text-[#0A84FF] transition-colors flex items-center gap-2">
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#0A84FF] transition-colors" />
+                          {invoice.invoiceNumber}
+                        </Link>
+                        <p className="text-[10px] uppercase text-zinc-500 mt-0.5">{invoice.businessUnit}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-zinc-300">{invoice.clientName}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-sm text-[#f5f5f7] tabular-nums">{formatCurrency(invoice.totalAmount)}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-md border ${statusCfg?.color || ''}`}>
+                          {statusCfg?.label || invoice.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-zinc-400 tabular-nums text-xs">
+                        {new Date(invoice.dueDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <Link 
                             href={`/dashboard/finance/invoices/${invoice.id}`}
-                            className="text-white/30 hover:text-blue-400 hover:bg-white/10 transition-all p-2 rounded-lg border border-transparent hover:border-white/10">
-                            <Eye className="w-4 h-4" />
+                            className="text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors p-1.5 rounded-md"
+                            title="View Invoice"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
                           </Link>
                           <button 
                             onClick={async () => {
@@ -195,23 +180,22 @@ export default function FinanceDashboard() {
                                 setInvoices(prev => prev.filter(p => p.id !== invoice.id))
                               }
                             }}
-                            className="text-white/30 hover:text-red-400 hover:bg-white/10 transition-all p-2 rounded-lg border border-transparent hover:border-white/10">
-                            <Trash2 className="w-4 h-4" />
+                            className="text-zinc-400 hover:text-[#FF453A] hover:bg-[#FF453A]/10 transition-colors p-1.5 rounded-md"
+                            title="Delete Invoice"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        </td>
-                      </motion.tr>
-                    )
-                  })}
-                </AnimatePresence>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
           {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-48 text-center bg-black/20">
-              <div className="w-12 h-12 border border-white/10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
-                <Search className="w-5 h-5 text-white/30" />
-              </div>
-              <p className="text-xs font-mono tracking-widest text-white/40 uppercase">No invoices found</p>
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <p className="text-xs text-zinc-500">No invoices found</p>
             </div>
           )}
         </div>
@@ -220,26 +204,18 @@ export default function FinanceDashboard() {
   )
 }
 
-function StatCard({ title, value, icon, color, delay }: { title: string, value: string, icon: any, color: string, delay: number }) {
+function StatCard({ title, value, icon }: { title: string, value: string, icon: any }) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className={`bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group hover:border-${color}-500/30 transition-colors`}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br from-${color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-      
-      <div className="flex justify-between items-start mb-6 relative z-10">
-        <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/50">{title}</h3>
-        <div className={`w-10 h-10 rounded-xl bg-${color}-500/10 border border-${color}-500/20 flex items-center justify-center shadow-[inset_0_0_15px_rgba(255,255,255,0.05)] group-hover:shadow-[0_0_20px_var(--tw-shadow-color)] shadow-${color}-500/20 transition-all`}>
+    <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-4 flex flex-col justify-between">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-medium text-zinc-400">{title}</h3>
+        <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center">
           {icon}
         </div>
       </div>
-      
-      <div className="relative z-10">
-        <p className={`text-4xl font-black tracking-tight text-white group-hover:text-${color}-400 transition-colors`}>{value}</p>
+      <div>
+        <p className="text-xl font-semibold text-[#f5f5f7] tabular-nums">{value}</p>
       </div>
-    </motion.div>
+    </div>
   )
 }

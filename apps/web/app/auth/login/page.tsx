@@ -77,6 +77,8 @@ export default function LoginPage() {
         router.push("/portal/dashboard")
       } else if (role === 'STUDENT') {
         router.push("/portal/student")
+      } else if (role === 'RESELLER_ADMIN' || role === 'PARTNER') {
+        router.push("/dashboard/partner")
       } else {
         router.push("/dashboard")
       }
@@ -87,10 +89,12 @@ export default function LoginPage() {
     }
   }
 
+
+
   const displayError = errorMessage
 
   return (
-    <div className="min-h-screen bg-[#050505] font-sans selection:bg-blue-500/30 text-white relative flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen bg-[#050505] font-sans selection:bg-blue-500/30 text-white relative flex items-center justify-center overflow-hidden py-10 px-4">
       
       {/* Background Ambient Mesh */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
@@ -114,31 +118,46 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[420px] p-8 md:p-10 rounded-[2.5rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden group"
+        className="relative z-10 w-full max-w-[460px] p-6 sm:p-10 rounded-[2.5rem] bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden group"
       >
         {/* Card Inner Glow (follows focus) */}
         <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 opacity-0 transition-opacity duration-700 pointer-events-none ${focusedInput ? 'opacity-100' : ''}`} />
 
         <div className="relative z-10">
-          {/* Header (Locked Core Platform Branding) */}
-          <div className="flex flex-col items-center text-center mb-8">
+          {/* Header */}
+          <div className="flex flex-col items-center text-center mb-6">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="mb-3 flex flex-col items-center"
             >
-              <img 
-                src="/garage-crm-logo.svg" 
-                alt="Garage by Grekam" 
-                className="max-h-20 max-w-[260px] object-contain mb-2 filter drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]"
-              />
-              <h1 className="text-2xl font-bold tracking-tight text-white/90">Garage by Grekam</h1>
+              {org?.logoUrl ? (
+                <img 
+                  src={org.logoUrl} 
+                  alt={org.name || "Grekam OS"} 
+                  className="max-h-16 max-w-[240px] object-contain mb-2 filter drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-emerald-400 p-0.5 mb-2 shadow-xl shadow-indigo-600/30 flex items-center justify-center">
+                  <div className="w-full h-full bg-[#0a0d16] rounded-[14px] flex items-center justify-center font-black text-2xl text-white">
+                    G
+                  </div>
+                </div>
+              )}
+              <h1 className="text-2xl font-black tracking-tight text-white">
+                {org?.name && org.name !== "Garage by Grekam" ? org.name : "Grekam OS"}
+              </h1>
             </motion.div>
-            <p className="text-xs font-mono tracking-widest text-white/40 uppercase">
-              {is2faStage ? "Verification" : "Staff & Customer Portal Login"}
+            <p className="text-xs font-mono tracking-widest text-indigo-400/90 uppercase mt-1">
+              {is2faStage ? "Two-Factor Verification" : "Internal Enterprise Access · Authorized Only"}
             </p>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-400 tracking-wider uppercase">
+              <Lock className="w-3 h-3" /> Protected Internal Gateway
+            </div>
           </div>
+
+
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {is2faStage ? (
@@ -182,7 +201,7 @@ export default function LoginPage() {
                       name="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="staff@grekam.com"
+                      placeholder="admin@grekam.in"
                       required
                       autoComplete="email"
                       onFocus={() => setFocusedInput('email')}

@@ -475,7 +475,7 @@ export default function PricingPage() {
 
                   <div className="space-y-3 mb-8">
                     <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Included Features:</div>
-                    {plan.features.map((feat, fIdx) => (
+                    {plan.features.map((feat: string, fIdx: number) => (
                       <div key={fIdx} className="flex items-start gap-2.5 text-xs text-zinc-300">
                         <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                         <span>{feat}</span>
@@ -484,7 +484,7 @@ export default function PricingPage() {
 
                     {plan.missing.length > 0 && (
                       <div className="pt-2 space-y-2 opacity-50">
-                        {plan.missing.map((mFeat, mIdx) => (
+                        {plan.missing.map((mFeat: string, mIdx: number) => (
                           <div key={mIdx} className="flex items-start gap-2.5 text-xs text-zinc-500">
                             <X className="w-4 h-4 text-zinc-600 shrink-0 mt-0.5" />
                             <span>{mFeat}</span>

@@ -18,12 +18,20 @@ export default function ExpensesPage() {
   
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    category: string;
+    amount: string;
+    vendorName: string;
+    description: string;
+    file: File | null;
+  }>({
     title: "",
     category: "OFFICE",
     amount: "",
     vendorName: "",
-    description: ""
+    description: "",
+    file: null
   })
 
   const filteredExpenses = expenses.filter((exp: any) => {
@@ -54,11 +62,11 @@ export default function ExpensesPage() {
       if (formData.file) {
         const fileData = new FormData()
         fileData.append("file", formData.file)
-        const uploadRes = await fetchApi("/storage/upload-local", {
+        const uploadRes = await fetchApi<{ downloadUrl?: string; url?: string }>("/storage/upload-local", {
           method: "POST",
           body: fileData,
-        }, true) // Set true for FormData to avoid JSON stringify and content-type
-        receiptUrl = uploadRes.downloadUrl || uploadRes.url
+        })
+        receiptUrl = uploadRes.downloadUrl || uploadRes.url || ""
       }
 
       await fetchApi("/finance/expenses", {

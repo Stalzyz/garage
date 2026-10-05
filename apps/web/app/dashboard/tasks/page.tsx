@@ -267,78 +267,60 @@ export default function StaffTasksDashboard() {
   const KANBAN_STAGES = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "BLOCKED"]
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden bg-transparent text-white relative">
-      
-      {/* Background blurs */}
-      <div className="absolute top-0 right-[20%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-[20%] w-[40%] h-[40%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
-
+    <div className="flex flex-col h-full min-h-0 overflow-hidden bg-black text-[#f5f5f7]">
       {/* Header */}
-      <div className="flex-none px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-10">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
-              <div className="absolute inset-0 bg-blue-500/20 animate-pulse mix-blend-overlay" />
-              <CheckSquare className="w-6 h-6 text-blue-400 relative z-10" />
+      <div className="flex-none px-6 py-5 border-b border-white/[0.07] bg-[#121214]/60 backdrop-blur-md">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#161618] border border-white/[0.08] flex items-center justify-center">
+              <CheckSquare className="w-4 h-4 text-[#0A84FF]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Staff Task Control</h1>
-              <p className="text-xs font-mono tracking-widest uppercase text-white/40 mt-1">Internal Operations & Team Assignments</p>
+              <h1 className="text-base font-semibold text-[#f5f5f7]">Tasks</h1>
+              <p className="text-xs text-zinc-400">Team assignments, internal operations, and schedules</p>
             </div>
           </div>
           <button 
             onClick={handleOpenCreateModal}
-            className="group flex items-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-3 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
+            className="flex items-center gap-1.5 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white font-medium text-xs px-3.5 py-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" /> Create & Assign Task
+            <Plus className="w-3.5 h-3.5" /> New Task
           </button>
         </div>
 
-        {/* Telemetry Stats & Filter Bar */}
+        {/* Stats & Filter Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-              <div>
-                <p className="text-[9px] font-mono tracking-widest uppercase text-white/40 mb-0.5">Total Tasks</p>
-                <p className="text-xl font-black text-white">{totalCount}</p>
-              </div>
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-400 mb-0.5">Total Tasks</p>
+              <p className="text-base font-semibold text-[#f5f5f7] tabular-nums">{totalCount}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-              <div>
-                <p className="text-[9px] font-mono tracking-widest uppercase text-white/40 mb-0.5">In Progress</p>
-                <p className="text-xl font-black text-white">{inProgressCount}</p>
-              </div>
+            <div>
+              <p className="text-[11px] font-medium text-zinc-400 mb-0.5">In Progress</p>
+              <p className="text-base font-semibold text-[#f5f5f7] tabular-nums">{inProgressCount}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-              <div>
-                <p className="text-[9px] font-mono tracking-widest uppercase text-white/40 mb-0.5">Completed</p>
-                <p className="text-xl font-black text-white">{completedCount}</p>
-              </div>
+            <div>
+              <p className="text-[11px] font-medium text-zinc-400 mb-0.5">Completed</p>
+              <p className="text-base font-semibold text-[#30D158] tabular-nums">{completedCount}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-              <div>
-                <p className="text-[9px] font-mono tracking-widest uppercase text-white/40 mb-0.5">Critical Active</p>
-                <p className="text-xl font-black text-red-400">{criticalCount}</p>
-              </div>
+            <div>
+              <p className="text-[11px] font-medium text-zinc-400 mb-0.5">Critical</p>
+              <p className="text-base font-semibold text-[#FF453A] tabular-nums">{criticalCount}</p>
             </div>
           </div>
 
           {/* Filters & View Switches */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex bg-[#1c1c1e] p-0.5 rounded-lg border border-white/[0.08]">
               <button 
                 onClick={() => setViewMode("KANBAN")}
-                className={`px-3 py-1.5 text-[10px] font-mono font-bold tracking-widest uppercase rounded-lg transition-all flex items-center gap-1.5 ${viewMode === "KANBAN" ? "bg-white text-black" : "text-white/40 hover:text-white"}`}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${viewMode === "KANBAN" ? "bg-white/[0.12] text-white" : "text-zinc-400 hover:text-white"}`}
               >
                 <Kanban className="w-3.5 h-3.5" /> Kanban
               </button>
               <button 
                 onClick={() => setViewMode("LIST")}
-                className={`px-3 py-1.5 text-[10px] font-mono font-bold tracking-widest uppercase rounded-lg transition-all flex items-center gap-1.5 ${viewMode === "LIST" ? "bg-white text-black" : "text-white/40 hover:text-white"}`}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${viewMode === "LIST" ? "bg-white/[0.12] text-white" : "text-zinc-400 hover:text-white"}`}
               >
                 <List className="w-3.5 h-3.5" /> List
               </button>
@@ -348,7 +330,7 @@ export default function StaffTasksDashboard() {
             <select 
               value={assigneeFilter}
               onChange={e => setAssigneeFilter(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50"
+              className="bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-2.5 py-1 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
             >
               <option value="ALL">All Staff</option>
               {employees.map((emp: any) => (
@@ -362,7 +344,7 @@ export default function StaffTasksDashboard() {
             <select 
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500/50"
+              className="bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-2.5 py-1 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
             >
               <option value="ALL">All Priorities</option>
               <option value="CRITICAL">Critical</option>
@@ -372,13 +354,13 @@ export default function StaffTasksDashboard() {
             </select>
 
             {/* Search */}
-            <div className="relative w-56">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
+            <div className="relative w-52">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search staff tasks..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+                placeholder="Filter tasks..."
+                className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg pl-8 pr-3 py-1 text-xs text-[#f5f5f7] placeholder:text-zinc-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -386,21 +368,21 @@ export default function StaffTasksDashboard() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto p-8 relative z-10">
+      <div className="flex-1 overflow-x-auto overflow-y-auto p-6">
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[#0A84FF] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-20 text-white/40 font-mono text-xs uppercase border border-dashed border-white/10 rounded-2xl">
-            No staff tasks match filters.
+          <div className="text-center py-16 text-zinc-500 text-xs border border-dashed border-white/[0.08] rounded-xl">
+            No tasks match the selected filters.
           </div>
         ) : viewMode === "KANBAN" ? (
           /* KANBAN BOARD VIEW */
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-w-[1000px] h-full items-start">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 min-w-[1000px] h-full items-start">
             {KANBAN_STAGES.map(stage => {
               const stageTasks = filteredTasks.filter(t => t.status === stage)
-              const cfg = STATUS_CONFIG[stage] || { label: stage, color: "text-white", border: "border-white/10" }
+              const cfg = STATUS_CONFIG[stage] || { label: stage, color: "text-zinc-400 bg-white/[0.06]", border: "border-white/[0.08]" }
 
               return (
                 <div
@@ -408,22 +390,22 @@ export default function StaffTasksDashboard() {
                   onDragOver={(e) => handleDragOver(e, stage)}
                   onDrop={(e) => handleDrop(e, stage)}
                   onDragLeave={() => setDragOverColumn(null)}
-                  className={`rounded-2xl p-4 flex flex-col min-h-[400px] border transition-all ${
+                  className={`rounded-xl p-3 flex flex-col min-h-[400px] border transition-colors ${
                     dragOverColumn === stage
-                      ? 'bg-blue-500/10 border-blue-500/40 border-dashed shadow-[0_0_20px_rgba(59,130,246,0.2)]'
-                      : 'bg-black/30 border-white/10'
+                      ? 'bg-[#161618] border-[#0A84FF]/40 border-dashed'
+                      : 'bg-[#121214] border-white/[0.07]'
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                    <span className={`text-xs font-mono font-bold uppercase tracking-wider ${cfg.color}`}>
+                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.06]">
+                    <span className="text-xs font-medium text-zinc-300">
                       {cfg.label}
                     </span>
-                    <span className="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded-full text-white/60">
+                    <span className="text-[11px] font-medium text-zinc-400 bg-white/[0.06] px-2 py-0.5 rounded-full tabular-nums">
                       {stageTasks.length}
                     </span>
                   </div>
 
-                  <div className="space-y-3 flex-1 overflow-y-auto">
+                  <div className="space-y-2.5 flex-1 overflow-y-auto">
                     {stageTasks.map(task => {
                       const prio = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.NORMAL
                       const staffName = getStaffName(task.assigneeId)
@@ -436,23 +418,23 @@ export default function StaffTasksDashboard() {
                           onDragStart={(e: any) => handleDragStart(e, task.id)}
                           onDragEnd={handleDragEnd}
                           onClick={() => handleOpenEditModal(task)}
-                          className={`bg-black/60 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all group ${
+                          className={`bg-[#1c1c1e] border rounded-xl p-3.5 cursor-grab active:cursor-grabbing transition-colors group ${
                             draggedTaskId === task.id
                               ? 'opacity-40 scale-95 border-dashed border-white/20'
-                              : 'border-white/10 hover:border-blue-500/40 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:-translate-y-0.5'
+                              : 'border-white/[0.08] hover:border-white/[0.16]'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-2">
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <h4 className="text-xs font-medium text-[#f5f5f7] group-hover:text-[#0A84FF] transition-colors line-clamp-2">
                               {task.title}
                             </h4>
-                            <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded border flex-none ${prio.color}`}>
+                            <span className={`text-[10px] font-medium uppercase px-1.5 py-0.5 rounded border flex-none ${prio.color}`}>
                               {prio.label}
                             </span>
                           </div>
 
                           {task.description && (
-                            <p className="text-xs text-white/50 line-clamp-2 mb-3">
+                            <p className="text-[11px] text-zinc-400 line-clamp-2 mb-2.5">
                               {task.description}
                             </p>
                           )}
@@ -460,27 +442,27 @@ export default function StaffTasksDashboard() {
                           {/* Time Tracker */}
                           <div
                             onClick={(e) => { e.stopPropagation(); toggleTimer(task.id) }}
-                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[10px] font-mono cursor-pointer mb-3 transition-all ${
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-medium cursor-pointer mb-2.5 transition-colors ${
                               timers[task.id]?.running
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                                : 'bg-white/5 border-white/10 text-white/40 hover:text-white/70'
+                                ? 'bg-[#30D158]/10 border-[#30D158]/20 text-[#30D158]'
+                                : 'bg-white/[0.04] border-white/[0.06] text-zinc-400 hover:text-white'
                             }`}
                           >
                             {timers[task.id]?.running ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
                             <Timer className="w-2.5 h-2.5" />
-                            <span>{formatTimer(timers[task.id]?.totalSecs || 0)}</span>
+                            <span className="tabular-nums">{formatTimer(timers[task.id]?.totalSecs || 0)}</span>
                           </div>
 
-                          <div className="flex items-center justify-between pt-3 border-t border-white/5 text-[10px] font-mono text-white/50">
-                            <div className="flex items-center gap-1.5 text-blue-300">
-                              <User className="w-3 h-3 text-blue-400" />
-                              <span className="truncate max-w-[100px]">{staffName}</span>
+                          <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.06] text-[11px] text-zinc-400">
+                            <div className="flex items-center gap-1 text-zinc-300">
+                              <User className="w-3 h-3 text-zinc-500" />
+                              <span className="truncate max-w-[90px]">{staffName}</span>
                             </div>
 
                             {task.dueDate && (
-                              <div className="flex items-center gap-1 text-white/40">
+                              <div className="flex items-center gap-1 text-zinc-500">
                                 <Calendar className="w-3 h-3" />
-                                <span>{new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                <span className="tabular-nums">{new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                               </div>
                             )}
                           </div>
@@ -494,68 +476,68 @@ export default function StaffTasksDashboard() {
           </div>
         ) : (
           /* LIST TABLE VIEW */
-          <div className="w-full border border-white/10 rounded-2xl overflow-hidden bg-black/30 backdrop-blur-md">
+          <div className="w-full border border-white/[0.08] rounded-xl overflow-hidden bg-[#161618]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5 text-[10px] font-mono uppercase tracking-widest text-white/50">
-                  <th className="p-4">Task</th>
-                  <th className="p-4">Staff Assignee</th>
-                  <th className="p-4">Priority</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Due Date</th>
-                  <th className="p-4 text-right">Actions</th>
+                <tr className="border-b border-white/[0.06] bg-[#121214] text-[11px] font-medium text-zinc-400">
+                  <th className="px-4 py-3">Task</th>
+                  <th className="px-4 py-3">Assignee</th>
+                  <th className="px-4 py-3">Priority</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Due Date</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-xs">
+              <tbody className="divide-y divide-white/[0.04] text-xs">
                 {filteredTasks.map(task => {
                   const prio = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.NORMAL
-                  const st = STATUS_CONFIG[task.status] || { label: task.status, color: "text-white", border: "border-white/10" }
+                  const st = STATUS_CONFIG[task.status] || { label: task.status, color: "text-zinc-400", border: "border-white/[0.08]" }
 
                   return (
-                    <tr key={task.id} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="p-4">
-                        <p className="font-bold text-white text-sm">{task.title}</p>
-                        {task.description && <p className="text-white/40 line-clamp-1 text-xs">{task.description}</p>}
+                    <tr key={task.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-[#f5f5f7] text-xs">{task.title}</p>
+                        {task.description && <p className="text-zinc-400 line-clamp-1 text-[11px]">{task.description}</p>}
                       </td>
-                      <td className="p-4 font-mono text-blue-300">
+                      <td className="px-4 py-3 text-zinc-300 text-xs">
                         {getStaffName(task.assigneeId)}
                       </td>
-                      <td className="p-4">
-                        <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded border ${prio.color}`}>
+                      <td className="px-4 py-3">
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${prio.color}`}>
                           {prio.label}
                         </span>
                       </td>
-                      <td className="p-4">
+                      <td className="px-4 py-3">
                         <select
                           value={task.status}
                           onChange={e => handleStatusChange(task.id, e.target.value)}
-                          className={`bg-black/40 border rounded-lg px-2.5 py-1 text-[11px] font-mono cursor-pointer focus:outline-none ${st.color} ${st.border}`}
+                          className={`bg-[#121214] border border-white/[0.08] rounded-md px-2 py-1 text-xs cursor-pointer focus:outline-none ${st.color}`}
                         >
                           {KANBAN_STAGES.map(stage => (
-                            <option key={stage} value={stage} className="bg-black text-white">
+                            <option key={stage} value={stage} className="bg-[#1c1c1e] text-white">
                               {STATUS_CONFIG[stage]?.label || stage}
                             </option>
                           ))}
                         </select>
                       </td>
-                      <td className="p-4 font-mono text-white/50">
+                      <td className="px-4 py-3 text-zinc-400 tabular-nums text-xs">
                         {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "—"}
                       </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEditModal(task)}
-                            className="p-1.5 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-white/[0.08] text-zinc-400 hover:text-white rounded-md transition-colors"
                             title="Edit Task"
                           >
-                            <MoreVertical className="w-4 h-4" />
+                            <MoreVertical className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteTask(task.id, task.title)}
-                            className="p-1.5 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-[#FF453A]/10 text-zinc-400 hover:text-[#FF453A] rounded-md transition-colors"
                             title="Delete Task"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -572,29 +554,29 @@ export default function StaffTasksDashboard() {
       <SlideOver
         open={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
-        title={editingTask ? "Edit Staff Task" : "Assign Staff Task"}
-        subtitle="Create & control internal staff assignments with real-time email alerts."
+        title={editingTask ? "Edit Task" : "New Task"}
+        subtitle="Manage task scope, assignment, and completion schedule."
       >
-        <form onSubmit={handleSaveTask} className="space-y-5">
+        <form onSubmit={handleSaveTask} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Task Title *</label>
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Task Title *</label>
             <input
               required
               value={taskForm.title}
               onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white placeholder:text-white/30"
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] placeholder:text-zinc-500 focus:outline-none transition-colors"
               placeholder="e.g. Prepare monthly GST filing report"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Assign to Staff Member</label>
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Assign to Staff Member</label>
             <select
               value={taskForm.assigneeId}
               onChange={e => setTaskForm({ ...taskForm, assigneeId: e.target.value })}
-              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
             >
-              <option value="">Unassigned (Open Staff Pool)</option>
+              <option value="">Unassigned</option>
               {employees.map((emp: any) => (
                 <option key={emp.id || emp.userId} value={emp.userId || emp.id}>
                   {emp.user ? `${emp.user.firstName} ${emp.user.lastName} (${emp.user.email})` : (emp.firstName ? `${emp.firstName} ${emp.lastName}` : emp.name || emp.id)}
@@ -603,13 +585,13 @@ export default function StaffTasksDashboard() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Priority</label>
+              <label className="block text-[11px] font-medium text-zinc-400 mb-1">Priority</label>
               <select
                 value={taskForm.priority}
                 onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+                className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
               >
                 <option value="CRITICAL">Critical</option>
                 <option value="HIGH">High</option>
@@ -619,11 +601,11 @@ export default function StaffTasksDashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Stage</label>
+              <label className="block text-[11px] font-medium text-zinc-400 mb-1">Stage</label>
               <select
                 value={taskForm.status}
                 onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+                className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -635,23 +617,23 @@ export default function StaffTasksDashboard() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Due Date</label>
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Due Date</label>
             <input
               type="date"
               value={taskForm.dueDate}
               onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white [color-scheme:dark]"
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] focus:outline-none transition-colors [color-scheme:dark]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Link to Client Project (Optional)</label>
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Link to Client Project (Optional)</label>
             <select
               value={taskForm.projectId}
               onChange={e => setTaskForm({ ...taskForm, projectId: e.target.value })}
-              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] focus:outline-none transition-colors"
             >
-              <option value="">No Project (Internal Operational Task)</option>
+              <option value="">No Project (Internal Task)</option>
               {projects.map((p: any) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.company?.name || 'Client'})
@@ -661,41 +643,41 @@ export default function StaffTasksDashboard() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Task Details / Instructions</label>
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Instructions / Notes</label>
             <textarea
               value={taskForm.description}
               onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
               rows={4}
-              placeholder="Provide specific instructions, deliverables, or checklist steps for the staff member..."
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white placeholder:text-white/30 resize-none"
+              placeholder="Provide specific instructions or checklist steps..."
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg px-3 py-2 text-xs text-[#f5f5f7] placeholder:text-zinc-500 focus:outline-none transition-colors resize-none"
             />
           </div>
 
-          <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
+          <div className="pt-3 border-t border-white/[0.07] flex items-center justify-between gap-2">
             {editingTask ? (
               <button
                 type="button"
                 onClick={() => handleDeleteTask(editingTask.id, editingTask.title)}
-                className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold uppercase transition-colors flex items-center gap-2"
+                className="px-3.5 py-2 bg-[#FF453A]/10 hover:bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
               >
-                <Trash2 className="w-4 h-4" /> Delete Task
+                <Trash2 className="w-3.5 h-3.5" /> Delete
               </button>
             ) : <div />}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setIsTaskModalOpen(false)}
-                className="px-5 py-3 border border-white/10 text-white/60 hover:text-white rounded-xl text-xs font-bold uppercase transition-colors"
+                className="px-3.5 py-2 bg-transparent hover:bg-white/[0.06] border border-white/[0.08] rounded-lg text-xs font-medium text-zinc-300 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs uppercase transition-all shadow-lg disabled:opacity-50"
+                className="px-4 py-2 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white font-medium rounded-lg text-xs transition-colors disabled:opacity-50"
               >
-                {isSubmitting ? "Saving..." : (editingTask ? "Apply Changes" : "Assign & Notify Staff")}
+                {isSubmitting ? "Saving..." : (editingTask ? "Save Changes" : "Assign Task")}
               </button>
             </div>
           </div>

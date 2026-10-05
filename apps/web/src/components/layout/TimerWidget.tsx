@@ -42,26 +42,27 @@ export function TimerWidget() {
   }
 
   return (
-    <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-1.5 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center gap-2 px-2">
-        <Clock className={`w-3 h-3 ${isRunning ? 'text-emerald-400 animate-pulse' : 'text-white/40'}`} />
-        <span className={`text-[10px] font-mono font-bold tracking-wider ${isRunning ? 'text-emerald-400' : 'text-white/60'}`}>
+    <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.07] rounded-lg px-2 py-1">
+      <div className="flex items-center gap-1.5">
+        <Clock className={`w-3 h-3 ${isRunning ? 'text-zinc-200' : 'text-zinc-500'}`} />
+        <span className="text-[11px] font-mono tabular-nums text-zinc-300">
           {formatTime(seconds)}
         </span>
       </div>
       <button 
         onClick={handleToggle}
-        className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${isRunning ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30' : 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30'}`}
+        className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${isRunning ? 'bg-white/10 text-white hover:bg-white/20' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}
+        title={isRunning ? "Pause" : "Start"}
       >
-        {isRunning ? <Square className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.5" />}
+        {isRunning ? <Square className="w-2.5 h-2.5 fill-current" /> : <Play className="w-2.5 h-2.5 fill-current ml-0.5" />}
       </button>
       {seconds > 0 && !isRunning && (
         <button 
           onClick={handleReset}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
-          title="Reset Timer"
+          className="w-5 h-5 flex items-center justify-center rounded text-zinc-400 hover:text-red-400 hover:bg-white/10 transition-colors"
+          title="Reset"
         >
-          <Square className="w-3 h-3" />
+          <Square className="w-2.5 h-2.5" />
         </button>
       )}
     </div>

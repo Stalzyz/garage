@@ -108,53 +108,45 @@ export default function ClientPortalLogin() {
 
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex">
+    <div className="min-h-screen bg-[#000000] flex text-white font-sans selection:bg-[#0A84FF]/30">
       
       {/* Left — Branding */}
-      <div className="hidden lg:flex flex-col w-[520px] flex-none bg-gradient-to-br from-[#0f0f1a] to-[#0a0a0f] border-r border-white/5 p-12 relative overflow-hidden">
-        {/* Glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] bg-blue-600/8 rounded-full blur-[80px] pointer-events-none" />
-
+      <div className="hidden lg:flex flex-col w-[480px] flex-none bg-[#121214] border-r border-white/[0.08] p-12 relative overflow-hidden">
         {/* Logo */}
         <div className="relative flex items-center gap-3 mb-auto">
           {org?.logoUrl
-            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-10 h-10 rounded-xl object-contain" />
-            : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                <Zap className="w-5 h-5 text-white" />
+            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-8 h-8 rounded-lg object-contain" />
+            : <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/[0.1] flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
               </div>
           }
           <div>
-            <p className="text-sm font-bold text-white">{org?.name || "Grekam OS"}</p>
+            <p className="text-sm font-semibold text-white tracking-tight">{org?.name || "Garage CRM"}</p>
             <p className="text-[10px] text-white/40 uppercase tracking-widest">Client Portal</p>
           </div>
         </div>
 
         {/* Hero Text */}
-        <div className="relative my-auto">
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-            Your projects,<br />
-            <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
-              always in sight.
-            </span>
+        <div className="relative my-auto space-y-3">
+          <h1 className="text-3xl font-semibold text-white leading-tight">
+            Your service & repairs,<br />always in view.
           </h1>
-          <p className="text-white/50 text-base leading-relaxed">
-            Track deliverables, review invoices, approve proposals, and download final assets — all in one secure place.
+          <p className="text-white/50 text-xs leading-relaxed max-w-sm">
+            Track job card stages, review estimates, approve proposals, and download tax invoices — in one secure portal.
           </p>
         </div>
 
         {/* Feature Cards */}
-        <div className="relative space-y-3">
+        <div className="relative space-y-2.5">
           {[
-            { icon: "", label: "Project Deliverables", desc: "View milestones & approvals" },
-            { icon: "", label: "Invoices & Payments",  desc: "Download and track payments" },
-            { icon: "", label: "Proposal Approvals",   desc: "Review and sign-off remotely" },
+            { label: "Job Card Progress", desc: "Live stage telemetry & parts approvals" },
+            { label: "Invoices & Payments", desc: "Instant PDF downloads & online settlement" },
+            { label: "Quotations & Estimates", desc: "Review and approve estimates remotely" },
           ].map(item => (
-            <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5">
-              <span className="text-xl">{item.icon}</span>
+            <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-[#161618] border border-white/[0.08]">
               <div>
-                <p className="text-xs font-semibold text-white/80">{item.label}</p>
-                <p className="text-[10px] text-white/40">{item.desc}</p>
+                <p className="text-xs font-medium text-white/90">{item.label}</p>
+                <p className="text-[11px] text-white/40">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -162,123 +154,122 @@ export default function ClientPortalLogin() {
       </div>
 
       {/* Right — Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#000000]">
+        <div className="w-full max-w-sm">
           
           {/* Mobile logo */}
-          <div className="flex lg:hidden items-center gap-2 mb-8">
+          <div className="flex lg:hidden items-center gap-2.5 mb-8">
             {org?.logoUrl
               ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-8 h-8 rounded-lg object-contain" />
-              : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+              : <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/[0.1] flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
             }
-            <p className="text-sm font-bold text-white">{org?.name || "Grekam OS"} Client Portal</p>
+            <p className="text-sm font-semibold text-white">{org?.name || "Garage CRM"} Client Portal</p>
           </div>
 
           {!isForgotPassword ? (
             <>
-              <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
-              <p className="text-white/50 text-sm mb-8">Sign in to your client account to continue.</p>
+              <h2 className="text-xl font-semibold text-white tracking-tight mb-1">Welcome back</h2>
+              <p className="text-white/40 text-xs mb-6">Sign in to your client portal account.</p>
 
               {/* Form */}
               <form onSubmit={handleLogin} className="space-y-4">
                 {error && (
-                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                  <div className="px-3.5 py-2.5 rounded-lg bg-[#FF453A]/10 border border-[#FF453A]/20 text-[#FF453A] text-xs">
                     {error}
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
+                  <label className="text-[11px] font-medium text-white/50">Email Address</label>
                   <input
                     type="email" value={email} onChange={e => setEmail(e.target.value)} required
                     placeholder="you@company.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                    className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] transition-colors"
                     autoComplete="email"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Password</label>
+                  <label className="text-[11px] font-medium text-white/50">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
                       placeholder="Enter your password"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 pr-10 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] transition-colors"
                       autoComplete="current-password"
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-xs pt-1">
                   <label className="flex items-center gap-2 text-white/50 cursor-pointer">
-                    <input type="checkbox" className="rounded border-white/20 bg-white/5" />
+                    <input type="checkbox" className="rounded border-white/[0.1] bg-[#121214] text-[#0A84FF]" />
                     Remember me
                   </label>
-                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-violet-400 hover:text-violet-300 transition-colors">
+                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-[#0A84FF] hover:underline">
                     Forgot password?
                   </button>
                 </div>
 
                 <button type="submit" disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0A84FF] hover:bg-[#0071E3] text-white text-xs font-medium transition-colors disabled:opacity-50"
                 >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   {isLoading ? "Signing in..." : "Sign In to Portal"}
                 </button>
               </form>
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-white mb-1">Access Recovery</h2>
-              <p className="text-white/50 text-sm mb-8">Enter your registered email to request a temporary password.</p>
+              <h2 className="text-xl font-semibold text-white tracking-tight mb-1">Access Recovery</h2>
+              <p className="text-white/40 text-xs mb-6">Enter your registered email to request a temporary password.</p>
 
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 {forgotError && (
-                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                  <div className="px-3.5 py-2.5 rounded-lg bg-[#FF453A]/10 border border-[#FF453A]/20 text-[#FF453A] text-xs">
                     {forgotError}
                   </div>
                 )}
                 {forgotSuccess && (
-                  <div className="px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+                  <div className="px-3.5 py-2.5 rounded-lg bg-[#30D158]/10 border border-[#30D158]/20 text-[#30D158] text-xs">
                     {forgotSuccess}
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Email Address</label>
+                  <label className="text-[11px] font-medium text-white/50">Email Address</label>
                   <input
                     type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required
                     placeholder="you@company.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+                    className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] transition-colors"
                   />
                 </div>
 
                 <div className="flex items-center justify-end text-xs">
-                  <button type="button" onClick={() => { setIsForgotPassword(false); setForgotSuccess(""); setForgotError(""); }} className="text-violet-400 hover:text-violet-300 transition-colors">
+                  <button type="button" onClick={() => { setIsForgotPassword(false); setForgotSuccess(""); setForgotError(""); }} className="text-[#0A84FF] hover:underline">
                     Back to Sign In
                   </button>
                 </div>
 
                 <button type="submit" disabled={isForgotLoading}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0A84FF] hover:bg-[#0071E3] text-white text-xs font-medium transition-colors disabled:opacity-50"
                 >
-                  {isForgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isForgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   {isForgotLoading ? "Sending Recovery..." : "Send Recovery Email"}
                 </button>
               </form>
             </>
           )}
 
-          <p className="text-xs text-white/30 mt-8 text-center">
-            This portal is for {org?.name || "Grekam OS"} clients only.
-            <br />If you need access, contact your project manager.
+          <p className="text-[11px] text-white/30 mt-8 text-center">
+            This portal is for {org?.name || "Garage CRM"} clients only.
           </p>
         </div>
       </div>

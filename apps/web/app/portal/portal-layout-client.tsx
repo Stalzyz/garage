@@ -19,22 +19,22 @@ export default function PortalLayoutClient({ children }: { children: React.React
     const isStudent = session?.user?.role === 'STUDENT'
 
   return (
-    <div className="flex flex-col h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
+    <div className="flex flex-col h-screen bg-[#000000] text-white font-sans selection:bg-[#0A84FF]/30">
       
       {/* Top Navbar */}
-      <nav className="flex-none h-16 border-b border-white/10 bg-black/40 backdrop-blur-xl flex items-center justify-between px-6 z-50">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-lg flex items-center justify-center font-bold font-mono">
+      <nav className="flex-none h-14 border-b border-white/[0.08] bg-[#121214]/80 backdrop-blur-xl flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-white/[0.08] border border-white/[0.1] rounded-lg flex items-center justify-center font-semibold text-xs text-white">
               G
             </div>
-            <span className="font-bold tracking-widest text-sm text-white/80 uppercase">
+            <span className="font-semibold tracking-tight text-xs text-white/90">
               {isStudent ? "Student Portal" : "Client Portal"}
             </span>
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <div className="hidden md:flex items-center gap-5 text-xs font-medium">
             {isStudent ? (
               <>
                 <Link href="/portal/student" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
@@ -53,33 +53,29 @@ export default function PortalLayoutClient({ children }: { children: React.React
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-black" />
+        <div className="flex items-center gap-3">
+          <button className="p-1.5 hover:bg-white/[0.06] rounded-lg transition-colors text-white/50 hover:text-white relative">
+            <Bell className="w-3.5 h-3.5" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0A84FF] rounded-full" />
           </button>
           
-          <div className="w-px h-6 bg-white/10 mx-2" />
+          <div className="w-px h-4 bg-white/[0.08] mx-1" />
           
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center font-bold text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-white/[0.08] border border-white/[0.1] flex items-center justify-center font-medium text-xs text-white">
               {session?.user?.name?.charAt(0) || "U"}
             </div>
-            <div className="hidden sm:block">
-              <p className="text-xs font-bold">{session?.user?.name || "User Account"}</p>
-              <p className="text-[10px] text-white/40">{session?.user?.email || "user@example.com"}</p>
+            <div className="hidden sm:block text-left">
+              <p className="text-xs font-medium text-white">{session?.user?.name || "Client Account"}</p>
+              <p className="text-[10px] text-white/40">{session?.user?.email || "client@example.com"}</p>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto custom-scrollbar relative">
-        {/* Glow Effects */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="relative z-10 p-4 sm:p-8">
+      <main className="flex-1 overflow-auto custom-scrollbar relative bg-[#000000]">
+        <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
       </main>

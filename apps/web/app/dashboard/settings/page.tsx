@@ -112,8 +112,15 @@ export default function SystemSettingsPage() {
         body: JSON.stringify(body)
       })
 
-      if (!res.ok) throw new Error('Failed to save')
+      if (!res.ok) {
+        let errData;
+        try { errData = await res.json(); } catch {}
+        throw new Error(errData?.message || errData?.error || 'Failed to save');
+      }
       toast.success('Settings and brand assets saved successfully!')
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('organization-updated'));
+      }
     } catch (err) {
       toast.error('Failed to save settings.')
     } finally {
@@ -122,19 +129,19 @@ export default function SystemSettingsPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#000000] text-white overflow-hidden font-sans">
       {/* Header */}
-      <div className="flex-none px-8 py-6 border-b border-white/10 flex items-center justify-between">
+      <div className="flex-none px-6 py-4 border-b border-white/[0.08] bg-[#121214]/60 backdrop-blur-md flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-          <p className="text-sm text-white/50 mt-2">Manage workspace preferences, branding, and configurations.</p>
+          <h1 className="text-xl font-semibold tracking-tight text-white">System Settings</h1>
+          <p className="text-xs text-white/50 mt-0.5">Manage workspace preferences, branding, and organization profile.</p>
         </div>
         <button 
           onClick={handleSave}
           disabled={logoUploading}
-          className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 transition-colors shadow-sm disabled:opacity-60 cursor-pointer text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] hover:bg-[#0071E3] text-white font-medium rounded-lg transition-colors shadow-sm disabled:opacity-60 cursor-pointer text-xs"
         >
-          {logoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {logoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           {logoUploading ? 'Saving...' : 'Save changes'}
         </button>
       </div>
@@ -142,99 +149,99 @@ export default function SystemSettingsPage() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Sidebar - Navigation */}
-        <div className="w-60 border-r border-white/[0.08] bg-dash-bg-base p-3 space-y-1">
+        <div className="w-56 border-r border-white/[0.08] bg-[#121214] p-2.5 space-y-0.5 shrink-0">
           <button 
             onClick={() => setActiveTab('branding')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${activeTab === 'branding' ? 'bg-white/[0.08] text-white' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'}`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${activeTab === 'branding' ? 'bg-[#1c1c1e] text-white' : 'text-white/60 hover:bg-white/[0.04] hover:text-white'}`}
           >
-            <Palette className="w-4 h-4 text-zinc-400" /> Branding
+            <Palette className="w-3.5 h-3.5 text-[#0A84FF]" /> Branding
           </button>
           <button 
             onClick={() => setActiveTab('company')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${activeTab === 'company' ? 'bg-white/[0.08] text-white' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'}`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${activeTab === 'company' ? 'bg-[#1c1c1e] text-white' : 'text-white/60 hover:bg-white/[0.04] hover:text-white'}`}
           >
-            <Building className="w-4 h-4 text-zinc-400" /> Company Details
+            <Building className="w-3.5 h-3.5 text-white/40" /> Company Details
           </button>
           <a 
             href="/dashboard/settings/organization"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
           >
-            <Building2 className="w-4 h-4 text-blue-400" /> Full Brand Suite
+            <Building2 className="w-3.5 h-3.5 text-white/40" /> Full Brand Suite
           </a>
           <button 
             onClick={() => setActiveTab('notifications')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${activeTab === 'notifications' ? 'bg-white/[0.08] text-white' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'}`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${activeTab === 'notifications' ? 'bg-[#1c1c1e] text-white' : 'text-white/60 hover:bg-white/[0.04] hover:text-white'}`}
           >
-            <Bell className="w-4 h-4 text-zinc-400" /> Notifications
+            <Bell className="w-3.5 h-3.5 text-white/40" /> Notifications
           </button>
           <a 
             href="/dashboard/settings/roles"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
           >
-            <Shield className="w-4 h-4 text-zinc-400" /> Roles & Permissions
+            <Shield className="w-3.5 h-3.5 text-white/40" /> Roles & Permissions
           </a>
           <a 
             href="/dashboard/settings/finance"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
           >
-            <DollarSign className="w-4 h-4 text-zinc-400" /> Finance & Currency
+            <DollarSign className="w-3.5 h-3.5 text-white/40" /> Finance & Currency
           </a>
           <a 
             href="/dashboard/settings/integrations"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
           >
-            <Plug className="w-4 h-4 text-zinc-400" /> Integrations & APIs
+            <Plug className="w-3.5 h-3.5 text-white/40" /> Integrations & APIs
           </a>
           <a 
             href="/dashboard/settings/email-templates"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
           >
-            <Mail className="w-4 h-4 text-zinc-400" /> Email & SMTP Delivery
+            <Mail className="w-3.5 h-3.5 text-white/40" /> Email & SMTP Delivery
           </a>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 bg-dash-bg-surface relative">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 bg-[#000000] relative">
           <div className="max-w-4xl space-y-6">
             
             {activeTab === 'branding' && (
               <>
                 {/* 1. Digital Agency Card */}
-                <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5">
+                <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-6 space-y-5">
                   <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
                     <div className="flex items-center gap-3">
-                      <Building2 className="w-5 h-5 text-slate-300" />
+                      <Building2 className="w-5 h-5 text-white/70" />
                       <div>
-                        <h2 className="text-sm font-semibold text-slate-100">Digital Agency Brand (Grekam Visuals)</h2>
-                        <p className="text-xs text-slate-400">Landscape logo for invoices & proposals, 1:1 square favicon for garage.grekam.in</p>
+                        <h2 className="text-sm font-semibold text-white">Brand Assets & Identity</h2>
+                        <p className="text-xs text-white/40">Landscape logo for invoices & proposals, 1:1 square icon for browser favicon</p>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700/60 text-[10px] font-mono uppercase tracking-wider rounded">
-                      Agency
+                    <span className="px-2.5 py-0.5 bg-white/[0.05] text-white/70 border border-white/[0.08] text-[10px] font-mono uppercase tracking-wider rounded-md">
+                      Active Org
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Agency Landscape Logo */}
-                    <div className="space-y-3 bg-[#0c0e14] border border-white/[0.06] rounded-lg p-4">
+                    <div className="space-y-3 bg-[#121214] border border-white/[0.06] rounded-xl p-4">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-slate-300 flex items-center gap-2">
-                          <ImageIcon className="w-3.5 h-3.5 text-slate-400" /> Agency Logo (Landscape)
+                        <label className="text-xs font-medium text-white/70 flex items-center gap-2">
+                          <ImageIcon className="w-3.5 h-3.5 text-white/40" /> Primary Logo (Landscape)
                         </label>
-                        <span className="text-[10px] font-mono text-slate-500">~3:1 / 4:1</span>
+                        <span className="text-[10px] font-mono text-white/40">~3:1 / 4:1</span>
                       </div>
-                      <div className="w-full h-24 rounded-lg border border-white/[0.08] bg-[#10141d] p-2 flex items-center justify-center">
+                      <div className="w-full h-24 rounded-lg border border-white/[0.08] bg-[#161618] p-2 flex items-center justify-center">
                         {logoPreview ? (
                           <img src={logoPreview} alt="Agency Logo" className="max-h-full max-w-full object-contain" />
                         ) : (
-                          <span className="text-slate-600 text-xs font-mono">No Logo</span>
+                          <span className="text-white/30 text-xs font-mono">No Logo Uploaded</span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 font-medium text-xs rounded-lg transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 font-medium text-xs rounded-lg transition-colors"
                         >
                           <Upload className="w-3.5 h-3.5" /> Upload Logo
                         </button>
@@ -242,7 +249,7 @@ export default function SystemSettingsPage() {
                           <button
                             type="button"
                             onClick={() => setLogoPreview(null)}
-                            className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-lg transition-colors"
+                            className="p-1.5 text-white/40 hover:text-[#FF453A] hover:bg-[#FF453A]/10 border border-white/[0.08] rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -261,27 +268,27 @@ export default function SystemSettingsPage() {
                     </div>
 
                     {/* Agency Square Favicon */}
-                    <div className="space-y-3 bg-[#0c0e14] border border-white/[0.06] rounded-lg p-4">
+                    <div className="space-y-3 bg-[#121214] border border-white/[0.06] rounded-xl p-4">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-slate-300 flex items-center gap-2">
-                          <Globe className="w-3.5 h-3.5 text-slate-400" /> Agency Favicon (Square)
+                        <label className="text-xs font-medium text-white/70 flex items-center gap-2">
+                          <Globe className="w-3.5 h-3.5 text-white/40" /> Browser Favicon (Square)
                         </label>
-                        <span className="text-[10px] font-mono text-slate-500">1:1 Square</span>
+                        <span className="text-[10px] font-mono text-white/40">1:1 Square</span>
                       </div>
-                      <div className="w-full h-24 rounded-lg border border-white/[0.08] bg-[#10141d] p-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-md px-2.5 py-1 text-[11px] font-mono text-slate-300">
-                          {faviconPreview ? <img src={faviconPreview} className="w-3.5 h-3.5 object-contain" /> : <Globe className="w-3.5 h-3.5 text-slate-500" />}
-                          <span>Grekam OS</span>
+                      <div className="w-full h-24 rounded-lg border border-white/[0.08] bg-[#161618] p-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-md px-2.5 py-1 text-[11px] font-mono text-white/70">
+                          {faviconPreview ? <img src={faviconPreview} className="w-3.5 h-3.5 object-contain" /> : <Globe className="w-3.5 h-3.5 text-white/40" />}
+                          <span>{workspaceName || 'Garage OS'}</span>
                         </div>
-                        <div className="w-8 h-8 rounded border border-white/[0.08] flex items-center justify-center bg-[#0c0e14]">
-                          {faviconPreview ? <img src={faviconPreview} className="w-full h-full object-contain p-0.5" /> : <span className="text-[10px] font-mono text-slate-600">1:1</span>}
+                        <div className="w-8 h-8 rounded border border-white/[0.08] flex items-center justify-center bg-[#121214]">
+                          {faviconPreview ? <img src={faviconPreview} className="w-full h-full object-contain p-0.5" /> : <span className="text-[10px] font-mono text-white/40">1:1</span>}
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => faviconInputRef.current?.click()}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 font-medium text-xs rounded-lg transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 font-medium text-xs rounded-lg transition-colors"
                         >
                           <Upload className="w-3.5 h-3.5" /> Upload Favicon
                         </button>
@@ -289,7 +296,7 @@ export default function SystemSettingsPage() {
                           <button
                             type="button"
                             onClick={() => setFaviconPreview(null)}
-                            className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08] rounded-lg transition-colors"
+                            className="p-1.5 text-white/40 hover:text-[#FF453A] hover:bg-[#FF453A]/10 border border-white/[0.08] rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -312,104 +319,104 @@ export default function SystemSettingsPage() {
             )}
 
             {activeTab === 'company' && (
-              <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-6">
+              <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-6 space-y-6">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
                   <div className="flex items-center gap-2.5">
-                    <Building className="w-5 h-5 text-slate-300" />
-                    <h2 className="text-sm font-semibold text-slate-100">Company & Legal Particulars</h2>
+                    <Building className="w-5 h-5 text-white/70" />
+                    <h2 className="text-sm font-semibold text-white">Company & Legal Particulars</h2>
                   </div>
                   <a
                     href="/dashboard/settings/organization"
-                    className="text-xs text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1"
+                    className="text-xs text-white/50 hover:text-white transition-colors flex items-center gap-1"
                   >
                     Manage Full Branding & Socials &rarr;
                   </a>
                 </div>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Registered Legal Company Name</label>
+                    <label className="text-xs font-medium text-white/60 block">Registered Legal Company Name</label>
                     <input 
                       type="text" 
                       value={companyName} 
                       onChange={e => setCompanyName(e.target.value)} 
-                      placeholder="Grekam Visuals & Technologies Pvt Ltd" 
-                      className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" 
+                      placeholder="Grekam Garage & Auto Services Pvt Ltd" 
+                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
                     />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Workspace Display Name</label>
+                    <label className="text-xs font-medium text-white/60 block">Workspace Display Name</label>
                     <input 
                       type="text" 
                       value={workspaceName} 
                       onChange={e => setWorkspaceName(e.target.value)} 
-                      placeholder="Grekam Visuals" 
-                      className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" 
+                      placeholder="Garage CRM" 
+                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
                     />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Income Tax PAN Number</label>
+                    <label className="text-xs font-medium text-white/60 block">Income Tax PAN Number</label>
                     <input 
                       type="text" 
                       value={panNumber} 
                       onChange={e => setPanNumber(e.target.value.toUpperCase())} 
                       placeholder="ABCDE1234F" 
                       maxLength={10}
-                      className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm font-mono uppercase text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" 
+                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
                     />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">GSTIN (GST Identification Number)</label>
+                    <label className="text-xs font-medium text-white/60 block">GSTIN (GST Identification Number)</label>
                     <input 
                       type="text" 
                       value={gstNumber} 
                       onChange={e => setGstNumber(e.target.value.toUpperCase())} 
                       placeholder="33AAAAA0000A1Z5" 
                       maxLength={15}
-                      className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm font-mono uppercase text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" 
+                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
                     />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Phone Number</label>
-                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98400 12345" className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" />
+                    <label className="text-xs font-medium text-white/60 block">Phone Number</label>
+                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98400 12345" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Website URL</label>
-                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://grekam.in" className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" />
+                    <label className="text-xs font-medium text-white/60 block">Website URL</label>
+                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://garage-crm.com" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Support / Contact Email</label>
-                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="contact@grekam.in" className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10" />
+                    <label className="text-xs font-medium text-white/60 block">Support / Contact Email</label>
+                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="contact@garage-crm.com" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300 block">Billing & Official Address</label>
-                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-[#0c0e14] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 resize-none" />
+                    <label className="text-xs font-medium text-white/60 block">Billing & Official Address</label>
+                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] resize-none" />
                   </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'notifications' && (
-              <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5">
+              <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-6 space-y-5">
                 <div className="flex items-center gap-2.5 border-b border-white/[0.06] pb-4">
-                  <Bell className="w-5 h-5 text-slate-300" />
-                  <h2 className="text-sm font-semibold text-slate-100">Global Notifications</h2>
+                  <Bell className="w-5 h-5 text-white/70" />
+                  <h2 className="text-sm font-semibold text-white">Global Notifications</h2>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-[#0c0e14] rounded-lg border border-white/[0.06]">
+                  <div className="flex items-center justify-between p-4 bg-[#121214] rounded-xl border border-white/[0.06]">
                     <div>
-                      <div className="text-sm font-medium text-slate-200">WhatsApp Integrations (Grafty)</div>
-                      <div className="text-xs text-slate-400">Send automated messages to leads and students.</div>
+                      <div className="text-xs font-medium text-white">WhatsApp Integration (Grafty)</div>
+                      <div className="text-[11px] text-white/40 mt-0.5">Send automated messages to leads and service clients.</div>
                     </div>
-                    <a href="/dashboard/settings/integrations" className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] transition-colors">
+                    <a href="/dashboard/settings/integrations" className="text-xs font-medium text-white/80 hover:text-white px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] transition-colors">
                       Configure Keys &rarr;
                     </a>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-[#0c0e14] rounded-lg border border-white/[0.06]">
+                  <div className="flex items-center justify-between p-4 bg-[#121214] rounded-xl border border-white/[0.06]">
                     <div>
-                      <div className="text-sm font-medium text-slate-200">Email Notifications</div>
-                      <div className="text-xs text-slate-400">Send daily digests to staff members.</div>
+                      <div className="text-xs font-medium text-white">Email Delivery (SMTP)</div>
+                      <div className="text-[11px] text-white/40 mt-0.5">Automated job card updates, invoices and digests to staff.</div>
                     </div>
-                    <a href="/dashboard/settings/integrations" className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] transition-colors">
+                    <a href="/dashboard/settings/email-templates" className="text-xs font-medium text-white/80 hover:text-white px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] transition-colors">
                       Configure SMTP &rarr;
                     </a>
                   </div>

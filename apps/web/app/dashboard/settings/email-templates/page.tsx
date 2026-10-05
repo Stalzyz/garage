@@ -41,31 +41,31 @@ const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> 
 const SAMPLE_VARIABLES: Record<string, string> = {
   clientName: "Jane Doe",
   companyName: "City Central Auto Care",
-  portalLink: "https://garage.grekam.in/portal/dashboard",
+  portalLink: "https://grekam.in/portal/dashboard",
   accountManager: "Stalin Kumar",
   invoiceNumber: "INV-2026-089",
   projectName: "Major Engine Overhaul & Servicing",
   amount: "45,000",
   dueDate: "Oct 05, 2026",
-  invoiceUrl: "https://garage.grekam.in/portal/invoices",
+  invoiceUrl: "https://grekam.in/portal/invoices",
   proposalTitle: "Complete Fleet Maintenance Agreement",
   estimatedAmount: "1,20,000",
-  proposalLink: "https://garage.grekam.in/portal/proposals",
+  proposalLink: "https://grekam.in/portal/proposals",
   staffName: "Service Advisor",
   leadName: "Rahul Sharma",
   phone: "+91 98765 43210",
   email: "rahul@example.com",
   leadSource: "Google Ads",
   interestTier: "High (Periodic Service & Denting)",
-  crmLink: "https://garage.grekam.in/dashboard/crm",
+  crmLink: "https://grekam.in/dashboard/crm",
   taskTitle: "Brake Pad Replacement & Rotor Truing",
   priority: "HIGH",
-  taskUrl: "https://garage.grekam.in/dashboard/projects",
+  taskUrl: "https://grekam.in/dashboard/projects",
   todayDate: "Sep 27, 2026",
   pendingTasksCount: "4",
   leadsToCallCount: "7",
   highPriorityTickets: "2",
-  dashboardLink: "https://garage.grekam.in/dashboard",
+  dashboardLink: "https://grekam.in/dashboard",
 }
 
 function buildPreviewEmailHtml(bodyHtml: string, subject: string, org?: any) {
@@ -134,7 +134,7 @@ function buildPreviewEmailHtml(bodyHtml: string, subject: string, org?: any) {
           <tr>
             <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 30px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;">
               <p style="margin:0 0 4px 0;font-weight:600;color:#475569;">${companyName}</p>
-              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://garage.grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">garage.grekam.in</a></p>
+              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">grekam.in</a></p>
             </td>
           </tr>
         </table>
@@ -159,7 +159,7 @@ export default function EmailTemplatesSettingsPage() {
     user: "notifications@grekam.in",
     pass: "",
     senderName: "Grekam Garage OS",
-    senderEmail: "notifications@garage.grekam.in",
+    senderEmail: "notifications@grekam.in",
   })
   const [smtpLoading, setSmtpLoading] = useState(false)
   const [smtpTesting, setSmtpTesting] = useState(false)
@@ -405,28 +405,25 @@ export default function EmailTemplatesSettingsPage() {
   }, [])
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-dash-bg-base text-foreground font-sans">
+    <div className="flex flex-col h-full min-h-screen bg-[#000000] text-white font-sans">
       
       {/* Top Main Navigation Header */}
-      <div className="flex-none px-8 pt-6 pb-4 border-b border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex-none px-6 py-4 border-b border-white/[0.08] bg-[#121214]/60 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
-              <Mail className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Email Delivery, SMTP & Automated Triggers</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold tracking-tight text-white">Email Delivery & Automated Triggers</h1>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Configure SMTP credentials, customize branded templates, and automate scheduled email notifications across the platform.</p>
+          <p className="text-xs text-white/50 mt-0.5">Configure SMTP credentials, customize branded templates, and automate notifications.</p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10">
+        {/* Apple Segmented Tab Switcher */}
+        <div className="flex items-center bg-[#161618] p-0.5 rounded-lg border border-white/[0.08]">
           <button
             onClick={() => setMainTab("SMTP")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               mainTab === "SMTP"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-zinc-400 hover:text-white hover:bg-white/5"
+                ? "bg-[#1c1c1e] text-white shadow-sm"
+                : "text-white/50 hover:text-white"
             }`}
           >
             <Server className="w-3.5 h-3.5" />
@@ -434,25 +431,25 @@ export default function EmailTemplatesSettingsPage() {
           </button>
           <button
             onClick={() => setMainTab("TEMPLATES")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               mainTab === "TEMPLATES"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-zinc-400 hover:text-white hover:bg-white/5"
+                ? "bg-[#1c1c1e] text-white shadow-sm"
+                : "text-white/50 hover:text-white"
             }`}
           >
             <Code className="w-3.5 h-3.5" />
-            Email Templates
+            Templates
           </button>
           <button
             onClick={() => setMainTab("CRONS")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               mainTab === "CRONS"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-zinc-400 hover:text-white hover:bg-white/5"
+                ? "bg-[#1c1c1e] text-white shadow-sm"
+                : "text-white/50 hover:text-white"
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            Automated Crons
+            Automations
           </button>
         </div>
       </div>
@@ -461,109 +458,109 @@ export default function EmailTemplatesSettingsPage() {
       {/* TAB 1: SMTP CONFIGURATION */}
       {/* ========================================================= */}
       {mainTab === "SMTP" && (
-        <div className="p-8 max-w-5xl space-y-6">
+        <div className="p-6 md:p-8 max-w-5xl space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Left: Form */}
-            <div className="lg:col-span-2 bg-[#0a0f1d] border border-white/10 rounded-2xl p-6 shadow-xl space-y-5">
-              <div className="border-b border-white/10 pb-3 flex items-center justify-between">
+            <div className="lg:col-span-2 bg-[#161618] border border-white/[0.08] rounded-xl p-6 space-y-5">
+              <div className="border-b border-white/[0.06] pb-3 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">SMTP Server Credentials</h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">Connect any SMTP service (Gmail App Passwords, Resend, SendGrid, Amazon SES, or Hostinger).</p>
+                  <h2 className="text-sm font-semibold text-white">SMTP Server Credentials</h2>
+                  <p className="text-xs text-white/40 mt-0.5">Connect any SMTP service (Gmail, Resend, SendGrid, Amazon SES, or custom).</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20">
                   Ready to Transmit
                 </span>
               </div>
 
               <form onSubmit={handleSaveSmtp} className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                   <div className="md:col-span-2">
-                    <label className="block text-zinc-300 font-semibold mb-1">SMTP Host *</label>
+                    <label className="block text-white/50 font-medium mb-1.5">SMTP Host *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. smtp.gmail.com or smtp.resend.com"
                       value={smtpForm.host}
                       onChange={(e) => setSmtpForm({ ...smtpForm, host: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] font-mono text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-zinc-300 font-semibold mb-1">Port *</label>
+                    <label className="block text-white/50 font-medium mb-1.5">Port *</label>
                     <input
                       type="number"
                       required
                       placeholder="587"
                       value={smtpForm.port}
                       onChange={(e) => setSmtpForm({ ...smtpForm, port: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] font-mono text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-zinc-300 font-semibold mb-1">SMTP Username / Email *</label>
+                    <label className="block text-white/50 font-medium mb-1.5">SMTP Username / Email *</label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. info@grekam.in"
+                      placeholder="e.g. info@garage-crm.com"
                       value={smtpForm.user}
                       onChange={(e) => setSmtpForm({ ...smtpForm, user: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-zinc-300 font-semibold mb-1">SMTP Password / App Key *</label>
+                    <label className="block text-white/50 font-medium mb-1.5">SMTP Password / App Key *</label>
                     <input
                       type="password"
                       placeholder="••••••••••••••••"
                       value={smtpForm.pass}
                       onChange={(e) => setSmtpForm({ ...smtpForm, pass: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] font-mono text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 border-t border-white/[0.06]">
                   <div>
-                    <label className="block text-zinc-300 font-semibold mb-1">Sender Brand Name</label>
+                    <label className="block text-white/50 font-medium mb-1.5">Sender Brand Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. Grekam Garage OS"
+                      placeholder="e.g. Garage CRM"
                       value={smtpForm.senderName}
                       onChange={(e) => setSmtpForm({ ...smtpForm, senderName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-zinc-300 font-semibold mb-1">From Email Address</label>
+                    <label className="block text-white/50 font-medium mb-1.5">From Email Address</label>
                     <input
                       type="email"
-                      placeholder="e.g. notifications@garage.grekam.in"
+                      placeholder="e.g. notifications@garage-crm.com"
                       value={smtpForm.senderEmail}
                       onChange={(e) => setSmtpForm({ ...smtpForm, senderEmail: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={smtpForm.secure}
                       onChange={(e) => setSmtpForm({ ...smtpForm, secure: e.target.checked })}
-                      className="rounded border-white/10 bg-white/5 text-blue-600 w-4 h-4"
+                      className="rounded border-white/[0.08] bg-[#121214] text-[#0A84FF] w-4 h-4"
                     />
-                    <span className="text-zinc-300 text-xs font-medium">Use SSL/TLS Security (Port 465)</span>
+                    <span className="text-white/60 text-xs font-medium">Use SSL/TLS Security (Port 465)</span>
                   </label>
 
                   <button
                     type="submit"
                     disabled={smtpLoading}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg bg-[#0A84FF] hover:bg-[#0071E3] text-white font-medium text-xs transition-colors flex items-center gap-2 disabled:opacity-50"
                   >
                     {smtpLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                     Save SMTP Settings
@@ -573,24 +570,24 @@ export default function EmailTemplatesSettingsPage() {
             </div>
 
             {/* Right: Test Verification Card */}
-            <div className="space-y-6">
-              <div className="bg-[#0a0f1d] border border-blue-500/30 rounded-2xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center gap-2 text-blue-400">
-                  <Send className="w-4 h-4" />
-                  <h3 className="text-sm font-bold text-white">Live Email Verification</h3>
+            <div className="space-y-5">
+              <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-2 text-white">
+                  <Send className="w-4 h-4 text-[#0A84FF]" />
+                  <h3 className="text-xs font-semibold text-white">Live Email Verification</h3>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <p className="text-xs text-white/40 leading-relaxed">
                   Verify your SMTP connection immediately by sending a test transaction payload to any email inbox.
                 </p>
 
-                <div className="space-y-2">
-                  <label className="block text-zinc-300 text-xs font-medium">Recipient Test Email</label>
+                <div className="space-y-1.5">
+                  <label className="block text-white/50 text-xs font-medium">Recipient Test Email</label>
                   <input
                     type="email"
                     placeholder="your-email@example.com"
                     value={testRecipient}
                     onChange={(e) => setTestRecipient(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#0A84FF]"
                   />
                 </div>
 
@@ -598,7 +595,7 @@ export default function EmailTemplatesSettingsPage() {
                   type="button"
                   onClick={handleSendSmtpVerification}
                   disabled={smtpTesting}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {smtpTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                   Dispatch Test Email Now

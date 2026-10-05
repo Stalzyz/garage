@@ -98,45 +98,44 @@ export default function InvoiceDetailsPage() {
     <div className="flex flex-col h-full bg-[#050508] text-white overflow-hidden font-sans">
       
       {/* Header Bar */}
-      <div className="h-16 px-6 border-b border-white/5 bg-[#0a0a0f] shrink-0 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/finance/invoices" className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+      <div className="h-14 px-6 border-b border-white/[0.07] bg-[#121214]/60 backdrop-blur-md shrink-0 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/finance" className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.08] text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">Invoice #{invoice.invoiceNumber}</h1>
+            <h1 className="text-sm font-semibold text-[#f5f5f7]">Invoice #{invoice.invoiceNumber}</h1>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {invoice.status !== 'PAID' && (
             <button 
               onClick={() => {
                 setPaymentData({ ...paymentData, amount: String(invoice.totalAmount - (invoice.paidAmount || 0)) })
                 setShowPaymentModal(true)
               }}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-emerald-500/20 text-emerald-400 rounded-xl hover:bg-emerald-500/30 transition-all border border-emerald-500/30"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#30D158]/10 text-[#30D158] rounded-lg hover:bg-[#30D158]/20 transition-colors border border-[#30D158]/20"
             >
               Record Payment
             </button>
           )}
-          <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2 text-xs bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all border border-white/10">
-            <Download className="w-4 h-4" /> Download PDF
+          <button onClick={handleDownload} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-transparent text-zinc-300 font-medium rounded-lg hover:bg-white/[0.06] transition-colors border border-white/[0.08]">
+            <Download className="w-3.5 h-3.5" /> PDF
           </button>
           <button 
             onClick={() => setShowWhatsAppModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-xs bg-emerald-500/20 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/30 transition-all border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/[0.06] text-zinc-300 font-medium rounded-lg hover:bg-white/[0.1] transition-colors border border-white/[0.08]"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-400" /> Send via WhatsApp
+            <MessageSquare className="w-3.5 h-3.5 text-[#30D158]" /> WhatsApp
           </button>
           <button 
             onClick={handleSend}
             disabled={isSending || invoice.status === 'PAID'}
-            style={{ backgroundColor: primaryColor }}
-            className="flex items-center gap-2 px-5 py-2 text-xs text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs text-white font-medium bg-[#0A84FF] hover:bg-[#0A84FF]/90 rounded-lg transition-colors disabled:opacity-50"
           >
-            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            {invoice.status === 'SENT' ? 'Resend Email' : invoice.status === 'PAID' ? 'Already Paid' : 'Send Email'}
+            {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            {invoice.status === 'SENT' ? 'Resend' : invoice.status === 'PAID' ? 'Paid' : 'Send'}
           </button>
         </div>
       </div>

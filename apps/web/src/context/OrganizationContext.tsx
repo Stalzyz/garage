@@ -28,7 +28,7 @@ export interface Organization {
 
 const defaultOrg: Organization = {
   id: "",
-  name: "Grekam Garage",
+  name: "Automated CRM",
   logoUrl: null,
   academyLogoUrl: null,
   faviconUrl: null,
@@ -43,7 +43,7 @@ const defaultOrg: Organization = {
   phone: null,
   gstNumber: null,
   panNumber: null,
-  companyName: "Grekam Garage",
+  companyName: "Automated CRM",
   bankName: null,
   bankAccountNo: null,
   bankIfsc: null,
@@ -61,7 +61,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [org, setOrg] = useState<Organization>(defaultOrg);
 
   useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+    const API_BASE = typeof window !== "undefined" ? "/api/v1" : (process.env.NEXT_PUBLIC_API_URL || "/api/v1");
 
     const fetchOrg = () => {
       fetch(`${API_BASE}/settings/organization`)
@@ -84,9 +84,11 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
               const root = document.documentElement;
               root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2563eb");
 
-              // Update page title if set
-              if (orgData.name) {
-                document.title = orgData.name;
+              // Update page title
+              if (orgData.name && orgData.name !== "Inertia creations") {
+                document.title = `${orgData.name} | Automated CRM`;
+              } else {
+                document.title = "Automated CRM";
               }
 
               // Update Agency Favicon dynamically in browser tab

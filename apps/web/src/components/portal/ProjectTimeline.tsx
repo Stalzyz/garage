@@ -28,37 +28,31 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
   }
 
   return (
-    <div className="relative pl-6 py-2 border-l-2 border-white/10 space-y-8 mt-4">
+    <div className="relative pl-5 py-2 border-l border-white/[0.08] space-y-6 mt-3">
       {events.map((e, idx) => {
         let Icon = Star;
-        let color = "text-slate-400 bg-slate-800 border-slate-700";
+        let iconColor = "text-white/60 bg-[#161618] border-white/[0.08]";
         
-        if (e.type === 'TASK_COMPLETED') {
+        if (e.type === 'TASK_COMPLETED' || e.type === 'PHASE_COMPLETED') {
           Icon = CheckCircle2;
-          color = "text-emerald-400 bg-emerald-900 border-emerald-500/30";
-        } else if (e.type === 'FILE_UPLOADED') {
+          iconColor = "text-[#30D158] bg-[#161618] border-[#30D158]/30";
+        } else if (e.type === 'FILE_UPLOADED' || e.type === 'PROJECT_CREATED') {
           Icon = FileUp;
-          color = "text-blue-400 bg-blue-900 border-blue-500/30";
+          iconColor = "text-[#0A84FF] bg-[#161618] border-[#0A84FF]/30";
         } else if (e.type === 'PAYMENT_RECEIVED') {
           Icon = CreditCard;
-          color = "text-amber-400 bg-amber-900 border-amber-500/30";
-        } else if (e.type === 'PROJECT_CREATED') {
-          Icon = PlayCircle;
-          color = "text-violet-400 bg-violet-900 border-violet-500/30";
-        } else if (e.type === 'PHASE_COMPLETED') {
-          Icon = Star;
-          color = "text-fuchsia-400 bg-fuchsia-900 border-fuchsia-500/30";
+          iconColor = "text-[#FF9F0A] bg-[#161618] border-[#FF9F0A]/30";
         }
 
         return (
           <div key={e.id} className="relative">
-            <div className={`absolute -left-[35px] w-6 h-6 rounded-full border-2 flex items-center justify-center ${color}`}>
-              <Icon className="w-3 h-3" />
+            <div className={`absolute -left-[31px] w-5 h-5 rounded-full border flex items-center justify-center ${iconColor}`}>
+              <Icon className="w-2.5 h-2.5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">{e.title}</h4>
-              {e.description && <p className="text-xs text-white/70 mt-1">{e.description}</p>}
-              <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">{new Date(e.date).toLocaleString()}</p>
+              <h4 className="text-xs font-medium text-white">{e.title}</h4>
+              {e.description && <p className="text-[11px] text-white/50 mt-0.5">{e.description}</p>}
+              <p className="text-[10px] text-white/30 mt-0.5 font-mono">{new Date(e.date).toLocaleString()}</p>
             </div>
           </div>
         )

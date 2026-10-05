@@ -62,30 +62,31 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
+    // `category` is not a Ticket column — it was rejected by Prisma, so ticket
+    // creation always failed. Fold it into the subject instead of dropping the
+    // information silently.
     const { subject, description, priority = "MEDIUM", category = "PARTNER_SUPPORT" } = body
 
     if (!subject || !description) {
       return NextResponse.json({ error: "Subject and description are required" }, { status: 400 })
     }
 
-    // Get an organization ID fallback
-    const org = await prisma.organization.findFirst()
-    const orgId = org?.id || "default_org"
-
     const ticket = await prisma.ticket.create({
       data: {
-        organizationId: orgId,
         userId: partner.userId,
-        subject: `[Partner ${partner.partnerCode}] ${subject}`,
-        description,
+        subject: `[${category}] [Partner ${partner.partnerCode}] ${subject}`,
+        // Ticket has no organizationId or description column. The description is
+        // carried by the first TicketMessage below; the removed organizationId
+        // also depended on an unfiltered findFirst() that read an arbitrary row.
         status: "OPEN",
         priority,
-        category,
         messages: {
           create: {
             senderId: partner.userId,
-            senderRole: "PARTNER",
             message: description,
+            // TicketMessage has no senderRole column — passing it made every
+            // ticket creation fail with a Prisma validation error. The sender is
+            // already identified by senderId.
           },
         },
       },

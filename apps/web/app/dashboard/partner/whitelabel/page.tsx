@@ -285,9 +285,9 @@ export default function PartnerWhiteLabelPage() {
               <div className="flex justify-between items-center text-zinc-400 pt-2 border-t border-zinc-900">
                 <span>Target / Value:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-200">cname.garage.grekam.in</span>
+                  <span className="text-zinc-200">cname.grekam.in</span>
                   <button
-                    onClick={() => copyToClipboard("cname.garage.grekam.in")}
+                    onClick={() => copyToClipboard("cname.grekam.in")}
                     className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition"
                     title="Copy Target"
                   >

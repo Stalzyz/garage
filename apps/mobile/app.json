@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Grekam Agency OS",
+    "slug": "grekam-agency-os",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "grekam",
+    "backgroundColor": "#09090b",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.grekam.agency",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Grekam Agency OS uses FaceID for instant biometric access to your client pipeline and financials.",
+        "NSLocationWhenInUseUsageDescription": "Grekam Agency OS requires your location to verify attendance clock-in within your workplace.",
+        "NSPhotoLibraryUsageDescription": "Grekam Agency OS uses photos to attach client deliverables and documents."
+      }
+    },
+    "android": {
+      "package": "in.grekam.agency",
+      "adaptiveIcon": {
+        "backgroundColor": "#09090b",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

@@ -291,162 +291,150 @@ export default function EmployeeDirectory() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar bg-transparent text-white relative p-6 lg:p-10 space-y-10">
-      
-      {/* Background Ambience */}
-      <div className="absolute top-[10%] left-[50%] w-[30%] h-[30%] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none" />
-
+    <div className="flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar bg-black text-[#f5f5f7] p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden">
-            <Users className="w-6 h-6 text-emerald-400 relative z-10" />
-            <div className="absolute inset-0 bg-emerald-500/20 animate-pulse mix-blend-overlay" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#161618] border border-white/[0.08] flex items-center justify-center">
+            <Users className="w-4 h-4 text-[#0A84FF]" />
           </div>
           <div>
-            <p className="text-[10px] font-mono tracking-widest uppercase font-bold text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)] mb-1">Human Resources</p>
-            <h1 className="text-3xl font-bold text-white tracking-tight leading-none">
-              Personnel Matrix
-            </h1>
+            <h1 className="text-base font-semibold text-[#f5f5f7]">Team Directory</h1>
+            <p className="text-xs text-zinc-400">Employees, departments, and organization roles</p>
           </div>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsAddDeptOpen(true)}
-            className="flex items-center gap-2 bg-white/5 text-white/70 border border-white/10 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-white/10 transition-all"
+            className="flex items-center gap-1.5 bg-transparent hover:bg-white/[0.06] border border-white/[0.08] text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Dept
+            <Plus className="w-3.5 h-3.5" /> Department
           </button>
           <button 
             onClick={() => setIsAddOpen(true)}
-            className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold tracking-widest uppercase px-5 py-3 rounded-xl hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+            className="flex items-center gap-1.5 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Personnel
+            <Plus className="w-3.5 h-3.5" /> Add Employee
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-4 relative z-10 border-y border-white/10 py-6">
-        <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-y border-white/[0.06] py-3.5">
+        <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
           {DEPARTMENTS.map(dept => (
             <button
               key={dept}
               onClick={() => setDeptFilter(dept)}
-              className={`text-[9px] font-mono tracking-widest uppercase font-bold px-4 py-2 rounded-lg border transition-all whitespace-nowrap ${
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${
                 deptFilter === dept
-                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
-                  : "bg-black/40 border-white/10 text-white/40 hover:text-white hover:border-white/30"
+                  ? "bg-white/[0.12] text-white border-white/[0.16]"
+                  : "bg-[#121214] border-white/[0.08] text-zinc-400 hover:text-white"
               }`}
             >
               {dept}
             </button>
           ))}
         </div>
-        <div className="relative w-full md:w-72 group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Query Personnel..."
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-[10px] font-mono tracking-widest uppercase text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors shadow-[inset_0_0_10px_rgba(255,255,255,0.02)]"
-          />
-        </div>
         
-        {/* View Toggle */}
-        <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
-          <button 
-            onClick={() => setViewMode("grid")}
-            className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-emerald-500/20 text-emerald-400" : "text-white/40 hover:text-white"}`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => setViewMode("list")}
-            className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-emerald-500/20 text-emerald-400" : "text-white/40 hover:text-white"}`}
-          >
-            <List className="w-4 h-4" />
-          </button>
+        <div className="flex items-center gap-2.5">
+          <div className="relative w-56">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search team..."
+              className="w-full bg-[#121214] border border-white/[0.08] focus:border-[#0A84FF] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#f5f5f7] placeholder:text-zinc-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          {/* View Toggle */}
+          <div className="flex bg-[#1c1c1e] border border-white/[0.08] rounded-lg p-0.5">
+            <button 
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-white/[0.12] text-white" : "text-zinc-400 hover:text-white"}`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button 
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-white/[0.12] text-white" : "text-zinc-400 hover:text-white"}`}
+            >
+              <List className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div>
         {viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map((emp: any, i: number) => (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filtered.map((emp: any) => (
+              <div 
                 key={emp.id} 
                 onClick={() => setSelectedEmployee(emp)}
-                className="cursor-pointer group bg-white/5 backdrop-blur-md border border-white/10 hover:border-emerald-500/30 rounded-2xl p-6 transition-all hover:-translate-y-1 flex flex-col relative overflow-hidden"
+                className="cursor-pointer bg-[#161618] border border-white/[0.08] hover:border-white/[0.16] rounded-xl p-4 transition-colors flex flex-col group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div className="flex justify-between items-start mb-6 relative z-10">
-                  <span className={`text-[9px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]`}>
-                    ACTIVE
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border bg-[#30D158]/10 text-[#30D158] border-[#30D158]/20">
+                    Active
                   </span>
-                  <button className="text-white/40 hover:text-white p-1 transition-colors">
-                    <MoreVertical className="w-4 h-4" />
+                  <button className="text-zinc-500 hover:text-white p-1 transition-colors">
+                    <MoreVertical className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="flex flex-col items-center text-center mb-6 relative z-10">
-                  <div className="w-16 h-16 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-2xl font-black text-white mb-4 shadow-[inset_0_0_15px_rgba(255,255,255,0.05)]">
+                <div className="flex flex-col items-center text-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#1c1c1e] border border-white/[0.08] flex items-center justify-center text-base font-semibold text-white mb-2.5">
                     {emp.user?.firstName?.charAt(0) || "U"}
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">{`${emp.user?.firstName || ""} ${emp.user?.lastName || ""}`}</h3>
-                  <p className="text-[10px] font-mono tracking-widest uppercase text-emerald-400/80 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">{emp.jobTitle}</p>
+                  <h3 className="text-sm font-medium text-[#f5f5f7] mb-0.5 group-hover:text-[#0A84FF] transition-colors">{`${emp.user?.firstName || ""} ${emp.user?.lastName || ""}`}</h3>
+                  <p className="text-[11px] text-zinc-400">{emp.jobTitle}</p>
                 </div>
 
-                <div className="space-y-3 mt-auto pt-5 border-t border-white/10 relative z-10">
-                  <div className="flex items-center gap-3 text-xs font-mono text-white/60">
-                    <Mail className="w-3.5 h-3.5 text-emerald-400 flex-none" />
-                    <span className="truncate">{emp.user?.email}</span>
+                <div className="space-y-2 mt-auto pt-3 border-t border-white/[0.06] text-xs text-zinc-400">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3 h-3 text-zinc-500 flex-none" />
+                    <span className="truncate text-[11px]">{emp.user?.email}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-mono text-white/60">
-                    <Phone className="w-3.5 h-3.5 text-emerald-400 flex-none" />
-                    <span>{emp.phone || "No phone"}</span>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3 h-3 text-zinc-500 flex-none" />
+                    <span className="tabular-nums text-[11px]">{emp.phone || "No phone"}</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
+          <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/10 bg-black/40 text-[10px] font-mono tracking-widest uppercase text-white/50">
-                    <th className="px-6 py-4 font-bold">Personnel</th>
-                    <th className="px-6 py-4 font-bold">Role & Dept</th>
-                    <th className="px-6 py-4 font-bold">Contact</th>
-                    <th className="px-6 py-4 font-bold">Status</th>
-                    <th className="px-6 py-4 text-right font-bold">Action</th>
+                  <tr className="border-b border-white/[0.06] bg-[#121214] text-[11px] font-medium text-zinc-400">
+                    <th className="px-4 py-3">Employee</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Contact</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
-                  {filtered.map((emp: any, i: number) => (
-                    <motion.tr 
+                <tbody className="divide-y divide-white/[0.04] text-xs">
+                  {filtered.map((emp: any) => (
+                    <tr 
                       key={emp.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedEmployee(emp)}
                       className="hover:bg-white/[0.02] transition-colors cursor-pointer group"
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center text-sm font-black text-white group-hover:text-emerald-400 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-[#1c1c1e] border border-white/[0.08] flex items-center justify-center text-xs font-semibold text-white group-hover:text-[#0A84FF] transition-colors">
                             {emp.user?.firstName?.charAt(0) || "U"}
                           </div>
                           <div>
-                            <p className="font-bold text-white group-hover:text-emerald-400 transition-colors">{`${emp.user?.firstName || ""} ${emp.user?.lastName || ""}`}</p>
-                            <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">{emp.employeeCode || "EMP-000"}</p>
+                            <p className="font-medium text-[#f5f5f7] group-hover:text-[#0A84FF] transition-colors">{`${emp.user?.firstName || ""} ${emp.user?.lastName || ""}`}</p>
+                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{emp.employeeCode || "EMP-000"}</p>
                           </div>
                         </div>
                       </td>
@@ -462,17 +450,17 @@ export default function EmployeeDirectory() {
                           <Phone className="w-3 h-3 text-emerald-400" /> <span>{emp.phone || "No phone"}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                          ACTIVE
+                      <td className="px-4 py-3">
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border bg-[#30D158]/10 text-[#30D158] border-[#30D158]/20">
+                          Active
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="text-white/40 hover:text-white p-2 transition-colors">
-                          <MoreVertical className="w-4 h-4" />
+                      <td className="px-4 py-3 text-right">
+                        <button className="text-zinc-500 hover:text-white p-1.5 rounded-md hover:bg-white/[0.08] transition-colors">
+                          <MoreVertical className="w-3.5 h-3.5" />
                         </button>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>

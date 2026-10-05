@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Building2, Users, DollarSign, TrendingUp, AlertTriangle, ShieldCheck, Activity, ArrowUpRight, LogIn, RefreshCw
+  Building2, Users, DollarSign, TrendingUp, AlertTriangle, ShieldCheck, Activity, ArrowUpRight, LogIn, RefreshCw,
+  Copy, Send, Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -108,6 +109,71 @@ export default function SuperAdminDashboardPage() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
           <span className="text-[10px] text-zinc-400 uppercase font-semibold">Verified Revenue</span>
           <p className="text-xl font-bold text-emerald-400 font-mono">{stats.thisMonthRevenue}</p>
+        </div>
+      </div>
+
+      {/* DEMO ACCOUNTS SHAREABLE MANAGER */}
+      <div className="bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-400" />
+            <div>
+              <h2 className="text-sm font-bold text-white">Configured Demo Accounts</h2>
+              <p className="text-xs text-zinc-400">Share or test both direct SaaS and Whitelabel Partner demo environments.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Account 1 Card */}
+          <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/20 space-y-2.5">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4" /> 1. Public Demo (Without Whitelabel)
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300">Public Landing</span>
+            </div>
+            <p className="text-xs text-zinc-400">Prefilled on the landing page for all visitors. Direct SaaS experience.</p>
+            <div className="p-2.5 rounded-lg bg-white/5 font-mono text-xs space-y-1">
+              <div><span className="text-zinc-500">Email:</span> demo@garage.in</div>
+              <div><span className="text-zinc-500">Password:</span> Demo2023</div>
+            </div>
+          </div>
+
+          {/* Account 2 Card */}
+          <div className="p-4 rounded-xl bg-black/40 border border-purple-500/20 space-y-2.5">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+                <Users className="w-4 h-4" /> 2. Partner Demo (With Whitelabel)
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300">Manual Share</span>
+            </div>
+            <p className="text-xs text-zinc-400">For prospective reseller partners. Custom domains, pricing margins & wallet.</p>
+            <div className="p-2.5 rounded-lg bg-white/5 font-mono text-xs space-y-1">
+              <div><span className="text-zinc-500">Email:</span> reseller@grekam.com</div>
+              <div><span className="text-zinc-500">Password:</span> reseller123</div>
+              <div><span className="text-zinc-500">Share Link:</span> /partner/login?demo=partner</div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
+                  toast.success("Partner Demo credentials copied!")
+                }}
+                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copy Details
+              </button>
+              <a
+                href="https://wa.me/?text=Hi%20Partner!%20Here%20are%20your%20Whitelabel%20Partner%20Demo%20credentials%20for%20Garage%20CRM:%0A%0A🌐%20Portal:%20https://grekam.in/partner/login?demo=partner%0A📧%20Email:%20reseller@grekam.com%0A🔑%20Password:%20reseller123"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 text-xs font-semibold flex items-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" /> Share WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -59,6 +59,8 @@ export default function PartnerLoginPage() {
 
         {/* Login Form Box */}
         <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl p-8 space-y-6 shadow-2xl backdrop-blur-md">
+
+
           {errorMessage && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />

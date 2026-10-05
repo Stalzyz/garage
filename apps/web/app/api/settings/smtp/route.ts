@@ -59,7 +59,8 @@ export async function GET() {
     const secureVal = keyMap.get("SMTP_SECURE")
     const secure = secureVal !== undefined ? secureVal === "true" : (process.env.SMTP_SECURE === "true" || port === 465)
     const senderName = keyMap.get("SMTP_SENDER_NAME") || org?.companyName || org?.name || "Grekam Garage OS"
-    const senderEmail = keyMap.get("SMTP_FROM") || org?.supportEmail || user || "notifications@garage.grekam.in"
+    const senderEmail = keyMap.get("SMTP_FROM") || org?.supportEmail || user || "notifications@grekam.in"
+    const ccEmails = keyMap.get("SMTP_CC_EMAILS") || ""
 
     return NextResponse.json({
       success: true,
@@ -72,6 +73,7 @@ export async function GET() {
         hasPassword: !!pass,
         senderName,
         senderEmail,
+        ccEmails,
         isConfigured: !!(host && user && pass),
         lastTested: new Date().toISOString(),
       },
@@ -97,7 +99,8 @@ export async function POST(req: Request) {
       user, 
       pass, 
       senderName, 
-      senderEmail, 
+      senderEmail,
+      ccEmails,
       testRecipient, 
       sendTest 
     } = body
@@ -120,7 +123,8 @@ export async function POST(req: Request) {
     }
 
     const fromName = senderName || existingMap.get("SMTP_SENDER_NAME") || "Grekam Garage OS"
-    const fromEmail = senderEmail || existingMap.get("SMTP_FROM") || smtpUser || "notifications@garage.grekam.in"
+    const fromEmail = senderEmail || existingMap.get("SMTP_FROM") || smtpUser || "notifications@grekam.in"
+    const smtpCcEmails = ccEmails !== undefined ? ccEmails : (existingMap.get("SMTP_CC_EMAILS") || "")
 
     if (sendTest) {
       if (!testRecipient) {
@@ -193,6 +197,7 @@ export async function POST(req: Request) {
       { keyName: "SMTP_FROM", value: fromEmail },
       { keyName: "SMTP_SENDER_NAME", value: fromName },
       { keyName: "SMTP_SECURE", value: String(smtpSecure) },
+      { keyName: "SMTP_CC_EMAILS", value: smtpCcEmails },
     ]
 
     for (const item of keysToUpsert) {

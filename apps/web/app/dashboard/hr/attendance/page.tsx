@@ -328,56 +328,61 @@ export default function StaffAttendanceDashboard() {
   const halfDayCount = logs.filter(l => l.status === "HALF_DAY").length
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden">
+    <div className="flex flex-col h-full bg-black text-[#f5f5f7] overflow-hidden">
       {/* Header */}
-      <div className="flex-none px-4 md:px-6 py-4 md:py-5 border-b border-border/50">
+      <div className="flex-none px-6 py-5 border-b border-white/[0.07] bg-[#121214]/60 backdrop-blur-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Staff Attendance</h1>
-            <p className="text-sm text-muted-foreground mt-1">Track daily check-ins, configurations, shifts, and schedules.</p>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#161618] border border-white/[0.08] flex items-center justify-center">
+              <Clock className="w-4 h-4 text-[#0A84FF]" />
+            </div>
+            <div>
+              <h1 className="text-base font-semibold text-[#f5f5f7]">Attendance</h1>
+              <p className="text-xs text-zinc-400">Daily check-ins, shifts, geofences, and schedule rules</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 flex-wrap">
             {activeTab === "tracker" && (
               <>
-                <button onClick={handleExportCsv} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-all border border-border/50 min-h-[44px]">
-                  <Download className="w-4 h-4" /> Export CSV
+                <button onClick={handleExportCsv} className="flex items-center gap-1.5 bg-transparent hover:bg-white/[0.06] text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-white/[0.08] transition-colors">
+                  <Download className="w-3.5 h-3.5" /> Export CSV
                 </button>
-                <button onClick={handleTriggerAutoAbsence} disabled={isProcessingAbsence} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-all min-h-[44px]">
-                  <XCircle className="w-4 h-4" /> {isProcessingAbsence ? "Processing..." : "Auto-Mark Absences"}
+                <button onClick={handleTriggerAutoAbsence} disabled={isProcessingAbsence} className="flex items-center gap-1.5 bg-[#FF9F0A]/10 text-[#FF9F0A] border border-[#FF9F0A]/20 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#FF9F0A]/20 transition-colors">
+                  <XCircle className="w-3.5 h-3.5" /> {isProcessingAbsence ? "Processing..." : "Auto-Mark Absences"}
                 </button>
-                <button onClick={() => setIsManualOpen(true)} className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                  <UserCheck className="w-4 h-4" /> Mark Manual Entry
+                <button onClick={() => setIsManualOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                  <UserCheck className="w-3.5 h-3.5" /> Manual Entry
                 </button>
               </>
             )}
             {activeTab === "shifts" && (
               <>
-                <button onClick={() => setIsAssignShiftOpen(true)} className="flex justify-center items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium border border-border/50 min-h-[44px]">
-                  <Shuffle className="w-4 h-4" /> Assign Shift
+                <button onClick={() => setIsAssignShiftOpen(true)} className="flex items-center gap-1.5 bg-transparent hover:bg-white/[0.06] text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-white/[0.08] transition-colors">
+                  <Shuffle className="w-3.5 h-3.5" /> Assign Shift
                 </button>
-                <button onClick={() => setIsShiftOpen(true)} className="flex justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                  <Plus className="w-4 h-4" /> New Shift Profile
+                <button onClick={() => setIsShiftOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> New Shift
                 </button>
               </>
             )}
             {activeTab === "geofences" && (
-              <button onClick={() => setIsGeofenceOpen(true)} className="flex justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                <MapPin className="w-4 h-4" /> Add Geofence Site
+              <button onClick={() => setIsGeofenceOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                <MapPin className="w-3.5 h-3.5" /> New Geofence
               </button>
             )}
             {activeTab === "holidays" && (
-              <button onClick={() => setIsHolidayOpen(true)} className="flex justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                <Calendar className="w-4 h-4" /> Add Calendar Holiday
+              <button onClick={() => setIsHolidayOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                <Calendar className="w-3.5 h-3.5" /> Add Holiday
               </button>
             )}
             {activeTab === "weekoffs" && (
-              <button onClick={() => setIsWeekoffOpen(true)} className="flex justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                <CalendarDays className="w-4 h-4" /> Configure Week Off
+              <button onClick={() => setIsWeekoffOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                <CalendarDays className="w-3.5 h-3.5" /> Configure Week Off
               </button>
             )}
             {activeTab === "rules" && (
-              <button onClick={() => setIsSchedulerOpen(true)} className="flex justify-center items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-sm min-h-[44px]">
-                <Mail className="w-4 h-4" /> Setup Report Scheduler
+              <button onClick={() => setIsSchedulerOpen(true)} className="flex items-center gap-1.5 bg-[#0A84FF] text-white px-3.5 py-1.5 rounded-lg text-xs font-medium hover:bg-[#0A84FF]/90 transition-colors">
+                <Mail className="w-3.5 h-3.5" /> Setup Scheduler
               </button>
             )}
           </div>
@@ -385,22 +390,22 @@ export default function StaffAttendanceDashboard() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex-none bg-muted/40 border-b border-border/50 px-6">
-        <div className="flex gap-4 overflow-x-auto py-2.5">
+      <div className="flex-none bg-[#121214] border-b border-white/[0.06] px-6 py-2">
+        <div className="flex bg-[#1c1c1e] p-0.5 rounded-lg border border-white/[0.08] w-max max-w-full overflow-x-auto gap-1">
           {[
             { id: "tracker", label: "Daily Tracker" },
-            { id: "shifts", label: "Shift Planner" },
-            { id: "geofences", label: "Geofencing & Tagging" },
-            { id: "holidays", label: "Holiday Calendar" },
+            { id: "shifts", label: "Shifts" },
+            { id: "geofences", label: "Geofences" },
+            { id: "holidays", label: "Holidays" },
             { id: "weekoffs", label: "Week Offs" },
-            { id: "regularization", label: "Regularizations" },
-            { id: "rules", label: "Rules & Schedulers" },
+            { id: "regularization", label: "Regularization" },
+            { id: "rules", label: "Rules" },
           ].map(t => (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id as TabType)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${
-                activeTab === t.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/80"
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
+                activeTab === t.id ? "bg-white/[0.12] text-white" : "text-zinc-400 hover:text-white"
               }`}
             >
               {t.label}
@@ -415,47 +420,47 @@ export default function StaffAttendanceDashboard() {
           <>
             {/* KPI Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-card border border-border/50 p-5 rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2 text-emerald-500 mb-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Present</span>
+              <div className="bg-[#161618] border border-white/[0.08] p-4 rounded-xl flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-[#30D158] mb-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium">Present</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-foreground">{presentCount}</span>
-                  <span className="text-sm text-muted-foreground">staff</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{presentCount}</span>
+                  <span className="text-xs text-zinc-500">staff</span>
                 </div>
               </div>
               
-              <div className="bg-card border border-border/50 p-5 rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2 text-amber-500 mb-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Late In</span>
+              <div className="bg-[#161618] border border-white/[0.08] p-4 rounded-xl flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-[#FF9F0A] mb-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium">Late In</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-foreground">{lateCount}</span>
-                  <span className="text-sm text-muted-foreground">staff</span>
-                </div>
-              </div>
-
-              <div className="bg-card border border-border/50 p-5 rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2 text-blue-500 mb-2">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Half Day / Leave</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-foreground">{halfDayCount}</span>
-                  <span className="text-sm text-muted-foreground">staff</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{lateCount}</span>
+                  <span className="text-xs text-zinc-500">staff</span>
                 </div>
               </div>
 
-              <div className="bg-card border border-border/50 p-5 rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2 text-red-500 mb-2">
-                  <XCircle className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Absent</span>
+              <div className="bg-[#161618] border border-white/[0.08] p-4 rounded-xl flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-[#0A84FF] mb-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium">Half Day / Leave</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-foreground">{absentCount}</span>
-                  <span className="text-sm text-muted-foreground">staff</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{halfDayCount}</span>
+                  <span className="text-xs text-zinc-500">staff</span>
+                </div>
+              </div>
+
+              <div className="bg-[#161618] border border-white/[0.08] p-4 rounded-xl flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-[#FF453A] mb-1.5">
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-medium">Absent</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{absentCount}</span>
+                  <span className="text-xs text-zinc-500">staff</span>
                 </div>
               </div>
             </div>

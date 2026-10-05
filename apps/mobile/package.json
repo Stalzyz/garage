@@ -1,0 +1,31 @@
+{
+  "name": "@grekam/mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "echo Mobile build handled via EAS or native tooling",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~57.0.26",
+    "expo-image-picker": "^57.0.20",
+    "expo-local-authentication": "^57.0.3",
+    "expo-location": "^57.0.20",
+    "expo-notifications": "^57.0.21",
+    "expo-secure-store": "^57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "lucide-react-native": "^1.51.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-svg": "^15.15.5"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "private": true
+}
