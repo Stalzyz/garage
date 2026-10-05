@@ -915,7 +915,6 @@ export default function CRMDashboard() {
             </div>
           </div>
         </div>
-        </div>
 
         {/* View Mode & Grouping Controls */}
         <div className="flex flex-wrap items-center justify-between border-t border-white/5 pt-4 gap-4">
