@@ -7,6 +7,18 @@ import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".grekam.in" : undefined,
+      },
+    },
+  },
   debug: true,
   providers: [
     CredentialsProvider({
@@ -19,55 +31,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         
-        // Demo / E2E Backdoors (work instantly without DB requirement)
-        if (credentials.email === 'demo@garage.in' && credentials.password === 'Demo2023') {
-          return {
-            id: 'demo-garage-user-id',
-            name: 'Demo Garage Owner',
-            email: 'demo@garage.in',
-            role: 'ADMIN',
-            customRole: null,
-            permissions: []
-          };
-        }
-
-        if (credentials.email === 'admin@grekam.com' && credentials.password === 'admin123') {
-          return {
-            id: 'demo-super-admin-id',
-            name: 'Grekam Super Admin',
-            email: 'admin@grekam.com',
-            role: 'SUPER_ADMIN',
-            customRole: null,
-            permissions: []
-          };
-        }
-
-        if (credentials.email === 'reseller@grekam.com' && credentials.password === 'reseller123') {
-          return {
-            id: 'demo-reseller-id',
-            name: 'Demo Reseller Partner',
-            email: 'reseller@grekam.com',
-            role: 'RESELLER_ADMIN',
-            customRole: null,
-            permissions: []
-          };
-        }
-
-        let user = null;
-        try {
-          user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
-            include: { customRole: { include: { permissions: true } } }
-          });
-        } catch (err) {
-          console.error("DB lookup error in auth:", err);
-        }
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+          include: { customRole: { include: { permissions: true } } }
+        });
         
         if (!user || !user.passwordHash) return null;
         
         const passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
-        
         if (!passwordsMatch) return null;
+
 
         // Option B: Enforce Separated Portals (Agency OS Only)
         if (user.role === 'STUDENT' || user.role === 'EDUCATOR') {
@@ -115,9 +88,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: `${user.firstName} ${user.lastName}`, 
           email: user.email, 
           role: user.role,
+          mustChangePassword: (user as any).mustChangePassword ?? false,
           customRole: user.customRole ? user.customRole.name : null,
           permissions: user.customRole ? user.customRole.permissions.map((p: any) => p.resource) : []
         };
+
       }
     })
   ]
