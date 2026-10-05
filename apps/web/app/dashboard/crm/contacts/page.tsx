@@ -26,7 +26,8 @@ import {
   PlusCircle,
   MessageSquare,
   Target,
-  Copy
+  Copy,
+  Download
 } from "lucide-react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
@@ -462,6 +463,45 @@ export default function ContactsAndCompaniesPage() {
     )
   }, [companies, searchQuery])
 
+  // Export contacts or companies as CSV
+  const handleExportContactsCsv = () => {
+    const isContacts = activeTab === 'contacts'
+    const data = isContacts ? filteredContacts : filteredCompanies
+    if (data.length === 0) {
+      toast.error('No records to export.')
+      return
+    }
+    const escape = (v: any) => {
+      if (v == null) return ''
+      const s = String(v).replace(/"/g, '""')
+      return s.includes(',') || s.includes('\n') || s.includes('"') ? `"${s}"` : s
+    }
+    let headers: string[]
+    let rows: string[]
+    if (isContacts) {
+      headers = ['id', 'firstName', 'lastName', 'email', 'phone', 'whatsapp', 'tier', 'company', 'pan', 'billingAddress', 'city', 'state', 'pinCode']
+      rows = filteredContacts.map((c: any) => headers.map(h => {
+        if (h === 'company') return escape(c.company?.name)
+        return escape(c[h])
+      }).join(','))
+    } else {
+      headers = ['id', 'name', 'gstin', 'pan', 'stateCode', 'placeOfSupply', 'state', 'city', 'billingAddress', 'pinCode', 'email', 'phone', 'industry']
+      rows = filteredCompanies.map((c: any) => headers.map(h => escape(c[h])).join(','))
+    }
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const filename = isContacts ? `contacts_export.csv` : `companies_export.csv`
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success(`Exported ${data.length} ${isContacts ? 'contacts' : 'companies'} as ${filename}`)
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#050505] text-white overflow-hidden">
       {/* Top Header Bar */}
@@ -548,16 +588,26 @@ export default function ContactsAndCompaniesPage() {
           </div>
         </div>
 
-        {/* Right Search Input */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <input
-            type="text"
-            placeholder={activeTab === 'contacts' ? "Search contacts by name, email, company..." : "Search companies by name, GSTIN, PAN, city..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500"
-          />
+        {/* Right: Search + Export */}
+        <div className="flex items-center gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input
+              type="text"
+              placeholder={activeTab === 'contacts' ? "Search contacts by name, email, company..." : "Search companies by name, GSTIN, PAN, city..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleExportContactsCsv}
+            title={`Export ${activeTab === 'contacts' ? filteredContacts.length : filteredCompanies.length} ${activeTab} as CSV`}
+            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-[11px] font-bold tracking-wide uppercase transition-all hover:scale-105 whitespace-nowrap"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV ({activeTab === 'contacts' ? filteredContacts.length : filteredCompanies.length})
+          </button>
         </div>
       </div>
 
