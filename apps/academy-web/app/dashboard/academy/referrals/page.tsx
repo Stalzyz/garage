@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { Share2, IndianRupee, Users, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"

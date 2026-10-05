@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/require-admin"
+import { assertSafeUrl } from "@/lib/ssrf-guard"
 
 export const dynamic = "force-dynamic"
 
@@ -26,6 +28,11 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: NextRequest) {
+  // Server-side fetch of a caller-supplied URL: must not be anonymous, and must
+  // not be able to reach loopback/RFC1918/metadata targets.
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   const searchParams = request.nextUrl.searchParams
   const targetUrl = searchParams.get("url")
 
@@ -42,6 +49,11 @@ export async function GET(request: NextRequest) {
     const parsedUrl = new URL(cleanUrl)
     const cacheKey = parsedUrl.toString()
 
+    const unsafe = await assertSafeUrl(parsedUrl.toString())
+    if (unsafe) {
+      return new NextResponse(unsafe, { status: 403 })
+    }
+
     // 1. Check in-memory RAM cache (instant < 2ms response)
     const cached = memoryCache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
@@ -57,26 +69,52 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 2. Fetch external page with fast timeouts and modern browser headers
+    // 2. Fetch external page with fast timeouts and modern browser headers.
+    // Redirects are followed manually so each hop is re-validated — an automatic
+    // `redirect: 'follow'` would let a public URL bounce us onto 127.0.0.1
+    // after the single check above.
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 9000) // 9s timeout
 
-    const response = await fetch(parsedUrl.toString(), {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 GrekamPreviewEngine/3.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1"
-      },
-      next: { revalidate: 300 }
-    })
+    let currentUrl = parsedUrl.toString()
+    let response: Response | null = null
+    for (let hop = 0; hop < 5; hop++) {
+      const hopUnsafe = await assertSafeUrl(currentUrl)
+      if (hopUnsafe) {
+        clearTimeout(timeoutId)
+        return new NextResponse(hopUnsafe, { status: 403 })
+      }
+
+      response = await fetch(currentUrl, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 GrekamPreviewEngine/3.0",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
+          "Sec-Fetch-User": "?1",
+          "Upgrade-Insecure-Requests": "1"
+        },
+        next: { revalidate: 300 }
+      })
+
+      // Follow one hop manually; the loop re-validates the new target.
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location")
+        if (!location) break
+        currentUrl = new URL(location, currentUrl).toString()
+        continue
+      }
+      break
+    }
     clearTimeout(timeoutId)
+
+    if (!response) {
+      return new NextResponse("Preview fetch failed.", { status: 502 })
+    }
 
     const contentType = response.headers.get("content-type") || "text/html; charset=utf-8"
     

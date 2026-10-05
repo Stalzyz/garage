@@ -12,8 +12,10 @@ import fastifyStatic from '@fastify/static';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fastify-type-provider-zod';
 import { prisma } from './db';
 import dotenv from 'dotenv';
-import authPlugin from './plugins/auth.plugin';
+import authPlugin, { authenticateRequest } from './plugins/auth.plugin';
+import authGatePlugin from './plugins/auth-gate.plugin';
 import tenantPlugin from './plugins/tenant.plugin';
+import redactSecretsPlugin from './plugins/redact-secrets.plugin';
 import storagePlugin from './plugins/storage.plugin';
 import storageRouter from './storage/storage.router';
 import { registerGlobalListeners } from './automations/listeners';
@@ -133,12 +135,26 @@ export async function buildApp(opts: any = {}): Promise<any> {
   await app.register(websocket);
 
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || 'super-secret-key-change-me',
+    // No fallback: a published default secret means anyone can mint tokens when
+    // JWT_SECRET is unset. Fail loudly at boot instead.
+    secret: (() => {
+      const s = process.env.JWT_SECRET;
+      if (!s) throw new Error('JWT_SECRET is required — refusing to start with a hardcoded signing key.');
+      return s;
+    })(),
   });
 
+  // Deny-by-default gate. Registered BEFORE any router so its onRequest hook sits
+  // on the root instance and covers every route. Without it only the 17/116
+  // routers that remembered `requireAuth` were protected, so /hr/employees and
+  // /finance/* served PII to anonymous callers.
+  await app.register(authGatePlugin);
   await app.register(authPlugin);
   await app.register(tenantPlugin);
   await app.register(storagePlugin);
+  // Strips passwordHash / twoFaSecret / twoFaBackupCodes from every response, so
+  // the ~47 `include: { user: true }` call sites can no longer leak credentials.
+  await app.register(redactSecretsPlugin);
 
   await app.register(multipart, {
     limits: {
@@ -303,7 +319,18 @@ export async function buildApp(opts: any = {}): Promise<any> {
   // WebSocket — real-time broadcast hub
   const wsClients = new Set<any>();
 
-  app.get('/api/v1/ws', { websocket: true }, (socket) => {
+  // The auth gate skips this path because an HTTP hook cannot reject an upgrade
+  // handshake, so the upgrade is authorised here instead. Previously ANY client
+  // could connect and receive every CRM lead/call broadcast.
+  app.get('/api/v1/ws', { websocket: true }, async (socket, req) => {
+    // @fastify/websocket types `req` with the HTTP2 request generic; the gate only
+    // reads .headers.cookie, so widen it rather than fight the generics.
+    const result = await authenticateRequest(req as unknown as FastifyRequest);
+    if (!result.ok) {
+      app.log.warn(`[WS] Rejected unauthenticated upgrade from ${req.socket.remoteAddress}`);
+      socket.close(4401, 'Unauthorized');
+      return;
+    }
     wsClients.add(socket);
     app.log.info(`[WS] Client connected — total: ${wsClients.size}`);
 

@@ -4,11 +4,22 @@ dist/
 .next/
 build/
 *.log
+# Any dotenv file, including .env.bak-* / .env.backup-* variants. Two committed
+# backups of apps/api/.env were found in the working tree, so matching only the
+# exact names `.env` and `.env.local` was not enough.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.sample
 .DS_Store
 *.pem
+*.key
 coverage/
 .vercel/
+# NOTE: ignoring migration SQL was hiding schema drift. The app has no
+# migrations in git and production ran on `db push`, so the live schema and
+# schema.prisma diverged (users.activeTenantId/organizationId/workspaceId).
+# Track migrations. Remove this line once a baseline exists in git.
 prisma/migrations/*.sql
+# Operational expect scripts, 264 of which contained the VPS root SSH password.
+*.exp

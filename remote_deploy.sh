@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo ""
 echo "==> [1/6] Pulling latest code..."
@@ -8,19 +8,49 @@ git pull origin main
 
 echo ""
 echo "==> [2/6] Installing dependencies..."
-pnpm install --frozen-lockfile 2>&1 | tail -3
+pnpm install --frozen-lockfile
 
 echo ""
 echo "==> [2.5/6] Building apps/api (TypeScript -> dist)..."
-pnpm --filter=@grekam/api build 2>&1 | tail -5
+pnpm --filter=@grekam/api build
 
 echo ""
 echo "==> [3/6] Building apps/web..."
-pnpm --filter=web build 2>&1 | tail -5
+pnpm --filter=@grekam/web build
 
 echo ""
 echo "==> [4/6] Building apps/academy-web..."
-pnpm --filter=academy-web build 2>&1 | tail -5
+pnpm --filter=@grekam/academy-web build
+
+echo ""
+echo "==> [4.5/6] Checking database schema drift..."
+# This repo has NO migration history at all (no prisma/migrations directory --
+# migration SQL is gitignored, and the schema has only ever been managed with
+# `prisma db push`). Two consequences:
+#
+#   * `prisma migrate deploy` is a no-op, so the PasswordResetToken table added
+#     for password recovery would NOT exist and /api/auth/{forgot,reset}-password
+#     would 500.
+#   * `prisma db push` would create that table, but the live DB has known schema
+#     drift, and `db push` DROPS anything present in the DB but absent from
+#     schema.prisma. Running it unattended against production is not safe.
+#
+# So: always print the exact SQL diff (read-only), and only apply when the
+# operator explicitly sets APPLY_SCHEMA=1 after reviewing that output.
+cd /root/grekam-os
+echo "--- pending schema changes (review before applying) ---"
+pnpm --filter=@grekam/db exec prisma migrate diff \
+  --from-url "$(grep -m1 '^DATABASE_URL=' packages/db/.env | cut -d= -f2- | tr -d '\"' || true)" \
+  --to-schema-datamodel prisma/schema.prisma \
+  --script || echo "  (could not diff -- check DATABASE_URL manually)"
+
+if [ "${APPLY_SCHEMA:-0}" = "1" ]; then
+  echo "!!! APPLY_SCHEMA=1 set -- running prisma db push against production !!!"
+  pnpm --filter=@grekam/db exec prisma db push --accept-data-loss
+else
+  echo "APPLY_SCHEMA != 1 -- schema NOT modified."
+  echo "If the diff above shows only CREATE TABLE PasswordResetToken, re-run with APPLY_SCHEMA=1"
+fi
 
 echo ""
 echo "==> [5/6] Managing PM2 processes..."
@@ -50,7 +80,7 @@ if pm2 describe academy-web > /dev/null 2>&1; then
 else
   echo "Starting academy-web on port 3006..."
   cd /root/grekam-os
-  PORT=3006 pm2 start "pnpm --filter=academy-web start" --name academy-web
+  PORT=3006 pm2 start "pnpm --filter=@grekam/academy-web start" --name academy-web
 fi
 
 pm2 save

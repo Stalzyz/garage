@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
@@ -7,9 +7,11 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
-    const session = await auth()
-    const role = session?.user?.role
+    const role = guard.session!.user.role
 
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized. Super Admin access required." }, { status: 403 })

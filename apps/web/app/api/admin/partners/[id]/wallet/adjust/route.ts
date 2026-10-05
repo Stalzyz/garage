@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
     const { id: partnerId } = await params
     const body = await req.json()

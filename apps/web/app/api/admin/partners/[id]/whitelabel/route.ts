@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
-    const session = await auth()
-    const role = session?.user?.role
+    const role = guard.session!.user.role
 
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized. Super Admin access required." }, { status: 403 })
@@ -29,6 +31,8 @@ export async function POST(
       },
       include: {
         whiteLabel: true,
+        // brandName falls back to the owner's first name, which lives on User.
+        user: { select: { firstName: true, lastName: true } },
       }
     })
 
@@ -38,7 +42,9 @@ export async function POST(
         where: { partnerId: partner.id },
         create: {
           partnerId: partner.id,
-          brandName: partner.companyName || `${partner.firstName}'s Garage Platform`,
+          // `firstName` lives on User, not Partner — this threw a TypeError at
+          // runtime whenever companyName was empty.
+          brandName: partner.companyName || `${partner.user?.firstName ?? "Partner"}'s Garage Platform`,
           domainStatus: "PENDING",
         },
         update: {
@@ -49,7 +55,7 @@ export async function POST(
 
     await prisma.partnerActivityLog.create({
       data: {
-        actorUserId: session?.user?.id || "admin",
+        actorUserId: guard.session!.user.id || "admin",
         partnerId: partner.id,
         action: isWhitelabel ? "WHITELABEL_ENABLED" : "WHITELABEL_DISABLED",
         entityType: "PARTNER",

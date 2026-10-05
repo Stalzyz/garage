@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
     const { id } = await params
-    const session = await auth()
-    const adminEmail = session?.user?.email || "admin@grekam.com"
+    const adminEmail = guard.session!.user.email || "admin@grekam.com"
 
     const body = await req.json().catch(() => ({}))
     const { reason = "Bank transfer could not be verified" } = body

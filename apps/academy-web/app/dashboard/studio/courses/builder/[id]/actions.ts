@@ -2,16 +2,20 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { LessonType } from "@prisma/client"
+// @prisma/client is not a dependency of this app and does not resolve.
+// LessonType is only used in a type position here, so derive it from the
+// generated client via the shared db package instead.
+import type { LessonType } from "@grekam/db"
 
-export async function createModule(lmsCourseId: string, title: string) {
+export async function createModule(lmsCourseId: string, title: string, atIndex?: number) {
   const existingModules = await prisma.lMSModule.findMany({
     where: { lmsCourseId },
     orderBy: { sortOrder: 'desc' },
     take: 1
   })
   
-  const sortOrder = existingModules.length > 0 ? existingModules[0].sortOrder + 1 : 0
+  // An explicit index wins; otherwise append after the current last module.
+  const sortOrder = atIndex ?? (existingModules.length > 0 ? existingModules[0].sortOrder + 1 : 0)
 
   const newModule = await prisma.lMSModule.create({
     data: {
@@ -54,7 +58,12 @@ export async function reorderModules(courseId: string, orderedModuleIds: string[
 
 // Lessons
 
-export async function createLesson(moduleId: string, title: string, type: string) {
+export async function createLesson(
+  moduleId: string,
+  title: string,
+  type: string,
+  atIndex?: number
+) {
   const mod = await prisma.lMSModule.findUnique({ where: { id: moduleId }})
   if (!mod) return
 
@@ -64,7 +73,8 @@ export async function createLesson(moduleId: string, title: string, type: string
     take: 1
   })
   
-  const sortOrder = existingLessons.length > 0 ? existingLessons[0].sortOrder + 1 : 0
+  // An explicit index wins; otherwise append after the current last lesson.
+  const sortOrder = atIndex ?? (existingLessons.length > 0 ? existingLessons[0].sortOrder + 1 : 0)
 
   const newLesson = await prisma.lMSLesson.create({
     data: {

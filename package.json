@@ -5,6 +5,7 @@
   "description": "Grekam OS — Unified Enterprise Platform for Grekam Visuals & Grekam Academy",
   "scripts": {
     "dev:all": "turbo run dev",
+    "dev:mobile": "pnpm --filter @grekam/mobile start",
     "build:all": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
@@ -18,7 +19,7 @@
     "@types/node": "^22.19.21",
     "eslint": "^9.0.0",
     "turbo": "^2.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "5.9.3"
   },
   "engines": {
     "node": ">=20.0.0",

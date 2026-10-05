@@ -10,12 +10,11 @@ export default async function publicProposalsRouter(app: FastifyInstance) {
     const { token } = req.params as { token: string };
     
     const proposal = await app.prisma.proposal.findFirst({
-      where: {
-        OR: [
-          { publicToken: token },
-          { id: token }
-        ]
-      },
+      // publicToken is the ONLY accepted capability. Previously this was
+      // `OR: [{ publicToken: token }, { id: token }]`, which let any anonymous
+      // caller read a proposal -- and, through signProposalHandler, sign an
+      // arbitrary proposal -- using the internal primary key.
+      where: { publicToken: token },
       include: {
         items: true,
         lead: { select: { name: true, company: true, email: true, phone: true } },
@@ -35,12 +34,11 @@ export default async function publicProposalsRouter(app: FastifyInstance) {
     const body = SignProposalSchema.parse(req.body);
 
     const proposal = await app.prisma.proposal.findFirst({
-      where: {
-        OR: [
-          { publicToken: token },
-          { id: token }
-        ]
-      },
+      // publicToken is the ONLY accepted capability. Previously this was
+      // `OR: [{ publicToken: token }, { id: token }]`, which let any anonymous
+      // caller read a proposal -- and, through signProposalHandler, sign an
+      // arbitrary proposal -- using the internal primary key.
+      where: { publicToken: token },
       include: {
         lead: true,
         contact: true

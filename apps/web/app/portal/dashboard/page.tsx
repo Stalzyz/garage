@@ -494,50 +494,48 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="min-h-screen bg-[#000000] text-white font-sans selection:bg-[#0A84FF]/30">
 
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b border-white/8 bg-[#0a0a0f]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5 border-b border-white/[0.08] bg-[#121214]/80 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           {org?.logoUrl
-            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-8 h-8 rounded-lg object-contain" />
-            : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                <Zap className="w-4 h-4 text-white" />
+            ? <img src={org.logoUrl} alt={org?.name || "Logo"} className="w-7 h-7 rounded-lg object-contain" />
+            : <div className="w-7 h-7 rounded-lg bg-white/[0.08] border border-white/[0.1] flex items-center justify-center font-semibold text-xs text-white">
+                G
               </div>
           }
           <div>
-            <p className="text-xs font-bold text-white">{org?.name || "Grekam OS"}</p>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest">Client Portal</p>
+            <p className="text-xs font-semibold text-white tracking-tight">{org?.name || "Garage CRM"}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider">Client Portal</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Notifications */}
           <div className="relative">
             <button onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+              className="relative p-2 rounded-lg hover:bg-white/[0.06] transition-colors"
             >
-              <Bell className="w-4 h-4 text-white/60" />
+              <Bell className="w-3.5 h-3.5 text-white/60" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-500 rounded-full text-[9px] font-bold flex items-center justify-center">
-                  {unreadCount}
-                </span>
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0A84FF] rounded-full" />
               )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 top-10 w-80 bg-[#14141f] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/8">
+              <div className="absolute right-0 top-10 w-80 bg-[#1c1c1e] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-white/[0.06]">
                   <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Notifications</p>
                 </div>
                 {notifications.length === 0 ? (
                   <div className="px-4 py-6 text-center text-white/40 text-xs">No notifications yet.</div>
                 ) : (
                   notifications.map((n: any) => (
-                    <div key={n.id} className={`px-4 py-3 border-b border-white/5 flex items-start gap-3 ${!n.readAt ? "bg-violet-500/5" : ""}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${!n.readAt ? "bg-violet-400" : "bg-transparent"}`} />
+                    <div key={n.id} className={`px-4 py-3 border-b border-white/[0.04] flex items-start gap-3 ${!n.readAt ? "bg-white/[0.02]" : ""}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${!n.readAt ? "bg-[#0A84FF]" : "bg-transparent"}`} />
                       <div>
-                        <p className="text-xs text-white/80">{n.title}</p>
+                        <p className="text-xs text-white/90">{n.title}</p>
                         <p className="text-[10px] text-white/30 mt-0.5">{new Date(n.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
@@ -548,11 +546,11 @@ export default function ClientDashboard() {
           </div>
 
           {/* Avatar */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-[10px] font-bold">
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.08]">
+            <div className="w-5 h-5 rounded-full bg-white/[0.1] flex items-center justify-center text-[10px] font-medium text-white">
               {avatarInitials}
             </div>
-            <span className="text-xs text-white/70">{clientName}</span>
+            <span className="text-xs text-white/80 font-medium">{clientName}</span>
           </div>
 
           <button 
@@ -562,28 +560,28 @@ export default function ClientDashboard() {
               } catch {}
               window.location.href = '/portal'
             }}
-            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-white/[0.06] text-white/40 hover:text-white transition-colors cursor-pointer"
             title="Log Out"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </nav>
 
       <div className="flex flex-col md:flex-row flex-1">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 border-r border-white/8 p-4 md:p-6 space-y-1 shrink-0">
+        <aside className="w-full md:w-56 border-r border-white/[0.08] bg-[#121214] p-3 space-y-0.5 shrink-0">
           {TABS.map(t => {
             const Icon = t.icon
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
                   tab === t.id
-                    ? "text-white bg-violet-500/10 border border-violet-500/20 shadow-lg shadow-violet-500/5"
-                    : "text-white/40 border border-transparent hover:text-white/70 hover:bg-white/5"
+                    ? "text-white bg-[#1c1c1e] shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-3.5 h-3.5 ${tab === t.id ? "text-[#0A84FF]" : "text-white/40"}`} />
                 {t.label}
               </button>
             )
@@ -591,22 +589,22 @@ export default function ClientDashboard() {
         </aside>
 
         {/* Content */}
-        <div className="flex-1 w-full max-w-5xl px-4 md:px-8 py-8 space-y-8">
+        <div className="flex-1 w-full max-w-5xl px-4 md:px-8 py-6 space-y-6">
 
         {/* ── OVERVIEW ── */}
         {tab === "overview" && (
           <>
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">
-                  Welcome back, <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{clientName}</span> 
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl font-semibold text-white tracking-tight">
+                  Welcome back, {clientName}
                 </h1>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2.5 py-0.5 rounded-full">
-                  {tier} Tier
+                <span className="text-[11px] font-medium uppercase tracking-wider bg-white/[0.05] text-white/70 border border-white/[0.08] px-2 py-0.5 rounded-md">
+                  {tier}
                 </span>
               </div>
-              <p className="text-white/40 text-sm mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="text-white/80 font-medium">{companyName}</span>
+              <p className="text-white/40 text-xs mt-1 flex flex-wrap items-center gap-2">
+                <span className="text-white/70 font-medium">{companyName}</span>
                 <span>•</span>
                 <span>{profileMe?.email || session?.user?.email}</span>
                 {profileMe?.phone && (
@@ -619,19 +617,19 @@ export default function ClientDashboard() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
               {[
-                { label: "Active Projects", value: dashboard.activeProjects, icon: Briefcase, color: "from-violet-600/20 to-violet-600/5", border: "border-violet-500/20" },
-                { label: "Overall Progress",        value: `${dashboard.progress}%`,          icon: Clock,     color: "from-blue-600/20 to-blue-600/5",   border: "border-blue-500/20" },
-                { label: "Amount Paid",     value: `${symbol}${(dashboard.paidTotal/1000).toFixed(1)}k`, icon: CheckCircle, color: "from-emerald-600/20 to-emerald-600/5", border: "border-emerald-500/20" },
-                { label: "Amount Due",      value: `${symbol}${(dashboard.pendingTotal/1000).toFixed(1)}k`, icon: AlertCircle, color: "from-amber-600/20 to-amber-600/5", border: "border-amber-500/20" },
+                { label: "Active Projects", value: dashboard.activeProjects, icon: Briefcase, accent: "text-[#0A84FF]" },
+                { label: "Overall Progress", value: `${dashboard.progress}%`, icon: Clock, accent: "text-[#30D158]" },
+                { label: "Amount Paid", value: `${symbol}${(dashboard.paidTotal/1000).toFixed(1)}k`, icon: CheckCircle, accent: "text-[#30D158]" },
+                { label: "Amount Due", value: `${symbol}${(dashboard.pendingTotal/1000).toFixed(1)}k`, icon: AlertCircle, accent: "text-[#FF9F0A]" },
               ].map(stat => {
                 const Icon = stat.icon
                 return (
-                  <div key={stat.label} className={`bg-gradient-to-br ${stat.color} border ${stat.border} rounded-2xl p-5`}>
-                    <Icon className="w-5 h-5 text-white/40 mb-3" />
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                    <p className="text-xs text-white/40 mt-1">{stat.label}</p>
+                  <div key={stat.label} className="bg-[#161618] border border-white/[0.08] rounded-xl p-4">
+                    <Icon className={`w-4 h-4 ${stat.accent} mb-2.5`} />
+                    <p className="text-xl font-semibold text-white font-mono">{stat.value}</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">{stat.label}</p>
                   </div>
                 )
               })}
@@ -643,55 +641,55 @@ export default function ClientDashboard() {
               {/* Active Project Card */}
               <div className="lg:col-span-2">
                 {dashboard.activeProject ? (
-                  <div className="bg-[#14141f] border border-white/8 rounded-2xl overflow-hidden h-full flex flex-col justify-between">
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+                  <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Briefcase className="w-4 h-4 text-violet-400" />
-                        <p className="text-sm font-semibold text-white">{dashboard.activeProject.name}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CONFIG[dashboard.activeProject.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
+                        <Briefcase className="w-3.5 h-3.5 text-[#0A84FF]" />
+                        <p className="text-xs font-semibold text-white">{dashboard.activeProject.name}</p>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${STATUS_CONFIG[dashboard.activeProject.status]?.color || STATUS_CONFIG.PRODUCTION.color}`}>
                           {STATUS_CONFIG[dashboard.activeProject.status]?.label || dashboard.activeProject.status}
                         </span>
                         {dashboard.activeProject.budget > 0 && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full font-mono">
+                          <span className="text-[10px] font-medium px-2 py-0.5 bg-[#30D158]/10 border border-[#30D158]/20 text-[#30D158] rounded-full font-mono">
                             {symbol}{dashboard.activeProject.budget.toLocaleString()}
                           </span>
                         )}
                       </div>
-                      <button onClick={() => setTab("projects")} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                        View Detail <ChevronRight className="w-3 h-3" />
+                      <button onClick={() => setTab("projects")} className="flex items-center gap-1 text-xs text-[#0A84FF] hover:underline">
+                        View Details <ChevronRight className="w-3 h-3" />
                       </button>
                     </div>
-                    <div className="px-6 py-5 flex-1 flex flex-col justify-center">
+                    <div className="px-5 py-4 flex-1 flex flex-col justify-center">
                       {/* Progress Bar */}
-                      <div className="mb-5">
-                        <div className="flex justify-between text-xs text-white/40 mb-2">
+                      <div className="mb-4">
+                        <div className="flex justify-between text-xs text-white/40 mb-1.5">
                           <span>Overall Progress</span>
                           <span className="text-white font-medium">{dashboard.activeProject.progress}%</span>
                         </div>
-                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-violet-500 to-blue-500 rounded-full transition-all"
+                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                          <div className="h-full bg-[#0A84FF] rounded-full transition-all"
                             style={{ width: `${dashboard.activeProject.progress}%` }} />
                         </div>
                       </div>
 
                       {/* Phases */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                         {dashboard.activeProject.phases.map((phase: any) => (
-                          <div key={phase.name} className={`p-3 rounded-xl border text-center ${
-                            phase.done ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/3 border-white/8"
+                          <div key={phase.name} className={`p-2.5 rounded-lg border text-center ${
+                            phase.done ? "bg-[#30D158]/10 border-[#30D158]/20" : "bg-[#121214] border-white/[0.06]"
                           }`}>
                             {phase.done
-                              ? <CheckCircle className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-                              : <Clock className="w-4 h-4 text-white/30 mx-auto mb-1" />}
-                            <p className="text-[10px] font-medium text-white/60">{phase.name}</p>
+                              ? <CheckCircle className="w-3.5 h-3.5 text-[#30D158] mx-auto mb-1" />
+                              : <Clock className="w-3.5 h-3.5 text-white/30 mx-auto mb-1" />}
+                            <p className="text-[11px] font-medium text-white/70">{phase.name}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-[#14141f] border border-white/8 rounded-2xl p-8 text-center flex flex-col items-center justify-center h-full min-h-[200px] text-white/40 text-sm">
-                    <Briefcase className="w-8 h-8 opacity-40 mb-3" />
+                  <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-8 text-center flex flex-col items-center justify-center h-full min-h-[200px] text-white/40 text-xs">
+                    <Briefcase className="w-7 h-7 opacity-30 mb-2" />
                     No active projects at the moment.
                   </div>
                 )}
@@ -997,9 +995,15 @@ export default function ClientDashboard() {
                     <p className="text-xl font-bold text-white mt-0.5">{symbol}{prop.totalAmount.toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2">
-                    <a href={`/portal/proposals/${prop.publicToken || prop.id}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
-                      <ExternalLink className="w-3.5 h-3.5" /> View Proposal
-                    </a>
+                    {prop.publicToken ? (
+                      <a href={`/portal/proposals/${prop.publicToken}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
+                        <ExternalLink className="w-3.5 h-3.5" /> View Proposal
+                      </a>
+                    ) : (
+                      <span className="px-4 py-2 rounded-xl bg-white/5 text-white/40 text-xs font-medium cursor-not-allowed" title="Send this proposal to generate a shareable link">
+                        Not sent
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1141,12 +1145,17 @@ export default function ClientDashboard() {
                           </div>
 
                           <div className="p-5 pt-0">
-                            <a
-                              href={`/dashboard/lms/courses/${lmsCourse?.id || course?.id}`}
-                              className="w-full py-2.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-indigo-500/30 transition-all"
+                            {/* /dashboard/lms/courses/[id] does not exist — only
+                                /dashboard/lms/page.tsx was ever built, so this
+                                "Continue Learning" link was a hard 404. Disabled
+                                rather than linked; re-enable once the lesson
+                                player exists. */}
+                            <span
+                              title="No course player page exists yet — build app/dashboard/lms/courses/[id]/page.tsx to enable this."
+                              className="w-full py-2.5 bg-indigo-600/10 text-indigo-300/40 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-indigo-500/20 cursor-not-allowed"
                             >
                               <PlayCircle className="w-4 h-4" /> Continue Learning
-                            </a>
+                            </span>
                           </div>
                         </div>
                       );

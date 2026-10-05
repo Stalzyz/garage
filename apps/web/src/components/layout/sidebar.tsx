@@ -180,7 +180,6 @@ export function Sidebar() {
         return [
           { title: "Home", href: "/dashboard", icon: LayoutDashboard },
           { title: "Courses", href: "/dashboard/lms", icon: BookOpen },
-          { title: "Tasks", href: "/dashboard/lms/assignments", icon: Briefcase },
           { title: "Chat", href: "/dashboard/chat", icon: MessageSquare },
         ]
       case "CLIENT":

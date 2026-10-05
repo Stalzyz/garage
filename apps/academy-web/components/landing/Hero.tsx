@@ -46,7 +46,7 @@ export function Hero() {
       
       <svg className="absolute bottom-[20%] right-[15%] w-48 h-48 opacity-20 pointer-events-none" viewBox="0 0 100 100" fill="none">
         <path d="M20,80 C20,20 80,80 80,20" stroke="#FAFAF8" strokeWidth="1" strokeDasharray="4 4" strokeLinecap="round" />
-        <rect x="70" y="70" w="5" h="5" stroke="#FAFAF8" strokeWidth="1" />
+        <rect x="70" y="70" width="5" height="5" stroke="#FAFAF8" strokeWidth="1" />
       </svg>
 
       {/* Container matching the paper texture aesthetic */}

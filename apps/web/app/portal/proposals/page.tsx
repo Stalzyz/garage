@@ -57,9 +57,18 @@ export default function PortalProposalsPage() {
                 <div className="text-xs text-white/40">
                   {prop.signedAt ? `Signed: ${new Date(prop.signedAt).toLocaleDateString()}` : `Sent: ${new Date(prop.createdAt).toLocaleDateString()}`}
                 </div>
-                <Link href={`/portal/proposals/${prop.publicToken || prop.id}`} className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors group/link">
-                  {prop.status === 'APPROVED' || prop.status === 'ACCEPTED' ? 'View Document' : 'Review & Sign'} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
+                {prop.publicToken ? (
+                  <Link href={`/portal/proposals/${prop.publicToken}`} className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors group/link">
+                    {prop.status === 'APPROVED' || prop.status === 'ACCEPTED' ? 'View Document' : 'Review & Sign'} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                  </Link>
+                ) : (
+                  // No publicToken means the proposal was never sent, so there is
+                  // no shareable link. Linking to the id would 404 now that the
+                  // public route resolves tokens only.
+                  <span className="text-xs font-mono tracking-widest uppercase text-white/30">
+                    Not sent
+                  </span>
+                )}
               </div>
             </div>
           ))

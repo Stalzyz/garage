@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(req: Request) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
-    const session = await auth()
     const { searchParams } = new URL(req.url)
     const type = searchParams.get("type") || "All"
 

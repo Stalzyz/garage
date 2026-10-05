@@ -4,6 +4,9 @@ import { NextResponse } from "next/server"
 
 const { auth } = NextAuth(authConfig)
 
+/** Roles permitted to reach /dashboard/admin/**. */
+const PLATFORM_ADMIN_ROLES = ['SUPER_ADMIN', 'PLATFORM_ADMIN']
+
 export default auth((req) => {
   const host = req.headers.get("host") || ""
   const { pathname } = req.nextUrl
@@ -33,7 +36,9 @@ export default auth((req) => {
   if (!isLoggedIn) {
     if (isOnDashboard || isOnStudent) {
       const loginUrl = new URL("/auth/login", req.url)
-      loginUrl.searchParams.set("callbackUrl", req.url)
+      // Use a path-relative callback. Passing req.url leaked the bind host
+      // (e.g. http://0.0.0.0:8888/dashboard) into the login URL.
+      loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
     if (isOnClientPortal) {
@@ -65,7 +70,16 @@ export default auth((req) => {
       }
     }
 
-    // 4. Role-based route confinement
+    // 4. Platform administration is restricted to platform roles. Previously no
+    //    check existed here, so any authenticated session — including STAFF,
+    //    VENDOR and PARTNER — rendered /dashboard/admin/settings and
+    //    /dashboard/admin/dashboard with HTTP 200.
+    const isOnPlatformAdmin = pathname.startsWith('/dashboard/admin')
+    if (isOnPlatformAdmin && !PLATFORM_ADMIN_ROLES.includes(role)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
+    // 5. Role-based route confinement
     if (role === 'CLIENT' && (isOnDashboard || isOnStudent)) {
       return NextResponse.redirect(new URL('/portal/dashboard', req.url))
     }

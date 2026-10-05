@@ -70,6 +70,7 @@ model User {
   partner       Partner?
 
   sessions      Session[]
+  passwordResetTokens PasswordResetToken[]
   notifications Notification[]
   auditLogs     AuditLog[]          @relation("AuditUser")
   generatedDocs GeneratedDocument[]
@@ -99,6 +100,26 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+/// Single-use password-reset capability.
+///
+/// The previous implementation reset `User.passwordHash` in place and returned
+/// the new plaintext password in the HTTP response, which let anyone take over
+/// any account with one anonymous POST. Now the raw token only ever exists in
+/// the emailed link; this table stores only its SHA-256 hash.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model AuditLog {

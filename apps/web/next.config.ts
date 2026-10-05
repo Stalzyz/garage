@@ -114,26 +114,11 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
-      {
-        source: '/',
-        has: [
-          {
-            type: 'host',
-            value: 'agency.grekam.in',
-          },
-        ],
-        destination: '/agency',
-      },
-      {
-        source: '/',
-        has: [
-          {
-            type: 'host',
-            value: 'www.agency.grekam.in',
-          },
-        ],
-        destination: '/agency',
-      },
+      // The agency.grekam.in rewrites were removed. They sent `/` to `/agency`,
+      // but no app/agency route exists anywhere in this repo, so both hostnames
+      // resolved to a hard 404 for every visitor. With no rewrite they serve
+      // app/page.tsx (the ecosystem landing page) instead.
+      // Re-add these once app/agency/page.tsx is actually built.
       {
         source: '/api/v1/:path*',
         destination: `${API_INTERNAL}/:path*`,
@@ -141,9 +126,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
 };
 
 export default nextConfig;

@@ -58,34 +58,44 @@ const tenantPlugin: FastifyPluginAsync = async (fastify) => {
       return;
     }
 
-    // 1. Try x-tenant-id header (set by Next.js middleware)
-    let tenantId = request.headers['x-tenant-id'] as string | undefined;
+    const user = (request as any).user;
 
-    // 2. Try JWT claim (for API-key / mobile clients)
-    if (!tenantId) {
-      const user = (request as any).user;
-      if (user?.tenantId) {
-        tenantId = user.tenantId as string;
-      }
-    }
-
-    // 3. Fallback: look up the user's activeTenantId from DB
-    if (!tenantId) {
-      const user = (request as any).user;
-      if (user?.id) {
-        try {
-          const dbUser = await fastify.prisma.user.findUnique({
-            where: { id: user.id },
-            select: { activeTenantId: true },
-          });
-          if (dbUser?.activeTenantId) {
-            tenantId = dbUser.activeTenantId;
-          }
-        } catch {
-          // DB lookup failed; proceed without tenant scope
+    // The caller's OWN tenant: JWT claim, else the DB record.
+    let ownTenantId: string | undefined;
+    if (user?.tenantId) {
+      ownTenantId = user.tenantId as string;
+    } else if (user?.id) {
+      try {
+        const dbUser = await fastify.prisma.user.findUnique({
+          where: { id: user.id },
+          select: { activeTenantId: true },
+        });
+        if (dbUser?.activeTenantId) {
+          ownTenantId = dbUser.activeTenantId;
         }
+      } catch {
+        // DB lookup failed; fall through to the check below
       }
     }
+
+    // x-tenant-id was previously trusted verbatim, so any authenticated caller
+    // could pivot into another tenant's data by editing one header. Only accept a
+    // tenant the caller belongs to. A platform SUPER_ADMIN may act on any tenant
+    // (support/impersonation flows).
+    const headerTenantId = request.headers['x-tenant-id'] as string | undefined;
+    const isPlatformAdmin = user?.role === 'SUPER_ADMIN';
+
+    if (headerTenantId && headerTenantId !== ownTenantId && !isPlatformAdmin) {
+      request.log.warn(
+        { url, requested: headerTenantId, own: ownTenantId, userId: user?.id },
+        '[tenant] Rejected cross-tenant x-tenant-id'
+      );
+      return reply
+        .code(403)
+        .send({ error: 'Forbidden', message: 'You do not belong to the requested tenant.' });
+    }
+
+    const tenantId = headerTenantId || ownTenantId;
 
     if (tenantId) {
       (request as any).tenantId = tenantId;

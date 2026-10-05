@@ -1,7 +1,26 @@
 import { NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
+/**
+ * Creates SUPER_ADMIN + demo partner/wallet records.
+ *
+ * Requires a SUPER_ADMIN session (this used to be reachable anonymously, which
+ * meant any caller could mint themselves a platform owner), and additionally is
+ * disabled outside development: this is a fixture, not a feature, and it must
+ * never be invocable against a real database.
+ */
 export async function POST() {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
+  if (process.env.NODE_ENV === "production" || process.env.ALLOW_DEMO_SEED !== "true") {
+    return NextResponse.json(
+      { error: "Demo seeding is disabled. Set ALLOW_DEMO_SEED=true in a non-production environment to enable it." },
+      { status: 403 }
+    )
+  }
+
   try {
     // 1. Seed demo Super Admin user if not existing
     let admin = await prisma.user.findUnique({
@@ -9,10 +28,20 @@ export async function POST() {
     })
 
     if (!admin) {
+      // No fixed password hash: an authenticated demo seeder picks the password
+      // at call time, so this can never create an account with a known credential.
+      const demoPassword = process.env.DEMO_SEED_ADMIN_PASSWORD
+      if (!demoPassword) {
+        return NextResponse.json(
+          { error: "DEMO_SEED_ADMIN_PASSWORD must be set to seed the demo admin." },
+          { status: 500 }
+        )
+      }
+      const bcrypt = (await import("bcryptjs")).default
       admin = await prisma.user.create({
         data: {
           email: "admin@grekam.com",
-          passwordHash: "$2a$10$e8wE4y6...dummyHashForDemo123",
+          passwordHash: await bcrypt.hash(demoPassword, 12),
           firstName: "Grekam",
           lastName: "Super Admin",
           role: "SUPER_ADMIN",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Mail, ShieldAlert, Key, Copy, Check, Lock } from "lucide-react"
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Mail, Key, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -9,8 +9,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isPending, setIsPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successData, setSuccessData] = useState<{ message: string; tempPassword?: string } | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [successData, setSuccessData] = useState<{ message: string } | null>(null)
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -143,29 +142,19 @@ export default function ForgotPasswordPage() {
                 <span>{successData.message}</span>
               </div>
 
-              {successData.tempPassword && (
-                <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-left space-y-2">
-                  <span className="text-[11px] text-zinc-400 font-semibold block">Temporary Access Passkey:</span>
-                  <div className="flex items-center justify-between gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl font-mono text-sm text-emerald-400">
-                    <span className="select-all font-bold">{successData.tempPassword}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(successData.tempPassword!)
-                        setCopied(true)
-                        setTimeout(() => setCopied(false), 2000)
-                      }}
-                      className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-xs text-white flex items-center gap-1"
-                    >
-                      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      {copied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-zinc-500">
-                    Log in with this temporary passkey, then visit <strong>Security Settings</strong> to set your permanent password.
-                  </p>
+              {/* The reset token is delivered by email only. It is intentionally
+                  never rendered here — displaying it on the page would recreate
+                  the account-takeover bug this flow was rewritten to fix. */}
+              <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-left space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300">
+                  <Mail className="w-4 h-4 shrink-0" />
+                  Check your inbox
                 </div>
-              )}
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  We sent a password reset link to that address. It expires in 15 minutes and
+                  can be used once. If it does not arrive, check spam or request another link.
+                </p>
+              </div>
 
               <Link
                 href="/auth/login"

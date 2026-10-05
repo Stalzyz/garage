@@ -1,8 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Send, MapPin, Phone, Mail } from "lucide-react";
-
 import { useState } from "react";
 import { Send, MapPin, Phone, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";

@@ -129,9 +129,41 @@ export async function authenticateRequest(request: FastifyRequest): Promise<{ ok
       return { ok: false, statusCode: 401, message: 'Invalid session token' };
     }
 
+    const userId = decoded.id || decoded.sub;
+
+    // A session token is a bearer credential, so re-check that the account is
+    // still usable. Without this, suspending or deactivating a user left their
+    // existing session working until it expired.
+    if (userId && (request.server as any)?.prisma) {
+      try {
+        const account = await (request.server as any).prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, role: true, status: true },
+        });
+
+        if (!account || account.status !== 'ACTIVE') {
+          return { ok: false, statusCode: 401, message: 'Account is not active' };
+        }
+
+        return {
+          ok: true,
+          user: {
+            ...decoded,
+            id: account.id,
+            // Prefer the stored role over the token claim so a demotion takes
+            // effect immediately rather than at the next token refresh.
+            role: account.role,
+          },
+        };
+      } catch (err) {
+        request.log.error(err);
+        return { ok: false, statusCode: 500, message: 'Failed to verify account' };
+      }
+    }
+
     const normalizedUser = {
       ...decoded,
-      id: decoded.id || decoded.sub,
+      id: userId,
       role: decoded.role || 'USER',
     };
 

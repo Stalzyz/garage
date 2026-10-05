@@ -63,7 +63,8 @@ export default function KioskPage() {
         body: JSON.stringify(form)
       })
       // Generate a simple token number
-      setTokenNumber(data?.tokenNumber || `GRK-${Date.now().toString().slice(-5)}`)
+      const token = (data as { tokenNumber?: string } | null)?.tokenNumber
+      setTokenNumber(token || `GRK-${Date.now().toString().slice(-5)}`)
       setStep("SUCCESS")
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.")

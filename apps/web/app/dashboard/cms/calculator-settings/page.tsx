@@ -96,14 +96,17 @@ export default function CalculatorSettingsAdminPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/agency/calculator"
-            target="_blank"
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors"
+          {/* There is no /agency/calculator route anywhere in the app — this link
+              was a verified HTTP 404. The calculator config API
+              (/api/calculator/config) exists but no page renders it, so the
+              button is shown disabled rather than linking nowhere. */}
+          <span
+            title="No calculator page exists yet — build app/agency/calculator/page.tsx to enable this."
+            className="px-4 py-2.5 bg-slate-100 text-slate-400 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-not-allowed"
           >
             <span>Preview Calculator</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
+          </span>
 
           <button
             type="button"

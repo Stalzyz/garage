@@ -1,10 +1,16 @@
 packages:
   - "apps/*"
   - "packages/*"
-allowBuilds:
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  esbuild: set this to true or false
-  prisma: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+
+# pnpm 9 uses `onlyBuiltDependencies`; the previous `allowBuilds:` block contained
+# literal unedited template strings ("set this to true or false"), so no native
+# postinstall was actually approved and Prisma/sharp behaviour varied by machine.
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
+  - sharp
+  - unrs-resolver
+  - "@swc/core"
+  - msgpackr-extract

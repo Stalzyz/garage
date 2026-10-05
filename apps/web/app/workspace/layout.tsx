@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Bell, FolderLock, LayoutDashboard, LifeBuoy, LogOut, MessageSquare, Presentation, Receipt } from "lucide-react"
+import { Bell, FolderLock, LayoutDashboard, LifeBuoy, LogOut, MessageSquare } from "lucide-react"
 
 export default function WorkspaceLayout({
   children,
@@ -20,9 +20,11 @@ export default function WorkspaceLayout({
 
         <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-6 space-y-1">
           <NavItem href="/workspace" icon={<LayoutDashboard className="w-4 h-4" />} label="Mission Control" active />
-          <NavItem href="/workspace/projects" icon={<Presentation className="w-4 h-4" />} label="Projects & Timeline" />
+          {/* Projects & Timeline and Invoices & Payments were removed from this nav:
+              no /workspace/projects or /workspace/invoices route exists (verified
+              HTTP 404), and because this is the workspace layout the links 404'd on
+              every workspace page. Re-add them once those pages are built. */}
           <NavItem href="/workspace/assets" icon={<FolderLock className="w-4 h-4" />} label="Asset Vault" />
-          <NavItem href="/workspace/invoices" icon={<Receipt className="w-4 h-4" />} label="Invoices & Payments" />
           <NavItem href="/workspace/support" icon={<LifeBuoy className="w-4 h-4" />} label="Support Hub" />
           <NavItem href="/workspace/chat" icon={<MessageSquare className="w-4 h-4" />} label="Team Chat" badge="3" />
         </div>

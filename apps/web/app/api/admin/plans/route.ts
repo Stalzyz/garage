@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
 const DEFAULT_PLANS = [
@@ -172,6 +173,9 @@ const DEFAULT_PLANS = [
 ]
 
 export async function GET() {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
     let plans = await prisma.systemPlan.findMany({
       orderBy: { displayOrder: "asc" }
@@ -195,6 +199,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
     const body = await req.json()
     const {
@@ -254,6 +261,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return guard.response
+
   try {
     const body = await req.json()
     const { id, ...data } = body

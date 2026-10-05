@@ -31,22 +31,37 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
-type LessonType = "VIDEO" | "RICH_TEXT" | "QUIZ" | "PDF"
+// Taken from the generated Prisma client rather than a hand-written union.
+// The previous local copy was `"VIDEO" | "RICH_TEXT" | "QUIZ" | "PDF"`, but the
+// schema enum is VIDEO/PDF/SLIDE/LIVE_SESSION/ASSIGNMENT/QUIZ/LINK/TEXT — so
+// "RICH_TEXT" was never valid and every write using it was rejected by Prisma.
+type LessonType = import("@grekam/db").LessonType
 
+// Server actions return raw Prisma rows, which use `sortOrder` (not `orderIndex`)
+// and carry createdAt/lmsCourseId. Both names are optional here so a Prisma row
+// and a locally-synthesised row both satisfy the shape.
 interface Lesson {
   id: string
   title: string
   type: LessonType
-  orderIndex: number
-  contentUrl?: string
-  richText?: string
+  sortOrder?: number
+  orderIndex?: number
+  description?: string | null
+  duration?: number | null
+  contentUrl?: string | null
+  richText?: string | null
+  videoId?: string | null
+  thumbnailUrl?: string | null
+  isPreview?: boolean
   resources?: any
 }
 
 interface Module {
   id: string
   title: string
-  orderIndex: number
+  sortOrder?: number
+  orderIndex?: number
+  lmsCourseId?: string
   lessons: Lesson[]
 }
 
@@ -172,8 +187,8 @@ export default function BuilderClient({ initialCourse }: { initialCourse: any })
         const newIndex = items.findIndex((i) => i.id === over?.id)
         const newItems = arrayMove(items, oldIndex, newIndex)
         
-        const updates = newItems.map((item, idx) => ({ id: item.id, orderIndex: idx }))
-        startTransition(() => { reorderModules(updates) })
+        const orderedIds = newItems.map((item) => item.id)
+        startTransition(() => { reorderModules(initialCourse.id, orderedIds) })
         return newItems
       })
     }

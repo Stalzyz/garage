@@ -31,13 +31,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-          include: { customRole: { include: { permissions: true } } }
+        // status is part of the lookup, not a post-hoc check: SUSPENDED,
+      // INACTIVE and PENDING accounts must never reach the password comparison.
+      // Without this, disabling an account had no effect on sign-in.
+      const user = await prisma.user.findUnique({
+        where: { email: credentials.email as string, status: "ACTIVE" },
+        include: { customRole: { include: { permissions: true } } }
         });
-        
+
         if (!user || !user.passwordHash) return null;
-        
+
         const passwordsMatch = await bcrypt.compare(credentials.password as string, user.passwordHash);
         if (!passwordsMatch) return null;
 
