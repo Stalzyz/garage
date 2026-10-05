@@ -8,8 +8,13 @@ import { authConfig } from "./auth.config"
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   cookies: {
+    // Do NOT reintroduce the "__Secure-" prefix here. A __Secure- cookie that
+    // also carries a Domain attribute is rejected outright by browsers, so the
+    // session was never stored and every authenticated call came back 401.
+    // The plain name is valid with domain set, and apps/api accepts it: it is
+    // listed in SESSION_COOKIE_NAMES alongside the __Secure- variant.
     sessionToken: {
-      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      name: "authjs.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",

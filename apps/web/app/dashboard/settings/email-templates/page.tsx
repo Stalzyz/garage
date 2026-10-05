@@ -168,7 +168,7 @@ export default function EmailTemplatesSettingsPage() {
   const fetchSmtpSettings = async () => {
     try {
       setSmtpLoading(true)
-      const res = await fetch("/api/settings/smtp")
+      const res = await fetch("/api/v1/settings/smtp")
       const json = await res.json()
       if (json.success && json.config) {
         setSmtpForm(prev => ({
@@ -192,7 +192,7 @@ export default function EmailTemplatesSettingsPage() {
     e.preventDefault()
     setSmtpLoading(true)
     try {
-      const res = await fetch("/api/settings/smtp", {
+      const res = await fetch("/api/v1/settings/smtp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(smtpForm),
@@ -218,7 +218,7 @@ export default function EmailTemplatesSettingsPage() {
     setSmtpTesting(true)
     toast.loading(`Sending verification email to ${testRecipient}...`)
     try {
-      const res = await fetch("/api/settings/smtp", {
+      const res = await fetch("/api/v1/settings/smtp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -351,7 +351,7 @@ export default function EmailTemplatesSettingsPage() {
   const fetchCrons = async () => {
     try {
       setCronsLoading(true)
-      const res = await fetch("/api/settings/email-crons")
+      const res = await fetch("/api/v1/settings/email-crons")
       const json = await res.json()
       if (json.success && json.crons) {
         setCrons(json.crons)
@@ -378,7 +378,7 @@ export default function EmailTemplatesSettingsPage() {
     setTriggeringCronId(cron.id)
     toast.loading(`Triggering automated cron: ${cron.name}...`)
     try {
-      const res = await fetch("/api/settings/email-crons", {
+      const res = await fetch("/api/v1/settings/email-crons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "trigger-now", cronId: cron.id }),
