@@ -48,8 +48,8 @@ export default function CertificateVerificationPage() {
           <AlertTriangle className="w-20 h-20 text-red-500 mx-auto mb-6" />
           <h1 className="text-3xl font-black text-slate-900 mb-4">Verification Failed</h1>
           <p className="text-slate-600 mb-8">We could not find a valid certificate matching the ID <strong className="text-slate-900">{id}</strong>. The credential may be invalid or forged.</p>
-          <Link href="/academy" className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors inline-block">
-            Return to Academy
+          <Link href="/" className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors inline-block">
+            Return Home
           </Link>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function CertificateVerificationPage() {
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-[#CCF0FA]">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/academy" className="font-bold text-slate-900 text-lg flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link href="/" className="font-bold text-slate-900 text-lg flex items-center gap-2 hover:opacity-80 transition-opacity">
             {org.academyLogoUrl
               ? <img src={org.academyLogoUrl} alt={org.name} className="w-8 h-8 rounded-full object-contain" />
               : <span className="w-8 h-8 rounded-full bg-[#49ABC9] text-white flex items-center justify-center text-sm">{org.name.charAt(0)}</span>

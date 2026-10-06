@@ -169,7 +169,7 @@ export default function CombinedGrekamOSDashboard() {
                   <span className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
                     <GraduationCap className="w-3.5 h-3.5 text-zinc-400" /> Academy Students
                   </span>
-                  <Link href="/academy" className="text-zinc-500 hover:text-white transition-colors">
+                  <Link href="/portal/student" className="text-zinc-500 hover:text-white transition-colors">
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -290,7 +290,7 @@ export default function CombinedGrekamOSDashboard() {
                     </Link>
 
                     <Link
-                      href="/academy"
+                      href="/portal/student"
                       className="p-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] flex items-center justify-between group transition-colors"
                     >
                       <div className="flex items-center gap-2.5">

@@ -112,6 +112,16 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/academy',
+        destination: '/portal/student',
+        permanent: false,
+      },
+    ];
+  },
+
   async rewrites() {
     return [
       // The agency.grekam.in rewrites were removed. They sent `/` to `/agency`,
