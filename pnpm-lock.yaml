@@ -40,163 +40,6 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
-  apps/academy-web:
-    dependencies:
-      '@auth/prisma-adapter':
-        specifier: ^2.11.2
-        version: 2.11.2(@prisma/client@5.22.0(prisma@5.22.0))(nodemailer@6.10.1)
-      '@base-ui/react':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/react@19.2.17)(date-fns@4.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@dnd-kit/core':
-        specifier: ^6.3.1
-        version: 6.3.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@dnd-kit/sortable':
-        specifier: ^10.0.0
-        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
-      '@dnd-kit/utilities':
-        specifier: ^3.2.2
-        version: 3.2.2(react@19.2.4)
-      '@grapesjs/react':
-        specifier: ^2.0.0
-        version: 2.0.0(grapesjs@0.23.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@grekam/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@grekam/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@grekam/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@hookform/resolvers':
-        specifier: ^5.4.0
-        version: 5.4.0(react-hook-form@7.79.0(react@19.2.4))
-      '@radix-ui/react-slot':
-        specifier: ^1.3.0
-        version: 1.3.0(@types/react@19.2.17)(react@19.2.4)
-      '@sentry/nextjs':
-        specifier: ^10.60.0
-        version: 10.60.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(webpack@5.107.2)
-      '@types/bcryptjs':
-        specifier: ^3.0.0
-        version: 3.0.0
-      '@types/next-auth':
-        specifier: ^3.15.0
-        version: 3.15.0(@auth/core@0.34.3(nodemailer@6.10.1))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(nodemailer@6.10.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      bcryptjs:
-        specifier: ^3.0.3
-        version: 3.0.3
-      class-variance-authority:
-        specifier: ^0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      date-fns:
-        specifier: ^4.4.0
-        version: 4.4.0
-      framer-motion:
-        specifier: ^12.40.0
-        version: 12.40.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      grapesjs:
-        specifier: ^0.23.2
-        version: 0.23.2
-      html2pdf.js:
-        specifier: ^0.14.0
-        version: 0.14.0
-      html5-qrcode:
-        specifier: ^2.3.8
-        version: 2.3.8
-      lenis:
-        specifier: ^1.3.23
-        version: 1.3.23(react@19.2.4)
-      lucide-react:
-        specifier: ^1.20.0
-        version: 1.20.0(react@19.2.4)
-      next:
-        specifier: 16.2.9
-        version: 16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      next-auth:
-        specifier: 5.0.0-beta.31
-        version: 5.0.0-beta.31(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(nodemailer@6.10.1)(react@19.2.4)
-      openai:
-        specifier: ^4.28.0
-        version: 4.104.0(ws@8.21.1)(zod@4.4.3)
-      otpauth:
-        specifier: ^9.5.1
-        version: 9.5.1
-      qrcode.react:
-        specifier: ^4.2.0
-        version: 4.2.0(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-      react-hook-form:
-        specifier: ^7.79.0
-        version: 7.79.0(react@19.2.4)
-      react-icons:
-        specifier: ^5.6.0
-        version: 5.6.0(react@19.2.4)
-      react-markdown:
-        specifier: ^10.1.0
-        version: 10.1.0(@types/react@19.2.17)(react@19.2.4)
-      react-webcam:
-        specifier: ^7.2.0
-        version: 7.2.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      recharts:
-        specifier: ^3.8.1
-        version: 3.8.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react-is@18.3.1)(react@19.2.4)(redux@5.0.1)
-      resend:
-        specifier: ^6.18.0
-        version: 6.18.0(@react-email/render@2.0.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
-      shadcn:
-        specifier: ^4.11.0
-        version: 4.11.0(typescript@5.9.3)
-      sonner:
-        specifier: ^2.0.7
-        version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      tailwind-merge:
-        specifier: ^3.6.0
-        version: 3.6.0
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@4.3.1)
-      tw-animate-css:
-        specifier: ^1.4.0
-        version: 1.4.0
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4
-        version: 4.3.1
-      '@types/node':
-        specifier: ^20
-        version: 20.19.43
-      '@types/react':
-        specifier: ^19
-        version: 19.2.17
-      '@types/react-dom':
-        specifier: ^19
-        version: 19.2.3(@types/react@19.2.17)
-      eslint:
-        specifier: ^9
-        version: 9.39.4(jiti@2.7.0)
-      eslint-config-next:
-        specifier: 16.2.9
-        version: 16.2.9(@typescript-eslint/parser@8.61.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
-      tailwindcss:
-        specifier: ^4
-        version: 4.3.1
-      typescript:
-        specifier: 5.9.3
-        version: 5.9.3
-
   apps/api:
     dependencies:
       '@auth/core':
@@ -5448,9 +5291,6 @@ packages:
   html2pdf.js@0.14.0:
     resolution: {integrity: sha512-yvNJgE/8yru2UeGflkPdjW8YEY+nDH5X7/2WG4uiuSCwYiCp8PZ8EKNiTAa6HxJ1NjC51fZSIEq6xld5CADKBQ==}
 
-  html5-qrcode@2.3.8:
-    resolution: {integrity: sha512-jsr4vafJhwoLVEDW3n1KvPnCCXWaQfRng0/EEYk1vNcQGcG/htAdhJX0be8YyqMoSz7+hZvOZSTAepsabiuhiQ==}
-
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
@@ -7194,11 +7034,6 @@ packages:
     resolution: {integrity: sha512-xfQp8dFBcGaLc1hEMaVr7s+oW4ZkAurr8Y9H81ilKhu6QoLfSTkZjU7IavnyJ/VWpB9ni3KNJUQHUatslLWyGw==}
     engines: {node: '>=22.12.0'}
     hasBin: true
-
-  qrcode.react@4.2.0:
-    resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   qrcode@1.5.4:
     resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
@@ -10560,14 +10395,6 @@ snapshots:
       prettier: 3.8.4
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-
-  '@react-email/render@2.0.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
-    dependencies:
-      html-to-text: 9.0.5
-      prettier: 3.8.4
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-    optional: true
 
   '@react-email/row@0.0.13(react@18.3.1)':
     dependencies:
@@ -14334,8 +14161,6 @@ snapshots:
       html2canvas: 1.4.1
       jspdf: 4.2.1
 
-  html5-qrcode@2.3.8: {}
-
   htmlparser2@10.1.0:
     dependencies:
       domelementtype: 2.3.0
@@ -16381,10 +16206,6 @@ snapshots:
       - utf-8-validate
       - yauzl
 
-  qrcode.react@4.2.0(react@19.2.4):
-    dependencies:
-      react: 19.2.4
-
   qrcode@1.5.4:
     dependencies:
       dijkstrajs: 1.0.3
@@ -16722,13 +16543,6 @@ snapshots:
       standardwebhooks: 1.0.0
     optionalDependencies:
       '@react-email/render': 2.0.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-
-  resend@6.18.0(@react-email/render@2.0.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)):
-    dependencies:
-      postal-mime: 2.7.5
-      standardwebhooks: 1.0.0
-    optionalDependencies:
-      '@react-email/render': 2.0.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   resolve-from@4.0.0: {}
 
