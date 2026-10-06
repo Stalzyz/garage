@@ -5,20 +5,26 @@ import { SmoothScroll } from "@/components/SmoothScroll"
 import { OrganizationProvider } from "@/context/OrganizationContext"
 import { Toaster } from "sonner"
 
-// Self-hosted fonts. next/font/google fetched these from fonts.googleapis.com
-// during `next build`, and an intermittent network failure there aborted the
-// whole build with "next/font/google queries have exactly one entry" (seen
-// 3 times in 5 attempts). Vendoring the latin woff2 files removes the build's
-// third-party network dependency — and the runtime one, since next/font/google
-// also links fonts.gstatic.com from the rendered HTML.
+// Self-hosted Inter. `next/font/google` fetched fonts.googleapis.com during
+// `next build`, and an intermittent failure there aborted the entire build
+// with "next/font/google queries have exactly one entry" — 3 of 5 attempts.
+// Vendoring the font removes that third-party build dependency entirely.
+//
+// One variable file rather than Google's per-subset files (latin, latin-ext,
+// greek, cyrillic, vietnamese): next/font/local emits no `unicode-range`
+// (verified in its loader.js), so several subset declarations for the same
+// family/weight would override each other and only the last would download.
+// inter-variable.woff2 carries wght 100..900 across all five subsets in
+// 2852 codepoints, so a single declaration covers everything the old build
+// served.
 const inter = localFont({
   src: [
-    { path: "./fonts/inter-400.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/inter-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/inter-600.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/inter-700.woff2", weight: "700", style: "normal" },
-    { path: "./fonts/inter-800.woff2", weight: "800", style: "normal" },
-    { path: "./fonts/inter-900.woff2", weight: "900", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "800", style: "normal" },
+    { path: "./fonts/inter-variable.woff2", weight: "900", style: "normal" },
   ],
   variable: "--font-inter",
   display: "swap",
