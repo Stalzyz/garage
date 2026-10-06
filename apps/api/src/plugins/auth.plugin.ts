@@ -141,7 +141,14 @@ export async function authenticateRequest(request: FastifyRequest): Promise<{ ok
           select: { id: true, role: true, status: true },
         });
 
-        if (!account || account.status !== 'ACTIVE') {
+        if (!account) {
+          // Same 401, but "not active" was a misleading label: this also fires
+          // when the token carries no resolvable user id (e.g. a token issued by
+          // another deployment or with a different JWT secret), which made
+          // production debugging point at account status when it wasn't.
+          return { ok: false, statusCode: 401, message: 'Account not found for session' };
+        }
+        if (account.status !== 'ACTIVE') {
           return { ok: false, statusCode: 401, message: 'Account is not active' };
         }
 

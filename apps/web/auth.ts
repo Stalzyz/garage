@@ -39,8 +39,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // status is part of the lookup, not a post-hoc check: SUSPENDED,
       // INACTIVE and PENDING accounts must never reach the password comparison.
       // Without this, disabling an account had no effect on sign-in.
-      const user = await prisma.user.findUnique({
-        where: { email: credentials.email as string, status: "ACTIVE" },
+      // Case-insensitive lookup: seeded super admin email is stored as
+      // `Admin@grekam.in`, and users type whatever casing they registered
+      // with. A case-sensitive match made `Admin@grekam.in` / `Admin@grekam.com`
+      // silently fall through to "Invalid credentials".
+      const email = (credentials.email as string).trim().toLowerCase();
+      const user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" }, status: "ACTIVE" },
         include: { customRole: { include: { permissions: true } } }
         });
 

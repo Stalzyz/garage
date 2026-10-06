@@ -13,7 +13,6 @@ export const authConfig = {
       const isLoginPage = pathname === '/auth/login' 
         || pathname === '/portal' 
         || pathname === '/portal/' 
-        || pathname === '/admin/login' 
         || pathname === '/reseller/login' 
         || pathname === '/login'
 
@@ -24,7 +23,7 @@ export const authConfig = {
       const isOnClientPortal = isOnPortalProtected && !isOnStudent
 
       // Public pages (root split portal, landing pages, legal, etc.) are always freely accessible
-      if (pathname === '/' || pathname === '' || pathname === '/garage' || pathname === '/agency' || pathname === '/academy') {
+      if (pathname === '/' || pathname === '' || pathname === '/garage') {
         return true
       }
 
@@ -65,9 +64,6 @@ export const authConfig = {
 
       // Unauthenticated users trying to access protected dashboards
       if (isOnDashboard || isOnStudent) {
-        if (pathname.startsWith('/dashboard/admin')) {
-          return Response.redirect(new URL('/admin/login', nextUrl))
-        }
         if (pathname.startsWith('/dashboard/reseller')) {
           return Response.redirect(new URL('/reseller/login', nextUrl))
         }

@@ -216,8 +216,6 @@ export async function buildApp(opts: any = {}): Promise<any> {
   const financeModule = (await import('./finance')).default;
   await app.register(financeModule, { prefix: '/api/v1/finance' });
 
-  const lmsModule = (await import('./lms')).default;
-  await app.register(lmsModule, { prefix: '/api/v1/lms' });
 
   const marketingModule = (await import('./marketing')).default;
   await app.register(marketingModule, { prefix: '/api/v1/marketing' });

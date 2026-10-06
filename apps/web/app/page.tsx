@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
-import SplitEcosystemClient from "./SplitEcosystemClient"
+import GarageLandingClient from "./garage/GarageLandingClient"
 
 export const metadata: Metadata = {
-  title: "Grekam Ecosystem — Select Destination (Agency, Garage OS, Academy)",
-  description: "Unified digital & enterprise portal for Grekam Visuals Agency, Garage OS CRM, and Grekam Academy.",
+  title: "Garage OS — All-in-One CRM, Sales & Operations Platform",
+  description:
+    "Automated sales pipelines, GST invoicing, job cards, Android telecaller sync, & HR portal for garage owners and enterprise operations.",
 }
 
 export default function Page() {
-  return <SplitEcosystemClient />
+  return <GarageLandingClient />
 }

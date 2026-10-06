@@ -38,8 +38,6 @@ export default function PortalLayoutClient({ children }: { children: React.React
             {isStudent ? (
               <>
                 <Link href="/portal/student" className="text-white/60 hover:text-white transition-colors">Dashboard</Link>
-                <a href="https://academy.grekam.in" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors flex items-center gap-1">Academy OS</a>
-                <a href="https://academy.grekam.in/dashboard/student/certificates" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors">My Certificates</a>
               </>
             ) : (
               <>
