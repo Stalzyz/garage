@@ -23,13 +23,12 @@ export default function GarageLandingPage() {
 
   const handleLaunchDemo = (roleType: "GARAGE" | "PARTNER") => {
     setLoggingInRole(roleType)
-    if (roleType === "GARAGE") {
-      toast.success("Logging into Public Garage Owner Demo...")
-      window.location.href = "/api/auth/demo-switch?role=GARAGE_CUSTOMER"
-    } else {
-      toast.success("Logging into Whitelabel Partner Demo...")
-      window.location.href = "/api/auth/demo-switch?role=RESELLER_ADMIN"
-    }
+    // Demo access goes through the real login (demo@garage.in / Demo2023).
+    // The old /api/auth/demo-switch shortcut minted a session with a
+    // placeholder id the API could never resolve, so every request and WS
+    // upgrade came back 401/4401 — and it issued a password-less token.
+    toast.success("Opening demo login…")
+    router.push("/auth/login?callbackUrl=/dashboard")
   }
 
   const [activeFaq, setActiveFaq] = useState<number | null>(null)

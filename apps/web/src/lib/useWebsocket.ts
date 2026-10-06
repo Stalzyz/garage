@@ -1,14 +1,19 @@
 import { useEffect, useState, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? `wss://${window.location.host}/api/v1/ws` : 'ws://localhost:4000/ws');
 
 export function useWebsocket() {
   const [messages, setMessages] = useState<any[]>([]);
+  const { status } = useSession();
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Only connect on the client side
+    // Only connect on the client side, and only with a live session — the API
+    // rejects unauthenticated upgrades with 4401, and connecting regardless
+    // just produced a rejected handshake on every render.
     if (typeof window === 'undefined') return;
+    if (status !== 'authenticated') return;
 
     ws.current = new WebSocket(WS_URL);
 
@@ -34,7 +39,7 @@ export function useWebsocket() {
     return () => {
       ws.current?.close();
     };
-  }, []);
+  }, [status]);
 
   return { messages };
 }

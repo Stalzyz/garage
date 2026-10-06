@@ -321,7 +321,10 @@ export async function buildApp(opts: any = {}): Promise<any> {
     // reads .headers.cookie, so widen it rather than fight the generics.
     const result = await authenticateRequest(req as unknown as FastifyRequest);
     if (!result.ok) {
-      app.log.warn(`[WS] Rejected unauthenticated upgrade from ${req.socket.remoteAddress}`);
+      // Log the actual reason: "no cookie", "bad token" and "account not
+      // active" all collapsed into one line, which made a reconnect loop
+      // impossible to diagnose from the logs alone.
+      app.log.warn(`[WS] Rejected upgrade from ${req.socket.remoteAddress}: ${result.message}`);
       socket.close(4401, 'Unauthorized');
       return;
     }

@@ -45,11 +45,14 @@ export async function authenticateRequest(request: FastifyRequest): Promise<{ ok
       return assembled || null;
     };
 
+    // Only the cookie this app actually issues. The other names here used to
+    // be tried first, and because the decode loop below stops at the first
+    // *successful* decode, a foreign cookie on the shared .grekam.in domain
+    // (legacy __Secure- tokens, or another Grekam app's next-auth cookie)
+    // would shadow the real session: it decoded fine, then failed the user
+    // lookup and returned 401 without ever trying the valid cookie.
     const cookieCandidates = [
-      { name: '__Secure-authjs.session-token', salt: '__Secure-authjs.session-token' },
-      { name: 'authjs.session-token', salt: 'authjs.session-token' },
-      { name: '__Secure-next-auth.session-token', salt: '__Secure-next-auth.session-token' },
-      { name: 'next-auth.session-token', salt: 'next-auth.session-token' }
+      { name: 'authjs.session-token', salt: 'authjs.session-token' }
     ];
 
     for (const cand of cookieCandidates) {
@@ -146,7 +149,7 @@ export async function authenticateRequest(request: FastifyRequest): Promise<{ ok
           // when the token carries no resolvable user id (e.g. a token issued by
           // another deployment or with a different JWT secret), which made
           // production debugging point at account status when it wasn't.
-          return { ok: false, statusCode: 401, message: 'Account not found for session' };
+          return { ok: false, statusCode: 401, message: `Account not found for session (userId=${userId}, email=${decoded.email ?? 'n/a'})` };
         }
         if (account.status !== 'ACTIVE') {
           return { ok: false, statusCode: 401, message: 'Account is not active' };
