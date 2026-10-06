@@ -1,35 +1,26 @@
 import type { Metadata } from "next"
-import { Barlow_Condensed, Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 import { SmoothScroll } from "@/components/SmoothScroll"
 import { OrganizationProvider } from "@/context/OrganizationContext"
 import { Toaster } from "sonner"
 
-const barlowCondensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-barlow",
-  display: "swap",
-})
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+// Self-hosted fonts. next/font/google fetched these from fonts.googleapis.com
+// during `next build`, and an intermittent network failure there aborted the
+// whole build with "next/font/google queries have exactly one entry" (seen
+// 3 times in 5 attempts). Vendoring the latin woff2 files removes the build's
+// third-party network dependency — and the runtime one, since next/font/google
+// also links fonts.gstatic.com from the rendered HTML.
+const inter = localFont({
+  src: [
+    { path: "./fonts/inter-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/inter-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/inter-800.woff2", weight: "800", style: "normal" },
+    { path: "./fonts/inter-900.woff2", weight: "900", style: "normal" },
+  ],
   variable: "--font-inter",
-  display: "swap",
-})
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
-  display: "swap",
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-mono-code",
   display: "swap",
 })
 

@@ -35,10 +35,15 @@ initSentry();
 // Temporary minimal setup
 export async function buildApp(opts: any = {}): Promise<any> {
   const app = Fastify({
-    logger: true,
-    bodyLimit: 30 * 1024 * 1024, // 30MB payload limit for telemetry screenshots
-    ...opts,
-  });
+      logger: true,
+      bodyLimit: 30 * 1024 * 1024, // 30MB payload limit for telemetry screenshots
+      // Without this req.ip is nginx's 127.0.0.1 for every request, so the
+      // rate limiter put all visitors into one bucket and unrelated users
+      // tripped each other's 429s. 2 hops: browser -> Cloudflare -> nginx
+      // (which appends $remote_addr to X-Forwarded-For) -> api.
+      trustProxy: 2,
+      ...opts,
+    });
 
   // Start Autopilot Engine Listeners
   registerGlobalListeners();
@@ -56,7 +61,9 @@ export async function buildApp(opts: any = {}): Promise<any> {
   // Rate Limiting: higher in test to allow E2E parallel requests
   const isTest = process.env.NODE_ENV === 'test';
   await app.register(rateLimit, {
-    max: isTest ? 1000 : 100,
+    // Per-user budget (trustProxy above makes req.ip the real client).
+    // Previously a single global 100/min with no per-route overrides.
+    max: isTest ? 1000 : 300,
     timeWindow: '1 minute',
   });
 
