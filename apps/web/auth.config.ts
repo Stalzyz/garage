@@ -3,7 +3,19 @@ import type { NextAuthConfig } from "next-auth"
 export const authConfig = {
   trustHost: true,
   session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET || process.env.JWT_SECRET || "fallback-dev-secret-if-env-fails-12345",
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "super-secret-production-key-garage-saas-2026",
+  cookies: {
+    sessionToken: {
+      name: "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".grekam.in" : undefined,
+      },
+    },
+  },
   pages: {
     signIn: '/auth/login',
   },

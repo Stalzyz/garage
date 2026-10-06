@@ -1,5 +1,5 @@
 import NextAuth from "next-auth"
-import { authConfig } from "./src/auth.config"
+import { authConfig } from "./auth.config"
 import { NextResponse } from "next/server"
 
 const { auth } = NextAuth(authConfig)
@@ -26,7 +26,7 @@ export default auth((req) => {
   const isOnPortalProtected = pathname.startsWith('/portal/') && pathname !== '/portal/'
   const isOnStudent = pathname.startsWith('/portal/student')
   const isOnClientPortal = isOnPortalProtected && !isOnStudent
-  const isLoginPage = pathname === '/auth/login' || pathname === '/portal' || pathname === '/portal/'
+  const isLoginPage = pathname === '/auth/login' || pathname === '/portal' || pathname === '/portal/' || pathname === '/login' || pathname === '/reseller/login'
 
   // 2. Unauthenticated users trying to access protected areas
   if (!isLoggedIn) {
@@ -61,6 +61,8 @@ export default auth((req) => {
         return NextResponse.redirect(new URL('/portal/dashboard', req.url))
       } else if (role === 'STUDENT') {
         return NextResponse.redirect(new URL('/portal/student', req.url))
+      } else if (role === 'RESELLER_ADMIN' || role === 'PARTNER') {
+        return NextResponse.redirect(new URL('/dashboard/partner', req.url))
       } else {
         return NextResponse.redirect(new URL('/dashboard', req.url))
       }

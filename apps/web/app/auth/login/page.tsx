@@ -69,20 +69,19 @@ export default function LoginPage() {
         return
       }
 
-      // Success — fetch session and redirect based on role
+      // Success — fetch session and redirect based on role using full page navigation
       const session = await getSession()
       const role = session?.user?.role
 
       if (role === 'CLIENT') {
-        router.push("/portal/dashboard")
+        window.location.href = "/portal/dashboard"
       } else if (role === 'STUDENT') {
-        router.push("/portal/student")
+        window.location.href = "/portal/student"
       } else if (role === 'RESELLER_ADMIN' || role === 'PARTNER') {
-        router.push("/dashboard/partner")
+        window.location.href = "/dashboard/partner"
       } else {
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       }
-      router.refresh()
     } catch (err) {
       setErrorMessage("A network error occurred. Please try again.")
       setIsPending(false)
