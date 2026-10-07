@@ -92,7 +92,7 @@ export default function CRMDashboard() {
           email: `meta_lead_${Math.floor(Math.random() * 8999 + 1000)}@example.com`,
           phone: '+91 98765 43210',
           company: 'Meta Events Manager Lead Gen',
-          courseInterest: activeTab === 'ACADEMY' ? 'UI/UX Masterclass' : 'Custom Web App Development'
+          courseInterest: 'Custom Web App Development'
         })
       })
       toast.success("Meta Lead Ingested into CRM Database!")
