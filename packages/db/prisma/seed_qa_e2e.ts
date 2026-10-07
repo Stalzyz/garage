@@ -88,6 +88,7 @@ async function main() {
       joiningDate: new Date(),
       currency: 'USD',
       jobTitle: 'QA Engineer',
+      employeeCode: 'QA-001',
     }
   });
   console.log(`✅ Upserted Employee record for User`);
