@@ -76,21 +76,18 @@ async function main() {
   // 5. Create an Employee record for testing leaves
   await prisma.employee.upsert({
     where: {
-      tenantId_userId: {
-        tenantId: tenant.id,
-        userId: user.id,
-      }
+      userId: user.id
     },
     update: {
-      type: 'FULL_TIME',
-      status: 'ACTIVE',
+      employmentType: 'FULL_TIME',
     },
     create: {
       tenantId: tenant.id,
       userId: user.id,
-      type: 'FULL_TIME',
-      status: 'ACTIVE',
-      joinedAt: new Date(),
+      employmentType: 'FULL_TIME',
+      joiningDate: new Date(),
+      currency: 'USD',
+      jobTitle: 'QA Engineer',
     }
   });
   console.log(`✅ Upserted Employee record for User`);
