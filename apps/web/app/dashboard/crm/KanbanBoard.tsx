@@ -17,9 +17,12 @@ interface KanbanBoardProps {
 const DEFAULT_SERVICE_COLUMNS = [
   { id: 'NEW', title: 'New Enquiries', isDefault: true },
   { id: 'CONTACTED', title: 'Contacted', isDefault: true },
+  { id: 'QUALIFIED', title: 'Qualified', isDefault: true },
+  { id: 'PROPOSAL_SENT', title: 'Proposal Sent', isDefault: true },
+  { id: 'NEGOTIATION', title: 'Negotiation', isDefault: true },
   { id: 'FOLLOW_UP', title: 'Follow-up Due', isDefault: true },
   { id: 'INTERESTED', title: 'Service Booked', isDefault: true },
-  { id: 'WON', title: 'Work Completed', isDefault: true },
+  { id: 'WON', title: 'Work Completed / Won', isDefault: true },
   { id: 'LOST', title: 'Lost / Cancelled', isDefault: true }
 ];
 
@@ -306,7 +309,15 @@ export function KanbanBoard({
   return (
     <div className="flex gap-4 h-[650px] overflow-x-auto custom-scrollbar pb-4 items-start">
       {columns.map((col) => {
-        const colLeads = localLeads.filter((l) => l.status === col.id);
+        const colLeads = localLeads.filter((l) => {
+          if (l.status === col.id) return true;
+          if (col.id === 'NEW' && (l.status === 'PENDING' || l.status === 'ENQUIRY')) return true;
+          if (col.id === 'FOLLOW_UP' && l.status === 'COUNSELLING') return true;
+          if (col.id === 'INTERESTED' && l.status === 'TRIAL') return true;
+          if (col.id === 'WON' && l.status === 'ENROLLED_ACADEMY') return true;
+          if (col.id === 'LOST' && l.status === 'DROPPED') return true;
+          return false;
+        });
         const columnValue = colLeads.reduce((sum, l) => sum + (Number(l.estimatedBudget) || 0), 0);
         const isColumnHovered = dragOverColumn === col.id;
 

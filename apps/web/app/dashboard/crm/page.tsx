@@ -32,7 +32,7 @@ export default function CRMDashboard() {
   const employees = employeesData?.employees || []
 
   // State
-  const [activeTab, setActiveTab] = useState<'AGENCY' | 'ACADEMY'>('AGENCY')
+  const activeTab = 'AGENCY'
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [industryFilter, setIndustryFilter] = useState("ALL")
@@ -139,10 +139,8 @@ export default function CRMDashboard() {
     batchId: ""
   })
 
-  // Calculations based on Active Tab
+  // Unified Lead Filtering (show all leads without businessUnit restriction)
   const filteredLeads = leads.filter((lead: any) => {
-    if (lead.businessUnit !== activeTab) return false
-    
     // Status filter
     if (statusFilter !== "ALL" && lead.status !== statusFilter) return false
 
@@ -161,20 +159,13 @@ export default function CRMDashboard() {
   })
 
   // Telemetry Calculations
-  const agencyLeads = leads.filter((l: any) => l.businessUnit === 'AGENCY')
-  const academyLeads = leads.filter((l: any) => l.businessUnit === 'ACADEMY')
-
-  const totalContacts = activeTab === 'AGENCY' ? agencyLeads.length : academyLeads.length
-  
-  const pipelineValue = activeTab === 'AGENCY' 
-    ? agencyLeads.reduce((sum: number, l: any) => sum + (l.estimatedBudget || 0), 0)
-    : academyLeads.length * 15000 // Mock academy average value per lead (₹15,000)
+  const totalContacts = leads.length
+  const pipelineValue = leads.reduce((sum: number, l: any) => sum + (l.estimatedBudget || 0), 0)
 
   const conversionRate = (() => {
-    const relevantLeads = activeTab === 'AGENCY' ? agencyLeads : academyLeads
-    if (relevantLeads.length === 0) return 0
-    const wonCount = relevantLeads.filter((l: any) => l.status === 'WON' || l.status === 'ENROLLED_ACADEMY').length
-    return Math.round((wonCount / relevantLeads.length) * 100)
+    if (leads.length === 0) return 0
+    const wonCount = leads.filter((l: any) => l.status === 'WON' || l.status === 'ENROLLED_ACADEMY' || l.status === 'SERVICE_BOOKED').length
+    return Math.round((wonCount / leads.length) * 100)
   })()
 
   // Helper to map assignee ID to active staff name
@@ -450,17 +441,13 @@ export default function CRMDashboard() {
         source: leadForm.source,
         notes: leadForm.notes || undefined,
         assignedToId: leadForm.assignedToId || undefined,
-        businessUnit: activeTab
-      }
-
-      if (activeTab === 'AGENCY') {
-        payload.company = leadForm.company || undefined
-        payload.industry = leadForm.industry || undefined
-        payload.estimatedBudget = leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined
-        payload.projectType = leadForm.projectType || undefined
-      } else {
-        payload.courseInterest = leadForm.courseInterest || undefined
-        payload.batchId = leadForm.batchId || undefined
+        businessUnit: "AGENCY",
+        company: leadForm.company || undefined,
+        industry: leadForm.industry || undefined,
+        estimatedBudget: leadForm.estimatedBudget ? parseFloat(leadForm.estimatedBudget) : undefined,
+        projectType: leadForm.projectType || undefined,
+        courseInterest: leadForm.courseInterest || undefined,
+        batchId: leadForm.batchId || undefined
       }
 
       if (editingLead) {
@@ -676,29 +663,6 @@ export default function CRMDashboard() {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
           </button>
 
-          {/* Business Unit Selector */}
-          <div className="flex bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] p-1 border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl">
-            <button
-              onClick={() => { setActiveTab('AGENCY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
-              className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-                activeTab === 'AGENCY' 
-                  ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
-                  : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
-              }`}
-            >
-              Agency CRM
-            </button>
-            <button
-              onClick={() => { setActiveTab('ACADEMY'); setStatusFilter('ALL'); setSelectedLeadIds([]); }}
-              className={`px-5 py-2 text-xs font-mono font-bold tracking-widest uppercase rounded-lg transition-all ${
-                activeTab === 'ACADEMY' 
-                  ? 'bg-blue-600 text-[var(--dash-text-primary)] shadow-lg' 
-                  : 'text-[var(--dash-text-primary)]/60 hover:text-[var(--dash-text-primary)] hover:bg-[var(--dash-bg-card,rgba(255,255,255,0.05))]'
-              }`}
-            >
-              Academy CRM
-            </button>
-          </div>
         </div>
       </div>
 
@@ -714,7 +678,7 @@ export default function CRMDashboard() {
               <Users className="w-5 h-5 text-blue-400" />
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Total Agency Leads" : "Total Enquiries"}
+              Total Leads
             </h3>
           </div>
           <div className="relative z-10">
@@ -734,23 +698,19 @@ export default function CRMDashboard() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl group-hover:bg-violet-500/20 transition-colors" />
           <div className="flex items-center gap-3 mb-6 relative z-10">
             <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center border border-violet-500/30 shadow-[inset_0_0_10px_rgba(139,92,246,0.2)]">
-              {activeTab === 'AGENCY' ? (
-                symbol === "₹" ? (
-                  <IndianRupee className="w-5 h-5 text-violet-400" />
-                ) : (
-                  <Coins className="w-5 h-5 text-violet-400" />
-                )
+              {symbol === "₹" ? (
+                <IndianRupee className="w-5 h-5 text-violet-400" />
               ) : (
-                <GraduationCap className="w-5 h-5 text-violet-400" />
+                <Coins className="w-5 h-5 text-violet-400" />
               )}
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Pipeline Value" : "Counselling Active"}
+              Pipeline Value
             </h3>
           </div>
           <div className="relative z-10">
             <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
-              {leadsLoading ? "..." : activeTab === 'AGENCY' ? (symbol === "₹" ? `₹${(pipelineValue / 100000).toFixed(1)}L` : formatCurrency(pipelineValue, true)) : academyLeads.filter((l: any) => l.status === 'COUNSELLING').length}
+              {leadsLoading ? "..." : (symbol === "₹" ? `₹${(pipelineValue / 100000).toFixed(1)}L` : formatCurrency(pipelineValue, true))}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
               <ArrowUpRight className="w-3.5 h-3.5" /> Live Updates
@@ -768,12 +728,12 @@ export default function CRMDashboard() {
               <Target className="w-5 h-5 text-emerald-400" />
             </div>
             <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-[var(--dash-text-primary)]/50">
-              {activeTab === 'AGENCY' ? "Lead Win Rate" : "Enrolled Students"}
+              Lead Win Rate
             </h3>
           </div>
           <div className="relative z-10">
             <span className="text-3xl md:text-4xl font-bold text-[var(--dash-text-primary)] tracking-tight truncate block">
-              {leadsLoading ? "..." : activeTab === 'AGENCY' ? `${conversionRate}%` : academyLeads.filter((l: any) => l.status === 'ENROLLED_ACADEMY').length}
+              {leadsLoading ? "..." : `${conversionRate}%`}
             </span>
             <p className="text-[10px] font-mono font-bold text-emerald-400 mt-2 flex items-center gap-1.5 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
               <ArrowUpRight className="w-3.5 h-3.5" /> High conversion velocity
@@ -791,26 +751,16 @@ export default function CRMDashboard() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             {/* Quick-status pills */}
             <div className="flex items-center gap-2 flex-wrap">
-              {(activeTab === 'AGENCY'
-                ? [
-                    { label: 'All', value: 'ALL' },
-                    { label: 'New', value: 'NEW' },
-                    { label: 'Contacted', value: 'CONTACTED' },
-                    { label: 'Qualified', value: 'QUALIFIED' },
-                    { label: 'Proposal Sent', value: 'PROPOSAL_SENT' },
-                    { label: 'Negotiation', value: 'NEGOTIATION' },
-                    { label: 'Won', value: 'WON' },
-                    { label: 'Lost', value: 'LOST' },
-                  ]
-                : [
-                    { label: 'All', value: 'ALL' },
-                    { label: 'Enquiry', value: 'ENQUIRY' },
-                    { label: 'Counselling', value: 'COUNSELLING' },
-                    { label: 'Trial', value: 'TRIAL' },
-                    { label: 'Enrolled', value: 'ENROLLED_ACADEMY' },
-                    { label: 'Dropped', value: 'DROPPED' },
-                  ]
-              ).map(({ label, value }) => (
+              {[
+                { label: 'All', value: 'ALL' },
+                { label: 'New', value: 'NEW' },
+                { label: 'Contacted', value: 'CONTACTED' },
+                { label: 'Qualified', value: 'QUALIFIED' },
+                { label: 'Proposal Sent', value: 'PROPOSAL_SENT' },
+                { label: 'Negotiation', value: 'NEGOTIATION' },
+                { label: 'Won', value: 'WON' },
+                { label: 'Lost', value: 'LOST' },
+              ].map(({ label, value }) => (
                 <button
                   key={value}
                   onClick={() => setStatusFilter(value)}
@@ -823,7 +773,7 @@ export default function CRMDashboard() {
                   {label}
                   {value !== 'ALL' && (
                     <span className="ml-1.5 opacity-60 font-mono text-[10px]">
-                      {leads.filter((l: any) => l.businessUnit === activeTab && l.status === value).length}
+                      {leads.filter((l: any) => l.status === value).length}
                     </span>
                   )}
                 </button>
@@ -836,7 +786,7 @@ export default function CRMDashboard() {
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={activeTab === 'AGENCY' ? "Search leads, company..." : "Search students, course interest..."}
+                placeholder="Search leads, company..."
                 className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.4))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-primary)]/30"
               />
             </div>
@@ -910,7 +860,7 @@ export default function CRMDashboard() {
                 onClick={handleOpenCreateLead}
                 className="group flex items-center justify-center gap-2 bg-white text-black font-bold tracking-widest uppercase text-[10px] px-5 py-2.5 rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden"
               >
-                <Plus className="w-4 h-4" /> New {activeTab === 'AGENCY' ? 'Agency Lead' : 'Academy Enquiry'}
+                <Plus className="w-4 h-4" /> New Lead
               </button>
             </div>
           </div>
@@ -1064,7 +1014,7 @@ export default function CRMDashboard() {
                         )}
                         {visibleColumns.company && (
                           <th className="p-4 text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">
-                            {activeTab === 'AGENCY' ? 'Company Name' : 'Course Interest'}
+                            Company / Detail
                           </th>
                         )}
                         {visibleColumns.industry && (
@@ -1129,11 +1079,7 @@ export default function CRMDashboard() {
                             )}
                             {visibleColumns.company && (
                               <td className="p-4 text-sm text-[var(--dash-text-primary)]/60">
-                                {activeTab === 'AGENCY' ? (
-                                  lead.company || <span className="text-white/20">—</span>
-                                ) : (
-                                  lead.courseInterest || <span className="text-white/20">—</span>
-                                )}
+                                {lead.company || lead.courseInterest || <span className="text-white/20">—</span>}
                               </td>
                             )}
                             {visibleColumns.industry && (
@@ -1268,7 +1214,7 @@ export default function CRMDashboard() {
             >
               <div className="px-6 py-4 border-b border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] flex justify-between items-center">
                 <h3 className="font-bold text-lg text-[var(--dash-text-primary)]">
-                  {editingLead ? "Edit Lead Details" : `Create new ${activeTab === 'AGENCY' ? 'Agency Lead' : 'Academy Enquiry'}`}
+                  {editingLead ? "Edit Lead Details" : "Create New Lead"}
                 </h3>
                 <button 
                   onClick={() => setIsLeadModalOpen(false)}
@@ -1322,7 +1268,6 @@ export default function CRMDashboard() {
                       <option value="COLD_OUTREACH">Cold Outreach</option>
                       <option value="INSTAGRAM">Instagram</option>
                       <option value="LINKEDIN">LinkedIn</option>
-                      <option value="ACADEMY_ALUMNI">Academy Alumni</option>
                       <option value="OTHER">Other</option>
                     </select>
                   </div>
@@ -1343,80 +1288,47 @@ export default function CRMDashboard() {
                   </div>
                 </div>
 
-                {activeTab === 'AGENCY' ? (
-                  <div className="space-y-4 border-t border-white/5 pt-4">
-                    <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Agency Parameters</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Company Name</label>
-                        <input
-                          value={leadForm.company}
-                          onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
-                          placeholder="e.g. Acme Tech Inc."
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Industry Sector</label>
-                        <input
-                          value={leadForm.industry}
-                          onChange={(e) => setLeadForm({ ...leadForm, industry: e.target.value })}
-                          placeholder="e.g. Healthcare, E-Commerce, SaaS, EdTech, Real Estate, FinTech"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Estimated Budget (INR)</label>
-                        <input
-                          type="number"
-                          value={leadForm.estimatedBudget}
-                          onChange={(e) => setLeadForm({ ...leadForm, estimatedBudget: e.target.value })}
-                          placeholder="e.g. 150000"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Project Type Scope</label>
-                        <input
-                          value={leadForm.projectType}
-                          onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value })}
-                          placeholder="e.g. UI/UX Redesign"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
+                <div className="space-y-4 border-t border-white/5 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Company / Organization</label>
+                      <input
+                        value={leadForm.company}
+                        onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
+                        placeholder="e.g. Acme Tech Inc."
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Industry Sector</label>
+                      <input
+                        value={leadForm.industry}
+                        onChange={(e) => setLeadForm({ ...leadForm, industry: e.target.value })}
+                        placeholder="e.g. Healthcare, E-Commerce, SaaS, EdTech, Real Estate"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Estimated Budget ({symbol})</label>
+                      <input
+                        type="number"
+                        value={leadForm.estimatedBudget}
+                        onChange={(e) => setLeadForm({ ...leadForm, estimatedBudget: e.target.value })}
+                        placeholder="e.g. 150000"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)] font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Project Scope / Details</label>
+                      <input
+                        value={leadForm.projectType}
+                        onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value })}
+                        placeholder="e.g. Custom Web App Development"
+                        className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
+                      />
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4 border-t border-white/5 pt-4">
-                    <p className="text-[10px] font-mono uppercase text-blue-400 font-bold tracking-widest mb-2">Academy Parameters</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Course Interest</label>
-                        <input
-                          value={leadForm.courseInterest}
-                          onChange={(e) => setLeadForm({ ...leadForm, courseInterest: e.target.value })}
-                          placeholder="e.g. UI/UX Masterclass"
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50 mb-1">Assign Batch</label>
-                        <select
-                          value={leadForm.batchId}
-                          onChange={(e) => setLeadForm({ ...leadForm, batchId: e.target.value })}
-                          className="w-full bg-[var(--dash-bg-elevated,rgba(0,0,0,0.6))] border border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-[var(--dash-text-primary)]"
-                        >
-                          <option value="">No Batch Assigned</option>
-                          {batches.map((batch: any) => (
-                            <option key={batch.id} value={batch.id}>
-                              {batch.name} ({batch.course?.name || "LMS"})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-1">
