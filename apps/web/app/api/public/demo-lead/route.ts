@@ -60,23 +60,7 @@ export async function POST(req: Request) {
         ? `Hello ${customerName},\n\nThank you for your interest in becoming a Garage CRM Whitelabel Partner / Reseller!\n\nHere are your instant demo login credentials:\n\n🔗 Partner Portal: https://garage.grekam.in/partner/login?demo=partner\n📧 Email: reseller@grekam.com\n🔑 Password: reseller123\n\nInside the partner portal, you can create custom-branded customer packages, configure wholesale margins, and provision sub-tenant workshops on your own domain.\n\nBest regards,\nGarage CRM Partner Team`
         : `Hello ${customerName},\n\nThank you for requesting live access to Garage CRM!\n\nHere are your instant demo credentials:\n\n🔗 Workshop Portal: https://garage.grekam.in/auth/login?demo=garage\n📧 Email: demo@garage.in\n🔑 Password: Demo2023\n\nInside the demo you can test the Sales Pipeline, AI Power Dialer, Interactive Proposals, GST Invoicing, Retainers, and Team Management.\n\nBest regards,\nGarage CRM Platform Team`
 
-      // Call internal notification dispatcher
-      await prisma.auditLog.create({
-        data: {
-          action: "DEMO_LEAD_SUBMISSION",
-          entity: "Lead",
-          entityId: lead.id,
-          userId: "system",
-          details: {
-            leadEmail: email,
-            leadName: customerName,
-            isReseller: Boolean(isReseller),
-            subject: emailSubject,
-          },
-        },
-      }).catch(() => null)
-
-      console.log(`[DEMO LEAD SAVED & ACKNOWLEDGED] Lead ID: ${lead.id} | Email: ${email} | Reseller: ${isReseller}`)
+    console.log(`[DEMO LEAD SAVED] Lead ID: ${lead.id} | Email: ${email} | Reseller: ${isReseller}`)
     } catch (err) {
       console.warn("Email dispatch warning for lead:", err)
     }
