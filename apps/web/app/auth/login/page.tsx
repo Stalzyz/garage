@@ -24,6 +24,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     setIsClient(true)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("demo") === "garage") {
+        setEmail("demo@garage.in")
+        setPassword("Demo2023")
+      }
+    }
   }, [])
 
   if (!isClient) return null

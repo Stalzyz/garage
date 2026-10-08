@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, Mail, Lock, ArrowRight, AlertCircle, Sparkles, Building2, Wallet } from "lucide-react"
+import { ShieldCheck, Mail, Lock, ArrowRight, AlertCircle, Building2, Wallet } from "lucide-react"
 import Link from "next/link"
 
 export default function PartnerLoginPage() {
@@ -12,6 +12,16 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState("")
   const [isPending, setIsPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("demo") === "partner" || params.get("demo") === "reseller") {
+        setEmail("reseller@grekam.com")
+        setPassword("reseller123")
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
