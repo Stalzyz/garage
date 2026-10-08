@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function reset() {
   const email = 'admin@grekam.in';
-  const plainPassword = 'Password123!';
+  const plainPassword = 'Grekam@Grafty26';
   const passwordHash = await bcrypt.hash(plainPassword, 10);
   
   const user = await prisma.user.upsert({
