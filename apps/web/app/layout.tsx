@@ -82,6 +82,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap" 
+          rel="stylesheet" 
+        />
         <link 
           rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
@@ -90,7 +96,7 @@ export default function RootLayout({
           referrerPolicy="no-referrer" 
         />
       </head>
-      <body className={`min-h-screen bg-background font-sans antialiased ${inter.className} ${inter.variable}`}>
+      <body className="min-h-screen bg-background font-sans antialiased" style={{ fontFamily: "'Poppins', sans-serif" }}>
         {/* Chunk-load self-healing: inline script runs synchronously before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {

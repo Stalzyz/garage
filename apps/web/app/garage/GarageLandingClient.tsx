@@ -766,310 +766,214 @@ export default function GarageLandingPage() {
         </div>
       </header>
 
-      {/* ── 2. HERO SECTION ── */}
-      <section id="overview" className="relative pt-16 sm:pt-20 pb-20 sm:pb-28 px-4 sm:px-6 overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] pointer-events-none -z-10" />
+      {/* ── 2. HERO SECTION (HEADLINE LEFT · WORKSPACE POSTER RIGHT) ── */}
+      <section id="overview" className="relative pt-12 sm:pt-16 pb-20 sm:pb-28 px-4 sm:px-6 overflow-hidden">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] pointer-events-none -z-10" />
+        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-purple-600/10 blur-[150px] pointer-events-none -z-10" />
 
-        <div className="max-w-5xl mx-auto text-center">
-          
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6 sm:mb-8">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>All-in-One CRM, Sales & Operations Platform for Modern Businesses</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.15]">
-            Get more clients. <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
-              Close deals faster. Scale your business.
-            </span>
-          </h1>
-
-          <p className="text-sm sm:text-base lg:text-lg text-zinc-400 max-w-3xl mx-auto mb-8 sm:mb-10 leading-relaxed font-normal">
-            Garage CRM is the all-in-one workspace that brings your sales pipeline, interactive client proposals, project deliverables, recurring retainer billing, team HR, and automated WhatsApp follow-ups into one simple platform.
-          </p>
-
-          {/* Direct CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-10">
-            <button
-              onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
-              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
-            >
-              <span>Explore Live Demo Dashboard</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <a
-              href="#case-studies"
-              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 backdrop-blur-xl transition-all flex items-center justify-center gap-2"
-            >
-              <span>See 6 Industry Case Studies</span>
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
-            </a>
-          </div>
-
-          {/* ⚡ PREFILLED INSTANT DEMO ACCOUNTS PANEL */}
-          <div className="mb-10 p-5 rounded-3xl bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900/60 border border-white/10 backdrop-blur-md shadow-2xl text-left max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-amber-400/10 text-amber-400 border border-amber-400/20">
-                  <Sparkles className="w-4 h-4 animate-pulse" />
-                </span>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Instant Demo Accounts (Prefilled)</h3>
-                  <p className="text-[11px] text-zinc-400">Select any demo mode below to test the live system with 1-click access</p>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold uppercase tracking-wider">
-                No Registration Required
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Account 1: Without Whitelabel Partner (Direct Public Access) */}
-              <div className="p-4 rounded-2xl bg-black/40 border border-emerald-500/20 hover:border-emerald-500/40 transition-all space-y-3 relative group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-bold text-white">1. Direct Garage Owner</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    Without Whitelabel
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  Public demo for garage workshops. Includes Job Cards, GST Invoicing, Inventory, CRM, and Retainers.
-                </p>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[11px] font-mono space-y-1">
-                  <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-emerald-300 font-bold">demo@garage.in</span></div>
-                  <div className="flex justify-between"><span className="text-zinc-500">Password:</span> <span className="text-zinc-300">Demo2023</span></div>
-                </div>
-                <button
-                  onClick={() => handleLaunchDemo("GARAGE")}
-                  disabled={loggingInRole !== null}
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  {loggingInRole === "GARAGE" ? (
-                    <span className="animate-pulse">Launching Public Demo...</span>
-                  ) : (
-                    <>
-                      <span>Launch Public Garage Demo</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Account 2: With Whitelabel Partner (Shareable / Reseller Access) */}
-              <div className="p-4 rounded-2xl bg-black/40 border border-purple-500/20 hover:border-purple-500/40 transition-all space-y-3 relative group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-purple-400" />
-                    <span className="text-xs font-bold text-white">2. Whitelabel Partner</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                    With Whitelabel
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  For partners & resellers. Features custom domain setup, reseller margins, and tenant provisioning.
-                </p>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[11px] font-mono space-y-1">
-                  <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-purple-300 font-bold">reseller@grekam.com</span></div>
-                  <div className="flex justify-between"><span className="text-zinc-500">Password:</span> <span className="text-zinc-300">reseller123</span></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleLaunchDemo("PARTNER")}
-                    disabled={loggingInRole !== null}
-                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    {loggingInRole === "PARTNER" ? (
-                      <span className="animate-pulse">Launching Partner Demo...</span>
-                    ) : (
-                      <>
-                        <span>Launch Partner Demo</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
-                      toast.success("Partner Demo share link copied to clipboard!")
-                    }}
-                    title="Copy Shareable Partner Demo Credentials"
-                    className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 transition-colors"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Feature Proof Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-zinc-400 border-t border-white/5 pt-6 sm:pt-8">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Visual Kanban Sales Pipelines</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Interactive Proposals with E-Signatures</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Automated Retainer Billing & GST Invoices</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Branded Client Portals & WhatsApp Updates</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── INTERACTIVE HERO SLIDESHOW WITH 5 TABS ── */}
-        <div 
-          className="max-w-6xl mx-auto mt-12 sm:mt-16"
-          onMouseEnter={() => setIsSlidePaused(true)}
-          onMouseLeave={() => setIsSlidePaused(false)}
-        >
-          <div className="relative rounded-2xl sm:rounded-3xl p-1.5 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-transparent shadow-[0_0_80px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-2xl">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
-            {/* Slideshow Screen Container */}
-            <div className="relative aspect-[16/10] sm:aspect-[16/9] min-h-[220px] sm:min-h-[460px] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#070B14] border border-white/10 group">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={activeSlide}
-                  src={heroSlides[activeSlide].image}
-                  alt={heroSlides[activeSlide].title}
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.45, ease: "easeInOut" }}
-                  className="w-full h-full object-contain bg-[#060913]"
-                />
-              </AnimatePresence>
-
-              {/* Prev / Next Arrow Controls */}
-              <button
-                onClick={() => setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
-                aria-label="Previous Slide"
-              >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              <button
-                onClick={() => setActiveSlide((prev) => (prev + 1) % heroSlides.length)}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
-                aria-label="Next Slide"
-              >
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              {/* Top Floating Badge on All Devices */}
-              <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-blue-300 border border-blue-500/30 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                <span>{heroSlides[activeSlide].badge}</span>
+            {/* ── LEFT COLUMN: HEADLINE & ACTIONS ── */}
+            <div className="lg:col-span-7 text-left space-y-6">
+              
+              {/* Top Feature Pill */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>All-in-One CRM, Sales & Operations Platform for Modern Businesses</span>
               </div>
 
-              {/* Desktop Slide Caption Overlay */}
-              <div className="hidden sm:flex absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 sm:p-6 items-center justify-between gap-4 z-10">
-                <div className="max-w-2xl">
-                  <div className="text-sm sm:text-base font-extrabold text-white tracking-tight">{heroSlides[activeSlide].title}</div>
-                  <div className="text-xs text-zinc-300 mt-0.5 leading-relaxed">{heroSlides[activeSlide].caption}</div>
-                </div>
+              {/* Main Headline */}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
+                Get more clients. <br />
+                Close deals faster. <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                  Scale your business.
+                </span>
+              </h1>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="flex gap-1.5 mr-2">
-                    {heroSlides.map((_, dotIdx) => (
-                      <button
-                        key={dotIdx}
-                        onClick={() => setActiveSlide(dotIdx)}
-                        className={`h-1.5 rounded-full transition-all ${
-                          activeSlide === dotIdx ? "w-6 bg-blue-500" : "w-1.5 bg-white/30 hover:bg-white/50"
-                        }`}
-                        aria-label={`Go to slide ${dotIdx + 1}`}
-                      />
-                    ))}
-                  </div>
+              {/* Subtitle */}
+              <p className="text-sm sm:text-base text-zinc-300 max-w-2xl leading-relaxed font-normal">
+                Garage CRM is the high-velocity operating system that brings your sales pipeline, AI Power Dialer, interactive client proposals, sprint deliverables, GST retainer invoicing, team HR, and automated WhatsApp messaging into one seamless platform.
+              </p>
 
-                  <button
-                    onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shrink-0 shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
-                  >
-                    <span>Try in Live Demo</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+              {/* Direct Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <button
+                  onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
+                  className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <span>Explore Live Demo Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <a
+                  href="#case-studies"
+                  className="px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 backdrop-blur-xl transition-all flex items-center justify-center gap-2"
+                >
+                  <span>See 6 Case Studies</span>
+                  <ChevronDown className="w-4 h-4 text-zinc-400" />
+                </a>
               </div>
 
-              {/* Mobile Compact Bottom Bar */}
-              <div className="flex sm:hidden absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-2.5 items-center justify-between gap-2 z-10">
-                <div className="text-[11px] font-bold text-white truncate max-w-[170px]">{heroSlides[activeSlide].tabName}</div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="flex gap-1">
-                    {heroSlides.map((_, dotIdx) => (
-                      <button
-                        key={dotIdx}
-                        onClick={() => setActiveSlide(dotIdx)}
-                        className={`h-1.5 rounded-full transition-all ${
-                          activeSlide === dotIdx ? "w-4 bg-blue-500" : "w-1.5 bg-white/40"
-                        }`}
-                        aria-label={`Go to slide ${dotIdx + 1}`}
-                      />
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-600 text-white flex items-center gap-1 shadow-md"
-                  >
-                    <span>Demo</span>
-                    <ArrowRight className="w-2.5 h-2.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 5 Slide Navigation Tabs — Mobile Horizontal Swipe & Desktop 5-Col Grid */}
-            <div className="flex sm:grid sm:grid-cols-5 gap-2 mt-2 sm:mt-3 overflow-x-auto pb-1 sm:pb-0 no-scrollbar snap-x snap-mandatory">
-              {heroSlides.map((slide, idx) => {
-                const TabIcon = slide.icon
-                const isActive = activeSlide === idx
-                return (
-                  <button
-                    key={slide.id}
-                    onClick={() => setActiveSlide(idx)}
-                    className={`relative min-w-[145px] sm:min-w-0 flex-1 shrink-0 snap-start p-2.5 sm:p-3 rounded-xl text-left transition-all overflow-hidden ${
-                      isActive
-                        ? "bg-blue-600/20 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)] text-white"
-                        : "bg-white/[0.02] border border-white/5 text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
-                    }`}
-                  >
-                    {/* Active Tab Progress Bar */}
-                    {isActive && (
-                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400" />
-                    )}
-
-                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                      <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                        isActive ? "bg-blue-500 text-white" : "bg-white/5 text-zinc-400"
-                      }`}>
-                        <TabIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      </div>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                        isActive ? "text-blue-300" : "text-zinc-500"
-                      }`}>
-                        0{idx + 1}
+              {/* ⚡ PREFILLED INSTANT DEMO ACCOUNTS PANEL */}
+              <div className="pt-2">
+                <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900/60 border border-white/10 backdrop-blur-md shadow-2xl">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 pb-2.5 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 rounded-lg bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                       </span>
+                      <span className="text-xs font-bold text-white">Instant 1-Click Demo Accounts</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold uppercase tracking-wider">
+                      No Registration Required
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Account 1: Direct Public Demo */}
+                    <div className="p-3 rounded-2xl bg-black/40 border border-emerald-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                          <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Direct Garage Owner</span>
+                        </div>
+                        <span className="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                          Standard
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-white/5 text-[10px] font-mono space-y-0.5 text-zinc-300">
+                        <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-emerald-300 font-bold">demo@garage.in</span></div>
+                        <div className="flex justify-between"><span className="text-zinc-500">Pass:</span> <span>Demo2023</span></div>
+                      </div>
+                      <button
+                        onClick={() => handleLaunchDemo("GARAGE")}
+                        disabled={loggingInRole !== null}
+                        className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        {loggingInRole === "GARAGE" ? (
+                          <span className="animate-pulse">Launching...</span>
+                        ) : (
+                          <>
+                            <span>Launch Garage Demo</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </>
+                        )}
+                      </button>
                     </div>
 
-                    <div className="text-xs font-bold truncate leading-tight">{slide.tabName}</div>
-                    <div className="text-[10px] text-zinc-400 truncate mt-0.5">{slide.badge}</div>
-                  </button>
-                )
-              })}
+                    {/* Account 2: Whitelabel Partner Demo */}
+                    <div className="p-3 rounded-2xl bg-black/40 border border-purple-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                          <Users className="w-3.5 h-3.5 text-purple-400" />
+                          <span>Whitelabel Partner</span>
+                        </div>
+                        <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                          Whitelabel
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-white/5 text-[10px] font-mono space-y-0.5 text-zinc-300">
+                        <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-purple-300 font-bold">reseller@grekam.com</span></div>
+                        <div className="flex justify-between"><span className="text-zinc-500">Pass:</span> <span>reseller123</span></div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleLaunchDemo("PARTNER")}
+                          disabled={loggingInRole !== null}
+                          className="flex-1 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1 transition-all"
+                        >
+                          {loggingInRole === "PARTNER" ? (
+                            <span className="animate-pulse">Launching...</span>
+                          ) : (
+                            <>
+                              <span>Launch Partner Demo</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
+                            toast.success("Partner credentials copied!")
+                          }}
+                          title="Copy Partner Demo Link"
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Feature Proof Badges */}
+              <div className="grid grid-cols-2 gap-2 text-xs text-zinc-400 pt-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Visual Sales Pipelines</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Interactive Proposals & E-Sign</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Automated GST Retainers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Verified WhatsApp Alerts</span>
+                </div>
+              </div>
+
             </div>
+
+            {/* ── RIGHT COLUMN: CREATIVE WORKSPACE POSTER IMAGE ── */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-blue-500/25 via-white/10 to-purple-500/25 border border-white/15 shadow-[0_0_90px_rgba(59,130,246,0.3)] backdrop-blur-2xl group transition-all duration-500 hover:border-blue-400/50">
+                
+                {/* Poster Frame */}
+                <div className="relative rounded-2xl overflow-hidden bg-[#070B14] border border-white/10 aspect-[4/5] sm:aspect-[3/4] flex items-center justify-center">
+                  <img 
+                    src="/hero-workspace.png" 
+                    alt="Logo-Free Creative Workspace Poster" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                  
+                  {/* Subtle Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent pointer-events-none" />
+
+                  {/* Top Floating Badge */}
+                  <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/80 backdrop-blur-md border border-blue-500/40 text-white text-xs font-bold shadow-xl">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Live Agency & Operations Hub</span>
+                  </div>
+
+                  {/* Bottom Floating Stat Card */}
+                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/85 backdrop-blur-xl border border-white/20 shadow-2xl flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Revenue Pipeline Velocity</div>
+                      <div className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                        <span className="text-emerald-400 font-mono">₹18,45,000</span>
+                        <span className="text-xs font-semibold text-zinc-300 font-sans">Closed</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30 block">
+                        +38% MoM
+                      </span>
+                      <span className="text-[9px] text-zinc-400 mt-1 block">99.8% SLA</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
