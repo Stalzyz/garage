@@ -236,15 +236,11 @@ export default function PartnerPackagesPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Billing Cycle</label>
-                <select 
-                  value={billingCycle} 
-                  onChange={(e) => setBillingCycle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d1322] border border-white/10 text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="YEARLY">Yearly</option>
-                  <option value="MONTHLY">Monthly</option>
-                </select>
+                <label className="block text-zinc-400 mb-1 font-semibold text-xs">Billing Cycle</label>
+                <div className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-emerald-400 font-semibold text-xs flex items-center justify-between">
+                  <span>Annual Subscription (Yearly)</span>
+                  <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">12 Months</span>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">

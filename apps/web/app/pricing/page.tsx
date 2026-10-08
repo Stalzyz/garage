@@ -243,7 +243,7 @@ export default function PricingPage() {
     },
     {
       q: "Is there any setup fee or long-term lock-in contract?",
-      a: "No hidden setup fees. You can choose month-to-month billing and cancel anytime, or choose annual billing to save 20% on all plans."
+      a: "No hidden setup fees. All packages are offered as transparent annual subscriptions with 20% savings built-in, including complimentary onboarding, full module access, and dedicated support."
     },
     {
       q: "How does the 18% GST calculation work?",
@@ -405,35 +405,17 @@ export default function PricingPage() {
             Everything you need to capture sales leads, send interactive client proposals, streamline project sprints, and automate recurring monthly revenue.
           </p>
 
-          {/* Monthly / Yearly Switch */}
-          <div className="inline-flex items-center p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl">
-            <button
-              onClick={() => setBillingCycle("monthly")}
-              className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all ${
-                billingCycle === "monthly"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              Monthly Billing
-            </button>
-            <button
-              onClick={() => setBillingCycle("yearly")}
-              className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-2 ${
-                billingCycle === "yearly"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <span>Annual Billing</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                SAVE 20%
-              </span>
-            </button>
+          {/* Annual Subscription Badge */}
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-blue-600/10 border border-blue-500/30 backdrop-blur-xl shadow-lg shadow-blue-500/10">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs md:text-sm font-semibold text-blue-200">Annual Subscription Packages</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              SAVE 20% INCLUDED
+            </span>
           </div>
 
           <p className="text-xs text-zinc-500 mt-4">
-            * All plans are subject to +18% GST. GST invoice with full ITC claim provided instantly.
+            * All packages are billed annually with +18% GST. Instant GST tax invoice provided with full ITC claim.
           </p>
         </div>
       </section>
@@ -442,7 +424,8 @@ export default function PricingPage() {
       <section className="max-w-7xl mx-auto px-6 pb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan, idx) => {
-            const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice
+            const price = plan.yearlyPrice || plan.monthlyPrice
+            const annualTotal = (plan.yearlyPrice || plan.monthlyPrice) * 12
             return (
               <div
                 key={idx}
@@ -462,14 +445,17 @@ export default function PricingPage() {
                   <div className="text-lg font-bold text-white mb-1">{plan.name}</div>
                   <p className="text-xs text-zinc-400 min-h-[36px] leading-relaxed mb-6">{plan.tagline}</p>
 
-                  <div className="mb-6 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                  <div className="mb-6 p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1.5">
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl lg:text-4xl font-extrabold text-white">₹{price.toLocaleString("en-IN")}</span>
                       <span className="text-xs text-zinc-400 font-medium">/ month</span>
                     </div>
-                    <div className="text-[11px] text-zinc-500 mt-1 flex items-center justify-between">
-                      <span>{billingCycle === "yearly" ? "Billed annually" : "Billed monthly"}</span>
+                    <div className="text-[11px] text-zinc-400 flex items-center justify-between border-t border-white/5 pt-1.5">
+                      <span className="text-emerald-400 font-medium">₹{annualTotal.toLocaleString("en-IN")} / year</span>
                       <span className="text-blue-400 font-semibold">+ 18% GST</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 text-left">
+                      Billed annually (365 days access)
                     </div>
                   </div>
 

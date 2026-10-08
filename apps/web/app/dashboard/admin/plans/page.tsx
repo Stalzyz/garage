@@ -257,18 +257,18 @@ export default function SuperAdminPlansPage() {
                 {/* Retail Price Display */}
                 <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
                   <div className="flex items-baseline justify-between">
-                    <span className="text-xs text-zinc-400 font-medium">Yearly Package Cost:</span>
+                    <span className="text-xs text-zinc-400 font-medium">Annual Package Cost:</span>
                     <div className="text-right">
                       <span className="text-xl font-black text-blue-400">₹{Number(effectiveYearly).toLocaleString("en-IN")}</span>
-                      <span className="text-xs font-bold text-amber-400 ml-1">+ GST</span>
+                      <span className="text-xs font-bold text-amber-400 ml-1">/ yr + GST</span>
                       {p.yearlyOfferPrice && p.yearlyOfferPrice !== p.yearlyPrice && (
                         <span className="text-[11px] text-zinc-500 line-through block">₹{Number(p.yearlyPrice).toLocaleString("en-IN")}</span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-zinc-400 border-t border-white/5 pt-2">
-                    <span>Monthly Option:</span>
-                    <span className="font-semibold text-zinc-200">₹{Number(effectiveMonthly).toLocaleString("en-IN")} / mo + GST</span>
+                    <span className="text-[11px] text-zinc-500">Monthly Equivalent:</span>
+                    <span className="font-semibold text-emerald-400 text-xs">₹{Math.round(Number(effectiveYearly) / 12).toLocaleString("en-IN")} / mo</span>
                   </div>
                 </div>
 
@@ -351,53 +351,47 @@ export default function SuperAdminPlansPage() {
               <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-blue-400 flex items-center gap-1.5">
-                    <Tag className="w-4 h-4" /> Retail Client Pricing (+ GST)
+                    <Tag className="w-4 h-4" /> Retail Annual Pricing (+ GST)
                   </span>
                   <span className="text-[11px] font-mono text-amber-400 font-semibold bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
-                    + 18% GST Applicable
+                    + 18% GST Applicable · Annual Packages
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Monthly MRP (₹)</label>
-                    <input
-                      type="number"
-                      placeholder="1999"
-                      value={form.monthlyPrice}
-                      onChange={(e) => setForm({ ...form, monthlyPrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Monthly Offer (₹) + GST</label>
-                    <input
-                      type="number"
-                      placeholder="1499"
-                      value={form.monthlyOfferPrice}
-                      onChange={(e) => setForm({ ...form, monthlyOfferPrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Yearly MRP (₹) *</label>
+                    <label className="text-zinc-400 font-medium block text-xs">Yearly MRP (₹) *</label>
                     <input
                       type="number"
                       required
                       placeholder="19999"
                       value={form.yearlyPrice}
-                      onChange={(e) => setForm({ ...form, yearlyPrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setForm({
+                          ...form,
+                          yearlyPrice: val,
+                          monthlyPrice: val ? String(Math.round(Number(val) / 12)) : "",
+                        })
+                      }}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Yearly Offer (₹) + GST</label>
+                    <label className="text-zinc-400 font-medium block text-xs">Yearly Offer Price (₹) + GST</label>
                     <input
                       type="number"
                       placeholder="14999"
                       value={form.yearlyOfferPrice}
-                      onChange={(e) => setForm({ ...form, yearlyOfferPrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setForm({
+                          ...form,
+                          yearlyOfferPrice: val,
+                          monthlyOfferPrice: val ? String(Math.round(Number(val) / 12)) : "",
+                        })
+                      }}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm"
                     />
                   </div>
                 </div>
@@ -409,35 +403,32 @@ export default function SuperAdminPlansPage() {
                   <ShieldCheck className="w-4 h-4 text-purple-400" /> Whitelabel Partner Base Price & Reseller Commission
                 </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Whitelabel Monthly Base (₹)</label>
-                    <input
-                      type="number"
-                      placeholder="999"
-                      value={form.whitelabelMonthlyBasePrice}
-                      onChange={(e) => setForm({ ...form, whitelabelMonthlyBasePrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Whitelabel Yearly Base (₹)</label>
+                    <label className="text-zinc-400 font-medium block text-xs">Whitelabel Wholesale Yearly Base (₹)</label>
                     <input
                       type="number"
                       placeholder="9999"
                       value={form.whitelabelYearlyBasePrice}
-                      onChange={(e) => setForm({ ...form, whitelabelYearlyBasePrice: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setForm({
+                          ...form,
+                          whitelabelYearlyBasePrice: val,
+                          whitelabelMonthlyBasePrice: val ? String(Math.round(Number(val) / 12)) : "",
+                        })
+                      }}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-zinc-400 font-medium block">Standard Reseller Comm (%)</label>
+                    <label className="text-zinc-400 font-medium block text-xs">Standard Reseller Commission (%)</label>
                     <input
                       type="number"
                       placeholder="25"
                       value={form.resellerCommissionRate}
                       onChange={(e) => setForm({ ...form, resellerCommissionRate: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm"
                     />
                   </div>
                 </div>
