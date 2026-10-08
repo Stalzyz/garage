@@ -34,9 +34,12 @@ export default function SuperAdminGaragesPage() {
     ownerPhone: "",
     features: {
       crmEnabled: true,
+      powerDialerEnabled: true,
       hrmEnabled: true,
       projectsEnabled: true,
       financeEnabled: true,
+      marketingEnabled: true,
+      automationsEnabled: true,
       portalEnabled: true,
       customDomainAllowed: true,
       whiteLabelPdfAllowed: true,
@@ -97,9 +100,12 @@ export default function SuperAdminGaragesPage() {
           ownerPhone: g.owner?.phone || garage.phone || "",
           features: {
             crmEnabled: g.features?.crmEnabled ?? true,
+            powerDialerEnabled: g.features?.powerDialerEnabled ?? true,
             hrmEnabled: g.features?.hrmEnabled ?? true,
             projectsEnabled: g.features?.projectsEnabled ?? true,
             financeEnabled: g.features?.financeEnabled ?? true,
+            marketingEnabled: g.features?.marketingEnabled ?? true,
+            automationsEnabled: g.features?.automationsEnabled ?? true,
             portalEnabled: g.features?.portalEnabled ?? true,
             customDomainAllowed: g.features?.customDomainAllowed ?? true,
             whiteLabelPdfAllowed: g.features?.whiteLabelPdfAllowed ?? true,
@@ -117,9 +123,12 @@ export default function SuperAdminGaragesPage() {
           ownerPhone: garage.phone || "",
           features: {
             crmEnabled: true,
+            powerDialerEnabled: true,
             hrmEnabled: true,
             projectsEnabled: true,
             financeEnabled: true,
+            marketingEnabled: true,
+            automationsEnabled: true,
             portalEnabled: true,
             customDomainAllowed: true,
             whiteLabelPdfAllowed: true,
@@ -486,8 +495,13 @@ export default function SuperAdminGaragesPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.crmEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
-                      <span>CRM Module</span>
+                      <span>CRM & Pipeline</span>
                       <input type="checkbox" checked={editForm.features.crmEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, crmEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.powerDialerEnabled ? "bg-emerald-500/10 border-emerald-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>📞 Power Dialer</span>
+                      <input type="checkbox" checked={editForm.features.powerDialerEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, powerDialerEnabled: e.target.checked } })} className="accent-emerald-500" />
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.hrmEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
@@ -496,13 +510,23 @@ export default function SuperAdminGaragesPage() {
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.projectsEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
-                      <span>Job Cards & Repairs</span>
+                      <span>Job Cards & Tasks</span>
                       <input type="checkbox" checked={editForm.features.projectsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, projectsEnabled: e.target.checked } })} className="accent-blue-500" />
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.financeEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
                       <span>Invoices & Billing</span>
                       <input type="checkbox" checked={editForm.features.financeEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, financeEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.marketingEnabled ? "bg-purple-500/10 border-purple-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Marketing Hub</span>
+                      <input type="checkbox" checked={editForm.features.marketingEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, marketingEnabled: e.target.checked } })} className="accent-purple-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.automationsEnabled ? "bg-amber-500/10 border-amber-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Automations</span>
+                      <input type="checkbox" checked={editForm.features.automationsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, automationsEnabled: e.target.checked } })} className="accent-amber-500" />
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.portalEnabled ? "bg-purple-500/10 border-purple-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>

@@ -9,7 +9,56 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    let org = await prisma.organization.findFirst()
+    const userOrgId = (session.user as any).organizationId
+    const userTenantId = (session.user as any).activeTenantId
+    const userWsId = (session.user as any).workspaceId
+
+    // 1. Check Tenant Branding if user is attached to a Tenant
+    if (userTenantId) {
+      const tb = await prisma.tenantBranding.findUnique({
+        where: { tenantId: userTenantId },
+        include: { tenant: true }
+      })
+      if (tb) {
+        return NextResponse.json({
+          success: true,
+          id: tb.id,
+          name: tb.tenant.name,
+          companyName: tb.companyName || tb.tenant.name,
+          logoUrl: tb.logoUrl || null,
+          faviconUrl: tb.faviconUrl || null,
+          academyLogoUrl: tb.logoUrl || null,
+          primaryColor: tb.primaryColor || "#2563eb",
+          secondaryColor: tb.secondaryColor || "#7c3aed",
+          accentColor: tb.accentColor || "#10b981",
+          darkModeDefault: tb.darkModeDefault ?? true,
+          supportEmail: tb.supportEmail || "support@grekam.in",
+          phone: tb.supportPhone || "+91 99000 00000",
+          website: tb.websiteUrl || "https://grekam.in",
+          billingAddress: tb.billingAddress || "",
+          gstNumber: tb.taxId || "",
+          panNumber: tb.taxId || "",
+          bankName: tb.bankName || "",
+          accountName: tb.accountName || "",
+          accountNumber: tb.accountNumber || "",
+          ifscCode: tb.ifscCode || "",
+          swiftCode: "",
+          bankBranch: tb.bankBranch || "",
+        })
+      }
+    }
+
+    // 2. Check Organization by ID or Workspace ID
+    let org: any = null
+    if (userOrgId) {
+      org = await prisma.organization.findUnique({ where: { id: userOrgId } })
+    }
+    if (!org && userWsId) {
+      org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
+    }
+    if (!org) {
+      org = await prisma.organization.findFirst()
+    }
 
     if (!org) {
       org = await prisma.organization.create({
@@ -77,11 +126,82 @@ export async function PATCH(req: Request) {
 
     const body = await req.json()
 
-    let org = await prisma.organization.findFirst()
+    const userOrgId = (session.user as any).organizationId
+    const userTenantId = (session.user as any).activeTenantId
+    const userWsId = (session.user as any).workspaceId
+
+    if (userTenantId) {
+      const updatedTb = await prisma.tenantBranding.upsert({
+        where: { tenantId: userTenantId },
+        create: {
+          tenantId: userTenantId,
+          companyName: body.companyName || body.name || null,
+          logoUrl: body.logoUrl || null,
+          faviconUrl: body.faviconUrl || null,
+          primaryColor: body.primaryColor || "#2563eb",
+          secondaryColor: body.secondaryColor || "#7c3aed",
+          accentColor: body.accentColor || "#10b981",
+          darkModeDefault: body.darkModeDefault ?? true,
+          supportEmail: body.supportEmail || null,
+          supportPhone: body.phone || null,
+          websiteUrl: body.website || null,
+          billingAddress: body.billingAddress || null,
+          taxId: body.gstNumber || body.panNumber || null,
+          bankName: body.bankName || null,
+          accountName: body.accountName || null,
+          accountNumber: body.accountNumber || null,
+          ifscCode: body.ifscCode || null,
+          bankBranch: body.bankBranch || null,
+        },
+        update: {
+          ...(body.companyName !== undefined && { companyName: body.companyName }),
+          ...(body.logoUrl !== undefined && { logoUrl: body.logoUrl || null }),
+          ...(body.faviconUrl !== undefined && { faviconUrl: body.faviconUrl || null }),
+          ...(body.primaryColor && { primaryColor: body.primaryColor }),
+          ...(body.secondaryColor && { secondaryColor: body.secondaryColor }),
+          ...(body.accentColor && { accentColor: body.accentColor }),
+          ...(body.darkModeDefault !== undefined && { darkModeDefault: Boolean(body.darkModeDefault) }),
+          ...(body.supportEmail !== undefined && { supportEmail: body.supportEmail || null }),
+          ...(body.phone !== undefined && { supportPhone: body.phone || null }),
+          ...(body.website !== undefined && { websiteUrl: body.website || null }),
+          ...(body.billingAddress !== undefined && { billingAddress: body.billingAddress || null }),
+          ...(body.gstNumber !== undefined && { taxId: body.gstNumber || null }),
+          ...(body.bankName !== undefined && { bankName: body.bankName || null }),
+          ...(body.accountName !== undefined && { accountName: body.accountName || null }),
+          ...(body.accountNumber !== undefined && { accountNumber: body.accountNumber || null }),
+          ...(body.ifscCode !== undefined && { ifscCode: body.ifscCode || null }),
+          ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
+        }
+      })
+
+      if (body.name) {
+        await prisma.tenant.update({
+          where: { id: userTenantId },
+          data: { name: body.name }
+        }).catch(() => {})
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Tenant branding updated successfully!",
+        ...updatedTb
+      })
+    }
+
+    let org: any = null
+    if (userOrgId) {
+      org = await prisma.organization.findUnique({ where: { id: userOrgId } })
+    }
+    if (!org && userWsId) {
+      org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
+    }
+    if (!org) {
+      org = await prisma.organization.findFirst()
+    }
     if (!org) {
       org = await prisma.organization.create({
         data: {
-          workspaceId: "ws_default_admin",
+          workspaceId: userWsId || "ws_default_admin",
           name: body.name || "Grekam Garage OS",
           companyName: body.companyName || "Grekam Garage & Technologies Pvt Ltd",
         }

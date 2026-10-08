@@ -63,48 +63,58 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const API_BASE = typeof window !== "undefined" ? "/api/v1" : (process.env.NEXT_PUBLIC_API_URL || "/api/v1");
 
-    const fetchOrg = () => {
-      fetch(`${API_BASE}/settings/organization`)
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (data) {
-            const orgData = data.data || data;
-            const finalOrg: Organization = {
-              ...defaultOrg,
-              ...orgData,
-              logoUrl: orgData.logoUrl || null,
-              academyLogoUrl: orgData.academyLogoUrl || null,
-              faviconUrl: orgData.faviconUrl || null,
-              primaryColor: orgData.primaryColor || "#2563eb",
-            };
-            setOrg(finalOrg);
+    const fetchOrg = async () => {
+      try {
+        // Try user organization settings first (for logged-in sessions)
+        let res = await fetch(`${API_BASE}/settings/organization`).catch(() => null);
+        let data: any = null;
+        if (res && res.ok) {
+          data = await res.json();
+        }
 
-            // Inject primary color as CSS variable globally
-            if (typeof document !== "undefined") {
-              const root = document.documentElement;
-              root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2563eb");
+        // If unauthenticated or no data returned, fallback to public domain branding resolver
+        if (!data || data.error) {
+          const publicRes = await fetch(`/api/public/branding`).catch(() => null);
+          if (publicRes && publicRes.ok) {
+            data = await publicRes.json();
+          }
+        }
 
-              // Update page title
-              if (orgData.name && orgData.name !== "Inertia creations") {
-                document.title = `${orgData.name} | Automated CRM`;
-              } else {
-                document.title = "Automated CRM";
+        if (data) {
+          const orgData = data.data || data;
+          const finalOrg: Organization = {
+            ...defaultOrg,
+            ...orgData,
+            logoUrl: orgData.logoUrl || null,
+            academyLogoUrl: orgData.academyLogoUrl || null,
+            faviconUrl: orgData.faviconUrl || null,
+            primaryColor: orgData.primaryColor || "#2563eb",
+          };
+          setOrg(finalOrg);
+
+          // Inject primary color as CSS variable globally
+          if (typeof document !== "undefined") {
+            const root = document.documentElement;
+            root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2563eb");
+
+            // Update page title
+            if (orgData.name && orgData.name !== "Inertia creations" && orgData.name !== "Automated CRM") {
+              document.title = `${orgData.name} | Garage OS`;
+            }
+
+            // Update Agency Favicon dynamically in browser tab
+            if (orgData.faviconUrl) {
+              let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+              if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.getElementsByTagName('head')[0].appendChild(link);
               }
-
-              // Update Agency Favicon dynamically in browser tab
-              if (orgData.faviconUrl) {
-                let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-                if (!link) {
-                  link = document.createElement('link');
-                  link.rel = 'icon';
-                  document.getElementsByTagName('head')[0].appendChild(link);
-                }
-                link.href = orgData.faviconUrl;
-              }
+              link.href = orgData.faviconUrl;
             }
           }
-        })
-        .catch(() => {});
+        }
+      } catch {}
     };
 
     fetchOrg();

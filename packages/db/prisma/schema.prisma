@@ -305,9 +305,12 @@ model TenantFeatures {
 
   // Module Toggles
   crmEnabled           Boolean  @default(true)
+  powerDialerEnabled   Boolean  @default(true)
   hrmEnabled           Boolean  @default(true)
   projectsEnabled      Boolean  @default(true)
   financeEnabled       Boolean  @default(true)
+  marketingEnabled     Boolean  @default(true)
+  automationsEnabled   Boolean  @default(true)
   portalEnabled        Boolean  @default(true)
 
   // Entitlements

@@ -5,17 +5,17 @@ import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock,
 import { toast } from "sonner"
 
 const AVAILABLE_MODULES = [
-  "CRM & Sales (Leads, Proposals, Dialer)",
+  "CRM & Lead Pipeline",
+  "AI Power Dialer & Call Intel",
   "Kanban Projects & Asset Hub",
   "Finance, Invoicing & P&L",
   "HR, Payroll & Attendance",
   "Marketing Hub & Campaign Scheduler",
-  "CMS & Website Page Builder",
   "Analytics & Intelligence",
   "Support Helpdesk",
   "Automations Engine",
   "WhatsApp Automation & Alerts",
-  "Asset Drive Storage",
+  "Asset Drive Cloud Storage",
   "White Label & Custom Domain",
 ]
 

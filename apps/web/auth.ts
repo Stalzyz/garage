@@ -98,9 +98,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return { 
           id: user.id, 
-          name: `${user.firstName} ${user.lastName}`, 
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email, 
           email: user.email, 
           role: user.role,
+          organizationId: user.organizationId || null,
+          activeTenantId: user.activeTenantId || null,
+          workspaceId: user.workspaceId || null,
           mustChangePassword: (user as any).mustChangePassword ?? false,
           customRole: user.customRole ? user.customRole.name : null,
           permissions: user.customRole ? user.customRole.permissions.map((p: any) => p.resource) : []

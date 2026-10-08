@@ -97,6 +97,9 @@ export const authConfig = {
       if (user) {
         token.role = user.role
         token.id = user.id
+        token.organizationId = (user as any).organizationId || null
+        token.activeTenantId = (user as any).activeTenantId || null
+        token.workspaceId = (user as any).workspaceId || null
         token.customRole = (user as any).customRole
         token.permissions = (user as any).permissions
       }
@@ -118,6 +121,9 @@ export const authConfig = {
       if (session.user) {
         session.user.role = token.role as string
         session.user.id = token.id as string
+        ;(session.user as any).organizationId = token.organizationId || null
+        ;(session.user as any).activeTenantId = token.activeTenantId || null
+        ;(session.user as any).workspaceId = token.workspaceId || null
         ;(session.user as any).customRole = token.customRole
         ;(session.user as any).permissions = token.permissions || []
       }
