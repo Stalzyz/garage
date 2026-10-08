@@ -13,6 +13,7 @@ import { useApi, fetchApi } from "@/lib/useApi"
 import { toast } from "sonner"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
 import { formatAudioStreamingUrl } from "@/lib/utils"
+import { PostCallModal } from "@/components/crm/PostCallModal"
 
 export interface UnifiedDialerRecord {
   id: string
@@ -90,6 +91,7 @@ export default function PowerDialerDashboard() {
   const [meetingTime, setMeetingTime] = useState("")
   const [attendeeEmail, setAttendeeEmail] = useState("")
   const [isScheduling, setIsScheduling] = useState(false)
+  const [isPostCallModalOpen, setIsPostCallModalOpen] = useState(false)
 
   // DNC Drawer State
   const [isDncOpen, setIsDncOpen] = useState(false)
@@ -491,6 +493,86 @@ export default function PowerDialerDashboard() {
     }
 
     setCallState("wrapup")
+    setIsPostCallModalOpen(true)
+  }
+
+  // Handler: Save Post-Call Notes & Advance
+  const handleSavePostCallAndAdvance = async ({ disposition, notes, audioUrl }: { disposition: string; notes: string; audioUrl?: string }) => {
+    if (!activeRecord) return
+    try {
+      const duration = durationSecondsRef.current || callDurationSeconds || 0
+      let newStatus: string | null = null
+      if (disposition === "Interested" || disposition === "Meeting Booked" || disposition === "Quote Requested") newStatus = "CONTACTED"
+      else if (disposition === "Not Interested" || disposition === "Wrong Number") newStatus = "LOST"
+      else if (disposition === "Call Back Later") newStatus = "CONTACTED"
+
+      if (newStatus && activeRecord.recordType === "LEAD") {
+        await fetchApi(`/crm/leads/${activeRecord.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus }),
+        }).catch(() => {})
+      }
+
+      await fetchApi("/crm/telephony/recordings", {
+        method: "POST",
+        body: JSON.stringify({
+          leadId: activeRecord.recordType === "LEAD" ? activeRecord.id : undefined,
+          contactId: activeRecord.recordType === "CONTACT" ? activeRecord.id : undefined,
+          recordType: activeRecord.recordType,
+          durationSeconds: duration,
+          disposition: disposition.toUpperCase(),
+          recordingUrl: audioUrl || recordedAudioUrl || undefined,
+          notes: notes || undefined,
+        }),
+      })
+
+      toast.success(`Notes saved for ${activeRecord.name}! Advancing to next prospect...`)
+      mutateLeads()
+      mutateContacts()
+      if (viewMode === "recordings") mutateRecordings()
+      handleNextLead()
+    } catch (err: any) {
+      toast.error("Failed to save post-call notes: " + (err.message || "Unknown error"))
+    }
+  }
+
+  // Handler: Save Post-Call Notes & Stay on Current Record
+  const handleSavePostCallAndStay = async ({ disposition, notes, audioUrl }: { disposition: string; notes: string; audioUrl?: string }) => {
+    if (!activeRecord) return
+    try {
+      const duration = durationSecondsRef.current || callDurationSeconds || 0
+      let newStatus: string | null = null
+      if (disposition === "Interested" || disposition === "Meeting Booked" || disposition === "Quote Requested") newStatus = "CONTACTED"
+      else if (disposition === "Not Interested" || disposition === "Wrong Number") newStatus = "LOST"
+      else if (disposition === "Call Back Later") newStatus = "CONTACTED"
+
+      if (newStatus && activeRecord.recordType === "LEAD") {
+        await fetchApi(`/crm/leads/${activeRecord.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus }),
+        }).catch(() => {})
+      }
+
+      await fetchApi("/crm/telephony/recordings", {
+        method: "POST",
+        body: JSON.stringify({
+          leadId: activeRecord.recordType === "LEAD" ? activeRecord.id : undefined,
+          contactId: activeRecord.recordType === "CONTACT" ? activeRecord.id : undefined,
+          recordType: activeRecord.recordType,
+          durationSeconds: duration,
+          disposition: disposition.toUpperCase(),
+          recordingUrl: audioUrl || recordedAudioUrl || undefined,
+          notes: notes || undefined,
+        }),
+      })
+
+      toast.success(`Notes saved for ${activeRecord.name}!`)
+      mutateLeads()
+      mutateContacts()
+      if (viewMode === "recordings") mutateRecordings()
+    } catch (err: any) {
+      toast.error("Failed to save post-call notes: " + (err.message || "Unknown error"))
+    }
   }
 
   // Handler: Voicemail Drop
@@ -1296,12 +1378,24 @@ export default function PowerDialerDashboard() {
                             <Phone className="w-7 h-7 fill-current" />
                           </button>
                         ) : (
-                          <button
-                            onClick={handleNextLead}
-                            className="px-6 py-3.5 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all shadow-lg flex items-center gap-2 text-sm"
-                          >
-                            Next Prospect <ChevronRight className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setIsPostCallModalOpen(true)}
+                              className="px-5 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span>Log Call Notes & WhatsApp</span>
+                            </button>
+
+                            <button
+                              onClick={handleNextLead}
+                              className="px-5 py-3 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs flex items-center gap-2 border border-white/10 transition-all shadow-md"
+                            >
+                              <span>Next Prospect</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </>
                     )}
@@ -2491,6 +2585,20 @@ export default function PowerDialerDashboard() {
           </div>
         </div>
       )}
+
+      {/* ============================================================== */}
+      {/* MODAL: POST-CALL DISPOSITION, NOTES & WHATSAPP OUTREACH        */}
+      {/* ============================================================== */}
+      <PostCallModal
+        isOpen={isPostCallModalOpen}
+        onClose={() => setIsPostCallModalOpen(false)}
+        record={activeRecord}
+        callDurationSeconds={callDurationSeconds}
+        recordedAudioUrl={recordedAudioUrl}
+        agentName={session?.user?.name || "Telecaller"}
+        onSaveAndAdvance={handleSavePostCallAndAdvance}
+        onSaveAndStay={handleSavePostCallAndStay}
+      />
 
     </div>
   )
