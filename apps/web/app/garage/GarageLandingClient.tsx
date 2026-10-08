@@ -242,6 +242,7 @@ export default function GarageLandingPage() {
   const [demoName, setDemoName] = useState("")
   const [demoPhone, setDemoPhone] = useState("")
   const [demoCompany, setDemoCompany] = useState("")
+  const [demoRoleOption, setDemoRoleOption] = useState<"GARAGE" | "PARTNER" | "BOTH">("BOTH")
   const [isResellerInterest, setIsResellerInterest] = useState(false)
   const [demoSubmitted, setDemoSubmitted] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
@@ -255,6 +256,7 @@ export default function GarageLandingPage() {
     setDemoLoading(true)
 
     try {
+      const isPartnerInterest = isResellerInterest || demoRoleOption === "PARTNER"
       const res = await fetch("/api/public/demo-lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -263,21 +265,19 @@ export default function GarageLandingPage() {
           email: demoEmail,
           phone: demoPhone,
           company: demoCompany,
-          isReseller: isResellerInterest,
-          roleInterest: isResellerInterest ? "WHITELABEL_PARTNER" : "GARAGE_SAAS"
+          isReseller: isPartnerInterest,
+          roleInterest: demoRoleOption === "BOTH" ? "BOTH" : (isPartnerInterest ? "WHITELABEL_PARTNER" : "GARAGE_SAAS")
         })
       })
       const data = await res.json()
       if (data.success) {
-        toast.success(isResellerInterest 
-          ? "Reseller Partner Demo request captured! Verification details sent to your email." 
-          : "Demo credentials generated and sent to your email!")
+        toast.success("Demo credentials sent to your email!")
       } else {
-        toast.success("Demo credentials prepared!")
+        toast.success("Demo access request received!")
       }
     } catch (err) {
       console.error("Demo lead ingestion error:", err)
-      toast.success("Demo credentials prepared!")
+      toast.success("Demo access request received!")
     } finally {
       setDemoLoading(false)
       setDemoSubmitted(true)
@@ -615,7 +615,7 @@ export default function GarageLandingPage() {
     },
     {
       q: "How does the Live Demo access work?",
-      a: "Click 'View Demo', enter your work email, and you will instantly receive full credentials (demo@garage.in / Demo2023) to explore the live, fully functional agency dashboard with real-time leads, proposals, project boards, and billing."
+      a: "Click 'Explore Live Demo Dashboard', enter your work email, and you will instantly receive full credentials and direct portal access links to explore the live, fully functional agency dashboard with real-time leads, proposals, project boards, and billing."
     },
     {
       q: "Can I send interactive proposals and contracts to my clients?",
@@ -829,7 +829,7 @@ export default function GarageLandingPage() {
                 </a>
               </div>
 
-              {/* ⚡ PREFILLED INSTANT DEMO ACCOUNTS PANEL */}
+              {/* ⚡ INSTANT LIVE DEMO ACCESS DISPATCH CARD */}
               <div className="pt-2">
                 <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900/60 border border-white/10 backdrop-blur-md shadow-2xl">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 pb-2.5 border-b border-white/10">
@@ -837,86 +837,72 @@ export default function GarageLandingPage() {
                       <span className="p-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                         <ShieldCheck className="w-3.5 h-3.5" />
                       </span>
-                      <span className="text-xs font-bold text-white">Instant 1-Click Demo Accounts</span>
+                      <span className="text-xs font-bold text-white">Live Demo Workspace Access</span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold uppercase tracking-wider">
-                      No Registration Required
+                    <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono font-semibold uppercase tracking-wider">
+                      Instant Email Delivery
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Account 1: Direct Public Demo */}
-                    <div className="p-3 rounded-2xl bg-black/40 border border-emerald-500/20 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                          <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Direct Garage Owner</span>
+                    {/* Option 1: Garage & Workshop CRM */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 border border-emerald-500/20 space-y-2 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                            <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Garage Owner CRM</span>
+                          </div>
+                          <span className="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            Standard
+                          </span>
                         </div>
-                        <span className="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                          Standard
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-xl bg-white/5 text-[10px] font-mono space-y-0.5 text-zinc-300">
-                        <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-emerald-300 font-bold">demo@garage.in</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Pass:</span> <span>Demo2023</span></div>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Kanban sales pipeline, Power Dialer, GST retainers, job cards & team management.
+                        </p>
                       </div>
                       <button
-                        onClick={() => handleLaunchDemo("GARAGE")}
-                        disabled={loggingInRole !== null}
-                        className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all"
+                        onClick={() => {
+                          setDemoRoleOption("GARAGE")
+                          setIsResellerInterest(false)
+                          setShowDemoModal(true)
+                          setDemoSubmitted(false)
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all"
                       >
-                        {loggingInRole === "GARAGE" ? (
-                          <span className="animate-pulse">Launching...</span>
-                        ) : (
-                          <>
-                            <span>Launch Garage Demo</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </>
-                        )}
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Get Garage Demo Access</span>
                       </button>
                     </div>
 
-                    {/* Account 2: Whitelabel Partner Demo */}
-                    <div className="p-3 rounded-2xl bg-black/40 border border-purple-500/20 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                          <Users className="w-3.5 h-3.5 text-purple-400" />
-                          <span>Whitelabel Partner</span>
+                    {/* Option 2: Whitelabel Partner Reseller HQ */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 border border-purple-500/20 space-y-2 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                            <Users className="w-3.5 h-3.5 text-purple-400" />
+                            <span>Whitelabel Reseller HQ</span>
+                          </div>
+                          <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                            Reseller
+                          </span>
                         </div>
-                        <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
-                          Whitelabel
-                        </span>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Multi-tenant partner HQ, custom domain branding, client tier pricing & commissions.
+                        </p>
                       </div>
-                      <div className="p-2 rounded-xl bg-white/5 text-[10px] font-mono space-y-0.5 text-zinc-300">
-                        <div className="flex justify-between"><span className="text-zinc-500">Email:</span> <span className="text-purple-300 font-bold">reseller@grekam.com</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Pass:</span> <span>reseller123</span></div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleLaunchDemo("PARTNER")}
-                          disabled={loggingInRole !== null}
-                          className="flex-1 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1 transition-all"
-                        >
-                          {loggingInRole === "PARTNER" ? (
-                            <span className="animate-pulse">Launching...</span>
-                          ) : (
-                            <>
-                              <span>Launch Partner Demo</span>
-                              <ArrowRight className="w-3 h-3" />
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
-                            toast.success("Partner credentials copied!")
-                          }}
-                          title="Copy Partner Demo Link"
-                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 transition-colors"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          setDemoRoleOption("PARTNER")
+                          setIsResellerInterest(true)
+                          setShowDemoModal(true)
+                          setDemoSubmitted(false)
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Get Reseller Demo Access</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2178,189 +2164,196 @@ export default function GarageLandingPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-6 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Instant 1-Click Live Demo Access</span>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-1">Select Your Demo Experience</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Choose between public garage owner access or white-label partner portal. Both accounts are prefilled and ready to launch.
-                </p>
-              </div>
+              {demoSubmitted ? (
+                <div className="text-center py-6 px-2 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Live Demo Credentials Sent!</h3>
+                  <p className="text-xs sm:text-sm text-zinc-300 max-w-md mx-auto leading-relaxed">
+                    We have emailed your instant workspace login credentials and portal access link to <span className="text-emerald-400 font-bold">{demoEmail}</span>.
+                  </p>
 
-              {/* 1-Click Launch Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-6">
-                {/* 1. Public Garage Owner Demo */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-emerald-500/30 space-y-3 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                        <Building2 className="w-4 h-4" /> Garage Owner
-                      </span>
-                      <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/20">
-                        Standard SaaS
-                      </span>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-zinc-400 max-w-md mx-auto text-left space-y-2">
+                    <div className="flex items-center gap-2 text-zinc-200 font-semibold">
+                      <Mail className="w-4 h-4 text-blue-400" />
+                      <span>Next Steps</span>
                     </div>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
-                      Experience visual Kanban pipelines, AI Power Dialer, GST invoicing, job cards, and CRM.
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      1. Check your email inbox (and spam/promotions folder) for the login link.<br/>
+                      2. Use your assigned credentials to log in to your dedicated sandbox workspace.<br/>
+                      3. Super Admin & Onboarding team will be available if you need a guided tour.
                     </p>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 font-mono text-[11px] space-y-1 text-zinc-300">
-                      <div><span className="text-zinc-500">Email:</span> demo@garage.in</div>
-                      <div><span className="text-zinc-500">Pass:</span> Demo2023</div>
-                    </div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setShowDemoModal(false)
-                      handleLaunchDemo("GARAGE")
-                    }}
-                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all mt-3"
-                  >
-                    <span>Launch Garage Demo</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* 2. Whitelabel Partner Demo */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-purple-500/30 space-y-3 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
-                        <Users className="w-4 h-4" /> Whitelabel Partner
-                      </span>
-                      <span className="text-[10px] font-semibold bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded border border-purple-500/20">
-                        Reseller Portal
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
-                      Reseller control panel. Manage custom domain branding, reseller margins, and tenant activations.
-                    </p>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 font-mono text-[11px] space-y-1 text-zinc-300">
-                      <div><span className="text-zinc-500">Email:</span> reseller@grekam.com</div>
-                      <div><span className="text-zinc-500">Pass:</span> reseller123</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mt-3">
-                    <button
-                      onClick={() => {
-                        setShowDemoModal(false)
-                        handleLaunchDemo("PARTNER")
-                      }}
-                      className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all"
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <Link
+                      href="/auth/login"
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
                     >
-                      <span>Launch Partner Demo</span>
+                      <span>Go to Login Portal</span>
                       <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => setShowDemoModal(false)}
+                      className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-6 text-left">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Instant Live Demo Access</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-1">Request Live Demo Credentials</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Select your evaluation experience. We will immediately dispatch your secure login credentials directly to your work email.
+                    </p>
+                  </div>
+
+                  {/* 3 Role Selection Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5 text-left">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDemoRoleOption("GARAGE")
+                        setIsResellerInterest(false)
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        demoRoleOption === "GARAGE"
+                          ? "bg-emerald-500/15 border-emerald-500 text-white ring-1 ring-emerald-500 shadow-lg shadow-emerald-500/10"
+                          : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Building2 className={`w-4 h-4 ${demoRoleOption === "GARAGE" ? "text-emerald-400" : "text-zinc-400"}`} />
+                        <span className="text-xs font-bold text-white">Garage CRM</span>
+                      </div>
+                      <p className="text-[10px] leading-relaxed text-zinc-400">Pipelines, Proposals, Job Cards & GST Retainers</p>
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
-                        toast.success("Partner Demo credentials copied!")
+                        setDemoRoleOption("PARTNER")
+                        setIsResellerInterest(true)
                       }}
-                      title="Copy Partner Demo Credentials"
-                      className="p-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-colors"
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        demoRoleOption === "PARTNER"
+                          ? "bg-purple-500/15 border-purple-500 text-white ring-1 ring-purple-500 shadow-lg shadow-purple-500/10"
+                          : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
+                      }`}
                     >
-                      <Copy className="w-4 h-4" />
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Users className={`w-4 h-4 ${demoRoleOption === "PARTNER" ? "text-purple-400" : "text-zinc-400"}`} />
+                        <span className="text-xs font-bold text-white">Reseller HQ</span>
+                      </div>
+                      <p className="text-[10px] leading-relaxed text-zinc-400">Whitelabel branding, custom domains & margins</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDemoRoleOption("BOTH")
+                        setIsResellerInterest(true)
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        demoRoleOption === "BOTH"
+                          ? "bg-blue-500/15 border-blue-500 text-white ring-1 ring-blue-500 shadow-lg shadow-blue-500/10"
+                          : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <ShieldCheck className={`w-4 h-4 ${demoRoleOption === "BOTH" ? "text-blue-400" : "text-zinc-400"}`} />
+                        <span className="text-xs font-bold text-white">All-Access Pass</span>
+                      </div>
+                      <p className="text-[10px] leading-relaxed text-zinc-400">Both Garage Owner & Reseller accounts</p>
                     </button>
                   </div>
-                </div>
-              </div>
 
-              {/* Lead Capture Form with Reseller Option */}
-              <div className="p-5 rounded-2xl bg-black/50 border border-white/10 text-left space-y-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Need Official Demo Credentials Sent to Email?</h4>
-                    <p className="text-[11px] text-zinc-400">Receive verified portal credentials and direct CRM onboarding support.</p>
+                  {/* Lead Capture Form */}
+                  <div className="p-5 rounded-2xl bg-black/50 border border-white/10 text-left space-y-4 mb-4">
+                    <form onSubmit={handleDemoSubmit} className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Your Full Name"
+                          value={demoName}
+                          onChange={(e) => setDemoName(e.target.value)}
+                          className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
+                        />
+                        <input
+                          type="email"
+                          required
+                          placeholder="Work Email Address *"
+                          value={demoEmail}
+                          onChange={(e) => setDemoEmail(e.target.value)}
+                          className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                          type="tel"
+                          placeholder="WhatsApp Phone Number"
+                          value={demoPhone}
+                          onChange={(e) => setDemoPhone(e.target.value)}
+                          className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Agency / Workshop Name"
+                          value={demoCompany}
+                          onChange={(e) => setDemoCompany(e.target.value)}
+                          className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      {/* Checkbox: I want to be a reseller */}
+                      <label className="flex items-center gap-2.5 p-3 rounded-xl bg-purple-950/20 border border-purple-500/30 cursor-pointer hover:bg-purple-950/30 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isResellerInterest}
+                          onChange={(e) => {
+                            setIsResellerInterest(e.target.checked)
+                            if (e.target.checked && demoRoleOption === "GARAGE") {
+                              setDemoRoleOption("BOTH")
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 bg-black/40"
+                        />
+                        <div className="text-xs">
+                          <span className="font-bold text-purple-300">I want to evaluate the Reseller / Whitelabel Program</span>
+                          <p className="text-[10px] text-zinc-400">Receive wholesale pricing, multi-tenant reseller dashboard, and custom domain setup info.</p>
+                        </div>
+                      </label>
+
+                      <button
+                        type="submit"
+                        disabled={demoLoading}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                      >
+                        {demoLoading ? (
+                          <span className="animate-pulse">Processing Lead & Sending Credentials...</span>
+                        ) : (
+                          <>
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Send Live Demo Credentials to My Email</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
                   </div>
-                  {demoSubmitted && (
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Credentials Dispatched
-                    </span>
-                  )}
-                </div>
 
-                <form onSubmit={handleDemoSubmit} className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Your Full Name"
-                      value={demoName}
-                      onChange={(e) => setDemoName(e.target.value)}
-                      className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
-                    />
-                    <input
-                      type="email"
-                      required
-                      placeholder="Work Email Address *"
-                      value={demoEmail}
-                      onChange={(e) => setDemoEmail(e.target.value)}
-                      className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
-                    />
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-[11px] text-zinc-400 text-center">
+                    🛡️ Secure, isolated demo workspaces. No credit card required. Credentials delivered immediately.
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="tel"
-                      placeholder="WhatsApp Phone Number"
-                      value={demoPhone}
-                      onChange={(e) => setDemoPhone(e.target.value)}
-                      className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Agency / Workshop Name"
-                      value={demoCompany}
-                      onChange={(e) => setDemoCompany(e.target.value)}
-                      className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  {/* Checkbox: I want to be a reseller */}
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-purple-950/20 border border-purple-500/30 cursor-pointer hover:bg-purple-950/30 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={isResellerInterest}
-                      onChange={(e) => setIsResellerInterest(e.target.checked)}
-                      className="w-4 h-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 bg-black/40"
-                    />
-                    <div className="text-xs">
-                      <span className="font-bold text-purple-300">I want to become a Reseller / Whitelabel Partner</span>
-                      <p className="text-[10px] text-zinc-400">Receive wholesale pricing, multi-tenant reseller dashboard, and custom domain setup info.</p>
-                    </div>
-                  </label>
-
-                  <button
-                    type="submit"
-                    disabled={demoLoading}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  >
-                    {demoLoading ? (
-                      <span className="animate-pulse">Processing Lead & Sending Credentials...</span>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Send Demo Access & Save to CRM</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400">
-                <span className="text-[11px]">Need to manually share credentials via WhatsApp?</span>
-                <a
-                  href="https://wa.me/?text=Hi%20Partner!%20Here%20are%20your%20Whitelabel%20Partner%20Demo%20credentials%20for%20Garage%20CRM:%0A%0A🌐%20Portal:%20https://grekam.in/partner/login?demo=partner%0A📧%20Email:%20reseller@grekam.com%0A🔑%20Password:%20reseller123"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/30 font-semibold text-[11px] flex items-center gap-1.5 transition-colors shrink-0"
-                >
-                  <Send className="w-3.5 h-3.5" /> Share via WhatsApp
-                </a>
-              </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}

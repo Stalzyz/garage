@@ -3,6 +3,7 @@ import { FastifyInstance } from 'fastify';
 export default async function analyticsRouter(app: FastifyInstance) {
   // GET /api/v1/analytics/overview — Executive dashboard summary
   app.get('/overview', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const [
       totalInvoices,
       paidInvoices,
@@ -14,15 +15,15 @@ export default async function analyticsRouter(app: FastifyInstance) {
       payrollTotal,
       openTickets,
     ] = await Promise.all([
-      app.prisma.invoice.count(),
-      app.prisma.invoice.aggregate({ where: { status: 'PAID' }, _sum: { totalAmount: true } }),
-      app.prisma.invoice.aggregate({ where: { status: 'OVERDUE' }, _sum: { totalAmount: true } }),
-      app.prisma.project.count({ where: { status: { notIn: ['CLOSED', 'ON_HOLD'] } } }),
-      app.prisma.lead.count(),
-      app.prisma.student.count(),
-      app.prisma.batch.count({ where: { isActive: true } }),
-      app.prisma.payslip.aggregate({ _sum: { netSalary: true } }),
-      app.prisma.ticket.count({ where: { status: 'OPEN' } }),
+      db.invoice.count(),
+      db.invoice.aggregate({ where: { status: 'PAID' }, _sum: { totalAmount: true } }),
+      db.invoice.aggregate({ where: { status: 'OVERDUE' }, _sum: { totalAmount: true } }),
+      db.project.count({ where: { status: { notIn: ['CLOSED', 'ON_HOLD'] } } }),
+      db.lead.count(),
+      db.student.count(),
+      db.batch.count({ where: { isActive: true } }),
+      db.payslip.aggregate({ _sum: { netSalary: true } }),
+      db.ticket.count({ where: { status: 'OPEN' } }),
     ]);
 
     // Add Cache-Control for stale-while-revalidate — data is ok to be ~30s stale
@@ -48,17 +49,18 @@ export default async function analyticsRouter(app: FastifyInstance) {
 
   // GET /api/v1/analytics/revenue — Monthly revenue breakdown
   app.get('/revenue', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { months = '6' } = req.query as { months?: string };
     const numMonths = parseInt(months, 10);
     const since = new Date();
     since.setMonth(since.getMonth() - numMonths);
 
-    const invoices = await app.prisma.invoice.findMany({
+    const invoices = await db.invoice.findMany({
       where: { createdAt: { gte: since } },
       select: { createdAt: true, paidAmount: true, status: true },
     });
 
-    const payslips = await app.prisma.payslip.findMany({
+    const payslips = await db.payslip.findMany({
       where: { createdAt: { gte: since } },
       select: { createdAt: true, netSalary: true },
     });
@@ -75,7 +77,7 @@ export default async function analyticsRouter(app: FastifyInstance) {
       chartDataMap[yearMonth] = { month: monthLabel, revenue: 0, expenses: 0 };
     }
 
-    invoices.forEach(inv => {
+    invoices.forEach((inv: any) => {
       if (inv.status === 'PAID' && inv.paidAmount) {
         const d = new Date(inv.createdAt);
         const yearMonth = `${d.getFullYear()}-${d.getMonth()}`;
@@ -85,7 +87,7 @@ export default async function analyticsRouter(app: FastifyInstance) {
       }
     });
 
-    payslips.forEach(pay => {
+    payslips.forEach((pay: any) => {
       if (pay.netSalary) {
         const d = new Date(pay.createdAt);
         const yearMonth = `${d.getFullYear()}-${d.getMonth()}`;
@@ -101,7 +103,8 @@ export default async function analyticsRouter(app: FastifyInstance) {
 
   // GET /api/v1/analytics/projects — Project health metrics
   app.get('/projects', async (req, reply) => {
-    const statusGroups = await app.prisma.project.groupBy({
+    const db = (req as any).db || app.prisma;
+    const statusGroups = await db.project.groupBy({
       by: ['status'],
       _count: true,
     });
@@ -110,7 +113,8 @@ export default async function analyticsRouter(app: FastifyInstance) {
 
   // GET /api/v1/analytics/leads — Lead funnel metrics
   app.get('/leads', async (req, reply) => {
-    const stageGroups = await app.prisma.lead.groupBy({
+    const db = (req as any).db || app.prisma;
+    const stageGroups = await db.lead.groupBy({
       by: ['status'],
       _count: true,
     });

@@ -50,17 +50,61 @@ export async function POST(req: Request) {
       },
     })
 
-    // 2. Dispatch Automated Email Acknowledgment
+    // 2. Dispatch Automated Email Acknowledgment with Credentials
     try {
-      const emailSubject = isReseller
+      const isBoth = roleInterest === "BOTH"
+      const emailSubject = isReseller || roleInterest === "WHITELABEL_PARTNER"
         ? "Your Garage CRM Whitelabel Reseller Partner Demo Access 🚀"
+        : isBoth
+        ? "Your Garage CRM & Reseller All-Access Demo Credentials 🚀"
         : "Your Garage CRM Live Demo Credentials 🚀"
 
-      const emailBody = isReseller
-        ? `Hello ${customerName},\n\nThank you for your interest in becoming a Garage CRM Whitelabel Partner / Reseller!\n\nHere are your instant demo login credentials:\n\n🔗 Partner Portal: https://garage.grekam.in/partner/login?demo=partner\n📧 Email: reseller@grekam.com\n🔑 Password: reseller123\n\nInside the partner portal, you can create custom-branded customer packages, configure wholesale margins, and provision sub-tenant workshops on your own domain.\n\nBest regards,\nGarage CRM Partner Team`
-        : `Hello ${customerName},\n\nThank you for requesting live access to Garage CRM!\n\nHere are your instant demo credentials:\n\n🔗 Workshop Portal: https://garage.grekam.in/auth/login?demo=garage\n📧 Email: demo@garage.in\n🔑 Password: Demo2023\n\nInside the demo you can test the Sales Pipeline, AI Power Dialer, Interactive Proposals, GST Invoicing, Retainers, and Team Management.\n\nBest regards,\nGarage CRM Platform Team`
+      const garageCredsHtml = `
+        <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;margin:16px 0;color:#f8fafc;">
+          <h3 style="color:#10b981;margin-top:0;">🔧 Direct Garage & Agency Portal</h3>
+          <p style="margin:4px 0;"><strong>URL:</strong> <a href="https://garage.grekam.in/auth/login?demo=garage" style="color:#38bdf8;">https://garage.grekam.in/auth/login?demo=garage</a></p>
+          <p style="margin:4px 0;"><strong>Email:</strong> <code style="background:#1e293b;padding:2px 6px;border-radius:4px;">demo@garage.in</code></p>
+          <p style="margin:4px 0;"><strong>Password:</strong> <code style="background:#1e293b;padding:2px 6px;border-radius:4px;">Demo2023</code></p>
+        </div>
+      `
 
-    console.log(`[DEMO LEAD SAVED] Lead ID: ${lead.id} | Email: ${email} | Reseller: ${isReseller}`)
+      const resellerCredsHtml = `
+        <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;margin:16px 0;color:#f8fafc;">
+          <h3 style="color:#a855f7;margin-top:0;">💼 Whitelabel Reseller Partner Portal</h3>
+          <p style="margin:4px 0;"><strong>URL:</strong> <a href="https://garage.grekam.in/partner/login?demo=partner" style="color:#38bdf8;">https://garage.grekam.in/partner/login?demo=partner</a></p>
+          <p style="margin:4px 0;"><strong>Email:</strong> <code style="background:#1e293b;padding:2px 6px;border-radius:4px;">reseller@grekam.com</code></p>
+          <p style="margin:4px 0;"><strong>Password:</strong> <code style="background:#1e293b;padding:2px 6px;border-radius:4px;">reseller123</code></p>
+        </div>
+      `
+
+      const htmlContent = `
+        <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px;background:#030712;color:#ffffff;border-radius:16px;">
+          <h2 style="color:#60a5fa;margin-top:0;">Welcome to Garage CRM, ${customerName}!</h2>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.6;">
+            Thank you for requesting live demo access. Below are your instant credentials to test our high-velocity CRM, proposal generator, sprint delivery boards, and GST invoicing engines.
+          </p>
+
+          ${(isBoth || (!isReseller && roleInterest !== "WHITELABEL_PARTNER")) ? garageCredsHtml : ""}
+          ${(isBoth || isReseller || roleInterest === "WHITELABEL_PARTNER") ? resellerCredsHtml : ""}
+
+          <p style="color:#94a3b8;font-size:12px;margin-top:24px;border-top:1px solid #1e293b;padding-top:16px;">
+            Need a guided walkthrough or custom onboarding for your team? Reply to this email or reach us on WhatsApp: +91 97893 59407.
+          </p>
+        </div>
+      `
+
+      try {
+        const { sendEmail } = await import("@/lib/email")
+        await sendEmail({
+          to: email.toLowerCase().trim(),
+          subject: emailSubject,
+          html: htmlContent,
+        })
+      } catch (mailErr: any) {
+        console.warn("[DEMO LEAD EMAIL DISPATCH NON-FATAL]:", mailErr.message)
+      }
+
+      console.log(`[DEMO LEAD SAVED & ACKNOWLEDGED] Lead ID: ${lead.id} | Email: ${email} | Reseller: ${isReseller}`)
     } catch (err) {
       console.warn("Email dispatch warning for lead:", err)
     }

@@ -163,22 +163,22 @@ export default function CombinedGrekamOSDashboard() {
                 </div>
               </div>
 
-              {/* Pillar 3: LMS & Academy */}
+              {/* Pillar 3: Projects & Sprint Deliverables */}
               <div className="bg-[#161618] border border-white/[0.07] rounded-xl p-4 hover:border-white/[0.12] transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-zinc-400" /> Academy Students
+                    <Layers className="w-3.5 h-3.5 text-zinc-400" /> Projects & Sprints
                   </span>
-                  <Link href="/portal/student" className="text-zinc-500 hover:text-white transition-colors">
+                  <Link href="/dashboard/projects" className="text-zinc-500 hover:text-white transition-colors">
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
                 <div className="text-2xl font-semibold text-[#f5f5f7] tracking-tight tabular-nums">
-                  {isLoading ? "..." : students.toLocaleString()}
+                  {isLoading ? "..." : (overview?.agency?.activeProjects || activeProjects || 0).toLocaleString()}
                 </div>
                 <div className="text-xs text-zinc-500 flex items-center justify-between mt-2 pt-2 border-t border-white/[0.05]">
-                  <span>Active Batches</span>
-                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (activeBatches || 3)}</span>
+                  <span>Active Workspaces</span>
+                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (overview?.agency?.activeProjects || 2)}</span>
                 </div>
               </div>
 
@@ -290,16 +290,16 @@ export default function CombinedGrekamOSDashboard() {
                     </Link>
 
                     <Link
-                      href="/portal/student"
+                      href="/dashboard/projects"
                       className="p-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] flex items-center justify-between group transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <div className="p-1.5 rounded-md bg-white/[0.05] text-zinc-300">
-                          <GraduationCap className="w-3.5 h-3.5" />
+                          <Layers className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-[#f5f5f7]">Student Portal</div>
-                          <div className="text-[10px] text-zinc-500">Courses & enrollments</div>
+                          <div className="text-xs font-medium text-[#f5f5f7]">Projects & Sprints</div>
+                          <div className="text-[10px] text-zinc-500">Milestones & deliverables</div>
                         </div>
                       </div>
                       <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 transition-colors" />

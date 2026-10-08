@@ -91,6 +91,7 @@ function calculateScore(budget?: number, source?: string, projectType?: string, 
 export default async function leadsRouter(app: FastifyInstance) {
   // GET /api/v1/crm/leads — list all leads with optional filters
   app.get('/leads', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, assignedToId, search, businessUnit } = req.query as {
       status?: string;
       assignedToId?: string;
@@ -98,13 +99,13 @@ export default async function leadsRouter(app: FastifyInstance) {
       businessUnit?: string;
     };
 
-    const dncList = await app.prisma.dncNumber.findMany({
+    const dncList = await db.dncNumber.findMany({
       select: { phone: true }
     });
-    const dncPhones = dncList.map(d => d.phone.trim()).filter(Boolean);
+    const dncPhones = dncList.map((d: any) => d.phone.trim()).filter(Boolean);
     let assignedFilter: any = undefined;
     if (assignedToId) {
-      const emp = await app.prisma.employee.findFirst({
+      const emp = await db.employee.findFirst({
         where: { OR: [{ id: assignedToId }, { userId: assignedToId }] },
         select: { id: true, userId: true }
       });
@@ -114,7 +115,7 @@ export default async function leadsRouter(app: FastifyInstance) {
       assignedFilter = { in: Array.from(new Set(ids)) };
     }
 
-    const leads = await app.prisma.lead.findMany({
+    const leads = await db.lead.findMany({
       where: {
         ...(status && { status: status as any }),
         ...(assignedFilter && { assignedToId: assignedFilter }),
@@ -146,8 +147,9 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/leads/:id — get single lead with full history
   app.get('/leads/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const lead = await app.prisma.lead.findUnique({
+    const lead = await db.lead.findUnique({
       where: { id },
       include: {
         activities: { orderBy: { createdAt: 'desc' } },
@@ -160,6 +162,7 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/leads — create lead
   app.post('/leads', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateLeadSchema.parse(req.body);
 
     const cleanEmail = body.email && body.email.trim() !== '' ? body.email.trim() : undefined;
@@ -167,7 +170,7 @@ export default async function leadsRouter(app: FastifyInstance) {
 
     const score = calculateScore(body.estimatedBudget, body.source, body.projectType, body.businessUnit);
 
-    const lead = await app.prisma.lead.create({
+    const lead = await db.lead.create({
       data: { 
         ...body, 
         email: cleanEmail,
@@ -195,9 +198,10 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // PATCH /api/v1/crm/leads/:id — update lead / move stage
   app.patch('/leads/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     
-    const originalLead = await app.prisma.lead.findUnique({ where: { id } });
+    const originalLead = await db.lead.findUnique({ where: { id } });
     if (!originalLead) return reply.notFound('Lead not found');
 
     const body = UpdateLeadSchema.parse(req.body);
@@ -208,7 +212,7 @@ export default async function leadsRouter(app: FastifyInstance) {
       body.businessUnit ?? originalLead.businessUnit
     );
 
-    const lead = await app.prisma.lead.update({
+    const lead = await db.lead.update({
       where: { id },
       data: { ...body, score },
     });
@@ -233,13 +237,15 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // DELETE /api/v1/crm/leads/:id
   app.delete('/leads/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    await app.prisma.lead.delete({ where: { id } });
+    await db.lead.delete({ where: { id } });
     reply.code(204);
   });
 
   // PATCH /api/v1/crm/leads/bulk — bulk update lead status or assignee
   app.patch('/leads/bulk', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const schema = z.object({
       ids: z.array(z.string()),
       status: z.enum(LeadStatusValues).optional(),
@@ -255,7 +261,7 @@ export default async function leadsRouter(app: FastifyInstance) {
       return reply.badRequest('No data provided for update');
     }
 
-    const updated = await app.prisma.lead.updateMany({
+    const updated = await db.lead.updateMany({
       where: { id: { in: ids } },
       data,
     });
@@ -265,12 +271,13 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/leads/bulk-delete — bulk delete leads
   app.post('/leads/bulk-delete', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const schema = z.object({
       ids: z.array(z.string()),
     });
 
     const { ids } = schema.parse(req.body);
-    const deleted = await app.prisma.lead.deleteMany({
+    const deleted = await db.lead.deleteMany({
       where: { id: { in: ids } },
     });
 
@@ -279,24 +286,25 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/leads/:id/activities — log activity
   app.post('/leads/:id/activities', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = AddActivitySchema.parse(req.body);
 
-    const activity = await app.prisma.leadActivity.create({
+    const activity = await db.leadActivity.create({
       data: {
         leadId: id,
         type: body.type,
         content: body.content,
-        userId: req.user?.id || 'system',
+        userId: (req as any).user?.id || 'system',
       },
     });
 
-    //     // If logging a phone call, update status to CONTACTED if it was NEW/ENQUIRY and emit event
+    // If logging a phone call, update status to CONTACTED if it was NEW/ENQUIRY and emit event
     if (body.type === 'CALL') {
-      const targetLead = await app.prisma.lead.findUnique({ where: { id } });
+      const targetLead = await db.lead.findUnique({ where: { id } });
       let finalLead = targetLead;
       if (targetLead && (targetLead.status === 'NEW' || targetLead.status === 'ENQUIRY')) {
-        finalLead = await app.prisma.lead.update({
+        finalLead = await db.lead.update({
           where: { id },
           data: { status: 'CONTACTED' }
         });
@@ -328,8 +336,9 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/leads/stats — pipeline stats
   app.get('/leads/stats', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { businessUnit } = req.query as { businessUnit?: string };
-    const grouped = await app.prisma.lead.groupBy({
+    const grouped = await db.lead.groupBy({
       by: ['status'],
       where: {
         ...(businessUnit && { businessUnit }),
@@ -337,7 +346,7 @@ export default async function leadsRouter(app: FastifyInstance) {
       _count: { id: true },
       _sum: { estimatedBudget: true },
     });
-    return grouped.map(g => ({
+    return grouped.map((g: any) => ({
       status: g.status,
       count: g._count.id,
       totalBudget: g._sum.estimatedBudget ?? 0,
@@ -346,6 +355,7 @@ export default async function leadsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/leads/import — import leads from CSV
   app.post('/leads/import', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { csvData, businessUnit } = req.body as { csvData: string; businessUnit?: string };
     if (!csvData) return reply.badRequest('Missing CSV data');
 
@@ -390,7 +400,7 @@ export default async function leadsRouter(app: FastifyInstance) {
 
         leadData.score = calculateScore(leadData.estimatedBudget, leadData.source, leadData.projectType, leadData.businessUnit);
 
-        await app.prisma.lead.create({ data: leadData });
+        await db.lead.create({ data: leadData });
         successCount++;
       } catch (err) {
         console.error('Failed to import lead row:', row, err);

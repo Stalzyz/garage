@@ -18,7 +18,8 @@ import {
   Workflow,
   Briefcase,
   Layers,
-  FileText
+  FileText,
+  Mail
 } from "lucide-react"
 
 const DEFAULT_PLANS = [
@@ -717,36 +718,31 @@ export default function PricingPage() {
                   </form>
                 </div>
               ) : (
-                <div className="text-center py-2">
-                  <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
-                    <ShieldCheck className="w-7 h-7" />
+                <div className="text-center py-4">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 shadow-lg shadow-emerald-500/10">
+                    <CheckCircle2 className="w-7 h-7" />
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mb-2">Live Demo Credentials Ready!</h3>
-                  <p className="text-xs text-zinc-400 mb-6">
-                    We also emailed these credentials to <span className="text-blue-400 font-semibold">{demoEmail}</span>.
+                  <h3 className="text-2xl font-bold text-white mb-2">Live Demo Credentials Dispatched!</h3>
+                  <p className="text-xs text-zinc-300 mb-6 max-w-sm mx-auto leading-relaxed">
+                    We have emailed your secure demo login credentials and dedicated sandbox portal link to <span className="text-emerald-400 font-bold">{demoEmail}</span>.
                   </p>
 
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-left space-y-3 mb-6">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-400">Demo Email:</span>
-                      <span className="font-mono font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">demo@garage.in</span>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-left space-y-2 mb-6">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
+                      <Mail className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Check Your Inbox</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-400">Demo Password:</span>
-                      <span className="font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Demo2023</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-400">Role:</span>
-                      <span className="text-zinc-300 font-semibold">Business Admin / Agency Owner</span>
-                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      Please check your inbox (and spam/promotions folder) for the login link. You can sign in immediately to explore all agency workflows.
+                    </p>
                   </div>
 
                   <Link
                     href="/auth/login"
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 hover:opacity-95 transition-opacity"
                   >
-                    <span>Enter Demo Dashboard Now</span>
+                    <span>Go to Login Portal</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
