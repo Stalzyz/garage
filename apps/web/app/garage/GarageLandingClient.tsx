@@ -690,6 +690,7 @@ export default function GarageLandingPage() {
               </AnimatePresence>
             </div>
 
+            <a href="#why-us" className="hover:text-white transition-colors text-blue-300 font-semibold">Why Us</a>
             <a href="#case-studies" className="hover:text-white transition-colors">Case Studies</a>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
 
@@ -1683,6 +1684,246 @@ export default function GarageLandingPage() {
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>REST API & Webhooks enabled on all plans for custom in-house tools.</span>
           </div>
+        </div>
+      </section>
+
+      {/* ── 3.75 WHAT MAKES US BETTER / WHY GARAGE OS WINS ── */}
+      <section id="why-us" className="py-24 relative bg-gradient-to-b from-[#040813] via-[#070d1e] to-[#030712] border-b border-white/5 overflow-hidden">
+        {/* Glow backdrop */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/10 blur-[160px] pointer-events-none -z-10" />
+
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono uppercase tracking-widest mb-3">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Competitive Superiority</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              Stop Paying for 7 Disconnected Apps. <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                Run One High-Velocity Business Engine.
+              </span>
+            </h2>
+            <p className="text-sm sm:text-base text-zinc-400 mt-4 leading-relaxed">
+              Traditional CRMs only store contacts. Garage OS bridges your entire revenue cycle — from the first telecaller phone call to interactive proposals, sprint milestone tracking, automated GST retainers, and client WhatsApp alerts.
+            </p>
+          </div>
+
+          {/* ── COMPARISON: 7-APP FRAGMENTED STACK VS GARAGE OS ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20 items-stretch">
+            
+            {/* Left: The Old Disjointed SaaS Hell */}
+            <div className="lg:col-span-5 rounded-3xl bg-[#090D16]/90 border border-red-500/20 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 px-4 py-1.5 bg-red-500/10 border-b border-l border-red-500/20 rounded-bl-2xl text-[10px] font-mono font-bold text-red-400 uppercase tracking-widest">
+                The Disjointed Stack (Painful & Costly)
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <h3 className="text-lg font-bold text-white">7 Fragmented Subscriptions</h3>
+                </div>
+                <p className="text-xs text-zinc-400 mb-6">
+                  Constant Zapier errors, lost leads between apps, duplicate data entry, and runaway monthly software invoices.
+                </p>
+
+                <div className="space-y-2.5 text-xs text-zinc-300">
+                  {[
+                    { tool: "CRM & Lead Pipeline (HubSpot / Salesforce)", cost: "₹4,500 – ₹12,000 / mo" },
+                    { tool: "Proposals & E-Signatures (PandaDoc / Proposify)", cost: "₹3,900 – ₹6,000 / mo" },
+                    { tool: "Power Dialer & Call Recording (Exotel / CloudTalk)", cost: "₹3,500 – ₹7,500 / mo" },
+                    { tool: "WhatsApp Marketing & Drip Alerts (Wati / Interakt)", cost: "₹3,000 – ₹8,000 / mo" },
+                    { tool: "Project Tasks & Sprint Boards (Asana / Monday)", cost: "₹2,500 – ₹5,000 / mo" },
+                    { tool: "HR Attendance & Payroll (Keka / Gusto)", cost: "₹3,000 – ₹7,000 / mo" },
+                    { tool: "GST Invoicing & Retainers (QuickBooks / Zoho)", cost: "₹2,000 – ₹4,000 / mo" },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <X className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                        <span className="text-zinc-300 text-[11px]">{item.tool}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-red-300/80 shrink-0">{item.cost}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-semibold">Total Cost per User:</div>
+                  <div className="text-lg font-black text-red-400">₹22,400+ / mo</div>
+                </div>
+                <div className="text-right text-[10px] text-zinc-400">
+                  ✕ Multiple Logins<br />
+                  ✕ Zapier Sync Breaks
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Garage All-In-One Revenue Engine */}
+            <div className="lg:col-span-7 rounded-3xl bg-gradient-to-b from-blue-950/40 via-[#070e20] to-[#091228] border-2 border-blue-500/40 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden shadow-[0_0_60px_rgba(59,130,246,0.18)]">
+              <div className="absolute top-0 right-0 px-4 py-1.5 bg-emerald-500/20 border-b border-l border-emerald-500/30 rounded-bl-2xl text-[10px] font-mono font-bold text-emerald-300 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Garage OS All-in-One
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <h3 className="text-lg font-bold text-white">1 Unified Operating Workspace</h3>
+                </div>
+                <p className="text-xs text-zinc-300 mb-6">
+                  Everything connects natively into one centralized database with zero synchronization lag, zero third-party connectors, and automated workflows.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {[
+                    { title: "Native AI Power Dialer", desc: "Instant click-to-dial, auto-timestamped call notes, and instant disposition status." },
+                    { title: "Dual WhatsApp Outreach", desc: "1-Click WhatsApp Web/App deep links + verified Meta Cloud API background alerts." },
+                    { title: "Proposal-to-Invoice Flow", desc: "Interactive web proposals with digital e-signatures auto-converting into projects." },
+                    { title: "Indian GST & UPI Billing", desc: "Full 18% GST tax invoices, HSN/SAC codes, instant UPI QR links, and client P&L." },
+                    { title: "Turnkey Whitelabel Engine", desc: "Run under your own custom domain (crm.yourbrand.com) with pre-login branding." },
+                    { title: "Granular Modular Control", desc: "Super admin toggles for individual features (Dialer, HR, Finance) and staff seats." },
+                  ].map((feat, idx) => (
+                    <div key={idx} className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/30 transition-colors">
+                      <div className="flex items-center gap-2 text-white font-bold text-xs mb-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>{feat.title}</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">{feat.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-500/10 -mx-6 -mb-6 p-6">
+                <div>
+                  <div className="text-[10px] text-blue-300 uppercase font-bold tracking-wider">Single Transparent Annual Plan:</div>
+                  <div className="text-2xl font-black text-white flex items-baseline gap-1.5">
+                    <span>Save 80%+</span>
+                    <span className="text-xs font-normal text-zinc-300">vs fragmented tools</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setShowDemoModal(true); setDemoSubmitted(false) }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
+                >
+                  <span>Experience the Difference</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── 6 CORE COMPETITIVE SUPERPOWERS GRID ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* 1 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-blue-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-5 group-hover:scale-110 transition-transform">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">1. Eliminate SaaS Bloat & Data Silos</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Say goodbye to juggling 7 tabs and maintaining brittle Zapier automations. Garage OS acts as your single source of truth across leads, client deliverables, staff payroll, and financial ledgers.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-blue-400">
+                <span>Unified Database Engine</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* 2 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">2. Sales Velocity Power Dialer</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Telecallers dial directly from the pipeline. The moment the call ends, an unclosable disposition modal pops up with auto-timestamps <code className="text-emerald-300 font-mono text-[10px] bg-black/40 px-1 py-0.5 rounded">[DD Mon YYYY · Agent]</code> and instant WhatsApp proposal triggers.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+                <span>Zero Lost Follow-ups</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* 3 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-purple-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-5 group-hover:scale-110 transition-transform">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">3. 1-Click Proposal-to-Project Pipeline</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Send interactive client proposals with selectable scope tiers and legal digital e-signatures. Once signed, the system automatically creates the client portal, task sprints, and retainer invoice schedules.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-purple-400">
+                <span>Instant Deal Closing</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* 4 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-amber-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-600/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5 group-hover:scale-110 transition-transform">
+                  <Receipt className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">4. 100% Indian GST & UPI Native</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Unlike foreign tools, Garage OS comes built-in with 18% GST tax invoices, HSN/SAC codes, CGST/SGST/IGST breakdowns, B2B GSTIN validation, ITC compliance, and direct UPI QR payment collection links.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-amber-400">
+                <span>Full Tax Compliance</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* 5 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-cyan-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-cyan-600/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
+                  <Globe className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">5. Turnkey White-Label Engine</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Empower IT resellers, agencies, and enterprise partners to run on custom domains (<code className="text-cyan-300 font-mono text-[10px]">crm.theirbrand.com</code>) with automated pre-login logo resolution and wholesale partner margin controls.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-cyan-400">
+                <span>100% Brand Ownership</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* 6 */}
+            <div className="p-7 rounded-3xl bg-[#070B14] border border-white/10 hover:border-pink-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-pink-600/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-5 group-hover:scale-110 transition-transform">
+                  <Sliders className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">6. Modular Super Admin Governance</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Super Admin has total modular control: toggle Power Dialer, HR, Marketing, or Finance modules per workshop, set custom validity dates, enforce staff seat limits, and manage multi-tenant access securely.
+                </p>
+              </div>
+              <div className="mt-6 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-pink-400">
+                <span>Centralized Control Plane</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
