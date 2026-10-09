@@ -130,7 +130,11 @@ async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
           include: { tenant: { include: { branding: true } } }
         });
         if (tm?.tenant?.branding) {
-          return { type: 'TENANT' as const, tenantBranding: tm.tenant.branding, tenantId: tm.tenant.id };
+          const tenantBrandingWithTenant = {
+            ...tm.tenant.branding,
+            tenant: tm.tenant,
+          };
+          return { type: 'TENANT' as const, tenantBranding: tenantBrandingWithTenant as any, tenantId: tm.tenant.id };
         }
       }
 
@@ -207,15 +211,15 @@ export default async function organizationRouter(app: FastifyInstance) {
     const resolved = await resolveWorkspaceOrg(app, req);
 
     if (resolved.type === 'TENANT' && resolved.tenantBranding) {
-      const tb = resolved.tenantBranding;
+      const tb: any = resolved.tenantBranding;
       const tenantFeatures = await app.prisma.tenantFeatures.findUnique({
         where: { tenantId: resolved.tenantId },
       });
 
       return {
         id: tb.id,
-        name: tb.tenant.name,
-        companyName: tb.companyName || tb.tenant.name,
+        name: tb.tenant?.name || tb.companyName || "Garage",
+        companyName: tb.companyName || tb.tenant?.name || "Garage",
         logoUrl: tb.logoUrl || null,
         academyLogoUrl: tb.logoUrl || null,
         faviconUrl: tb.faviconUrl || null,
