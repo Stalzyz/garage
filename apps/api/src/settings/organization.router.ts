@@ -82,7 +82,7 @@ async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
 
     if (user) {
       if (user.role === 'SUPER_ADMIN' || !user.activeTenantId) {
-        let masterOrg = null;
+        let masterOrg: any = null;
         if (user.organizationId) {
           masterOrg = await app.prisma.organization.findUnique({ where: { id: user.organizationId } });
         }
