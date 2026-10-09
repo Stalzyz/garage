@@ -35,8 +35,9 @@ function calcTotal(items: z.infer<typeof EstimateItemSchema>[]) {
 export default async function estimatesRouter(app: FastifyInstance) {
   // GET /api/v1/finance/estimates
   app.get('/estimates', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, businessUnit } = req.query as { status?: string; businessUnit?: string };
-    const estimates = await app.prisma.estimate.findMany({
+    const estimates = await db.estimate.findMany({
       where: {
         ...(status && { status: status as any }),
         ...(businessUnit && { businessUnit: businessUnit as any }),
@@ -49,8 +50,9 @@ export default async function estimatesRouter(app: FastifyInstance) {
 
   // GET /api/v1/finance/estimates/:id
   app.get('/estimates/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const estimate = await app.prisma.estimate.findUnique({
+    const estimate = await db.estimate.findUnique({
       where: { id },
       include: {
         items: true,
@@ -63,10 +65,11 @@ export default async function estimatesRouter(app: FastifyInstance) {
 
   // POST /api/v1/finance/estimates
   app.post('/estimates', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateEstimateSchema.parse(req.body);
     const totals = calcTotal(body.items);
     
-    const estimate = await app.prisma.estimate.create({
+    const estimate = await db.estimate.create({
       data: {
         estimateNumber: body.estimateNumber,
         projectId: body.projectId,
@@ -95,6 +98,7 @@ export default async function estimatesRouter(app: FastifyInstance) {
 
   // PATCH /api/v1/finance/estimates/:id
   app.patch('/estimates/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = UpdateEstimateSchema.parse(req.body);
     const { items, ...rest } = body;
@@ -104,7 +108,7 @@ export default async function estimatesRouter(app: FastifyInstance) {
       totals = calcTotal(items);
     }
 
-    const estimate = await app.prisma.$transaction(async (tx) => {
+    const estimate = await db.$transaction(async (tx: any) => {
       if (items) {
         await tx.estimateItem.deleteMany({ where: { estimateId: id } });
         await tx.estimateItem.createMany({
@@ -134,9 +138,10 @@ export default async function estimatesRouter(app: FastifyInstance) {
 
   // DELETE /api/v1/finance/estimates/:id
   app.delete('/estimates/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const estimate = await app.prisma.estimate.findUnique({ where: { id }, select: { estimateNumber: true } });
-    await app.prisma.estimate.delete({ where: { id } });
+    const estimate = await db.estimate.findUnique({ where: { id }, select: { estimateNumber: true } });
+    await db.estimate.delete({ where: { id } });
     await auditLog(app.prisma as any, req, 'DELETE', 'Estimate', id, { estimateNumber: estimate?.estimateNumber });
     reply.code(204).send();
   });

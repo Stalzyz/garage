@@ -11,6 +11,17 @@ import { toast } from "sonner"
 import { fetchApi } from "@/lib/useApi"
 import { Copy } from "lucide-react"
 
+function safeFormatDate(dateVal: any, formatStr = 'MMM d, yyyy'): string {
+  if (!dateVal) return '—';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '—';
+    return format(d, formatStr);
+  } catch {
+    return '—';
+  }
+}
+
 export default function ProposalsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
@@ -170,7 +181,7 @@ export default function ProposalsPage() {
                       {getStatusBadge(p.status)}
                     </td>
                     <td className="px-6 py-4 text-white/60 text-xs">
-                      {format(new Date(p.createdAt), 'MMM d, yyyy')}
+                      {safeFormatDate(p.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

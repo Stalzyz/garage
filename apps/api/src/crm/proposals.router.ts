@@ -46,6 +46,7 @@ function calcTotal(items: z.infer<typeof ProposalItemSchema>[]): number {
 export default async function proposalsRouter(app: FastifyInstance) {
   // GET /api/v1/crm/proposals
   app.get('/proposals', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, leadId, page = '1', limit = '20', search, isTemplate } = req.query as { 
       status?: string; 
       leadId?: string; 
@@ -75,7 +76,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     }
 
     const [proposals, total] = await Promise.all([
-      app.prisma.proposal.findMany({
+      db.proposal.findMany({
         where: whereClause,
         include: {
           items: true,
@@ -86,7 +87,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
         skip,
         take: limitNum,
       }),
-      app.prisma.proposal.count({ where: whereClause })
+      db.proposal.count({ where: whereClause })
     ]);
 
     return { 
@@ -100,8 +101,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/proposals/:id
   app.get('/proposals/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const proposal = await app.prisma.proposal.findUnique({
+    const proposal = await db.proposal.findUnique({
       where: { id },
       include: {
         items: true,
@@ -115,8 +117,9 @@ export default async function proposalsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/proposals/:id/pdf
   app.get('/proposals/:id/pdf', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const proposal = await app.prisma.proposal.findUnique({
+    const proposal = await db.proposal.findUnique({
       where: { id },
       include: {
         items: true,
@@ -127,7 +130,7 @@ export default async function proposalsRouter(app: FastifyInstance) {
     
     if (!proposal) return reply.notFound('Proposal not found');
 
-    const financeSettings = await app.prisma.financeSettings.findFirst();
+    const financeSettings = await db.financeSettings?.findFirst ? await db.financeSettings.findFirst() : await app.prisma.financeSettings.findFirst();
 
     const { getBrandConfig } = await import('../utils/brand');
     const brand = await getBrandConfig(app, 'AGENCY');
@@ -321,6 +324,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
   // POST /api/v1/crm/proposals — create proposal with items
   app.post('/proposals', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateProposalSchema.parse(req.body);
     const subtotal = calcTotal(body.items);
     
@@ -335,7 +339,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
     const generatedToken = `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    const proposal = await app.prisma.proposal.create({
+    const proposal = await db.proposal.create({
       data: {
         leadId: cleanLeadId,
         contactId: cleanContactId,
@@ -369,6 +373,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
   });
 
   const updateProposalHandler = async (req: any, reply: any) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = UpdateProposalSchema.parse(req.body);
     const { items, taxRate, discountRate, leadId, contactId, validUntil, signedAt, ...rest } = body;
@@ -386,29 +391,29 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
     if (items) {
       subtotal = calcTotal(items);
-      const existing = await app.prisma.proposal.findUnique({ where: { id } });
+      const existing = await db.proposal.findUnique({ where: { id } });
       newTaxRate = taxRate !== undefined ? taxRate : (existing?.taxRate || 0);
       newDiscountRate = discountRate !== undefined ? discountRate : (existing?.discountRate || 0);
       
-      const overallDiscount = subtotal * (newDiscountRate / 100);
+      const overallDiscount = subtotal * ((newDiscountRate ?? 0) / 100);
       const afterOverallDiscount = subtotal - overallDiscount;
-      calculatedTax = afterOverallDiscount * (newTaxRate / 100);
+      calculatedTax = afterOverallDiscount * ((newTaxRate ?? 0) / 100);
       totalAmount = afterOverallDiscount + calculatedTax;
     } else if (taxRate !== undefined || discountRate !== undefined) {
-      const existing = await app.prisma.proposal.findUnique({ where: { id } });
+      const existing = await db.proposal.findUnique({ where: { id } });
       if (existing) {
         subtotal = existing.subtotal;
         newTaxRate = taxRate !== undefined ? taxRate : (existing.taxRate || 0);
         newDiscountRate = discountRate !== undefined ? discountRate : (existing.discountRate || 0);
         
-        const overallDiscount = subtotal * (newDiscountRate / 100);
-        const afterOverallDiscount = subtotal - overallDiscount;
-        calculatedTax = afterOverallDiscount * (newTaxRate / 100);
+        const overallDiscount = (subtotal || 0) * ((newDiscountRate ?? 0) / 100);
+        const afterOverallDiscount = (subtotal || 0) - overallDiscount;
+        calculatedTax = afterOverallDiscount * ((newTaxRate ?? 0) / 100);
         totalAmount = afterOverallDiscount + calculatedTax;
       }
     }
 
-    const proposal = await app.prisma.$transaction(async (tx) => {
+    const proposal = await db.$transaction(async (tx: any) => {
       if (items) {
         await tx.proposalItem.deleteMany({ where: { proposalId: id } });
         await tx.proposalItem.createMany({
@@ -444,7 +449,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
     
     // Trigger email if status changed to APPROVED
     if (rest.status === 'APPROVED') {
-      const fullProposal = await app.prisma.proposal.findUnique({
+      const fullProposal = await db.proposal.findUnique({
         where: { id },
         include: { lead: true }
       });
@@ -463,12 +468,13 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
   app.put('/proposals/:id', updateProposalHandler);
 
   app.post('/proposals/:id/send', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = (req.body as any) || {};
     
     // Generate token if it doesn't have one
     const [existing, financeSettings] = await Promise.all([
-      app.prisma.proposal.findUnique({ 
+      db.proposal.findUnique({ 
         where: { id }, 
         include: { 
           lead: true, 
@@ -487,13 +493,13 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
     // Auto-link unassigned proposals to matching contact or lead by email
     if (!targetContactId && !targetLeadId && targetEmail) {
-      const matchedContact = await app.prisma.contact.findFirst({
+      const matchedContact = await db.contact.findFirst({
         where: { email: { equals: targetEmail, mode: 'insensitive' } }
       });
       if (matchedContact) {
         targetContactId = matchedContact.id;
       } else {
-        const matchedLead = await app.prisma.lead.findFirst({
+        const matchedLead = await db.lead.findFirst({
           where: { email: { equals: targetEmail, mode: 'insensitive' } }
         });
         if (matchedLead) targetLeadId = matchedLead.id;
@@ -502,7 +508,7 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
     const token = existing.publicToken || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    const proposal = await app.prisma.proposal.update({
+    const proposal = await db.proposal.update({
       where: { id },
       data: { 
         status: 'SENT',
@@ -582,14 +588,15 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
   // POST /api/v1/crm/proposals/:id/duplicate — create v+1 copy
   app.post('/proposals/:id/duplicate', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const original = await app.prisma.proposal.findUnique({
+    const original = await db.proposal.findUnique({
       where: { id },
       include: { items: true },
     });
     if (!original) return reply.notFound('Proposal not found');
 
-    const duplicate = await app.prisma.proposal.create({
+    const duplicate = await db.proposal.create({
       data: {
         leadId: original.leadId,
         title: `${original.title} (v${original.version + 1})`,
@@ -620,8 +627,9 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
   // POST /api/v1/crm/proposals/:id/template — mark as template
   app.post('/proposals/:id/template', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const proposal = await app.prisma.proposal.update({
+    const proposal = await db.proposal.update({
       where: { id },
       data: { isTemplate: true },
     });
@@ -630,8 +638,9 @@ Write a proposal with 3–4 phases that map directly to the client's goals. Make
 
   // DELETE /api/v1/crm/proposals/:id
   app.delete('/proposals/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    await app.prisma.proposal.delete({ where: { id } });
+    await db.proposal.delete({ where: { id } });
     await auditLog(app.prisma as any, req, 'DELETE', 'Proposal', id);
     return reply.code(204).send();
   });

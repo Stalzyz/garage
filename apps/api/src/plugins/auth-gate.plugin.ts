@@ -19,18 +19,16 @@ import { authenticateRequest } from './auth.plugin';
 
 /** Any HTTP method, path starts with this prefix. */
 const PUBLIC_PREFIXES: string[] = [
-  // Public lead capture, token-scoped proposal views, ad-platform webhooks.
+  // Public lead capture, token-scoped proposal views, ad-platform webhooks, company kiosk.
   '/api/v1/crm/public/',
   // Tokenised proposal view + e-sign (public/:token).
   '/api/v1/crm/proposals/public/',
   // Razorpay / Meta / WhatsApp callbacks.
   '/api/v1/webhooks/',
 
-  // Public CMS media ONLY, for portfolio/section images on unauthenticated
-  // marketing pages. NOTE: apps/web/app/agency does not exist in this repo, so
-  // re-check this allowance against the real pages once that route is built.
-  //
-  '/api/v1/uploads/recordings/',
+  // Public uploaded media & storage assets (recordings, drive assets, brand images)
+  '/api/v1/uploads/',
+  '/api/v1/storage/asset/',
 ];
 
 const ANY = 'ANY';

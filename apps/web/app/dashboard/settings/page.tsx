@@ -181,12 +181,6 @@ export default function SystemSettingsPage() {
           >
             <Palette className="w-3.5 h-3.5 text-[#0A84FF]" /> Branding
           </button>
-          <button 
-            onClick={() => setActiveTab('company')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${activeTab === 'company' ? 'bg-[#1c1c1e] text-white' : 'text-white/60 hover:bg-white/[0.04] hover:text-white'}`}
-          >
-            <Building className="w-3.5 h-3.5 text-white/40" /> Company Details
-          </button>
           <a 
             href="/dashboard/settings/organization"
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white/60 hover:bg-white/[0.04] hover:text-white"
@@ -341,117 +335,6 @@ export default function SystemSettingsPage() {
                   </div>
                 </div>
               </>
-            )}
-
-            {activeTab === 'company' && (
-              <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-6 space-y-6">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <Building className="w-5 h-5 text-white/70" />
-                    <h2 className="text-sm font-semibold text-white">Company & Legal Particulars</h2>
-                  </div>
-                  <a
-                    href="/dashboard/settings/organization"
-                    className="text-xs text-white/50 hover:text-white transition-colors flex items-center gap-1"
-                  >
-                    Manage Full Branding & Socials &rarr;
-                  </a>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Registered Legal Company Name</label>
-                    <input 
-                      type="text" 
-                      value={companyName} 
-                      onChange={e => setCompanyName(e.target.value)} 
-                      placeholder="Grekam Garage & Auto Services Pvt Ltd" 
-                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
-                    />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Workspace Display Name</label>
-                    <input 
-                      type="text" 
-                      value={workspaceName} 
-                      onChange={e => setWorkspaceName(e.target.value)} 
-                      placeholder="Garage CRM" 
-                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
-                    />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Income Tax PAN Number</label>
-                    <input 
-                      type="text" 
-                      value={panNumber} 
-                      onChange={e => setPanNumber(e.target.value.toUpperCase())} 
-                      placeholder="ABCDE1234F" 
-                      maxLength={10}
-                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
-                    />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">GSTIN (GST Identification Number)</label>
-                    <input 
-                      type="text" 
-                      value={gstNumber} 
-                      onChange={e => setGstNumber(e.target.value.toUpperCase())} 
-                      placeholder="33AAAAA0000A1Z5" 
-                      maxLength={15}
-                      className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" 
-                    />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Phone Number</label>
-                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98400 12345" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Website URL</label>
-                    <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://garage-crm.com" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Support / Contact Email</label>
-                    <input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} placeholder="contact@garage-crm.com" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                  </div>
-                  <div className="col-span-2 md:col-span-1 space-y-1.5">
-                    <label className="text-xs font-medium text-white/60 block">Billing & Official Address</label>
-                    <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] resize-none" />
-                  </div>
-                </div>
-
-                {/* Banking & Settlement Particulars */}
-                <div className="border-t border-white/[0.06] pt-5 mt-5 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-white/60" />
-                    <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Settlement & Bank Details</h3>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">Bank Name</label>
-                      <input type="text" value={bankName} onChange={e => setBankName(e.target.value)} placeholder="HDFC Bank Ltd" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">Account Beneficiary Name</label>
-                      <input type="text" value={accountName} onChange={e => setAccountName(e.target.value)} placeholder="Grekam Garage & Tech Pvt Ltd" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">Account Number</label>
-                      <input type="text" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} placeholder="50200012345678" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">IFSC Code</label>
-                      <input type="text" value={ifscCode} onChange={e => setIfscCode(e.target.value.toUpperCase())} placeholder="HDFC0000123" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">SWIFT / BIC Code</label>
-                      <input type="text" value={swiftCode} onChange={e => setSwiftCode(e.target.value.toUpperCase())} placeholder="HDFCINBB" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-white/60 block">Branch Name</label>
-                      <input type="text" value={bankBranch} onChange={e => setBankBranch(e.target.value)} placeholder="Indiranagar, Bangalore" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
-                    </div>
-                  </div>
-                </div>
-              </div>
             )}
 
             {activeTab === 'notifications' && (

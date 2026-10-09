@@ -23,3 +23,5 @@ coverage/
 prisma/migrations/*.sql
 # Operational expect scripts, 264 of which contained the VPS root SSH password.
 *.exp
+test-results/
+playwright-report/

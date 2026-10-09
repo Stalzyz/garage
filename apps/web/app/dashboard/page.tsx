@@ -140,7 +140,7 @@ export default function CombinedGrekamOSDashboard() {
                 </div>
                 <div className="text-xs text-zinc-500 flex items-center justify-between mt-2 pt-2 border-t border-white/[0.05]">
                   <span>Active Proposals</span>
-                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (overview?.agency?.activeProposals || 5)}</span>
+                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (overview?.agency?.activeProposals || 0)}</span>
                 </div>
               </div>
 
@@ -155,11 +155,11 @@ export default function CombinedGrekamOSDashboard() {
                   </Link>
                 </div>
                 <div className="text-2xl font-semibold text-[#f5f5f7] tracking-tight tabular-nums">
-                  {isLoading ? "..." : (overview?.crm?.totalContacts || activeProjects || 12).toString()}
+                  {isLoading ? "..." : (overview?.crm?.totalContacts || 0).toString()}
                 </div>
                 <div className="text-xs text-zinc-500 flex items-center justify-between mt-2 pt-2 border-t border-white/[0.05]">
                   <span>Monthly Payroll</span>
-                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : symbol + (totalPayroll || 12400).toLocaleString()}</span>
+                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : symbol + (totalPayroll || 0).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -174,11 +174,11 @@ export default function CombinedGrekamOSDashboard() {
                   </Link>
                 </div>
                 <div className="text-2xl font-semibold text-[#f5f5f7] tracking-tight tabular-nums">
-                  {isLoading ? "..." : (overview?.agency?.activeProjects || activeProjects || 0).toLocaleString()}
+                  {isLoading ? "..." : (overview?.agency?.activeProjects || 0).toLocaleString()}
                 </div>
                 <div className="text-xs text-zinc-500 flex items-center justify-between mt-2 pt-2 border-t border-white/[0.05]">
                   <span>Active Workspaces</span>
-                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (overview?.agency?.activeProjects || 2)}</span>
+                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (overview?.agency?.activeProjects || 0)}</span>
                 </div>
               </div>
 
@@ -195,7 +195,7 @@ export default function CombinedGrekamOSDashboard() {
                 <div className="text-2xl font-semibold text-[#f5f5f7] tracking-tight tabular-nums">{isLoading ? "..." : symbol + revenue.toLocaleString()}</div>
                 <div className="text-xs text-zinc-500 flex items-center justify-between mt-2 pt-2 border-t border-white/[0.05]">
                   <span>Open Tickets</span>
-                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (openTickets || 2)}</span>
+                  <span className="font-medium text-zinc-300 tabular-nums">{isLoading ? "..." : (openTickets || 0)}</span>
                 </div>
               </div>
 
@@ -383,13 +383,13 @@ export default function CombinedGrekamOSDashboard() {
 
               <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] space-y-1">
                 <span className="text-[11px] text-zinc-400 font-medium">Active Team</span>
-                <div className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">12 Staff</div>
+                <div className="text-2xl font-semibold text-[#f5f5f7] tabular-nums">{overview?.agency?.totalEmployees || 0} Staff</div>
                 <p className="text-[11px] text-zinc-500">Assigned & active team members</p>
               </div>
 
               <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.07] space-y-1">
                 <span className="text-[11px] text-zinc-400 font-medium">Attendance Rate</span>
-                <div className="text-2xl font-semibold text-[#30D158] tabular-nums">98%</div>
+                <div className="text-2xl font-semibold text-[#30D158] tabular-nums">{overview?.agency?.totalEmployees ? "100%" : "0%"}</div>
                 <p className="text-[11px] text-zinc-500">On-time check-in compliance</p>
               </div>
             </div>

@@ -17,7 +17,8 @@ const UpdateTaskSchema = CreateTaskSchema.partial();
 export default async function tasksRouter(app: FastifyInstance) {
   // GET /api/v1/projects/tasks/all — Get all tasks across the company
   app.get('/tasks/all', async (req, reply) => {
-    const tasks = await app.prisma.task.findMany({
+    const db = (req as any).db || app.prisma;
+    const tasks = await db.task.findMany({
       include: { project: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -26,7 +27,8 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // GET /api/v1/projects/tasks/ongoing — Get active/in-progress tasks for admin monitoring
   app.get('/tasks/ongoing', async (req, reply) => {
-    const tasks = await app.prisma.task.findMany({
+    const db = (req as any).db || app.prisma;
+    const tasks = await db.task.findMany({
       where: { status: { in: ['IN_PROGRESS', 'TODO', 'IN_REVIEW'] } },
       include: {
         project: { select: { id: true, name: true } },
@@ -36,7 +38,7 @@ export default async function tasksRouter(app: FastifyInstance) {
     });
 
     const assigneeIds = tasks.map(t => t.assigneeId).filter(Boolean) as string[];
-    const employees = await app.prisma.employee.findMany({
+    const employees = await db.employee.findMany({
       where: { OR: [{ id: { in: assigneeIds } }, { userId: { in: assigneeIds } }] },
       include: { user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } } }
     });
@@ -62,8 +64,9 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // GET /api/v1/projects/:projectId/tasks
   app.get('/:projectId/tasks', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { projectId } = req.params as { projectId: string };
-    const tasks = await app.prisma.task.findMany({
+    const tasks = await db.task.findMany({
       where: { projectId },
       orderBy: { createdAt: 'desc' },
     });
@@ -72,8 +75,9 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // GET /api/v1/projects/tasks/user/:assigneeId
   app.get('/user/:assigneeId', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { assigneeId } = req.params as { assigneeId: string };
-    const tasks = await app.prisma.task.findMany({
+    const tasks = await db.task.findMany({
       where: { assigneeId, status: { notIn: ['DONE'] } },
       include: { project: { select: { name: true } } },
       orderBy: { dueDate: 'asc' },
@@ -83,8 +87,9 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // POST /api/v1/projects/tasks
   app.post('/tasks', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateTaskSchema.parse(req.body);
-    const task = await app.prisma.task.create({
+    const task = await db.task.create({
       data: {
         projectId: body.projectId,
         title: body.title,
@@ -100,11 +105,11 @@ export default async function tasksRouter(app: FastifyInstance) {
     if (task.assigneeId) {
       (async () => {
         try {
-          const employee = await app.prisma.employee.findFirst({
+          const employee = await db.employee.findFirst({
             where: { OR: [{ id: task.assigneeId! }, { userId: task.assigneeId! }] },
             include: { user: true }
           });
-          const project = task.projectId ? await app.prisma.project.findUnique({ where: { id: task.projectId } }) : null;
+          const project = task.projectId ? await db.project.findUnique({ where: { id: task.projectId } }) : null;
           const staffEmail = employee?.user?.email || (employee as any)?.email;
           const staffName = employee?.user?.firstName || (employee as any)?.firstName || 'Staff';
           if (staffEmail) {
@@ -133,9 +138,10 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // PATCH /api/v1/projects/tasks/:id
   app.patch('/tasks/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = UpdateTaskSchema.parse(req.body);
-    const task = await app.prisma.task.update({
+    const task = await db.task.update({
       where: { id },
       data: {
         ...(body.projectId && { projectId: body.projectId }),
@@ -152,8 +158,9 @@ export default async function tasksRouter(app: FastifyInstance) {
 
   // DELETE /api/v1/projects/tasks/:id
   app.delete('/tasks/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    await app.prisma.task.delete({ where: { id } });
+    await db.task.delete({ where: { id } });
     reply.code(204);
   });
 }

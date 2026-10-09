@@ -8,6 +8,17 @@ import { format } from "date-fns"
 import { useOrganization } from "@/context/OrganizationContext"
 import { useCurrency } from "@/hooks/useCurrency"
 
+function safeFormatDate(dateVal: any, formatStr = 'MMM d, yyyy'): string {
+  if (!dateVal) return '—';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '—';
+    return format(d, formatStr);
+  } catch {
+    return '—';
+  }
+}
+
 export default function ProposalDetailPage() {
   const params = useParams()
   const proposalId = params.id as string
@@ -218,9 +229,9 @@ export default function ProposalDetailPage() {
               </span>
               <p className="text-xl font-bold text-foreground">{proposal.title}</p>
               <div className="mt-4 space-y-1 text-sm">
-                <p><span className="text-muted-foreground inline-block w-24 text-left">Date:</span> <span className="font-medium">{format(new Date(proposal.createdAt), 'MMM d, yyyy')}</span></p>
+                <p><span className="text-muted-foreground inline-block w-24 text-left">Date:</span> <span className="font-medium">{safeFormatDate(proposal.createdAt)}</span></p>
                 {proposal.validUntil && (
-                  <p><span className="text-muted-foreground inline-block w-24 text-left">Valid Until:</span> <span className="font-medium text-[#E1992D]">{format(new Date(proposal.validUntil), 'MMM d, yyyy')}</span></p>
+                  <p><span className="text-muted-foreground inline-block w-24 text-left">Valid Until:</span> <span className="font-medium text-[#E1992D]">{safeFormatDate(proposal.validUntil)}</span></p>
                 )}
               </div>
             </div>

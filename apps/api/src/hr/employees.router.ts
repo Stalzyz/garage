@@ -8,7 +8,8 @@ export default async function employeeRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
   server.get('/', async (req, reply) => {
-    const employees = await server.prisma.employee.findMany({
+    const db = (req as any).db || server.prisma;
+    const employees = await db.employee.findMany({
       include: { user: true, department: true }
     });
     return { employees };
@@ -19,7 +20,8 @@ export default async function employeeRoutes(app: FastifyInstance) {
       params: z.object({ id: z.string() })
     }
   }, async (req, reply) => {
-    const employee = await server.prisma.employee.findUnique({
+    const db = (req as any).db || server.prisma;
+    const employee = await db.employee.findUnique({
       where: { id: req.params.id },
       include: { 
         user: true, 
@@ -37,7 +39,8 @@ export default async function employeeRoutes(app: FastifyInstance) {
       params: z.object({ userId: z.string() })
     }
   }, async (req, reply) => {
-    const employee = await server.prisma.employee.findUnique({
+    const db = (req as any).db || server.prisma;
+    const employee = await db.employee.findUnique({
       where: { userId: req.params.userId },
       include: { 
         user: true, 

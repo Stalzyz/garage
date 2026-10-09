@@ -18,8 +18,9 @@ const UpdateExpenseSchema = CreateExpenseSchema.partial().extend({
 
 export default async function expensesRouter(app: FastifyInstance) {
   app.get('/expenses', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, projectId } = req.query as { status?: string; projectId?: string };
-    const expenses = await app.prisma.expense.findMany({
+    const expenses = await db.expense.findMany({
       where: {
         ...(status && { status }),
         ...(projectId && { projectId }),
@@ -30,8 +31,9 @@ export default async function expensesRouter(app: FastifyInstance) {
   });
 
   app.post('/expenses', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateExpenseSchema.parse(req.body);
-    const expense = await app.prisma.expense.create({
+    const expense = await db.expense.create({
       data: body,
     });
     reply.code(201);
@@ -39,6 +41,7 @@ export default async function expensesRouter(app: FastifyInstance) {
   });
 
   app.patch('/expenses/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = UpdateExpenseSchema.parse(req.body);
     
@@ -50,7 +53,7 @@ export default async function expensesRouter(app: FastifyInstance) {
       updateData.paidAt = new Date();
     }
 
-    const expense = await app.prisma.expense.update({
+    const expense = await db.expense.update({
       where: { id },
       data: updateData,
     });

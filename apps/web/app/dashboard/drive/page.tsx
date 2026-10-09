@@ -178,17 +178,27 @@ export default function DrivePage() {
     }
   }
 
+  const normalizeMediaUrl = (url?: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) return `/api/v1${url}`;
+    if (url.startsWith('/storage/')) return `/api/v1${url}`;
+    if (url.includes('localhost:4000')) return url.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, '');
+    return url;
+  };
+
   const getFilePreview = (file: any) => {
     const isImg = file.mimeType?.includes('image') || /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(file.name);
-    if (isImg && file.fileUrl) {
+    const mediaUrl = normalizeMediaUrl(file.fileUrl);
+    if (isImg && mediaUrl) {
       return (
         <div className="w-full h-full relative flex items-center justify-center bg-black/40">
           <img 
-            src={file.fileUrl} 
+            src={mediaUrl} 
             alt={file.name} 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => {
-              (e.target as HTMLElement).style.display = 'none';
+              const el = e.target as HTMLElement;
+              el.style.display = 'none';
             }}
           />
           <ImageIcon className="w-8 h-8 text-blue-400 absolute pointer-events-none opacity-30" />
@@ -468,20 +478,20 @@ export default function DrivePage() {
             <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-black/60 min-h-[360px]">
               {previewFile.mimeType?.includes('image') || /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(previewFile.name) ? (
                 <img 
-                  src={previewFile.fileUrl} 
+                  src={normalizeMediaUrl(previewFile.fileUrl)} 
                   alt={previewFile.name} 
                   className="max-h-[65vh] w-auto max-w-full object-contain rounded-xl shadow-2xl"
                 />
               ) : previewFile.mimeType?.includes('video') || /\.(mp4|webm|mov)(\?.*)?$/i.test(previewFile.name) ? (
                 <video 
-                  src={previewFile.fileUrl} 
+                  src={normalizeMediaUrl(previewFile.fileUrl)} 
                   controls 
                   autoPlay 
                   className="max-h-[65vh] w-auto max-w-full rounded-xl shadow-2xl" 
                 />
               ) : previewFile.mimeType?.includes('pdf') || /\.pdf$/i.test(previewFile.name) ? (
                 <iframe 
-                  src={previewFile.fileUrl} 
+                  src={normalizeMediaUrl(previewFile.fileUrl)} 
                   className="w-full h-[65vh] rounded-xl border border-white/10" 
                   title={previewFile.name}
                 />

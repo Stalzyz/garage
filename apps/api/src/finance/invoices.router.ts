@@ -217,8 +217,9 @@ function calculateTaxesAndTotals(items: z.infer<typeof InvoiceItemSchema>[], cli
 export default async function invoicesRouter(app: FastifyInstance) {
   // GET /api/v1/finance/invoices
   app.get('/invoices', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, businessUnit } = req.query as { status?: string; businessUnit?: string };
-    const invoices = await app.prisma.invoice.findMany({
+    const invoices = await db.invoice.findMany({
       where: {
         ...(status && { status: status as any }),
         ...(businessUnit && { businessUnit: businessUnit as any }),
@@ -231,8 +232,9 @@ export default async function invoicesRouter(app: FastifyInstance) {
 
   // GET /api/v1/finance/invoices/:id
   app.get('/invoices/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const invoice = await app.prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sortOrder: 'asc' } },
@@ -245,9 +247,10 @@ export default async function invoicesRouter(app: FastifyInstance) {
 
   // GET /api/v1/finance/invoices/:id/pdf  — Download as PDF
   app.get('/invoices/:id/pdf', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const [invoice, financeSettings] = await Promise.all([
-      app.prisma.invoice.findUnique({
+      db.invoice.findUnique({
         where: { id },
         include: { items: { orderBy: { sortOrder: 'asc' } } },
       }),
@@ -280,7 +283,8 @@ export default async function invoicesRouter(app: FastifyInstance) {
 
   // GET /api/v1/finance/invoices/export.csv
   app.get('/invoices/export.csv', async (req, reply) => {
-    const invoices = await app.prisma.invoice.findMany({ orderBy: { createdAt: 'desc' } });
+    const db = (req as any).db || app.prisma;
+    const invoices = await db.invoice.findMany({ orderBy: { createdAt: 'desc' } });
     const headers = ['invoiceNumber', 'clientName', 'clientEmail', 'status', 'totalAmount', 'currency', 'dueDate', 'createdAt'];
     const csv = toCsv(invoices.map(i => ({
       ...i,
@@ -293,7 +297,8 @@ export default async function invoicesRouter(app: FastifyInstance) {
     return reply.send(csv);
   });
 
-async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' | 'PROFORMA' = 'TAX') {
+async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' | 'PROFORMA' = 'TAX', dbInstance?: any) {
+  const db = dbInstance || app.prisma;
   let settings = await app.prisma.financeSettings.findFirst();
   if (!settings) {
     settings = await app.prisma.financeSettings.create({ data: {} });
@@ -303,7 +308,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
   const prefix = type === 'PROFORMA' ? 'PI' : basePrefix;
 
   // Search existing invoices starting with prefix
-  const existingInvoices = await app.prisma.invoice.findMany({
+  const existingInvoices = await db.invoice.findMany({
     where: {
       invoiceNumber: {
         startsWith: prefix,
@@ -337,14 +342,16 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // GET /api/v1/finance/invoices/next-number
   app.get('/invoices/next-number', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { type } = req.query as { type?: 'TAX' | 'PROFORMA' };
     const docType = type === 'PROFORMA' ? 'PROFORMA' : 'TAX';
-    const result = await getNextSequentialInvoiceNumber(app, docType);
+    const result = await getNextSequentialInvoiceNumber(app, docType, db);
     return result;
   });
 
   // POST /api/v1/finance/invoices
   app.post('/invoices', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateInvoiceSchema.parse(req.body);
     const orgSettings = await app.prisma.financeSettings.findFirst();
     const orgGst = orgSettings?.gstNumber;
@@ -354,7 +361,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
     // Auto-generate strict sequential invoice number if omitted or matching random pattern
     if (!finalInvoiceNumber || /^(INV|PI)-\d{5,}$/.test(finalInvoiceNumber)) {
-      const seqResult = await getNextSequentialInvoiceNumber(app, isProforma ? 'PROFORMA' : 'TAX');
+      const seqResult = await getNextSequentialInvoiceNumber(app, isProforma ? 'PROFORMA' : 'TAX', db);
       finalInvoiceNumber = seqResult.invoiceNumber;
       await app.prisma.financeSettings.update({
         where: { id: seqResult.settingsId },
@@ -377,7 +384,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
     }
 
     const totals = calculateTaxesAndTotals(body.items, body.clientGst, orgGst || undefined, body.discountRate);
-    const invoice = await app.prisma.invoice.create({
+    const invoice = await db.invoice.create({
       data: {
         invoiceNumber: finalInvoiceNumber,
         projectId: body.projectId,
@@ -428,8 +435,9 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // PATCH /api/v1/finance/invoices/:id
   app.patch('/invoices/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const originalInvoice = await app.prisma.invoice.findUnique({ where: { id } });
+    const originalInvoice = await db.invoice.findUnique({ where: { id } });
     if (!originalInvoice) return reply.notFound('Invoice not found');
 
     const body = UpdateInvoiceSchema.parse(req.body);
@@ -446,7 +454,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
       );
     }
 
-    const invoice = await app.prisma.$transaction(async (tx) => {
+    const invoice = await db.$transaction(async (tx: any) => {
       if (items) {
         await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
         await tx.invoiceItem.createMany({
@@ -476,7 +484,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
     if (rest.status === 'PAID') {
       let clientPhone: string | undefined = undefined;
       if (invoice.clientEmail) {
-        const contact = await app.prisma.contact.findFirst({
+        const contact = await db.contact.findFirst({
           where: { email: invoice.clientEmail }
         });
         clientPhone = contact?.whatsapp || contact?.phone || undefined;
@@ -498,14 +506,15 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // DELETE /api/v1/finance/invoices/:id
   app.delete('/invoices/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const invoice = await app.prisma.invoice.findUnique({ where: { id }, select: { invoiceNumber: true } });
+    const invoice = await db.invoice.findUnique({ where: { id }, select: { invoiceNumber: true } });
     if (!invoice) return reply.notFound('Invoice not found');
 
-    await app.prisma.$transaction([
-      app.prisma.payment.deleteMany({ where: { invoiceId: id } }),
-      app.prisma.commission.deleteMany({ where: { invoiceId: id } }),
-      app.prisma.invoice.delete({ where: { id } })
+    await db.$transaction([
+      db.payment.deleteMany({ where: { invoiceId: id } }),
+      db.commission.deleteMany({ where: { invoiceId: id } }),
+      db.invoice.delete({ where: { id } })
     ]);
 
     await auditLog(app.prisma as any, req, 'DELETE', 'Invoice', id, { invoiceNumber: invoice?.invoiceNumber });
@@ -514,8 +523,9 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // POST /api/v1/finance/invoices/:id/send
   app.post('/invoices/:id/send', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    const invoice = await db.invoice.findUnique({ where: { id } });
     if (!invoice) return reply.notFound('Invoice not found');
     
     if (!invoice.clientEmail) {
@@ -531,7 +541,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
     const result = await sendEmail(invoice.clientEmail, template);
     
-    const updatedInvoice = await app.prisma.invoice.update({
+    const updatedInvoice = await db.invoice.update({
       where: { id },
       data: { status: 'SENT' },
       include: { items: true }
@@ -544,8 +554,9 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // POST /api/v1/finance/invoices/:id/pay
   app.post('/invoices/:id/pay', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    const invoice = await db.invoice.findUnique({ where: { id } });
     if (!invoice) return reply.notFound('Invoice not found');
     if (invoice.status === 'PAID') return reply.badRequest('Invoice is already paid');
 
@@ -571,7 +582,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
     const isLive = !!keyId && keyId.startsWith('rzp_') && keyId !== 'rzp_test_mock';
 
     if (invoice.status === 'DRAFT') {
-      await app.prisma.invoice.update({ where: { id }, data: { status: 'SENT' } });
+      await db.invoice.update({ where: { id }, data: { status: 'SENT' } });
     }
 
     if (isLive) {
@@ -604,10 +615,11 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // POST /api/v1/finance/invoices/:id/payments
   app.post('/invoices/:id/payments', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const { amount, method, transactionId, notes } = req.body as { amount: number, method: string, transactionId?: string, notes?: string };
     
-    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    const invoice = await db.invoice.findUnique({ where: { id } });
     if (!invoice) return reply.notFound('Invoice not found');
     
     if (amount <= 0) return reply.badRequest('Amount must be positive');
@@ -615,7 +627,7 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
     const newPaidAmount = invoice.paidAmount + amount;
     const isFullyPaid = newPaidAmount >= invoice.totalAmount;
 
-    const [payment, updatedInvoice] = await app.prisma.$transaction(async (tx) => {
+    const [payment, updatedInvoice] = await db.$transaction(async (tx: any) => {
       const pm = await tx.payment.create({
         data: {
           invoiceId: id,
@@ -681,15 +693,16 @@ async function getNextSequentialInvoiceNumber(app: FastifyInstance, type: 'TAX' 
 
   // POST /api/v1/finance/invoices/:id/mock-pay
   app.post('/invoices/:id/mock-pay', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const invoice = await app.prisma.invoice.findUnique({ where: { id } });
+    const invoice = await db.invoice.findUnique({ where: { id } });
     if (!invoice) return reply.notFound('Invoice not found');
     if (invoice.status === 'PAID') return reply.badRequest('Invoice is already paid');
 
     const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
     const paymentId = 'pay_mock_' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-    const [updatedInvoice] = await app.prisma.$transaction(async (tx) => {
+    const [updatedInvoice] = await db.$transaction(async (tx: any) => {
       const inv = await tx.invoice.update({
         where: { id },
         data: {

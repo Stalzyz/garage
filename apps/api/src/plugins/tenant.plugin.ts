@@ -22,9 +22,12 @@ const PUBLIC_ROUTE_PREFIXES = [
   '/health',
   '/docs',
   '/api/v1/auth',
+  '/api/v1/crm/public',
   '/api/v1/crm/public-leads',
   '/api/v1/crm/public-proposals',
   '/api/v1/crm/ads-webhook',
+  '/api/v1/uploads',
+  '/api/v1/storage/asset',
 ];
 
 declare module 'fastify' {

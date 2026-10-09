@@ -25,12 +25,13 @@ const UpdateProjectSchema = CreateProjectSchema.partial().extend({
 export default async function projectsRouter(app: FastifyInstance) {
   // GET /api/v1/projects
   app.get('/', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { status, managerId, companyId, includeFiles } = req.query as { status?: string; managerId?: string; companyId?: string; includeFiles?: string };
     const user = req.user;
     let enforcedCompanyId = companyId;
 
     if (user.role === 'CLIENT') {
-      const clientProfile = await app.prisma.clientProfile.findUnique({
+      const clientProfile = await db.clientProfile.findUnique({
         where: { userId: user.id },
         include: { contact: { include: { company: true } } }
       });
@@ -40,7 +41,7 @@ export default async function projectsRouter(app: FastifyInstance) {
       enforcedCompanyId = clientProfile.contact.companyId;
     }
 
-    const projects = await app.prisma.project.findMany({
+    const projects = await db.project.findMany({
       where: {
         ...(status && { status: status as any }),
         ...(managerId && { managerId }),
@@ -58,12 +59,13 @@ export default async function projectsRouter(app: FastifyInstance) {
 
   // GET /api/v1/projects/:id
   app.get('/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const user = req.user;
     let companyIdLimit: string | null = null;
 
     if (user.role === 'CLIENT') {
-      const clientProfile = await app.prisma.clientProfile.findUnique({
+      const clientProfile = await db.clientProfile.findUnique({
         where: { userId: user.id },
         include: { contact: true }
       });
@@ -73,7 +75,7 @@ export default async function projectsRouter(app: FastifyInstance) {
       companyIdLimit = clientProfile.contact.companyId;
     }
 
-    const project = await app.prisma.project.findUnique({
+    const project = await db.project.findUnique({
       where: { id },
       include: {
         company: true,
@@ -94,11 +96,12 @@ export default async function projectsRouter(app: FastifyInstance) {
 
   // POST /api/v1/projects
   app.post('/', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateProjectSchema.parse(req.body);
     let targetCompanyId = body.companyId || null;
 
     if (body.contactId) {
-      const contact = await app.prisma.contact.findUnique({
+      const contact = await db.contact.findUnique({
         where: { id: body.contactId },
         include: { company: true }
       });
@@ -108,10 +111,10 @@ export default async function projectsRouter(app: FastifyInstance) {
           targetCompanyId = contact.companyId;
         } else {
           const companyName = body.newCompanyName?.trim() || `${contact.firstName} ${contact.lastName}`.trim() || 'Independent Client';
-          const newComp = await app.prisma.company.create({
+          const newComp = await db.company.create({
             data: { name: companyName }
           });
-          await app.prisma.contact.update({
+          await db.contact.update({
             where: { id: contact.id },
             data: { companyId: newComp.id }
           });
@@ -119,7 +122,7 @@ export default async function projectsRouter(app: FastifyInstance) {
         }
       }
     } else if (body.newCompanyName && body.newCompanyName.trim()) {
-      const newComp = await app.prisma.company.create({
+      const newComp = await db.company.create({
         data: { name: body.newCompanyName.trim() }
       });
       targetCompanyId = newComp.id;
@@ -127,7 +130,7 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     const { contactId, newCompanyName, ...projectData } = body;
 
-    const project = await app.prisma.project.create({
+    const project = await db.project.create({
       data: {
         name: body.name,
         type: body.type || 'WEBSITE',
@@ -200,12 +203,13 @@ export default async function projectsRouter(app: FastifyInstance) {
 
   // PATCH /api/v1/projects/:id
   app.patch('/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = UpdateProjectSchema.parse(req.body);
     let targetCompanyId = body.companyId;
 
     if (body.contactId) {
-      const contact = await app.prisma.contact.findUnique({
+      const contact = await db.contact.findUnique({
         where: { id: body.contactId },
         include: { company: true }
       });
@@ -215,10 +219,10 @@ export default async function projectsRouter(app: FastifyInstance) {
           targetCompanyId = contact.companyId;
         } else {
           const companyName = body.newCompanyName?.trim() || `${contact.firstName} ${contact.lastName}`.trim() || 'Independent Client';
-          const newComp = await app.prisma.company.create({
+          const newComp = await db.company.create({
             data: { name: companyName }
           });
-          await app.prisma.contact.update({
+          await db.contact.update({
             where: { id: contact.id },
             data: { companyId: newComp.id }
           });
@@ -226,7 +230,7 @@ export default async function projectsRouter(app: FastifyInstance) {
         }
       }
     } else if (body.newCompanyName && body.newCompanyName.trim()) {
-      const newComp = await app.prisma.company.create({
+      const newComp = await db.company.create({
         data: { name: body.newCompanyName.trim() }
       });
       targetCompanyId = newComp.id;
@@ -234,12 +238,12 @@ export default async function projectsRouter(app: FastifyInstance) {
 
     const { contactId, newCompanyName, ...updateData } = body;
 
-    const oldProject = await app.prisma.project.findUnique({
+    const oldProject = await db.project.findUnique({
       where: { id },
       include: { company: { include: { contacts: true } } }
     });
 
-    const project = await app.prisma.project.update({
+    const project = await db.project.update({
       where: { id },
       data: {
         ...(updateData.name && { name: updateData.name }),
@@ -262,7 +266,7 @@ export default async function projectsRouter(app: FastifyInstance) {
       try {
         let contact: any = null;
         if (body.contactId) {
-          contact = await app.prisma.contact.findUnique({ where: { id: body.contactId } });
+          contact = await db.contact.findUnique({ where: { id: body.contactId } });
         } else {
           contact = project.company?.contacts?.[0];
         }
@@ -316,8 +320,9 @@ export default async function projectsRouter(app: FastifyInstance) {
 
   // DELETE /api/v1/projects/:id
   app.delete('/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    await app.prisma.project.delete({ where: { id } });
+    await db.project.delete({ where: { id } });
     reply.code(204);
   });
 

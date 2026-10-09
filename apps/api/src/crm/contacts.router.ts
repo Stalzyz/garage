@@ -224,8 +224,9 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/companies
   app.get('/companies', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { search } = req.query as { search?: string };
-    const companies = await app.prisma.company.findMany({
+    const companies = await db.company.findMany({
       where: search
         ? { name: { contains: search, mode: 'insensitive' } }
         : undefined,
@@ -240,8 +241,9 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/companies/:id
   app.get('/companies/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const company = await app.prisma.company.findUnique({
+    const company = await db.company.findUnique({
       where: { id },
       include: {
         contacts: {
@@ -256,6 +258,7 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/companies
   app.post('/companies', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const body = CreateCompanySchema.parse(req.body);
     const data: any = { ...body };
 
@@ -273,13 +276,14 @@ export default async function contactsRouter(app: FastifyInstance) {
       }
     }
 
-    const company = await app.prisma.company.create({ data });
+    const company = await db.company.create({ data });
     reply.code(201);
     return company;
   });
 
   // PATCH /api/v1/crm/companies/:id
   app.patch('/companies/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = CreateCompanySchema.partial().parse(req.body);
     const data: any = { ...body };
@@ -298,14 +302,15 @@ export default async function contactsRouter(app: FastifyInstance) {
       }
     }
 
-    const company = await app.prisma.company.update({ where: { id }, data });
+    const company = await db.company.update({ where: { id }, data });
     return company;
   });
 
   // DELETE /api/v1/crm/companies/:id
   app.delete('/companies/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    await app.prisma.company.delete({ where: { id } });
+    await db.company.delete({ where: { id } });
     reply.code(204);
   });
 
@@ -313,13 +318,14 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/contacts
   app.get('/contacts', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { search, tier, companyId } = req.query as {
       search?: string;
       tier?: string;
       companyId?: string;
     };
 
-    const contacts = await app.prisma.contact.findMany({
+    const contacts = await db.contact.findMany({
       where: {
         ...(tier && { tier: tier as any }),
         ...(companyId && { companyId }),
@@ -358,8 +364,9 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // GET /api/v1/crm/contacts/:id
   app.get('/contacts/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const contact = await app.prisma.contact.findUnique({
+    const contact = await db.contact.findUnique({
       where: { id },
       include: {
         company: {
@@ -378,14 +385,15 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/contacts
   app.post('/contacts', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { newCompanyName, ...data } = CreateContactSchema.parse(req.body);
     if (newCompanyName && newCompanyName.trim()) {
-      const company = await app.prisma.company.create({
+      const company = await db.company.create({
         data: { name: newCompanyName.trim() }
       });
       data.companyId = company.id;
     }
-    const contact = await app.prisma.contact.create({ data });
+    const contact = await db.contact.create({ data });
     if (contact.email) {
       await createPortalUserAndSendInvite(contact);
     }
@@ -395,49 +403,52 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // PATCH /api/v1/crm/contacts/:id
   app.patch('/contacts/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const { newCompanyName, ...data } = CreateContactSchema.partial().parse(req.body);
     if (newCompanyName && newCompanyName.trim()) {
-      const company = await app.prisma.company.create({
+      const company = await db.company.create({
         data: { name: newCompanyName.trim() }
       });
       data.companyId = company.id;
     }
-    const contact = await app.prisma.contact.update({ where: { id }, data });
+    const contact = await db.contact.update({ where: { id }, data });
     return contact;
   });
 
   // DELETE /api/v1/crm/contacts/:id
   app.delete('/contacts/:id', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     
     // Dissociate related proposals
-    await app.prisma.proposal.updateMany({
+    await db.proposal.updateMany({
       where: { contactId: id },
       data: { contactId: null },
     });
 
     // Dissociate client profiles
-    await app.prisma.clientProfile.updateMany({
+    await db.clientProfile.updateMany({
       where: { contactId: id },
       data: { contactId: null },
     });
 
     // Delete communication logs
-    await app.prisma.communicationLog.deleteMany({
+    await db.communicationLog.deleteMany({
       where: { contactId: id },
     });
 
-    await app.prisma.contact.delete({ where: { id } });
+    await db.contact.delete({ where: { id } });
     reply.code(204);
   });
 
   // POST /api/v1/crm/contacts/:id/communication — log a comm event
   app.post('/contacts/:id/communication', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
     const body = LogCommunicationSchema.parse(req.body);
 
-    const log = await app.prisma.communicationLog.create({
+    const log = await db.communicationLog.create({
       data: {
         contactId: id,
         ...body,
@@ -448,12 +459,11 @@ export default async function contactsRouter(app: FastifyInstance) {
     return log;
   });
 
-
-
   // POST /api/v1/crm/contacts/:id/invite — Generate Client Portal Credentials
   app.post('/contacts/:id/invite', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const contact = await app.prisma.contact.findUnique({ where: { id } });
+    const contact = await db.contact.findUnique({ where: { id } });
     if (!contact) return reply.notFound('Contact not found');
     if (!contact.email) return reply.badRequest('Contact must have an email address to invite.');
 
@@ -469,8 +479,9 @@ export default async function contactsRouter(app: FastifyInstance) {
 
   // POST /api/v1/crm/contacts/:id/reset-pin — Reset Client Portal PIN
   app.post('/contacts/:id/reset-pin', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { id } = req.params as { id: string };
-    const contact = await app.prisma.contact.findUnique({ where: { id } });
+    const contact = await db.contact.findUnique({ where: { id } });
     if (!contact) return reply.notFound('Contact not found');
     if (!contact.email) return reply.badRequest('Contact must have an email address.');
 
@@ -538,9 +549,9 @@ export default async function contactsRouter(app: FastifyInstance) {
     };
   });
 
-
   // POST /api/v1/crm/contacts/import — import contacts from CSV
   app.post('/contacts/import', async (req, reply) => {
+    const db = (req as any).db || app.prisma;
     const { csvData } = req.body as { csvData: string };
     if (!csvData) return reply.badRequest('Missing CSV data');
 
@@ -572,7 +583,7 @@ export default async function contactsRouter(app: FastifyInstance) {
         const whatsapp = row.whatsapp || row.WhatsApp || row.phone || row.Phone;
         const tier = row.tier || row.Tier || 'BRONZE';
 
-        await app.prisma.contact.create({
+        await db.contact.create({
           data: {
             firstName,
             lastName: lastName || 'Contact',

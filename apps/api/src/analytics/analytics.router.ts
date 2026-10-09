@@ -14,6 +14,9 @@ export default async function analyticsRouter(app: FastifyInstance) {
       activeBatches,
       payrollTotal,
       openTickets,
+      totalEmployees,
+      activeProposals,
+      totalContacts,
     ] = await Promise.all([
       db.invoice.count(),
       db.invoice.aggregate({ where: { status: 'PAID' }, _sum: { totalAmount: true } }),
@@ -24,6 +27,9 @@ export default async function analyticsRouter(app: FastifyInstance) {
       db.batch.count({ where: { isActive: true } }),
       db.payslip.aggregate({ _sum: { netSalary: true } }),
       db.ticket.count({ where: { status: 'OPEN' } }),
+      db.employee.count(),
+      db.proposal.count({ where: { status: { in: ['DRAFT', 'SENT', 'VIEWED'] } } }),
+      db.contact.count(),
     ]);
 
     // Add Cache-Control for stale-while-revalidate — data is ok to be ~30s stale
@@ -36,6 +42,11 @@ export default async function analyticsRouter(app: FastifyInstance) {
         totalLeads,
         totalInvoices,
         totalPayroll: payrollTotal._sum.netSalary ?? 0,
+        totalEmployees,
+        activeProposals,
+      },
+      crm: {
+        totalContacts,
       },
       academy: {
         totalStudents,

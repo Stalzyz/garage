@@ -8,13 +8,17 @@ function normalizeDriveUrl(url: string): string {
   if (url.includes('r2.cloudflarestorage.com')) {
     const match = url.match(/\/grekamos\/(drive\/[^?]+)/);
     if (match && match[1]) {
-      return `https://garage.grekam.in/api/v1/storage/asset/${match[1]}`;
+      return `/api/v1/storage/asset/${match[1]}`;
     }
   }
-  if (url.includes('localhost:4000') || url.includes('127.0.0.1:4000')) {
-    return url.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://garage.grekam.in');
+  if (url.startsWith('/uploads/')) {
+    return `/api/v1${url}`;
   }
-  return url;
+  if (url.startsWith('/storage/')) {
+    return `/api/v1${url}`;
+  }
+  // Strip localhost:4000 origin so browser requests can hit Next.js API proxy
+  return url.replace(/^https?:\/\/(localhost|127\.0\.0\.1):4000/g, '');
 }
 
 export default async function filesRoutes(app: FastifyInstance) {

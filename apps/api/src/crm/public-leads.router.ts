@@ -160,6 +160,118 @@ export default async function publicLeadsRouter(app: FastifyInstance) {
     reply.code(201);
     return lead;
   });
+
+  // POST /api/v1/crm/public/companies — B2B Kiosk company onboarding & GST registration
+  app.post('/companies', async (req, reply) => {
+    const body = z.object({
+      name: z.string().min(1),
+      legalName: z.string().optional().nullable(),
+      tradeName: z.string().optional().nullable(),
+      gstin: z.string().optional().nullable(),
+      pan: z.string().optional().nullable(),
+      gstType: z.string().optional().nullable(),
+      placeOfSupply: z.string().optional().nullable(),
+      stateCode: z.string().optional().nullable(),
+      state: z.string().optional().nullable(),
+      billingAddress: z.string().optional().nullable(),
+      city: z.string().optional().nullable(),
+      pinCode: z.string().optional().nullable(),
+      website: z.string().optional().nullable(),
+      industry: z.string().optional().nullable(),
+      contactName: z.string().optional().nullable(),
+      contactDesignation: z.string().optional().nullable(),
+      contactPhone: z.string().optional().nullable(),
+      contactEmail: z.string().optional().nullable(),
+      notes: z.string().optional().nullable(),
+    }).parse(req.body);
+
+    // 1. Create the company record
+    const company = await app.prisma.company.create({
+      data: {
+        name: body.name.trim(),
+        legalName: body.legalName?.trim() || null,
+        tradeName: body.tradeName?.trim() || null,
+        gstin: body.gstin?.trim() || null,
+        pan: body.pan?.trim() || null,
+        gstType: body.gstType || 'REGULAR',
+        placeOfSupply: body.placeOfSupply || null,
+        stateCode: body.stateCode || null,
+        state: body.state || null,
+        billingAddress: body.billingAddress?.trim() || null,
+        city: body.city?.trim() || null,
+        pinCode: body.pinCode?.trim() || null,
+        website: body.website?.trim() || null,
+        industry: body.industry || null,
+      }
+    });
+
+    // 2. Create or link primary representative contact if provided
+    let contact = null;
+    if (body.contactName || body.contactEmail || body.contactPhone) {
+      const nameParts = (body.contactName || 'Representative').trim().split(' ');
+      const firstName = nameParts[0] || 'Representative';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      try {
+        if (body.contactEmail) {
+          contact = await (app.prisma as any).contact.upsert({
+            where: { email: body.contactEmail.trim().toLowerCase() },
+            update: {
+              firstName,
+              lastName,
+              phone: body.contactPhone?.trim() || null,
+              jobTitle: body.contactDesignation?.trim() || null,
+              companyId: company.id,
+            },
+            create: {
+              firstName,
+              lastName,
+              email: body.contactEmail.trim().toLowerCase(),
+              phone: body.contactPhone?.trim() || null,
+              jobTitle: body.contactDesignation?.trim() || null,
+              companyId: company.id,
+            },
+          });
+        } else {
+          contact = await (app.prisma as any).contact.create({
+            data: {
+              firstName,
+              lastName,
+              phone: body.contactPhone?.trim() || null,
+              jobTitle: body.contactDesignation?.trim() || null,
+              companyId: company.id,
+            },
+          });
+        }
+      } catch (err) {
+        app.log.warn(err, '[PublicCompanies] Failed to create representative contact');
+      }
+    }
+
+    // 3. Real-Time Telemetry Broadcast
+    try {
+      (app as any).broadcast('telemetry-event', {
+        event: 'New Company Onboarded',
+        data: {
+          id: company.id,
+          name: company.name,
+          gstin: company.gstin,
+          contactName: body.contactName,
+          phone: body.contactPhone,
+        }
+      });
+    } catch (err) {
+      app.log.error(err as any, '[PublicCompanies] Telemetry broadcast failed');
+    }
+
+    reply.code(201);
+    return {
+      success: true,
+      message: 'Company particulars and tax profile registered successfully',
+      company,
+      contact,
+    };
+  });
 }
 
 

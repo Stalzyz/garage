@@ -242,13 +242,143 @@ export default function EmailTemplatesSettingsPage() {
     }
   }
 
+const BUILTIN_TEMPLATES = [
+  {
+    code: "WELCOME_CLIENT",
+    name: "Client Welcome & Portal Invitation",
+    category: "CLIENT",
+    subject: "Welcome to Grekam, {{clientName}}!",
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>Welcome aboard! Your client portal account for <strong>{{companyName}}</strong> has been activated.</p>
+<p>You can access your project briefings, vehicle job cards, milestone progress, files, and invoices directly through your portal:</p>
+<div class="button-container">
+  <a href="{{portalLink}}" class="btn-primary">Access Client Portal</a>
+</div>
+<p>If you have any questions, feel free to reply directly to this email.</p>`,
+    variables: ["clientName", "companyName", "portalLink", "accountManager"],
+    isActive: true,
+  },
+  {
+    code: "PROJECT_STAGE_CHANGED",
+    name: "Project Stage / Status Update",
+    category: "CLIENT",
+    subject: "Project Update: {{projectName}} is now {{newStatus}}",
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>The status for your project <strong>{{projectName}}</strong> has been updated to <strong>{{newStatus}}</strong>.</p>
+<p><strong>Updated Stage:</strong> {{newStatus}}<br>
+<strong>Updated Date:</strong> {{updateDate}}</p>
+<div class="button-container">
+  <a href="{{portalLink}}" class="btn-primary">View Project Progress</a>
+</div>`,
+    variables: ["clientName", "projectName", "newStatus", "updateDate", "portalLink"],
+    isActive: true,
+  },
+  {
+    code: "INVOICE_SENT",
+    name: "New Invoice Issued",
+    category: "CLIENT",
+    subject: "New Invoice #{{invoiceNumber}} from Grekam",
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>A new invoice <strong>#{{invoiceNumber}}</strong> for <strong>{{projectName}}</strong> has been generated.</p>
+<p><strong>Invoice Total:</strong> ₹{{amount}}<br>
+<strong>Due Date:</strong> {{dueDate}}</p>
+<div class="button-container">
+  <a href="{{invoiceUrl}}" class="btn-primary">View & Pay Invoice</a>
+</div>`,
+    variables: ["clientName", "invoiceNumber", "projectName", "amount", "dueDate", "invoiceUrl"],
+    isActive: true,
+  },
+  {
+    code: "PROPOSAL_SENT",
+    name: "Project Proposal Ready",
+    category: "CLIENT",
+    subject: "Project Proposal Ready: {{proposalTitle}}",
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>We have prepared your proposal for <strong>{{proposalTitle}}</strong>.</p>
+<p><strong>Estimated Investment:</strong> ₹{{estimatedAmount}}</p>
+<div class="button-container">
+  <a href="{{proposalLink}}" class="btn-primary">Review & Accept Proposal</a>
+</div>`,
+    variables: ["clientName", "proposalTitle", "estimatedAmount", "proposalLink"],
+    isActive: true,
+  },
+  {
+    code: "LEAD_ASSIGNED",
+    name: "New Lead Assigned to Staff",
+    category: "STAFF",
+    subject: "New Lead Assigned: {{leadName}} ({{leadSource}})",
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>A new lead has been assigned to you for telecalling/follow-up:</p>
+<ul>
+  <li><strong>Lead Name:</strong> {{leadName}}</li>
+  <li><strong>Phone:</strong> {{phone}}</li>
+  <li><strong>Source:</strong> {{leadSource}}</li>
+  <li><strong>Interest:</strong> {{interestTier}}</li>
+</ul>
+<div class="button-container">
+  <a href="{{crmLink}}" class="btn-primary">View Lead in CRM</a>
+</div>`,
+    variables: ["staffName", "leadName", "phone", "email", "leadSource", "interestTier", "crmLink"],
+    isActive: true,
+  },
+  {
+    code: "TASK_ASSIGNED",
+    name: "New Task Assigned",
+    category: "STAFF",
+    subject: "Task Assigned: {{taskTitle}} [{{priority}}]",
+    bodyHtml: `<p>Hello <strong>{{staffName}}</strong>,</p>
+<p>You have been assigned a new task on <strong>{{projectName}}</strong>:</p>
+<p><strong>Task:</strong> {{taskTitle}}<br>
+<strong>Priority:</strong> {{priority}}<br>
+<strong>Due Date:</strong> {{dueDate}}</p>
+<div class="button-container">
+  <a href="{{taskUrl}}" class="btn-primary">Open Task</a>
+</div>`,
+    variables: ["staffName", "projectName", "taskTitle", "priority", "dueDate", "taskUrl"],
+    isActive: true,
+  },
+  {
+    code: "DAILY_STAFF_DIGEST",
+    name: "Daily Morning Staff Briefing",
+    category: "STAFF",
+    subject: "Daily Workspace Briefing for {{todayDate}}",
+    bodyHtml: `<p>Good morning <strong>{{staffName}}</strong>!</p>
+<p>Here is your daily task summary for today, {{todayDate}}:</p>
+<ul>
+  <li><strong>Pending Tasks Due Today:</strong> {{pendingTasksCount}}</li>
+  <li><strong>Assigned Leads to Call:</strong> {{leadsToCallCount}}</li>
+  <li><strong>Open High Priority Tickets:</strong> {{highPriorityTickets}}</li>
+</ul>
+<div class="button-container">
+  <a href="{{dashboardLink}}" class="btn-primary">Open Workspace Briefing</a>
+</div>`,
+    variables: ["staffName", "todayDate", "pendingTasksCount", "leadsToCallCount", "highPriorityTickets", "dashboardLink"],
+    isActive: true,
+  },
+  {
+    code: "PASSWORD_RESET",
+    name: "Security Password Reset",
+    category: "SYSTEM",
+    subject: "Reset your password for {{companyName}}",
+    bodyHtml: `<p>Hi <strong>{{clientName}}</strong>,</p>
+<p>We received a request to reset your password. Click the link below to set a new password:</p>
+<div class="button-container">
+  <a href="{{portalLink}}" class="btn-primary">Reset Password</a>
+</div>
+<p>If you did not request this, please ignore this email.</p>`,
+    variables: ["clientName", "companyName", "portalLink"],
+    isActive: true,
+  },
+];
+
   // =====================
   // 2. TEMPLATES STATE
   // =====================
   const { data: response, isLoading: templatesLoading, mutate } = useApi<any>("/settings/templates")
-  const templates: any[] = response?.data || []
+  const fetchedTemplates: any[] = response?.data || response?.templates || []
+  const templates: any[] = fetchedTemplates.length > 0 ? fetchedTemplates : BUILTIN_TEMPLATES
 
-  const [selectedCode, setSelectedCode] = useState<string>("")
+  const [selectedCode, setSelectedCode] = useState<string>("WELCOME_CLIENT")
   const [activeCategory, setActiveCategory] = useState<string>("ALL")
   const [activeTemplateTab, setActiveTemplateTab] = useState<"edit" | "preview">("edit")
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop")
@@ -268,7 +398,7 @@ export default function EmailTemplatesSettingsPage() {
     return t.category === activeCategory
   })
 
-  const currentTemplate = filteredTemplates.find(t => t.code === selectedCode) || filteredTemplates[0]
+  const currentTemplate = filteredTemplates.find(t => t.code === selectedCode) || filteredTemplates[0] || BUILTIN_TEMPLATES[0]
 
   useEffect(() => {
     if (filteredTemplates.length > 0) {

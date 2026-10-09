@@ -1,15 +1,10 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { 
-  Phone, MessageSquare, Mail, CheckCircle2, Clock, 
-  Send, ExternalLink, Sparkles, X, ChevronRight, 
-  Volume2, ShieldCheck, Tag, Check, Copy, AlertCircle
+  Phone, Check, Clock, X, MessageSquare, ExternalLink, Save, ArrowRight
 } from "lucide-react"
 import { toast } from "sonner"
-import { useOrganization } from "@/context/OrganizationContext"
-import { AIAssistButton } from "@/components/ui/ai-assist-button"
-import { formatAudioStreamingUrl } from "@/lib/utils"
 
 export interface PostCallRecord {
   id: string
@@ -42,16 +37,7 @@ const DISPOSITIONS = [
   { label: "Wrong Number", color: "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20" },
 ]
 
-const QUICK_TAGS = [
-  "Quotation Requested",
-  "Callback Tomorrow 11 AM",
-  "Price Negotiation",
-  "Vehicle Drop Planned",
-  "Doorstep Diagnostic Requested",
-  "Send WhatsApp Catalog",
-  "Spoke with Owner",
-  "Follow up next week",
-]
+const FOLLOWUP_STAGES = ["Followup 1", "Followup 2", "Followup 3"] as const;
 
 export function PostCallModal({
   isOpen,
@@ -63,50 +49,23 @@ export function PostCallModal({
   onSaveAndAdvance,
   onSaveAndStay,
 }: PostCallModalProps) {
-  const org = useOrganization()
-
   const [selectedDisposition, setSelectedDisposition] = useState("Interested")
-  const [notes, setNotes] = useState("")
-  const [activeTab, setActiveTab] = useState<"whatsapp" | "email">("whatsapp")
+  const [followupStage, setFollowupStage] = useState<"Followup 1" | "Followup 2" | "Followup 3">("Followup 1")
+  const [timestamp, setTimestamp] = useState("")
+  const [comments, setComments] = useState("")
   const [isSaving, setIsSaving] = useState(false)
-  const [isSendingApi, setIsSendingApi] = useState(false)
-
-  // Format dynamic timestamp
-  const timestampHeader = useMemo(() => {
-    const now = new Date()
-    const dateStr = now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
-    const timeStr = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
-    return `[${dateStr}, ${timeStr} · ${agentName}]`
-  }, [agentName, isOpen])
-
-  // WhatsApp Templates
-  const [selectedTemplate, setSelectedTemplate] = useState("intro")
-  const [customWaMessage, setCustomWaMessage] = useState("")
-  const [emailSubject, setEmailSubject] = useState("")
-  const [emailBody, setEmailBody] = useState("")
 
   useEffect(() => {
     if (isOpen && record) {
-      const initialHeader = `${timestampHeader}: `
-      setNotes(initialHeader)
+      const now = new Date()
+      const dateStr = now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+      const timeStr = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+      setTimestamp(`[${dateStr}, ${timeStr} · ${agentName}]`)
       setSelectedDisposition("Interested")
-
-      const cleanName = record.name?.split(" ")[0] || "there"
-      const orgName = org.name || "Garage"
-
-      // Default WhatsApp templates
-      const waTemplates: Record<string, string> = {
-        intro: `Hi ${cleanName}, thank you for taking my call! Great connecting with you regarding your vehicle service requirements with ${orgName}. Here is our overview and booking link: https://garage.grekam.in. Feel free to reply here if you have any questions!`,
-        quote: `Hi ${cleanName}, as discussed on our call, here is the initial estimation and service breakdown from ${orgName}. We look forward to assisting you. Let us know if you would like to confirm your diagnostic slot!`,
-        callback: `Hi ${cleanName}, sorry we couldn't connect properly on the phone earlier. Please let me know a convenient time for a quick 2-minute callback today! — ${agentName} from ${orgName}`,
-        booking: `Hi ${cleanName}, your service appointment with ${orgName} has been recorded. Our team will prepare the diagnostic bay for your vehicle. Garage Address: ${org.billingAddress || "Main Workshop"}.`,
-      }
-
-      setCustomWaMessage(waTemplates.intro)
-      setEmailSubject(`Follow-up regarding your vehicle & service — ${orgName}`)
-      setEmailBody(`Hi ${record.name || 'Customer'},\n\nThank you for speaking with me today regarding your requirements with ${orgName}.\n\nAs discussed, we provide comprehensive diagnostics, genuine OEM parts, transparent digital estimates, and real-time status tracking.\n\nPlease feel free to reply to this email or call us directly at ${org.phone || "+91 99000 00000"}.\n\nBest regards,\n${agentName}\n${orgName}`)
+      setFollowupStage("Followup 1")
+      setComments("")
     }
-  }, [isOpen, record, timestampHeader, org.name])
+  }, [isOpen, record, agentName])
 
   if (!isOpen || !record) return null
 
@@ -116,96 +75,31 @@ export function PostCallModal({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const handleTemplateChange = (templateKey: string) => {
-    setSelectedTemplate(templateKey)
-    const cleanName = record.name?.split(" ")[0] || "there"
-    const orgName = org.name || "Garage"
-
-    const templates: Record<string, string> = {
-      intro: `Hi ${cleanName}, thank you for taking my call! Great connecting with you regarding your vehicle service requirements with ${orgName}. Here is our overview and booking link: https://garage.grekam.in. Feel free to reply here if you have any questions!`,
-      quote: `Hi ${cleanName}, as discussed on our call, here is the initial estimation and service breakdown from ${orgName}. We look forward to assisting you. Let us know if you would like to confirm your diagnostic slot!`,
-      callback: `Hi ${cleanName}, sorry we couldn't connect properly on the phone earlier. Please let me know a convenient time for a quick 2-minute callback today! — ${agentName} from ${orgName}`,
-      booking: `Hi ${cleanName}, your service appointment with ${orgName} has been recorded. Our team will prepare the diagnostic bay for your vehicle. Garage Address: ${org.billingAddress || "Main Workshop"}.`,
-    }
-
-    if (templates[templateKey]) {
-      setCustomWaMessage(templates[templateKey])
-    }
-  }
-
-  const handleAddTag = (tag: string) => {
-    setNotes((prev) => {
-      if (prev.includes(tag)) return prev
-      return `${prev.trim()} [${tag}] `
-    })
-  }
-
-  // 1. Open in WhatsApp App (wa.me click-to-chat)
-  const handleOpenWhatsAppApp = () => {
+  const handleOpenWhatsApp = () => {
     if (!record.phone) {
       toast.error("Prospect has no valid phone number")
       return
     }
     const cleanPhone = record.phone.replace(/\D/g, "")
-    const encoded = encodeURIComponent(customWaMessage)
-    window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, "_blank")
-    toast.success("Opened in WhatsApp!")
+    const cleanName = record.name?.split(" ")[0] || "there"
+    const text = encodeURIComponent(
+      `Hi ${cleanName}, thank you for taking my call! Here is the summary of our conversation: ${comments || "Great connecting with you."}`
+    )
+    window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank")
   }
 
-  // 2. Send via Official WhatsApp Cloud API
-  const handleSendWhatsAppApi = async () => {
-    if (!record.phone) {
-      toast.error("Prospect has no valid phone number")
-      return
-    }
-    setIsSendingApi(true)
-    try {
-      const res = await fetch("/api/automations/whatsapp-drip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: record.phone,
-          name: record.name,
-          message: customWaMessage,
-          leadId: record.id,
-        }),
-      }).catch(() => null)
-
-      if (res && res.ok) {
-        toast.success("WhatsApp message dispatched via Cloud API!")
-      } else {
-        // Fallback to wa.me if server webhook is mock/demo
-        handleOpenWhatsAppApp()
-      }
-    } catch {
-      handleOpenWhatsAppApp()
-    } finally {
-      setIsSendingApi(false)
-    }
-  }
-
-  // 3. Open Email Client
-  const handleOpenEmail = () => {
-    if (!record.email) {
-      toast.error("Prospect has no email address on record")
-      return
-    }
-    const mailto = `mailto:${record.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-    window.open(mailto, "_blank")
-  }
-
-  // Save actions
   const handleSave = async (advance: boolean) => {
-    if (!notes.trim() || notes.trim() === `${timestampHeader}:`) {
-      toast.warning("Please enter a short note about the conversation.")
+    if (!comments.trim()) {
+      toast.warning("Please enter your call comments/notes.")
       return
     }
 
     setIsSaving(true)
     try {
+      const combinedNotes = `${timestamp.trim()} [${followupStage}]: ${comments.trim()}`
       const payload = {
         disposition: selectedDisposition,
-        notes: notes.trim(),
+        notes: combinedNotes,
         audioUrl: recordedAudioUrl || undefined,
       }
 
@@ -224,61 +118,50 @@ export function PostCallModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-xl bg-[#121214] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-white animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="p-4 bg-white/5 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Phone className="w-5 h-5" />
+        <div className="p-4 bg-white/[0.03] border-b border-white/[0.08] flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <Phone className="w-4 h-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-black text-sm tracking-tight">{record.name}</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <h3 className="font-bold text-sm text-white truncate">{record.name}</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
                   {record.recordType || "LEAD"}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
-                <span>{record.phone || "No phone"}</span>
-                {record.company && <span>· {record.company}</span>}
+              <p className="text-xs text-white/50 truncate mt-0.5">
+                {record.phone || "No phone"} {record.company ? `· ${record.company}` : ""}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="text-right">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold block">Call Duration</span>
-              <span className="font-mono font-bold text-xs text-emerald-400 flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-white/40 font-bold block">Call Duration</span>
+              <span className="font-mono font-bold text-xs text-emerald-400 flex items-center justify-end gap-1">
                 <Clock className="w-3 h-3" /> {formatDuration(callDurationSeconds)}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+              className="text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Audio Player if recorded */}
-        {recordedAudioUrl && (
-          <div className="px-5 py-2.5 bg-emerald-950/20 border-b border-emerald-500/20 flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-              <Volume2 className="w-4 h-4" /> Audio Recording Captured
-            </span>
-            <audio controls src={formatAudioStreamingUrl(recordedAudioUrl)} className="h-7 w-64" preload="metadata" />
-          </div>
-        )}
+        {/* Modal Body */}
+        <div className="p-5 space-y-4 text-xs">
 
-        {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
-
-          {/* 1. Disposition Select */}
+          {/* 1. Call Outcome / Disposition */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block">
-              1. Call Outcome / Disposition <span className="text-red-400">*</span>
+            <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block">
+              1. Call Outcome / Disposition <span className="text-rose-400">*</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {DISPOSITIONS.map((disp) => {
@@ -288,183 +171,93 @@ export function PostCallModal({
                     key={disp.label}
                     type="button"
                     onClick={() => setSelectedDisposition(disp.label)}
-                    className={`py-2 px-2.5 rounded-xl border text-left text-xs font-bold transition-all flex items-center justify-between ${
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                       isSelected
-                        ? "bg-emerald-500 text-black border-emerald-400 shadow-md scale-[1.02]"
+                        ? "bg-emerald-500 text-black border-emerald-400 shadow-md font-bold"
                         : disp.color
                     }`}
                   >
-                    <span>{disp.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    <span className="truncate">{disp.label}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] shrink-0 ml-1" />}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* 2. Mandatory Timestamped Notes */}
+          {/* 2. Follow-up Stage */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                2. Telecaller Call Notes <span className="text-emerald-400 font-mono text-[10px]">(Auto-Timestamped)</span>
-              </label>
-              <AIAssistButton
-                format="text"
-                context="Call notes summarizer for CRM lead follow-up."
-                onGenerate={(aiText) => setNotes(`${timestampHeader}: ${aiText}`)}
-                buttonLabel="AI Summary"
-              />
-            </div>
-
-            <div className="relative">
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Enter summary of discussion, customer requirements, pain points, next steps..."
-                rows={3}
-                className="w-full bg-zinc-900 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500 resize-none font-sans leading-relaxed"
-                autoFocus
-              />
-            </div>
-
-            {/* Quick Tag Chips */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              <span className="text-[10px] text-zinc-500 font-bold uppercase mr-1">Quick Tags:</span>
-              {QUICK_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleAddTag(tag)}
-                  className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-[10px] text-zinc-300 hover:text-white transition-all"
-                >
-                  + {tag}
-                </button>
-              ))}
+            <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block">
+              2. Follow-up Stage
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {FOLLOWUP_STAGES.map((stage) => {
+                const isSelected = followupStage === stage
+                return (
+                  <button
+                    key={stage}
+                    type="button"
+                    onClick={() => setFollowupStage(stage)}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all text-center cursor-pointer ${
+                      isSelected
+                        ? "bg-[#0A84FF] text-white border-[#0A84FF] shadow-sm font-bold"
+                        : "bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white"
+                    }`}
+                  >
+                    {stage}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* 3. Post-Call Outreach Trigger (WhatsApp & Email) */}
-          <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-              <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                3. Instant Post-Call Follow-up
-              </span>
+          {/* 3. Editable Timestamp */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block">
+              3. Timestamp <span className="text-white/40 text-[10px] font-normal lowercase">(auto-added, editable)</span>
+            </label>
+            <input
+              type="text"
+              value={timestamp}
+              onChange={(e) => setTimestamp(e.target.value)}
+              className="w-full bg-[#1c1c1e] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-[#0A84FF]"
+            />
+          </div>
 
-              {/* Tabs */}
-              <div className="flex items-center bg-black/40 p-0.5 rounded-lg border border-white/10">
+          {/* 4. Telecaller Comments */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block">
+                4. Call Comments & Notes <span className="text-rose-400">*</span>
+              </label>
+              {record.phone && (
                 <button
                   type="button"
-                  onClick={() => setActiveTab("whatsapp")}
-                  className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all ${
-                    activeTab === "whatsapp" ? "bg-emerald-500 text-black shadow-xs" : "text-zinc-400 hover:text-white"
-                  }`}
+                  onClick={handleOpenWhatsApp}
+                  className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <MessageSquare className="w-3 h-3" /> WhatsApp
+                  <MessageSquare className="w-3 h-3" /> Quick WhatsApp &rarr;
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("email")}
-                  className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all ${
-                    activeTab === "email" ? "bg-blue-500 text-white shadow-xs" : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  <Mail className="w-3 h-3" /> Email
-                </button>
-              </div>
+              )}
             </div>
-
-            {activeTab === "whatsapp" ? (
-              <div className="space-y-3">
-                {/* Template Chips */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { id: "intro", label: "Intro & Overview" },
-                    { id: "quote", label: "Quotation & Pricing" },
-                    { id: "booking", label: "Diagnostic Slot" },
-                    { id: "callback", label: "Callback Request" },
-                  ].map((tpl) => (
-                    <button
-                      key={tpl.id}
-                      type="button"
-                      onClick={() => handleTemplateChange(tpl.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${
-                        selectedTemplate === tpl.id
-                          ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300"
-                          : "bg-black/30 border-white/10 text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      {tpl.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Editable Message Box */}
-                <textarea
-                  value={customWaMessage}
-                  onChange={(e) => setCustomWaMessage(e.target.value)}
-                  rows={3}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500 font-sans resize-none"
-                  placeholder="Type or customize your WhatsApp follow-up message..."
-                />
-
-                {/* Dual WhatsApp Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleOpenWhatsAppApp}
-                    className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 text-xs transition-all shadow-md shadow-emerald-950"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open in WhatsApp App (Free)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSendWhatsAppApi}
-                    disabled={isSendingApi}
-                    className="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-emerald-400 font-bold rounded-xl border border-emerald-500/30 flex items-center justify-center gap-1.5 text-xs transition-all disabled:opacity-50"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isSendingApi ? "Sending API..." : "Send via Official Cloud API"}</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={emailSubject}
-                  onChange={(e) => setEmailSubject(e.target.value)}
-                  placeholder="Email Subject..."
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-medium"
-                />
-                <textarea
-                  value={emailBody}
-                  onChange={(e) => setEmailBody(e.target.value)}
-                  rows={4}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 font-sans resize-none"
-                  placeholder="Email body content..."
-                />
-                <button
-                  type="button"
-                  onClick={handleOpenEmail}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 text-xs transition-all"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Open Email Client & Send</span>
-                </button>
-              </div>
-            )}
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Enter discussion notes, vehicle requirement, client response, or next action..."
+              rows={4}
+              className="w-full bg-[#1c1c1e] border border-white/[0.08] rounded-xl p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-[#0A84FF] resize-none leading-relaxed"
+              autoFocus
+            />
           </div>
 
         </div>
 
-        {/* Modal Footer Controls */}
-        <div className="p-4 bg-white/5 border-t border-white/10 flex items-center justify-between gap-3">
+        {/* Footer */}
+        <div className="p-4 bg-white/[0.02] border-t border-white/[0.08] flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-zinc-400 hover:text-white text-xs font-semibold rounded-xl hover:bg-white/5 transition-colors"
+            className="px-4 py-2 text-xs font-medium text-white/50 hover:text-white transition-colors cursor-pointer"
           >
             Skip / Dismiss
           </button>
@@ -473,9 +266,9 @@ export function PostCallModal({
             {onSaveAndStay && (
               <button
                 type="button"
-                onClick={() => handleSave(false)}
                 disabled={isSaving}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold rounded-xl transition-all border border-white/10 disabled:opacity-50"
+                onClick={() => handleSave(false)}
+                className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] text-white font-semibold rounded-xl text-xs border border-white/[0.08] transition-colors cursor-pointer disabled:opacity-50"
               >
                 Save & Stay
               </button>
@@ -483,12 +276,12 @@ export function PostCallModal({
 
             <button
               type="button"
-              onClick={() => handleSave(true)}
               disabled={isSaving}
-              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 disabled:opacity-50"
+              onClick={() => handleSave(true)}
+              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
             >
               <span>{isSaving ? "Saving..." : "Save Note & Next Prospect"}</span>
-              <ChevronRight className="w-4 h-4 stroke-[3]" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
