@@ -185,6 +185,10 @@ export default async function organizationRouter(app: FastifyInstance) {
 
     if (resolved.type === 'TENANT' && resolved.tenantBranding) {
       const tb = resolved.tenantBranding;
+      const tenantFeatures = await app.prisma.tenantFeatures.findUnique({
+        where: { tenantId: resolved.tenantId },
+      });
+
       return {
         id: tb.id,
         name: tb.tenant.name,
@@ -211,10 +215,46 @@ export default async function organizationRouter(app: FastifyInstance) {
         bankIfsc: tb.ifscCode,
         swiftCode: tb.swiftCode,
         bankBranch: tb.bankBranch,
+        features: tenantFeatures ? {
+          crmEnabled: tenantFeatures.crmEnabled ?? true,
+          powerDialerEnabled: tenantFeatures.powerDialerEnabled ?? true,
+          hrmEnabled: tenantFeatures.hrmEnabled ?? true,
+          projectsEnabled: tenantFeatures.projectsEnabled ?? true,
+          financeEnabled: tenantFeatures.financeEnabled ?? true,
+          marketingEnabled: tenantFeatures.marketingEnabled ?? true,
+          automationsEnabled: tenantFeatures.automationsEnabled ?? true,
+          portalEnabled: tenantFeatures.portalEnabled ?? true,
+          customDomainAllowed: tenantFeatures.customDomainAllowed ?? false,
+          whiteLabelPdfAllowed: tenantFeatures.whiteLabelPdfAllowed ?? false,
+          aiAssistantAllowed: tenantFeatures.aiAssistantAllowed ?? false,
+        } : {
+          crmEnabled: true,
+          powerDialerEnabled: true,
+          hrmEnabled: true,
+          projectsEnabled: true,
+          financeEnabled: true,
+          marketingEnabled: true,
+          automationsEnabled: true,
+          portalEnabled: true,
+          customDomainAllowed: false,
+          whiteLabelPdfAllowed: false,
+          aiAssistantAllowed: false,
+        }
       };
     }
 
     const org = resolved.org!;
+    let orgFeatures = (org as any).features;
+    if (!orgFeatures && org.workspaceId) {
+      const relatedTenant = await app.prisma.tenant.findFirst({
+        where: { OR: [{ id: org.id }, { workspaceId: org.workspaceId }] },
+        include: { features: true }
+      });
+      if (relatedTenant?.features) {
+        orgFeatures = relatedTenant.features;
+      }
+    }
+
     return {
       ...org,
       name: org.name || "Grekam Garage OS",
@@ -229,6 +269,31 @@ export default async function organizationRouter(app: FastifyInstance) {
       bankIfsc: org.ifscCode || null,
       accountNumber: org.accountNumber || null,
       ifscCode: org.ifscCode || null,
+      features: orgFeatures ? {
+        crmEnabled: orgFeatures.crmEnabled ?? true,
+        powerDialerEnabled: orgFeatures.powerDialerEnabled ?? true,
+        hrmEnabled: orgFeatures.hrmEnabled ?? true,
+        projectsEnabled: orgFeatures.projectsEnabled ?? true,
+        financeEnabled: orgFeatures.financeEnabled ?? true,
+        marketingEnabled: orgFeatures.marketingEnabled ?? true,
+        automationsEnabled: orgFeatures.automationsEnabled ?? true,
+        portalEnabled: orgFeatures.portalEnabled ?? true,
+        customDomainAllowed: orgFeatures.customDomainAllowed ?? false,
+        whiteLabelPdfAllowed: orgFeatures.whiteLabelPdfAllowed ?? false,
+        aiAssistantAllowed: orgFeatures.aiAssistantAllowed ?? false,
+      } : {
+        crmEnabled: true,
+        powerDialerEnabled: true,
+        hrmEnabled: true,
+        projectsEnabled: true,
+        financeEnabled: true,
+        marketingEnabled: true,
+        automationsEnabled: true,
+        portalEnabled: true,
+        customDomainAllowed: false,
+        whiteLabelPdfAllowed: false,
+        aiAssistantAllowed: false,
+      }
     };
   });
 

@@ -67,7 +67,7 @@ export async function GET(req: Request) {
         email: org.ownerEmail || "N/A",
         phone: org.ownerPhone || "N/A",
         type: org.partnerId ? "Reseller" : "Direct",
-        plan: org.subscription === "ACTIVE" ? "Growth Plan" : "Starter Plan",
+        plan: org.subscription && org.subscription !== "ACTIVE" ? org.subscription : "Growth Plan",
         reseller: org.partnerId ? (partnerMap.get(org.partnerId)?.companyName || "Reseller Partner") : "Direct Customer",
         status: org.status === "ACTIVE" ? "Active" : org.status === "PENDING_ACTIVATION" ? "Pending Activation" : (org.status || "Active"),
         renewal: new Date(new Date(org.createdAt).setFullYear(new Date(org.createdAt).getFullYear() + 1)).toISOString().split("T")[0],

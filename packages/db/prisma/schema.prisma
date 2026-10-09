@@ -480,6 +480,7 @@ model Organization {
   ownerPhone     String?
   status         String?
   subscription   String?
+  features       Json?
 
   // Reseller / Whitelabel Partner Tracking
   partnerId            String?

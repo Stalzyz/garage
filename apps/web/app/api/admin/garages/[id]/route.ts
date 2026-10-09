@@ -2,6 +2,15 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/require-admin"
 import { prisma } from "@/lib/prisma"
 
+function mapToTenantPlan(planName?: string | null): "STARTER" | "GROWTH" | "ENTERPRISE" | "FREE" {
+  if (!planName) return "GROWTH"
+  const p = planName.toUpperCase()
+  if (p.includes("FREE")) return "FREE"
+  if (p.includes("STARTER") || p.includes("BASIC")) return "STARTER"
+  if (p.includes("ENTERPRISE") || p.includes("PRO") || p.includes("CUSTOM") || p.includes("WHITE")) return "ENTERPRISE"
+  return "GROWTH"
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -46,6 +55,7 @@ export async function GET(
     }
 
     const ownerUser = tenant?.members.find(m => m.role === "OWNER")?.user || tenant?.members[0]?.user
+    const savedFeatures = (tenant?.features as any) || (org?.features as any) || {}
 
     const result = {
       id: tenant?.id || org?.id,
@@ -53,7 +63,7 @@ export async function GET(
       slug: tenant?.slug || org?.slug || "",
       domain: tenant?.customDomain || org?.domain || "",
       status: tenant?.status || org?.status || "ACTIVE",
-      plan: tenant?.plan || org?.subscription || "GROWTH",
+      plan: org?.subscription || tenant?.plan || "Growth Plan",
       renewalDate: org?.createdAt ? new Date(new Date(org.createdAt).setFullYear(new Date(org.createdAt).getFullYear() + 1)).toISOString() : null,
       owner: {
         name: ownerUser ? `${ownerUser.firstName || ''} ${ownerUser.lastName || ''}`.trim() : (org?.ownerName || "Garage Owner"),
@@ -73,17 +83,17 @@ export async function GET(
         supportPhone: tenant?.branding?.supportPhone || org?.phone || "",
       },
       features: {
-        crmEnabled: tenant?.features?.crmEnabled ?? true,
-        powerDialerEnabled: tenant?.features?.powerDialerEnabled ?? true,
-        hrmEnabled: tenant?.features?.hrmEnabled ?? true,
-        projectsEnabled: tenant?.features?.projectsEnabled ?? true,
-        financeEnabled: tenant?.features?.financeEnabled ?? true,
-        marketingEnabled: tenant?.features?.marketingEnabled ?? true,
-        automationsEnabled: tenant?.features?.automationsEnabled ?? true,
-        portalEnabled: tenant?.features?.portalEnabled ?? true,
-        customDomainAllowed: tenant?.features?.customDomainAllowed ?? true,
-        whiteLabelPdfAllowed: tenant?.features?.whiteLabelPdfAllowed ?? true,
-        aiAssistantAllowed: tenant?.features?.aiAssistantAllowed ?? true,
+        crmEnabled: savedFeatures.crmEnabled ?? true,
+        powerDialerEnabled: savedFeatures.powerDialerEnabled ?? true,
+        hrmEnabled: savedFeatures.hrmEnabled ?? true,
+        projectsEnabled: savedFeatures.projectsEnabled ?? true,
+        financeEnabled: savedFeatures.financeEnabled ?? true,
+        marketingEnabled: savedFeatures.marketingEnabled ?? true,
+        automationsEnabled: savedFeatures.automationsEnabled ?? true,
+        portalEnabled: savedFeatures.portalEnabled ?? true,
+        customDomainAllowed: savedFeatures.customDomainAllowed ?? true,
+        whiteLabelPdfAllowed: savedFeatures.whiteLabelPdfAllowed ?? true,
+        aiAssistantAllowed: savedFeatures.aiAssistantAllowed ?? true,
       }
     }
 
@@ -116,9 +126,8 @@ export async function PATCH(
       branding 
     } = body
 
-    // Locate Tenant and Organization. `members.user.email` is read below to find the
-    // owner account, so members must be included here (the GET handler had it).
-    const tenant = await prisma.tenant.findFirst({
+    // Locate Tenant and Organization.
+    let tenant = await prisma.tenant.findFirst({
       where: { OR: [{ id }, { workspaceId: id }] },
       include: { members: { include: { user: true } } }
     })
@@ -130,13 +139,38 @@ export async function PATCH(
       return NextResponse.json({ error: "Garage record not found." }, { status: 404 })
     }
 
+    const targetTenantPlan = mapToTenantPlan(plan)
+
+    // Ensure Tenant exists if only Organization was present
+    if (!tenant && org) {
+      const slug = (org.slug || org.name || "garage").toLowerCase().replace(/[^a-z0-9]/g, "")
+      tenant = await prisma.tenant.upsert({
+        where: { slug },
+        update: {
+          workspaceId: org.workspaceId || `ws_${org.id}`,
+          name: name || org.name,
+          plan: targetTenantPlan,
+          status: (status as any) || "ACTIVE",
+        },
+        create: {
+          id: org.id,
+          workspaceId: org.workspaceId || `ws_${org.id}`,
+          name: name || org.name,
+          slug,
+          plan: targetTenantPlan,
+          status: (status as any) || "ACTIVE",
+        },
+        include: { members: { include: { user: true } } }
+      }).catch(() => null)
+    }
+
     // 1. Update Tenant if exists
     if (tenant) {
       await prisma.tenant.update({
         where: { id: tenant.id },
         data: {
           ...(name && { name }),
-          ...(plan && { plan: plan as any }),
+          ...(plan && { plan: targetTenantPlan }),
           ...(status && { status: status as any }),
         }
       })
@@ -214,6 +248,7 @@ export async function PATCH(
           ...(name && { name }),
           ...(plan && { subscription: plan }),
           ...(status && { status }),
+          ...(features && { features }),
           ...(ownerName && { ownerName }),
           ...(ownerEmail && { ownerEmail }),
           ...(ownerPhone && { ownerPhone }),
@@ -232,7 +267,7 @@ export async function PATCH(
           OR: [
             { activeTenantId: tenant?.id },
             { organizationId: org?.id },
-            { email: tenant?.members[0]?.user?.email || org?.ownerEmail || "" }
+            { email: tenant?.members?.[0]?.user?.email || org?.ownerEmail || "" }
           ]
         }
       })

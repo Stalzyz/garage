@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { AIAssistButton } from "@/components/ui/ai-assist-button"
 import { formatAudioStreamingUrl } from "@/lib/utils"
 import { PostCallModal } from "@/components/crm/PostCallModal"
+import { useOrganization } from "@/context/OrganizationContext"
 
 export interface UnifiedDialerRecord {
   id: string
@@ -53,6 +54,10 @@ const DEFAULT_SETTINGS: DialerSettings = {
 
 export default function PowerDialerDashboard() {
   const { data: session } = useSession()
+  const org = useOrganization()
+
+  const isSuperAdmin = (session?.user as any)?.role === "SUPER_ADMIN"
+  const isDialerDisabled = !isSuperAdmin && org.features && org.features.powerDialerEnabled === false
 
   // Navigation tab view: 'dialer' or 'recordings'
   const [viewMode, setViewMode] = useState<"dialer" | "recordings">("dialer")
@@ -868,6 +873,20 @@ export default function PowerDialerDashboard() {
       annualNetSavings,
     }
   }, [calcAgents, calcCallsPerDay, calcAvgDurationMins])
+
+  if (isDialerDisabled) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center min-h-[70vh] text-center space-y-4">
+        <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shadow-xl">
+          <PhoneOff className="w-12 h-12" />
+        </div>
+        <h2 className="text-xl font-bold text-white">Power Dialer Module Disabled</h2>
+        <p className="text-xs text-zinc-400 max-w-md leading-relaxed">
+          The Power Dialer & Call Intelligence module is disabled for your workshop workspace. Contact your administrator or account manager to enable this module in your subscription plan.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">

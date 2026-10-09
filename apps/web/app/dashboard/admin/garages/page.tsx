@@ -11,6 +11,7 @@ export default function SuperAdminGaragesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [garages, setGarages] = useState<any[]>([])
+  const [availablePlans, setAvailablePlans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Reset Password Modal State
@@ -26,7 +27,7 @@ export default function SuperAdminGaragesPage() {
 
   const [editForm, setEditForm] = useState({
     name: "",
-    plan: "GROWTH",
+    plan: "Growth Plan",
     status: "ACTIVE",
     renewalDate: "",
     ownerName: "",
@@ -53,12 +54,22 @@ export default function SuperAdminGaragesPage() {
     email: "",
     phone: "",
     password: "",
-    plan: "Growth Garage",
+    plan: "Growth Agency",
     type: "Direct",
   })
 
   const generateRandomPassword = () => {
     return `Garage@${Math.floor(1000 + Math.random() * 9000)}!`
+  }
+
+  const fetchPlans = async () => {
+    try {
+      const res = await fetch("/api/admin/plans")
+      const data = await res.json()
+      if (data.plans && Array.isArray(data.plans)) {
+        setAvailablePlans(data.plans)
+      }
+    } catch {}
   }
 
   const fetchGarages = async () => {
@@ -79,6 +90,7 @@ export default function SuperAdminGaragesPage() {
   }
 
   useEffect(() => {
+    fetchPlans()
     fetchGarages()
   }, [activeTab])
 
@@ -445,12 +457,44 @@ export default function SuperAdminGaragesPage() {
                       <label className="block text-zinc-400 mb-1 font-semibold">Assigned Plan Tier</label>
                       <select
                         value={editForm.plan}
-                        onChange={(e) => setEditForm({ ...editForm, plan: e.target.value })}
+                        onChange={(e) => {
+                          const selectedPlanName = e.target.value
+                          setEditForm(prev => {
+                            const planObj = availablePlans.find(p => p.name === selectedPlanName || p.slug === selectedPlanName || p.id === selectedPlanName)
+                            if (planObj && planObj.modules && Array.isArray(planObj.modules) && planObj.modules.length > 0) {
+                              const mods: string[] = planObj.modules
+                              const newFeats = { ...prev.features }
+                              newFeats.crmEnabled = mods.some(m => m.toLowerCase().includes("crm") || m.toLowerCase().includes("sales") || m.toLowerCase().includes("lead"))
+                              newFeats.powerDialerEnabled = mods.some(m => m.toLowerCase().includes("dialer") || m.toLowerCase().includes("call"))
+                              newFeats.projectsEnabled = mods.some(m => m.toLowerCase().includes("project") || m.toLowerCase().includes("kanban") || m.toLowerCase().includes("task"))
+                              newFeats.financeEnabled = mods.some(m => m.toLowerCase().includes("finance") || m.toLowerCase().includes("invoic") || m.toLowerCase().includes("billing"))
+                              newFeats.hrmEnabled = mods.some(m => m.toLowerCase().includes("hr") || m.toLowerCase().includes("payroll") || m.toLowerCase().includes("attendance"))
+                              newFeats.marketingEnabled = mods.some(m => m.toLowerCase().includes("market") || m.toLowerCase().includes("campaign"))
+                              newFeats.automationsEnabled = mods.some(m => m.toLowerCase().includes("automat") || m.toLowerCase().includes("flow"))
+                              newFeats.portalEnabled = mods.some(m => m.toLowerCase().includes("portal") || m.toLowerCase().includes("customer") || m.toLowerCase().includes("client"))
+                              newFeats.whiteLabelPdfAllowed = mods.some(m => m.toLowerCase().includes("white label") || m.toLowerCase().includes("whitelabel") || m.toLowerCase().includes("pdf"))
+                              newFeats.customDomainAllowed = mods.some(m => m.toLowerCase().includes("custom domain") || m.toLowerCase().includes("white label") || m.toLowerCase().includes("domain"))
+                              newFeats.aiAssistantAllowed = mods.some(m => m.toLowerCase().includes("ai"))
+                              return { ...prev, plan: selectedPlanName, features: newFeats }
+                            }
+                            return { ...prev, plan: selectedPlanName }
+                          })
+                        }}
                         className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-blue-500"
                       >
-                        <option value="STARTER">Starter Plan (Basic)</option>
-                        <option value="GROWTH">Growth Plan (Standard)</option>
-                        <option value="ENTERPRISE">Enterprise Plan (Full Access)</option>
+                        {availablePlans.length > 0 ? (
+                          availablePlans.map((p) => (
+                            <option key={p.id || p.name} value={p.name}>
+                              {p.name} (₹{Number(p.yearlyOfferPrice || p.yearlyPrice || 0).toLocaleString("en-IN")}/yr)
+                            </option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="Starter Plan">Starter Plan (Basic)</option>
+                            <option value="Growth Plan">Growth Plan (Standard)</option>
+                            <option value="Enterprise Plan">Enterprise Plan (Full Access)</option>
+                          </>
+                        )}
                       </select>
                     </div>
 
@@ -665,6 +709,29 @@ export default function SuperAdminGaragesPage() {
                   onChange={(e) => setNewForm({ ...newForm, email: e.target.value })} 
                   className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500" 
                 />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">Initial Plan Tier</label>
+                <select
+                  value={newForm.plan}
+                  onChange={(e) => setNewForm({ ...newForm, plan: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500"
+                >
+                  {availablePlans.length > 0 ? (
+                    availablePlans.map((p) => (
+                      <option key={p.id || p.name} value={p.name} className="bg-zinc-900 text-white">
+                        {p.name} (₹{Number(p.yearlyOfferPrice || p.yearlyPrice || 0).toLocaleString("en-IN")}/yr)
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Starter Plan" className="bg-zinc-900 text-white">Starter Plan</option>
+                      <option value="Growth Plan" className="bg-zinc-900 text-white">Growth Plan</option>
+                      <option value="Enterprise Plan" className="bg-zinc-900 text-white">Enterprise Plan</option>
+                    </>
+                  )}
+                </select>
               </div>
 
               <div>

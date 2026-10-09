@@ -239,25 +239,77 @@ export const navigation: NavItem[] = [
   },
 ]
 
-export const getNavItemsByRole = (role: string, customPermissions?: string[]) => {
+export const getNavItemsByRole = (
+  role: string, 
+  customPermissions?: string[],
+  features?: {
+    crmEnabled?: boolean;
+    powerDialerEnabled?: boolean;
+    hrmEnabled?: boolean;
+    projectsEnabled?: boolean;
+    financeEnabled?: boolean;
+    marketingEnabled?: boolean;
+    automationsEnabled?: boolean;
+    portalEnabled?: boolean;
+    customDomainAllowed?: boolean;
+    whiteLabelPdfAllowed?: boolean;
+    aiAssistantAllowed?: boolean;
+  }
+) => {
   let normRole = (role || "").toUpperCase()
   if (normRole === "FREELANCE") normRole = "FREELANCER"
   if (normRole === "GARAGE_OWNER" || normRole === "OWNER") normRole = "ADMIN"
   if (normRole === "RESELLER") normRole = "RESELLER_ADMIN"
 
-  return navigation.filter((item) => {
-    // Core workspace and productivity links are always available to roles that include them
-    if (["/dashboard", "/dashboard/ess", "/dashboard/tasks", "/dashboard/team-hub", "/dashboard/notifications", "/dashboard/chat"].includes(item.href)) {
-      return item.roles.includes(normRole as Role)
-    }
-    if (customPermissions && customPermissions.length > 0 && item.resource) {
-      const hasExplicitPermission = customPermissions.some(cp => 
-        cp.toLowerCase() === item.resource?.toLowerCase() ||
-        cp.toLowerCase().includes(item.resource?.toLowerCase() || '') ||
-        (item.resource && cp.toLowerCase().includes('crm') && item.resource.toLowerCase().includes('crm'))
-      )
-      if (hasExplicitPermission) return true
-    }
-    return item.roles.includes(normRole as Role)
-  })
+  const isSuperAdmin = normRole === "SUPER_ADMIN"
+
+  return navigation
+    .filter((item) => {
+      // 1. Core workspace and productivity links
+      let allowed = false
+      if (["/dashboard", "/dashboard/ess", "/dashboard/tasks", "/dashboard/team-hub", "/dashboard/notifications", "/dashboard/chat"].includes(item.href)) {
+        allowed = item.roles.includes(normRole as Role)
+      } else if (customPermissions && customPermissions.length > 0 && item.resource) {
+        allowed = customPermissions.some(cp => 
+          cp.toLowerCase() === item.resource?.toLowerCase() ||
+          cp.toLowerCase().includes(item.resource?.toLowerCase() || '') ||
+          (item.resource && cp.toLowerCase().includes('crm') && item.resource.toLowerCase().includes('crm'))
+        ) || item.roles.includes(normRole as Role)
+      } else {
+        allowed = item.roles.includes(normRole as Role)
+      }
+
+      if (!allowed) return false
+
+      // 2. Feature Entitlement Gate (Super Admin always has full access)
+      if (isSuperAdmin || !features) return true
+
+      if (item.href === "/dashboard/crm" && features.crmEnabled === false) return false
+      if (item.href === "/dashboard/projects" && features.projectsEnabled === false) return false
+      if (item.href === "/dashboard/finance" && features.financeEnabled === false) return false
+      if (item.href === "/dashboard/hr" && features.hrmEnabled === false) return false
+      if (item.href.startsWith("/dashboard/marketing") && features.marketingEnabled === false) return false
+      if (item.href === "/dashboard/automations" && features.automationsEnabled === false) return false
+
+      return true
+    })
+    .map((item) => {
+      // Filter child navigation items based on granular feature flags
+      if (!isSuperAdmin && features && item.children) {
+        let filteredChildren = item.children
+
+        // Power Dialer sub-items
+        if (features.powerDialerEnabled === false) {
+          filteredChildren = filteredChildren.filter(
+            child => child.href !== "/dashboard/crm/dialer" && child.href !== "/dashboard/crm/calls"
+          )
+        }
+
+        return {
+          ...item,
+          children: filteredChildren
+        }
+      }
+      return item
+    })
 }

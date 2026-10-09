@@ -2,6 +2,20 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+export interface OrganizationFeatures {
+  crmEnabled: boolean;
+  powerDialerEnabled: boolean;
+  hrmEnabled: boolean;
+  projectsEnabled: boolean;
+  financeEnabled: boolean;
+  marketingEnabled: boolean;
+  automationsEnabled: boolean;
+  portalEnabled: boolean;
+  customDomainAllowed: boolean;
+  whiteLabelPdfAllowed: boolean;
+  aiAssistantAllowed: boolean;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -28,7 +42,22 @@ export interface Organization {
   bankIfsc?: string | null;
   swiftCode?: string | null;
   bankBranch?: string | null;
+  features?: OrganizationFeatures;
 }
+
+const defaultFeatures: OrganizationFeatures = {
+  crmEnabled: true,
+  powerDialerEnabled: true,
+  hrmEnabled: true,
+  projectsEnabled: true,
+  financeEnabled: true,
+  marketingEnabled: true,
+  automationsEnabled: true,
+  portalEnabled: true,
+  customDomainAllowed: false,
+  whiteLabelPdfAllowed: false,
+  aiAssistantAllowed: false,
+};
 
 const defaultOrg: Organization = {
   id: "",
@@ -56,6 +85,7 @@ const defaultOrg: Organization = {
   bankIfsc: null,
   swiftCode: null,
   bankBranch: null,
+  features: defaultFeatures,
 };
 
 const OrganizationContext = createContext<Organization>(defaultOrg);
@@ -93,6 +123,10 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
           const finalOrg: Organization = {
             ...defaultOrg,
             ...orgData,
+            features: orgData.features ? {
+              ...defaultFeatures,
+              ...orgData.features,
+            } : defaultFeatures,
             logoUrl: orgData.logoUrl || null,
             academyLogoUrl: orgData.academyLogoUrl || null,
             faviconUrl: orgData.faviconUrl || null,
