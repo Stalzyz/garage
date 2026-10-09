@@ -18,7 +18,8 @@ import {
   Globe, 
   GraduationCap, 
   Building2, 
-  Trash2 
+  Trash2,
+  CreditCard
 } from "lucide-react"
 import { toast } from "sonner"
 import { useOrganization } from "@/context/OrganizationContext"
