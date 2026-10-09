@@ -18,9 +18,10 @@ export async function GET() {
     if (userTenantId) {
       const tb = await prisma.tenantBranding.findUnique({
         where: { tenantId: userTenantId },
-        include: { tenant: true }
+        include: { tenant: { include: { features: true } } }
       })
       if (tb) {
+        const tf = tb.tenant.features
         return NextResponse.json({
           success: true,
           id: tb.id,
@@ -47,13 +48,28 @@ export async function GET() {
           bankIfsc: tb.ifscCode || "",
           swiftCode: tb.swiftCode || "",
           bankBranch: tb.bankBranch || "",
+          subscription: tb.tenant.plan || "Growth Plan",
+          features: tf ? {
+            crmEnabled: tf.crmEnabled ?? true,
+            powerDialerEnabled: tf.powerDialerEnabled ?? true,
+            hrmEnabled: tf.hrmEnabled ?? true,
+            projectsEnabled: tf.projectsEnabled ?? true,
+            financeEnabled: tf.financeEnabled ?? true,
+            marketingEnabled: tf.marketingEnabled ?? true,
+            automationsEnabled: tf.automationsEnabled ?? true,
+            portalEnabled: tf.portalEnabled ?? true,
+            customDomainAllowed: tf.customDomainAllowed ?? true,
+            whiteLabelPdfAllowed: tf.whiteLabelPdfAllowed ?? true,
+            aiAssistantAllowed: tf.aiAssistantAllowed ?? true,
+          } : undefined,
         })
       }
     }
 
-    // 2. Check Organization by ID or Workspace ID or Master Org for Super Admin
+    // 2. Resolve Organization
     let org: any = null
-    if (userRole === 'SUPER_ADMIN' || !userTenantId) {
+
+    if (userRole === "SUPER_ADMIN") {
       if (userOrgId) {
         org = await prisma.organization.findUnique({ where: { id: userOrgId } })
       }
@@ -68,55 +84,123 @@ export async function GET() {
           }
         })
       }
+    } else {
+      // Non-SuperAdmin: Strictly find their own organization
+      if (userOrgId) {
+        org = await prisma.organization.findUnique({ where: { id: userOrgId } })
+      }
+      if (!org && session.user.email) {
+        org = await prisma.organization.findFirst({
+          where: { ownerEmail: { equals: session.user.email, mode: "insensitive" } }
+        })
+      }
+      if (!org && userWsId) {
+        org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
+      }
+      if (!org && session.user.email) {
+        // Also check if they are owner of a tenant
+        const tenantMember = await prisma.tenantMember.findFirst({
+          where: { user: { email: { equals: session.user.email, mode: "insensitive" } } },
+          include: { tenant: { include: { branding: true, features: true } } }
+        })
+        if (tenantMember?.tenant?.branding) {
+          const tb = tenantMember.tenant.branding
+          const tf = tenantMember.tenant.features
+          return NextResponse.json({
+            success: true,
+            id: tb.id,
+            name: tenantMember.tenant.name,
+            companyName: tb.companyName || tenantMember.tenant.name,
+            logoUrl: tb.logoUrl || null,
+            faviconUrl: tb.faviconUrl || null,
+            primaryColor: tb.primaryColor || "#2563eb",
+            secondaryColor: tb.secondaryColor || "#7c3aed",
+            accentColor: tb.accentColor || "#10b981",
+            darkModeDefault: tb.darkModeDefault ?? true,
+            supportEmail: tb.supportEmail || "support@grekam.in",
+            phone: tb.supportPhone || "+91 99000 00000",
+            website: tb.websiteUrl || "https://grekam.in",
+            billingAddress: tb.billingAddress || "",
+            gstNumber: tb.taxId || "",
+            panNumber: tb.taxId || "",
+            bankName: tb.bankName || "",
+            accountName: tb.accountName || "",
+            accountNumber: tb.accountNumber || "",
+            bankAccountNo: tb.accountNumber || "",
+            ifscCode: tb.ifscCode || "",
+            bankIfsc: tb.ifscCode || "",
+            swiftCode: tb.swiftCode || "",
+            bankBranch: tb.bankBranch || "",
+            subscription: tenantMember.tenant.plan || "Growth Plan",
+            features: tf ? {
+              crmEnabled: tf.crmEnabled ?? true,
+              powerDialerEnabled: tf.powerDialerEnabled ?? true,
+              hrmEnabled: tf.hrmEnabled ?? true,
+              projectsEnabled: tf.projectsEnabled ?? true,
+              financeEnabled: tf.financeEnabled ?? true,
+              marketingEnabled: tf.marketingEnabled ?? true,
+              automationsEnabled: tf.automationsEnabled ?? true,
+              portalEnabled: tf.portalEnabled ?? true,
+              customDomainAllowed: tf.customDomainAllowed ?? true,
+              whiteLabelPdfAllowed: tf.whiteLabelPdfAllowed ?? true,
+              aiAssistantAllowed: tf.aiAssistantAllowed ?? true,
+            } : undefined,
+          })
+        }
+      }
     }
 
-    if (!org && userOrgId) {
-      org = await prisma.organization.findUnique({ where: { id: userOrgId } })
-    }
-    if (!org && userWsId) {
-      org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
-    }
     if (!org) {
-      org = await prisma.organization.findFirst({
-        where: {
-          OR: [
-            { workspaceId: "ws_default_admin" },
-            { domain: "grekam.in" },
-            { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
-          ]
+      if (userRole === "SUPER_ADMIN") {
+        org = await prisma.organization.create({
+          data: {
+            workspaceId: "ws_default_admin",
+            name: "Grekam Garage OS",
+            companyName: "Grekam Garage & Technologies Pvt Ltd",
+            domain: "grekam.in",
+            ownerEmail: "admin@grekam.in",
+            primaryColor: "#2563eb",
+            secondaryColor: "#7c3aed",
+            accentColor: "#10b981",
+            darkModeDefault: true,
+            supportEmail: "support@grekam.in",
+            phone: "+91 99000 00000",
+            website: "https://grekam.in",
+            billingAddress: "MG Road, Tech Park, Bangalore, Karnataka, India",
+            gstNumber: "29AAAAA0000A1Z5",
+            panNumber: "AAAAA0000A",
+            bankName: "HDFC Bank Ltd",
+            accountName: "Grekam Garage & Technologies Pvt Ltd",
+            accountNumber: "50200012345678",
+            ifscCode: "HDFC0000123",
+            swiftCode: "HDFCINBB",
+            bankBranch: "Indiranagar, Bangalore",
+          }
+        })
+      } else {
+        const ws = userWsId || `ws_${(session.user as any).id}`
+        org = await prisma.organization.create({
+          data: {
+            workspaceId: ws,
+            name: session.user.name ? `${session.user.name}'s Garage` : "Grekam Garage",
+            companyName: session.user.name ? `${session.user.name} Garage Services` : "Grekam Garage Services",
+            ownerEmail: session.user.email || "",
+            ownerName: session.user.name || "Garage Owner",
+            primaryColor: "#2563eb",
+            secondaryColor: "#7c3aed",
+            accentColor: "#10b981",
+            darkModeDefault: true,
+            supportEmail: session.user.email || "support@grekam.in",
+            phone: "+91 99000 00000",
+          }
+        })
+        if ((session.user as any).id) {
+          await prisma.user.update({
+            where: { id: (session.user as any).id },
+            data: { organizationId: org.id }
+          }).catch(() => {})
         }
-      })
-    }
-    if (!org) {
-      org = await prisma.organization.findFirst()
-    }
-
-    if (!org) {
-      org = await prisma.organization.create({
-        data: {
-          workspaceId: "ws_default_admin",
-          name: "Grekam Garage OS",
-          companyName: "Grekam Garage & Technologies Pvt Ltd",
-          domain: "grekam.in",
-          ownerEmail: "admin@grekam.in",
-          primaryColor: "#2563eb",
-          secondaryColor: "#7c3aed",
-          accentColor: "#10b981",
-          darkModeDefault: true,
-          supportEmail: "support@grekam.in",
-          phone: "+91 99000 00000",
-          website: "https://grekam.in",
-          billingAddress: "MG Road, Tech Park, Bangalore, Karnataka, India",
-          gstNumber: "29AAAAA0000A1Z5",
-          panNumber: "AAAAA0000A",
-          bankName: "HDFC Bank Ltd",
-          accountName: "Grekam Garage & Technologies Pvt Ltd",
-          accountNumber: "50200012345678",
-          ifscCode: "HDFC0000123",
-          swiftCode: "HDFCINBB",
-          bankBranch: "Indiranagar, Bangalore",
-        }
-      })
+      }
     }
 
     return NextResponse.json({
@@ -145,6 +229,8 @@ export async function GET() {
       bankIfsc: org.ifscCode || "",
       swiftCode: org.swiftCode || "",
       bankBranch: org.bankBranch || "",
+      subscription: org.subscription || "Growth Plan",
+      features: org.features || undefined,
     })
   } catch (error: any) {
     console.error("Fetch organization settings error:", error)

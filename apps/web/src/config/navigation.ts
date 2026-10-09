@@ -288,6 +288,11 @@ export const getNavItemsByRole = (
       if (item.href === "/dashboard/projects" && features.projectsEnabled === false) return false
       if (item.href === "/dashboard/finance" && features.financeEnabled === false) return false
       if (item.href === "/dashboard/hr" && features.hrmEnabled === false) return false
+      if (item.href === "/dashboard/team-hub" && features.hrmEnabled === false) return false
+      if (item.href === "/dashboard/ess" && features.hrmEnabled === false) return false
+      if (item.href === "/dashboard/tasks" && features.projectsEnabled === false) return false
+      if (item.href === "/dashboard/drive" && features.projectsEnabled === false) return false
+      if (item.href === "/dashboard/vendors" && (features.financeEnabled === false && features.crmEnabled === false)) return false
       if (item.href.startsWith("/dashboard/marketing") && features.marketingEnabled === false) return false
       if (item.href === "/dashboard/automations" && features.automationsEnabled === false) return false
 

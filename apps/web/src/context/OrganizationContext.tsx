@@ -19,6 +19,7 @@ export interface OrganizationFeatures {
 export interface Organization {
   id: string;
   name: string;
+  subscription?: string | null;
   logoUrl?: string | null;
   academyLogoUrl?: string | null;
   faviconUrl?: string | null;
@@ -62,6 +63,7 @@ const defaultFeatures: OrganizationFeatures = {
 const defaultOrg: Organization = {
   id: "",
   name: "Grekam Garage OS",
+  subscription: "Growth Plan",
   logoUrl: null,
   academyLogoUrl: null,
   faviconUrl: null,
@@ -103,14 +105,34 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
     const fetchOrg = async () => {
       try {
-        // Try user organization settings first (for logged-in sessions)
-        let res = await fetch(`${API_BASE}/settings/organization`).catch(() => null);
         let data: any = null;
+
+        // 1. Try Next.js internal authenticated settings route (receives NextAuth session cookie seamlessly)
+        let res = await fetch(`/api/settings/organization`).catch(() => null);
         if (res && res.ok) {
-          data = await res.json();
+          const json = await res.json().catch(() => null);
+          if (json && !json.error) {
+            data = json.data || json;
+          }
         }
 
-        // If unauthenticated or no data returned, fallback to public domain branding resolver
+        // 2. Fallback to Express/Fastify API endpoint with token if available
+        if (!data || data.error) {
+          const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+          res = await fetch(`${API_BASE}/settings/organization`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+          }).catch(() => null);
+          if (res && res.ok) {
+            const json = await res.json().catch(() => null);
+            if (json && !json.error) {
+              data = json.data || json;
+            }
+          }
+        }
+
+        // 3. Fallback to public domain branding resolver
         if (!data || data.error) {
           const publicRes = await fetch(`/api/public/branding`).catch(() => null);
           if (publicRes && publicRes.ok) {

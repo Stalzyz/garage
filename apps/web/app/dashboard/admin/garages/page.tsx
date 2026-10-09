@@ -464,17 +464,17 @@ export default function SuperAdminGaragesPage() {
                             if (planObj && planObj.modules && Array.isArray(planObj.modules) && planObj.modules.length > 0) {
                               const mods: string[] = planObj.modules
                               const newFeats = { ...prev.features }
-                              newFeats.crmEnabled = mods.some(m => m.toLowerCase().includes("crm") || m.toLowerCase().includes("sales") || m.toLowerCase().includes("lead"))
-                              newFeats.powerDialerEnabled = mods.some(m => m.toLowerCase().includes("dialer") || m.toLowerCase().includes("call"))
-                              newFeats.projectsEnabled = mods.some(m => m.toLowerCase().includes("project") || m.toLowerCase().includes("kanban") || m.toLowerCase().includes("task"))
-                              newFeats.financeEnabled = mods.some(m => m.toLowerCase().includes("finance") || m.toLowerCase().includes("invoic") || m.toLowerCase().includes("billing"))
-                              newFeats.hrmEnabled = mods.some(m => m.toLowerCase().includes("hr") || m.toLowerCase().includes("payroll") || m.toLowerCase().includes("attendance"))
-                              newFeats.marketingEnabled = mods.some(m => m.toLowerCase().includes("market") || m.toLowerCase().includes("campaign"))
-                              newFeats.automationsEnabled = mods.some(m => m.toLowerCase().includes("automat") || m.toLowerCase().includes("flow"))
+                              newFeats.crmEnabled = mods.some(m => m.toLowerCase().includes("crm") || m.toLowerCase().includes("sales") || m.toLowerCase().includes("lead") || m.toLowerCase().includes("pipeline"))
+                              newFeats.powerDialerEnabled = mods.some(m => m.toLowerCase().includes("dialer") || m.toLowerCase().includes("call intel") || m.toLowerCase().includes("call"))
+                              newFeats.projectsEnabled = mods.some(m => m.toLowerCase().includes("project") || m.toLowerCase().includes("kanban") || m.toLowerCase().includes("asset hub") || m.toLowerCase().includes("task") || m.toLowerCase().includes("job card"))
+                              newFeats.financeEnabled = mods.some(m => m.toLowerCase().includes("finance") || m.toLowerCase().includes("invoic") || m.toLowerCase().includes("billing") || m.toLowerCase().includes("p&l"))
+                              newFeats.hrmEnabled = mods.some(m => m.toLowerCase().includes("hr") || m.toLowerCase().includes("payroll") || m.toLowerCase().includes("attendance") || m.toLowerCase().includes("identity") || m.toLowerCase().includes("employee"))
+                              newFeats.marketingEnabled = mods.some(m => m.toLowerCase().includes("market") || m.toLowerCase().includes("campaign") || m.toLowerCase().includes("scheduler"))
+                              newFeats.automationsEnabled = mods.some(m => m.toLowerCase().includes("automat") || m.toLowerCase().includes("flow") || m.toLowerCase().includes("engine"))
                               newFeats.portalEnabled = mods.some(m => m.toLowerCase().includes("portal") || m.toLowerCase().includes("customer") || m.toLowerCase().includes("client"))
                               newFeats.whiteLabelPdfAllowed = mods.some(m => m.toLowerCase().includes("white label") || m.toLowerCase().includes("whitelabel") || m.toLowerCase().includes("pdf"))
-                              newFeats.customDomainAllowed = mods.some(m => m.toLowerCase().includes("custom domain") || m.toLowerCase().includes("white label") || m.toLowerCase().includes("domain"))
-                              newFeats.aiAssistantAllowed = mods.some(m => m.toLowerCase().includes("ai"))
+                              newFeats.customDomainAllowed = mods.some(m => m.toLowerCase().includes("custom domain") || m.toLowerCase().includes("domain"))
+                              newFeats.aiAssistantAllowed = mods.some(m => m.toLowerCase().includes("ai") || m.toLowerCase().includes("assistant") || m.toLowerCase().includes("intel"))
                               return { ...prev, plan: selectedPlanName, features: newFeats }
                             }
                             return { ...prev, plan: selectedPlanName }

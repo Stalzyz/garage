@@ -11,6 +11,7 @@ import { DemoRoleSwitcherBar } from "@/components/layout/DemoRoleSwitcherBar"
 import { LiveTelemetryCollector } from "@/components/hr/LiveTelemetryCollector"
 import { CurrentUserProvider } from "@/context/CurrentUserContext"
 import { TenantProvider } from "@/context/TenantContext"
+import { FeatureGate } from "@/components/layout/FeatureGate"
 
 export default async function DashboardLayout({
   children,
@@ -43,7 +44,9 @@ export default async function DashboardLayout({
                 <CurrentUserProvider>
                   <Sidebar />
                   <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-w-0 bg-dash-bg-surface md:border-l border-dash-border-subtle relative z-10 pt-16 pb-24 md:pt-0 md:pb-0 transition-colors duration-200 print:overflow-visible print:h-auto print:block print:p-0 print:m-0 print:border-none print:shadow-none">
-                    {children}
+                    <FeatureGate>
+                      {children}
+                    </FeatureGate>
                   </main>
                   <div className="print:hidden">
                     <GlobalClockWidget />

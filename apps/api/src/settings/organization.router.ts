@@ -81,7 +81,7 @@ async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
     });
 
     if (user) {
-      if (user.role === 'SUPER_ADMIN' || !user.activeTenantId) {
+      if (user.role === 'SUPER_ADMIN') {
         let masterOrg: any = null;
         if (user.organizationId) {
           masterOrg = await app.prisma.organization.findUnique({ where: { id: user.organizationId } });
@@ -102,21 +102,44 @@ async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
         }
       }
 
-      let workspaceId = user.workspaceId || user.activeTenantId;
-      if (!workspaceId) {
-        workspaceId = `ws_${user.id}`;
-        await app.prisma.user.update({
-          where: { id: user.id },
-          data: { workspaceId }
+      if (user.activeTenantId) {
+        const tenantBranding = await app.prisma.tenantBranding.findUnique({
+          where: { tenantId: user.activeTenantId },
+          include: { tenant: true },
         });
+        if (tenantBranding) {
+          return { type: 'TENANT' as const, tenantBranding, tenantId: user.activeTenantId };
+        }
       }
 
       let org: any = null;
       if (user.organizationId) {
         org = await app.prisma.organization.findUnique({ where: { id: user.organizationId } });
       }
-      if (!org && workspaceId) {
-        org = await app.prisma.organization.findUnique({ where: { workspaceId } });
+      if (!org && user.email) {
+        org = await app.prisma.organization.findFirst({
+          where: { ownerEmail: { equals: user.email, mode: 'insensitive' } }
+        });
+      }
+      if (!org && user.workspaceId) {
+        org = await app.prisma.organization.findUnique({ where: { workspaceId: user.workspaceId } });
+      }
+      if (!org && user.email) {
+        const tm = await app.prisma.tenantMember.findFirst({
+          where: { user: { email: { equals: user.email, mode: 'insensitive' } } },
+          include: { tenant: { include: { branding: true } } }
+        });
+        if (tm?.tenant?.branding) {
+          return { type: 'TENANT' as const, tenantBranding: tm.tenant.branding, tenantId: tm.tenant.id };
+        }
+      }
+
+      let workspaceId = user.workspaceId || (org ? org.workspaceId : `ws_${user.id}`);
+      if (!user.workspaceId && workspaceId) {
+        await app.prisma.user.update({
+          where: { id: user.id },
+          data: { workspaceId }
+        }).catch(() => {});
       }
 
       if (!org) {
@@ -136,7 +159,7 @@ async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
         await app.prisma.user.update({
           where: { id: user.id },
           data: { organizationId: org.id }
-        });
+        }).catch(() => {});
       }
 
       return { type: 'ORGANIZATION' as const, org, workspaceId };
