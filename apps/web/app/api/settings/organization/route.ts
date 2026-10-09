@@ -12,6 +12,7 @@ export async function GET() {
     const userOrgId = (session.user as any).organizationId
     const userTenantId = (session.user as any).activeTenantId
     const userWsId = (session.user as any).workspaceId
+    const userRole = (session.user as any).role
 
     // 1. Check Tenant Branding if user is attached to a Tenant
     if (userTenantId) {
@@ -41,20 +42,50 @@ export async function GET() {
           bankName: tb.bankName || "",
           accountName: tb.accountName || "",
           accountNumber: tb.accountNumber || "",
+          bankAccountNo: tb.accountNumber || "",
           ifscCode: tb.ifscCode || "",
-          swiftCode: "",
+          bankIfsc: tb.ifscCode || "",
+          swiftCode: tb.swiftCode || "",
           bankBranch: tb.bankBranch || "",
         })
       }
     }
 
-    // 2. Check Organization by ID or Workspace ID
+    // 2. Check Organization by ID or Workspace ID or Master Org for Super Admin
     let org: any = null
-    if (userOrgId) {
+    if (userRole === 'SUPER_ADMIN' || !userTenantId) {
+      if (userOrgId) {
+        org = await prisma.organization.findUnique({ where: { id: userOrgId } })
+      }
+      if (!org) {
+        org = await prisma.organization.findFirst({
+          where: {
+            OR: [
+              { workspaceId: "ws_default_admin" },
+              { domain: "grekam.in" },
+              { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
+            ]
+          }
+        })
+      }
+    }
+
+    if (!org && userOrgId) {
       org = await prisma.organization.findUnique({ where: { id: userOrgId } })
     }
     if (!org && userWsId) {
       org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
+    }
+    if (!org) {
+      org = await prisma.organization.findFirst({
+        where: {
+          OR: [
+            { workspaceId: "ws_default_admin" },
+            { domain: "grekam.in" },
+            { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
+          ]
+        }
+      })
     }
     if (!org) {
       org = await prisma.organization.findFirst()
@@ -66,6 +97,8 @@ export async function GET() {
           workspaceId: "ws_default_admin",
           name: "Grekam Garage OS",
           companyName: "Grekam Garage & Technologies Pvt Ltd",
+          domain: "grekam.in",
+          ownerEmail: "admin@grekam.in",
           primaryColor: "#2563eb",
           secondaryColor: "#7c3aed",
           accentColor: "#10b981",
@@ -107,7 +140,9 @@ export async function GET() {
       bankName: org.bankName || "",
       accountName: org.accountName || "",
       accountNumber: org.accountNumber || "",
+      bankAccountNo: org.accountNumber || "",
       ifscCode: org.ifscCode || "",
+      bankIfsc: org.ifscCode || "",
       swiftCode: org.swiftCode || "",
       bankBranch: org.bankBranch || "",
     })
@@ -129,6 +164,10 @@ export async function PATCH(req: Request) {
     const userOrgId = (session.user as any).organizationId
     const userTenantId = (session.user as any).activeTenantId
     const userWsId = (session.user as any).workspaceId
+    const userRole = (session.user as any).role
+
+    const accNumber = body.accountNumber || body.bankAccountNo
+    const ifsc = body.ifscCode || body.bankIfsc
 
     if (userTenantId) {
       const updatedTb = await prisma.tenantBranding.upsert({
@@ -149,8 +188,9 @@ export async function PATCH(req: Request) {
           taxId: body.gstNumber || body.panNumber || null,
           bankName: body.bankName || null,
           accountName: body.accountName || null,
-          accountNumber: body.accountNumber || null,
-          ifscCode: body.ifscCode || null,
+          accountNumber: accNumber || null,
+          ifscCode: ifsc || null,
+          swiftCode: body.swiftCode || null,
           bankBranch: body.bankBranch || null,
         },
         update: {
@@ -168,8 +208,9 @@ export async function PATCH(req: Request) {
           ...(body.gstNumber !== undefined && { taxId: body.gstNumber || null }),
           ...(body.bankName !== undefined && { bankName: body.bankName || null }),
           ...(body.accountName !== undefined && { accountName: body.accountName || null }),
-          ...(body.accountNumber !== undefined && { accountNumber: body.accountNumber || null }),
-          ...(body.ifscCode !== undefined && { ifscCode: body.ifscCode || null }),
+          ...(accNumber !== undefined && { accountNumber: accNumber || null }),
+          ...(ifsc !== undefined && { ifscCode: ifsc || null }),
+          ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
           ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
         }
       })
@@ -189,11 +230,39 @@ export async function PATCH(req: Request) {
     }
 
     let org: any = null
-    if (userOrgId) {
+    if (userRole === 'SUPER_ADMIN' || !userTenantId) {
+      if (userOrgId) {
+        org = await prisma.organization.findUnique({ where: { id: userOrgId } })
+      }
+      if (!org) {
+        org = await prisma.organization.findFirst({
+          where: {
+            OR: [
+              { workspaceId: "ws_default_admin" },
+              { domain: "grekam.in" },
+              { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
+            ]
+          }
+        })
+      }
+    }
+
+    if (!org && userOrgId) {
       org = await prisma.organization.findUnique({ where: { id: userOrgId } })
     }
     if (!org && userWsId) {
       org = await prisma.organization.findUnique({ where: { workspaceId: userWsId } })
+    }
+    if (!org) {
+      org = await prisma.organization.findFirst({
+        where: {
+          OR: [
+            { workspaceId: "ws_default_admin" },
+            { domain: "grekam.in" },
+            { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
+          ]
+        }
+      })
     }
     if (!org) {
       org = await prisma.organization.findFirst()
@@ -204,6 +273,8 @@ export async function PATCH(req: Request) {
           workspaceId: userWsId || "ws_default_admin",
           name: body.name || "Grekam Garage OS",
           companyName: body.companyName || "Grekam Garage & Technologies Pvt Ltd",
+          domain: "grekam.in",
+          ownerEmail: "admin@grekam.in",
         }
       })
     }
@@ -228,8 +299,8 @@ export async function PATCH(req: Request) {
         ...(body.panNumber !== undefined && { panNumber: body.panNumber || null }),
         ...(body.bankName !== undefined && { bankName: body.bankName || null }),
         ...(body.accountName !== undefined && { accountName: body.accountName || null }),
-        ...(body.accountNumber !== undefined && { accountNumber: body.accountNumber || null }),
-        ...(body.ifscCode !== undefined && { ifscCode: body.ifscCode || null }),
+        ...(accNumber !== undefined && { accountNumber: accNumber || null }),
+        ...(ifsc !== undefined && { ifscCode: ifsc || null }),
         ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
         ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
       }
@@ -249,3 +320,4 @@ export async function PATCH(req: Request) {
 export async function POST(req: Request) {
   return PATCH(req)
 }
+

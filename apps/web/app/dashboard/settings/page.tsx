@@ -31,7 +31,7 @@ export default function SystemSettingsPage() {
   const [academyLogoPreview, setAcademyLogoPreview] = useState<string | null>(null)
   const [academyFaviconPreview, setAcademyFaviconPreview] = useState<string | null>(null)
   const [logoUploading, setLogoUploading] = useState(false)
-  const [workspaceName, setWorkspaceName] = useState('Grekam Visuals')
+  const [workspaceName, setWorkspaceName] = useState('Grekam Garage OS')
   const [companyName, setCompanyName] = useState('')
   const [panNumber, setPanNumber] = useState('')
   const [gstNumber, setGstNumber] = useState('')
@@ -39,6 +39,12 @@ export default function SystemSettingsPage() {
   const [website, setWebsite] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
   const [billingAddress, setBillingAddress] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [accountName, setAccountName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [ifscCode, setIfscCode] = useState('')
+  const [swiftCode, setSwiftCode] = useState('')
+  const [bankBranch, setBankBranch] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const faviconInputRef = useRef<HTMLInputElement>(null)
@@ -60,6 +66,16 @@ export default function SystemSettingsPage() {
     if (org.website) setWebsite(org.website)
     if (org.supportEmail) setSupportEmail(org.supportEmail)
     if (org.billingAddress) setBillingAddress(org.billingAddress)
+    if ((org as any).bankName) setBankName((org as any).bankName)
+    if ((org as any).accountName) setAccountName((org as any).accountName)
+    if ((org as any).accountNumber || (org as any).bankAccountNo) {
+      setAccountNumber((org as any).accountNumber || (org as any).bankAccountNo)
+    }
+    if ((org as any).ifscCode || (org as any).bankIfsc) {
+      setIfscCode((org as any).ifscCode || (org as any).bankIfsc)
+    }
+    if ((org as any).swiftCode) setSwiftCode((org as any).swiftCode)
+    if ((org as any).bankBranch) setBankBranch((org as any).bankBranch)
   }, [org])
 
   const handleFileUpload = async (file: File, setter: (val: string) => void) => {
@@ -92,7 +108,7 @@ export default function SystemSettingsPage() {
     try {
       setLogoUploading(true)
       const body: Record<string, string | null> = { 
-        name: workspaceName,
+        name: workspaceName ? workspaceName.trim() : null,
         companyName: companyName ? companyName.trim() : null,
         panNumber: panNumber ? panNumber.trim().toUpperCase() : null,
         gstNumber: gstNumber ? gstNumber.trim().toUpperCase() : null,
@@ -100,6 +116,14 @@ export default function SystemSettingsPage() {
         website: website ? website.trim() : null,
         supportEmail: supportEmail ? supportEmail.trim() : null,
         billingAddress: billingAddress ? billingAddress.trim() : null,
+        bankName: bankName ? bankName.trim() : null,
+        accountName: accountName ? accountName.trim() : null,
+        accountNumber: accountNumber ? accountNumber.trim() : null,
+        bankAccountNo: accountNumber ? accountNumber.trim() : null,
+        ifscCode: ifscCode ? ifscCode.trim().toUpperCase() : null,
+        bankIfsc: ifscCode ? ifscCode.trim().toUpperCase() : null,
+        swiftCode: swiftCode ? swiftCode.trim().toUpperCase() : null,
+        bankBranch: bankBranch ? bankBranch.trim() : null,
         logoUrl: logoPreview || null,
         faviconUrl: faviconPreview || null,
         academyLogoUrl: academyLogoPreview || null,
@@ -121,8 +145,8 @@ export default function SystemSettingsPage() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('organization-updated'));
       }
-    } catch (err) {
-      toast.error('Failed to save settings.')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save settings.')
     } finally {
       setLogoUploading(false)
     }
@@ -390,6 +414,40 @@ export default function SystemSettingsPage() {
                   <div className="col-span-2 md:col-span-1 space-y-1.5">
                     <label className="text-xs font-medium text-white/60 block">Billing & Official Address</label>
                     <textarea rows={3} value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Chennai, Tamil Nadu, India" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF] resize-none" />
+                  </div>
+                </div>
+
+                {/* Banking & Settlement Particulars */}
+                <div className="border-t border-white/[0.06] pt-5 mt-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-white/60" />
+                    <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Settlement & Bank Details</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">Bank Name</label>
+                      <input type="text" value={bankName} onChange={e => setBankName(e.target.value)} placeholder="HDFC Bank Ltd" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">Account Beneficiary Name</label>
+                      <input type="text" value={accountName} onChange={e => setAccountName(e.target.value)} placeholder="Grekam Garage & Tech Pvt Ltd" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">Account Number</label>
+                      <input type="text" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} placeholder="50200012345678" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">IFSC Code</label>
+                      <input type="text" value={ifscCode} onChange={e => setIfscCode(e.target.value.toUpperCase())} placeholder="HDFC0000123" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">SWIFT / BIC Code</label>
+                      <input type="text" value={swiftCode} onChange={e => setSwiftCode(e.target.value.toUpperCase())} placeholder="HDFCINBB" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs font-mono uppercase text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-white/60 block">Branch Name</label>
+                      <input type="text" value={bankBranch} onChange={e => setBankBranch(e.target.value)} placeholder="Indiranagar, Bangalore" className="w-full bg-[#121214] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]" />
+                    </div>
                   </div>
                 </div>
               </div>

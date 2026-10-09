@@ -110,7 +110,16 @@ export async function GET(req: Request) {
     }
 
     // Default platform fallback
-    const defaultOrg = await prisma.organization.findFirst()
+    const defaultOrg = await prisma.organization.findFirst({
+      where: {
+        OR: [
+          { workspaceId: "ws_default_admin" },
+          { domain: "grekam.in" },
+          { ownerEmail: { equals: "admin@grekam.in", mode: "insensitive" } },
+        ]
+      }
+    }) || await prisma.organization.findFirst()
+
     return NextResponse.json({
       success: true,
       data: {

@@ -21,32 +21,40 @@ export interface Organization {
   panNumber?: string | null;
   companyName?: string | null;
   bankName?: string | null;
+  accountName?: string | null;
+  accountNumber?: string | null;
   bankAccountNo?: string | null;
+  ifscCode?: string | null;
   bankIfsc?: string | null;
+  swiftCode?: string | null;
   bankBranch?: string | null;
 }
 
 const defaultOrg: Organization = {
   id: "",
-  name: "Automated CRM",
+  name: "Grekam Garage OS",
   logoUrl: null,
   academyLogoUrl: null,
   faviconUrl: null,
   academyFaviconUrl: null,
-  primaryColor: "#4f46e5",
-  secondaryColor: "#10b981",
-  accentColor: "#f59e0b",
+  primaryColor: "#2563eb",
+  secondaryColor: "#7c3aed",
+  accentColor: "#10b981",
   darkModeDefault: true,
-  supportEmail: null,
+  supportEmail: "support@grekam.in",
   billingAddress: null,
-  website: null,
-  phone: null,
+  website: "https://grekam.in",
+  phone: "+91 99000 00000",
   gstNumber: null,
   panNumber: null,
-  companyName: "Automated CRM",
+  companyName: "Grekam Garage & Technologies Pvt Ltd",
   bankName: null,
+  accountName: null,
+  accountNumber: null,
   bankAccountNo: null,
+  ifscCode: null,
   bankIfsc: null,
+  swiftCode: null,
   bankBranch: null,
 };
 

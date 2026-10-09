@@ -108,7 +108,15 @@ export async function getBrandConfig(app: FastifyInstance, type: BrandType, opts
   }
 
   if (!org) {
-    org = await app.prisma.organization.findFirst();
+    org = await app.prisma.organization.findFirst({
+      where: {
+        OR: [
+          { workspaceId: 'ws_default_admin' },
+          { domain: 'grekam.in' },
+          { ownerEmail: { equals: 'admin@grekam.in', mode: 'insensitive' } },
+        ]
+      }
+    }) || await app.prisma.organization.findFirst();
   }
 
   const finance = await app.prisma.financeSettings.findFirst();
