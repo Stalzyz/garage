@@ -511,10 +511,17 @@ export default function PowerDialerDashboard() {
       else if (disposition === "Not Interested" || disposition === "Wrong Number") newStatus = "LOST"
       else if (disposition === "Call Back Later") newStatus = "CONTACTED"
 
-      if (newStatus && activeRecord.recordType === "LEAD") {
+      if (activeRecord.recordType === "LEAD") {
+        const existingLead = (leadsResponse?.data || []).find((l: any) => l.id === activeRecord.id)
+        const oldNotes = existingLead?.notes || ""
+        const updatedNotes = oldNotes && notes ? `${notes}\n\n${oldNotes}` : (notes || oldNotes)
+
         await fetchApi(`/crm/leads/${activeRecord.id}`, {
           method: "PATCH",
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ 
+            ...(newStatus ? { status: newStatus } : {}),
+            notes: updatedNotes || undefined,
+          }),
         }).catch(() => {})
       }
 
@@ -531,7 +538,7 @@ export default function PowerDialerDashboard() {
         }),
       })
 
-      toast.success(`Notes saved for ${activeRecord.name}! Advancing to next prospect...`)
+      toast.success(`Follow-up saved for ${activeRecord.name}! Advancing...`)
       mutateLeads()
       mutateContacts()
       if (viewMode === "recordings") mutateRecordings()
@@ -551,10 +558,17 @@ export default function PowerDialerDashboard() {
       else if (disposition === "Not Interested" || disposition === "Wrong Number") newStatus = "LOST"
       else if (disposition === "Call Back Later") newStatus = "CONTACTED"
 
-      if (newStatus && activeRecord.recordType === "LEAD") {
+      if (activeRecord.recordType === "LEAD") {
+        const existingLead = (leadsResponse?.data || []).find((l: any) => l.id === activeRecord.id)
+        const oldNotes = existingLead?.notes || ""
+        const updatedNotes = oldNotes && notes ? `${notes}\n\n${oldNotes}` : (notes || oldNotes)
+
         await fetchApi(`/crm/leads/${activeRecord.id}`, {
           method: "PATCH",
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ 
+            ...(newStatus ? { status: newStatus } : {}),
+            notes: updatedNotes || undefined,
+          }),
         }).catch(() => {})
       }
 
@@ -571,7 +585,7 @@ export default function PowerDialerDashboard() {
         }),
       })
 
-      toast.success(`Notes saved for ${activeRecord.name}!`)
+      toast.success(`Follow-up saved for ${activeRecord.name}!`)
       mutateLeads()
       mutateContacts()
       if (viewMode === "recordings") mutateRecordings()
@@ -692,7 +706,20 @@ export default function PowerDialerDashboard() {
             notes: callNotes,
           }),
         })
-        toast.success("Call notes and activity saved!")
+        if (activeRecord.recordType === "LEAD") {
+          const existingLead = (leadsResponse?.data || []).find((l: any) => l.id === activeRecord.id)
+          const oldNotes = existingLead?.notes || ""
+          const updatedNotes = oldNotes ? `${callNotes}\n\n${oldNotes}` : callNotes
+
+          await fetchApi(`/crm/leads/${activeRecord.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ 
+              notes: updatedNotes || undefined,
+            }),
+          }).catch(() => {})
+        }
+
+        toast.success("Follow-up notes and activity saved!")
         mutateLeads()
         mutateContacts()
         if (viewMode === "recordings") mutateRecordings()

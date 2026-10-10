@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Building2, Users, DollarSign, TrendingUp, AlertTriangle, ShieldCheck, Activity, ArrowUpRight, LogIn, RefreshCw,
-  Copy, Send, Sparkles
+  Building2, Users, DollarSign, ShieldCheck, Activity, ArrowUpRight, RefreshCw,
+  Copy, Send, Key
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -51,108 +51,111 @@ export default function SuperAdminDashboardPage() {
     : 0
 
   return (
-    <div className="p-8 space-y-8 bg-dash-bg-base text-white min-h-screen font-sans">
+    <div className="p-8 space-y-6 bg-black text-[#f5f5f7] min-h-screen font-sans">
       
       {/* Header */}
-      <div className="border-b border-white/10 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-white/[0.08] pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Grekam Super Admin Control Plane</h1>
-          <p className="text-xs text-zinc-400 mt-1">Live metrics across direct garages, partner floats, subscriptions, and platform revenue.</p>
+          <h1 className="text-xl font-semibold tracking-tight text-white">Super Admin Control Plane</h1>
+          <p className="text-xs text-[#86868b] mt-0.5">Live platform telemetry across direct garages, partner floats, subscriptions, and revenue.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchDashboardData}
-            className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:border-zinc-700 transition"
+            disabled={loading}
+            className="p-2 bg-[#161618] border border-white/[0.08] rounded-lg text-[#86868b] hover:text-white transition-colors disabled:opacity-50"
             title="Refresh Data"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <span className="px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
-            Platform Owner Mode
+          <span className="px-2.5 py-1 rounded-md bg-white/[0.06] border border-white/[0.08] text-white/80 text-[11px] font-medium font-mono">
+            Platform Owner
           </span>
         </div>
       </div>
 
       {/* 7 Key Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Total Garages</span>
-          <p className="text-xl font-bold text-white font-mono">{stats.totalGarages}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Total Garages</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.totalGarages}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Direct Garages</span>
-          <p className="text-xl font-bold text-blue-400 font-mono">{stats.directGarages}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Direct Garages</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.directGarages}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Partner Garages</span>
-          <p className="text-xl font-bold text-purple-400 font-mono">{stats.resellerGarages}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Partner Garages</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.resellerGarages}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Active Partners</span>
-          <p className="text-xl font-bold text-white font-mono">{stats.totalResellers}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Partners</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.totalResellers}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Active Subscriptions</span>
-          <p className="text-xl font-bold text-emerald-400 font-mono">{stats.activeSubscriptions}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Subscriptions</span>
+          <p className="text-lg font-semibold text-[#0A84FF] font-mono">{stats.activeSubscriptions}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Expiring Soon</span>
-          <p className="text-xl font-bold text-amber-400 font-mono">{stats.expiringSoon}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Expiring Soon</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.expiringSoon}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
-          <span className="text-[10px] text-zinc-400 uppercase font-semibold">Verified Revenue</span>
-          <p className="text-xl font-bold text-emerald-400 font-mono">{stats.thisMonthRevenue}</p>
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-[#86868b] uppercase tracking-wider font-medium">Total Revenue</span>
+          <p className="text-lg font-semibold text-white font-mono">{stats.thisMonthRevenue}</p>
         </div>
       </div>
 
       {/* DEMO ACCOUNTS SHAREABLE MANAGER */}
-      <div className="bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
+      <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-white/80">
+              <Key className="w-3.5 h-3.5" />
+            </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Configured Demo Accounts</h2>
-              <p className="text-xs text-zinc-400">Share or test both direct SaaS and Whitelabel Partner demo environments.</p>
+              <h2 className="text-xs font-semibold text-white">Configured Demo Environments</h2>
+              <p className="text-[11px] text-[#86868b]">Share and inspect direct SaaS and Whitelabel partner demo instances.</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {/* Account 1 Card */}
-          <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/20 space-y-2.5">
+          <div className="p-4 rounded-lg bg-[#121214] border border-white/[0.06] space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                <Building2 className="w-4 h-4" /> 1. Public Demo (Without Whitelabel)
+              <span className="text-xs font-medium text-white flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-[#86868b]" /> 1. Direct SaaS Demo
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300">Public Landing</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.06] text-[#86868b]">Public Landing</span>
             </div>
-            <p className="text-xs text-zinc-400">Prefilled on the landing page for all visitors. Direct SaaS experience.</p>
-            <div className="p-2.5 rounded-lg bg-white/5 font-mono text-xs space-y-1">
-              <div><span className="text-zinc-500">Email:</span> demo@garage.in</div>
-              <div><span className="text-zinc-500">Password:</span> Demo2023</div>
+            <p className="text-xs text-[#86868b]">Standard direct SaaS experience pre-filled for landing visitors.</p>
+            <div className="p-2.5 rounded-md bg-black/40 border border-white/[0.04] font-mono text-xs space-y-1">
+              <div><span className="text-white/40">Email:</span> demo@garage.in</div>
+              <div><span className="text-white/40">Password:</span> Demo2023</div>
             </div>
           </div>
 
           {/* Account 2 Card */}
-          <div className="p-4 rounded-xl bg-black/40 border border-purple-500/20 space-y-2.5">
+          <div className="p-4 rounded-lg bg-[#121214] border border-white/[0.06] space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
-                <Users className="w-4 h-4" /> 2. Partner Demo (With Whitelabel)
+              <span className="text-xs font-medium text-white flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-[#86868b]" /> 2. Partner Whitelabel Demo
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300">Manual Share</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.06] text-[#86868b]">Partner Share</span>
             </div>
-            <p className="text-xs text-zinc-400">For prospective reseller partners. Custom domains, pricing margins & wallet.</p>
-            <div className="p-2.5 rounded-lg bg-white/5 font-mono text-xs space-y-1">
-              <div><span className="text-zinc-500">Email:</span> reseller@grekam.com</div>
-              <div><span className="text-zinc-500">Password:</span> reseller123</div>
-              <div><span className="text-zinc-500">Share Link:</span> /partner/login?demo=partner</div>
+            <p className="text-xs text-[#86868b]">Reseller experience with custom branding, margins, and float wallet.</p>
+            <div className="p-2.5 rounded-md bg-black/40 border border-white/[0.04] font-mono text-xs space-y-1">
+              <div><span className="text-white/40">Email:</span> reseller@grekam.com</div>
+              <div><span className="text-white/40">Password:</span> reseller123</div>
+              <div><span className="text-white/40">Link:</span> /partner/login?demo=partner</div>
             </div>
             <div className="flex items-center gap-2 pt-1">
               <button
@@ -160,17 +163,17 @@ export default function SuperAdminDashboardPage() {
                   navigator.clipboard.writeText("https://grekam.in/partner/login?demo=partner\nCredentials: reseller@grekam.com / reseller123")
                   toast.success("Partner Demo credentials copied!")
                 }}
-                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
               >
-                <Copy className="w-3.5 h-3.5" /> Copy Details
+                <Copy className="w-3 h-3" /> Copy Details
               </button>
               <a
                 href="https://wa.me/?text=Hi%20Partner!%20Here%20are%20your%20Whitelabel%20Partner%20Demo%20credentials%20for%20Garage%20CRM:%0A%0A🌐%20Portal:%20https://grekam.in/partner/login?demo=partner%0A📧%20Email:%20reseller@grekam.com%0A🔑%20Password:%20reseller123"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 text-xs font-semibold flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
               >
-                <Send className="w-3.5 h-3.5" /> Share WhatsApp
+                <Send className="w-3 h-3" /> Share WhatsApp
               </a>
             </div>
           </div>
@@ -178,81 +181,81 @@ export default function SuperAdminDashboardPage() {
       </div>
 
       {/* Visual Overview & Growth Bars */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         {/* Garages Breakdown Chart Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-          <h2 className="text-sm font-bold text-white flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-blue-400" /> Garages Distribution
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-white flex items-center gap-2">
+            <Building2 className="w-3.5 h-3.5 text-[#86868b]" /> Garages Distribution
           </h2>
           
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-1">
             <div>
-              <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                <span>Partner Acquired Garages ({resellerPercentage}%)</span>
-                <span className="text-white font-semibold font-mono">{stats.resellerGarages} / {stats.totalGarages}</span>
+              <div className="flex justify-between text-xs text-[#86868b] mb-1.5">
+                <span>Partner Acquired ({resellerPercentage}%)</span>
+                <span className="text-white font-mono">{stats.resellerGarages} / {stats.totalGarages}</span>
               </div>
-              <div className="w-full bg-white/5 h-3 rounded-full overflow-hidden">
-                <div className="bg-purple-600 h-full rounded-full transition-all duration-500" style={{ width: `${resellerPercentage}%` }} />
+              <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                <div className="bg-white/70 h-full rounded-full transition-all duration-300" style={{ width: `${resellerPercentage}%` }} />
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                <span>Direct Garage Customers ({directPercentage}%)</span>
-                <span className="text-white font-semibold font-mono">{stats.directGarages} / {stats.totalGarages}</span>
+              <div className="flex justify-between text-xs text-[#86868b] mb-1.5">
+                <span>Direct Accounts ({directPercentage}%)</span>
+                <span className="text-white font-mono">{stats.directGarages} / {stats.totalGarages}</span>
               </div>
-              <div className="w-full bg-white/5 h-3 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${directPercentage}%` }} />
+              <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#0A84FF] h-full rounded-full transition-all duration-300" style={{ width: `${directPercentage}%` }} />
               </div>
             </div>
           </div>
         </div>
 
         {/* Revenue Overview Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-400" /> Float & Revenue Pipeline
+            <h2 className="text-xs font-semibold text-white flex items-center gap-2">
+              <DollarSign className="w-3.5 h-3.5 text-[#86868b]" /> Verified Revenue
             </h2>
-            <Link href="/dashboard/admin/partners" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
-              View Float Escrow <ArrowUpRight className="w-3.5 h-3.5" />
+            <Link href="/dashboard/admin/partners" className="text-xs text-[#0A84FF] hover:underline flex items-center gap-1">
+              Escrow Float <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <div className="text-3xl font-black text-emerald-400 font-mono">{stats.thisMonthRevenue}</div>
-            <p className="text-xs text-zinc-400">Total bank-verified partner float deposits and direct subscriptions credited to platform.</p>
+          <div className="space-y-1.5 pt-1">
+            <div className="text-2xl font-semibold text-white font-mono">{stats.thisMonthRevenue}</div>
+            <p className="text-xs text-[#86868b]">Verified partner float deposits and direct subscriptions credited to platform.</p>
           </div>
         </div>
 
       </div>
 
       {/* Bottom Row: Recent Activity & Recent Payments */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Real Live Activity Log */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-3.5">
           <div className="flex justify-between items-center">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-purple-400" /> Recent Platform Activity
+            <h2 className="text-xs font-semibold text-white flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-[#86868b]" /> Recent Activity
             </h2>
-            <Link href="/dashboard/admin/activity" className="text-xs text-blue-400 hover:underline">
+            <Link href="/dashboard/admin/activity" className="text-xs text-[#0A84FF] hover:underline">
               View All
             </Link>
           </div>
 
           {recentActivity.length === 0 ? (
-            <div className="py-8 text-center text-zinc-500 text-xs">No platform activity recorded yet.</div>
+            <div className="py-6 text-center text-[#86868b] text-xs">No platform activity recorded yet.</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {recentActivity.map((act) => (
-                <div key={act.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex justify-between items-center text-xs">
+                <div key={act.id} className="p-2.5 bg-[#121214] border border-white/[0.04] rounded-lg flex justify-between items-center text-xs">
                   <div>
-                    <span className="font-semibold text-white">{act.who}</span>
-                    <span className="text-zinc-400 text-[11px] block mt-0.5">{act.target}</span>
+                    <span className="font-medium text-white">{act.who}</span>
+                    <span className="text-[#86868b] text-[11px] block mt-0.5">{act.target}</span>
                   </div>
-                  <span className="text-[10px] text-zinc-500 font-mono whitespace-nowrap ml-2">{act.date}</span>
+                  <span className="text-[10px] text-[#86868b] font-mono whitespace-nowrap ml-2">{act.date}</span>
                 </div>
               ))}
             </div>
@@ -260,31 +263,29 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Real Live Recent Payments */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-3.5">
           <div className="flex justify-between items-center">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Recent Transactions
+            <h2 className="text-xs font-semibold text-white flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#86868b]" /> Recent Transactions
             </h2>
-            <Link href="/dashboard/admin/payments" className="text-xs text-blue-400 hover:underline">
+            <Link href="/dashboard/admin/payments" className="text-xs text-[#0A84FF] hover:underline">
               View All
             </Link>
           </div>
 
           {recentPayments.length === 0 ? (
-            <div className="py-8 text-center text-zinc-500 text-xs">No transactions recorded yet.</div>
+            <div className="py-6 text-center text-[#86868b] text-xs">No transactions recorded yet.</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {recentPayments.map((pay) => (
-                <div key={pay.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex justify-between items-center text-xs">
+                <div key={pay.id} className="p-2.5 bg-[#121214] border border-white/[0.04] rounded-lg flex justify-between items-center text-xs">
                   <div>
-                    <span className="font-semibold text-white">{pay.garage}</span>
-                    <span className="text-zinc-400 text-[11px] block mt-0.5">{pay.reseller}</span>
+                    <span className="font-medium text-white">{pay.garage}</span>
+                    <span className="text-[#86868b] text-[11px] block mt-0.5">{pay.reseller}</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-white font-mono">{pay.amount}</div>
-                    <span className={`text-[10px] font-bold ${
-                      pay.status === "Paid" ? "text-emerald-400" : "text-amber-400"
-                    }`}>
+                    <div className="font-semibold text-white font-mono">{pay.amount}</div>
+                    <span className="text-[10px] font-mono text-[#86868b]">
                       {pay.status}
                     </span>
                   </div>

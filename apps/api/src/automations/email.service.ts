@@ -6,8 +6,23 @@ import { Resend } from 'resend';
 export const EmailService = {
   async sendEmail(to: string, subject: string, htmlContent: string, fromOverride?: string) {
     try {
-      const defaultCc = 'greeksacademy@gmail.com';
-      const ccList = to.toLowerCase() !== defaultCc.toLowerCase() ? [defaultCc] : undefined;
+      // Load configured Global CC emails
+      let ccList: string[] | undefined;
+      try {
+        const ccKey = await prisma.integrationKey.findFirst({
+          where: { service: 'SMTP', keyName: 'SMTP_CC_EMAILS', isActive: true }
+        });
+        const ccRaw = (ccKey ? decrypt(ccKey.encryptedValue) : process.env.SMTP_CC_EMAILS) || '';
+        if (ccRaw) {
+          const list = ccRaw
+            .split(/[,;\n\s]+/)
+            .map(e => e.trim().toLowerCase())
+            .filter(e => e.includes('@') && e.length > 3 && e !== to.trim().toLowerCase());
+          if (list.length > 0) ccList = list;
+        }
+      } catch (e) {
+        console.warn('[EmailService Automations] Could not load CC emails:', e);
+      }
 
       // 1. Check if Organization has Resend API Key
       const org = await prisma.organization.findFirst();

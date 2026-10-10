@@ -393,6 +393,7 @@ export default async function telephonyRouter(app: FastifyInstance) {
           userId: resolvedUserId,
         },
       });
+
       return { success: true, log: commLog, recordType: 'CONTACT' };
     }
 
@@ -404,6 +405,31 @@ export default async function telephonyRouter(app: FastifyInstance) {
         userId: resolvedUserId,
       },
     });
+
+    // Update Lead notes with follow-up information & update timestamp
+    try {
+      const existingLead = await app.prisma.lead.findUnique({
+        where: { id: body.leadId! },
+        select: { notes: true, status: true },
+      });
+      if (existingLead) {
+        const oldNotes = existingLead.notes || '';
+        const followupEntry = body.notes 
+          ? body.notes 
+          : `[${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}] Call (${durStr})${body.disposition ? ` [${body.disposition}]` : ''}`;
+        const updatedNotes = oldNotes ? `${followupEntry}\n\n${oldNotes}` : followupEntry;
+        
+        await app.prisma.lead.update({
+          where: { id: body.leadId! },
+          data: {
+            notes: updatedNotes,
+            updatedAt: new Date(),
+          },
+        });
+      }
+    } catch (e) {
+      req.log?.warn?.({ err: e }, 'Failed to append follow-up note to lead');
+    }
 
     return { success: true, activity, recordType: 'LEAD' };
   };

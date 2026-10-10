@@ -151,6 +151,7 @@ export default function EmailTemplatesSettingsPage() {
     pass: "",
     senderName: "Grekam Garage OS",
     senderEmail: "notifications@grekam.in",
+    ccEmails: "",
   })
   const [smtpLoading, setSmtpLoading] = useState(false)
   const [smtpTesting, setSmtpTesting] = useState(false)
@@ -170,6 +171,7 @@ export default function EmailTemplatesSettingsPage() {
           user: json.config.user || prev.user,
           senderName: json.config.senderName || prev.senderName,
           senderEmail: json.config.senderEmail || prev.senderEmail,
+          ccEmails: json.config.ccEmails || "",
         }))
       }
     } catch {
@@ -665,6 +667,23 @@ const BUILTIN_TEMPLATES = [
                       className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] text-xs"
                     />
                   </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/[0.06]">
+                  <label className="block text-white/50 font-medium mb-1.5 flex items-center justify-between">
+                    <span>Global CC Email Address(es)</span>
+                    <span className="text-[10px] text-white/30 font-mono">Comma-separated</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. admin@garage.com, crm-audit@garage.com"
+                    value={smtpForm.ccEmails}
+                    onChange={(e) => setSmtpForm({ ...smtpForm, ccEmails: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-[#121214] border border-white/[0.08] text-white focus:outline-none focus:border-[#0A84FF] text-xs font-mono"
+                  />
+                  <p className="text-[10px] text-white/40 mt-1 leading-normal">
+                    All outgoing emails from admin, leads, automated workflows, invoices, and proposals will automatically carbon copy (CC) these addresses.
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">

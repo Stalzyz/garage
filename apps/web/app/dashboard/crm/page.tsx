@@ -8,7 +8,7 @@ import {
   Search, BookOpen, GraduationCap, Calendar,
   MoreVertical, CheckCircle2, UserPlus, ClipboardList, Coins,
   List, Kanban, Trash2, UserCheck, ChevronRight, ChevronDown, FileSpreadsheet, MessageCircle, Clock,
-  Share2, ExternalLink, Zap, X, Copy, SlidersHorizontal, Download
+  Share2, ExternalLink, Zap, X, Copy, SlidersHorizontal, Download, Phone
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useApi, fetchApi } from "@/lib/useApi"
@@ -1074,7 +1074,16 @@ export default function CRMDashboard() {
                             </td>
                             {visibleColumns.name && (
                               <td className="p-4 font-semibold text-sm">
-                                <span>{lead.name}</span>
+                                <div>{lead.name}</div>
+                                {(() => {
+                                  const firstNote = lead.notes ? lead.notes.split('\n').find((l: string) => l.trim().length > 0) : null;
+                                  if (!firstNote) return null;
+                                  return (
+                                    <div className="text-[11px] text-zinc-400 font-normal line-clamp-1 mt-0.5 max-w-xs break-words" title={firstNote}>
+                                      <span className="text-[#0A84FF] font-medium mr-1">Followup:</span>{firstNote}
+                                    </div>
+                                  );
+                                })()}
                               </td>
                             )}
                             {visibleColumns.company && (
@@ -1330,15 +1339,78 @@ export default function CRMDashboard() {
                   </div>
                 </div>
 
+                {/* Dedicated Follow-Up & Call History Timeline */}
+                {editingLead && (
+                  <div className="pt-3 border-t border-[var(--dash-border-subtle,rgba(255,255,255,0.1))] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-mono uppercase tracking-widest text-[#0A84FF] font-semibold flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5" /> Follow-Up & Call History
+                      </label>
+                      <span className="text-[10px] text-white/40 font-mono">
+                        {(leadForm.notes ? leadForm.notes.split('\n\n').filter((x: string) => x.trim().length > 0).length : 0)} entries
+                      </span>
+                    </div>
+
+                    <div className="bg-black/40 border border-white/[0.08] rounded-xl p-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                      {leadForm.notes && leadForm.notes.trim().length > 0 ? (
+                        leadForm.notes
+                          .split('\n\n')
+                          .filter((x: string) => x.trim().length > 0)
+                          .map((entry: string, idx: number) => {
+                            const isFollowup = entry.includes('[Followup') || entry.includes('Call') || entry.includes('[');
+                            return (
+                              <div key={idx} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] space-y-1">
+                                <div className="flex items-center justify-between text-[10px] font-mono">
+                                  <span className="text-[#0A84FF] font-semibold">Entry #{idx + 1}</span>
+                                  {isFollowup && (
+                                    <span className="text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px]">
+                                      Logged Call
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-white/90 leading-relaxed whitespace-pre-line font-sans break-words">
+                                  {entry}
+                                </p>
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="text-center py-4 text-xs text-white/30 font-sans">
+                          No follow-up entries recorded yet. Use the dialer or enter follow-up comments below.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Internal Notes</label>
-                    <AIAssistButton 
-                      format="text"
-                      context="CRM Internal notes summarizer. Make it brief."
-                      onGenerate={(text) => setLeadForm({ ...leadForm, notes: text })}
-                      buttonLabel="AI Notes"
-                    />
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--dash-text-primary)]/50">Add / Edit Follow-Up & Internal Notes</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const dateStr = now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+                          const timeStr = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+                          const userTag = session?.user?.name || "Advisor";
+                          const stamp = `[${dateStr}, ${timeStr} · ${userTag}] [Followup]: `;
+                          setLeadForm({
+                            ...leadForm,
+                            notes: leadForm.notes ? `${stamp}\n\n${leadForm.notes}` : stamp,
+                          });
+                        }}
+                        className="text-[10px] font-mono text-[#0A84FF] hover:underline"
+                      >
+                        + Timestamp Follow-up
+                      </button>
+                      <AIAssistButton 
+                        format="text"
+                        context="CRM Internal notes summarizer. Make it brief."
+                        onGenerate={(text) => setLeadForm({ ...leadForm, notes: text })}
+                        buttonLabel="AI Notes"
+                      />
+                    </div>
                   </div>
                   <textarea
                     value={leadForm.notes}

@@ -47,6 +47,7 @@ export default function SuperAdminSettingsPage() {
     pass: "",
     senderName: "Grekam Garage OS",
     senderEmail: "notifications@grekam.in",
+    ccEmails: "",
     isConfigured: false,
   })
 
@@ -107,6 +108,7 @@ export default function SuperAdminSettingsPage() {
             pass: smtpData.config.pass || "",
             senderName: smtpData.config.senderName || prev.senderName,
             senderEmail: smtpData.config.senderEmail || prev.senderEmail,
+            ccEmails: smtpData.config.ccEmails || "",
             isConfigured: smtpData.config.isConfigured || false,
           }))
           if (smtpData.config.user) {
@@ -497,6 +499,23 @@ export default function SuperAdminSettingsPage() {
                   onChange={(e) => setSmtpForm({ ...smtpForm, senderEmail: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500"
                 />
+              </div>
+
+              <div className="md:col-span-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-zinc-400 font-semibold">Global CC Notification Email(s)</label>
+                  <span className="text-[10px] text-zinc-500 font-mono">Comma-separated</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="admin@garage.com, crm-audit@garage.com"
+                  value={smtpForm.ccEmails}
+                  onChange={(e) => setSmtpForm({ ...smtpForm, ccEmails: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#0A84FF] font-mono text-xs"
+                />
+                <p className="text-[11px] text-zinc-500">
+                  Every outgoing email sent across the platform (admin notifications, leads, automated workflows, invoices, and proposals) will automatically CC these email addresses.
+                </p>
               </div>
 
               <div className="md:col-span-2 pt-1 flex items-center gap-2">

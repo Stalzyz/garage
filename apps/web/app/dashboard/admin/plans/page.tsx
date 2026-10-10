@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles, Loader2, Users } from "lucide-react"
+import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Loader2, Users } from "lucide-react"
 import { toast } from "sonner"
 
 const AVAILABLE_MODULES = [
@@ -295,29 +295,29 @@ export default function SuperAdminPlansPage() {
 
         <button 
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5 py-3 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 bg-[#0A84FF] hover:bg-[#0071E3] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" /> Create New Package
         </button>
       </div>
 
       {/* Info Banner */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 via-purple-950/30 to-zinc-900 border border-white/10 flex items-start gap-3 text-xs">
-        <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-        <div className="space-y-1 text-zinc-300">
+      <div className="p-4 rounded-xl bg-[#161618] border border-white/[0.08] flex items-start gap-3 text-xs">
+        <Info className="w-4 h-4 text-[#0A84FF] shrink-0 mt-0.5" />
+        <div className="space-y-1 text-[#86868b]">
           <p className="font-semibold text-white">Pricing & Partner Revenue Model:</p>
-          <p>• <strong className="text-amber-300">Standard Resellers:</strong> Sell packages at actual retail price and earn a percentage commission (e.g. 25%).</p>
-          <p>• <strong className="text-purple-300">Whitelabel Partners:</strong> Pay the fixed <span className="underline">Base Wholesale Price</span> set by Super Admin and can decide their own custom client pricing above the base price.</p>
+          <p>• <strong className="text-white">Standard Resellers:</strong> Sell packages at actual retail price and earn a percentage commission (e.g. 25%).</p>
+          <p>• <strong className="text-white">Whitelabel Partners:</strong> Pay the fixed <span className="underline">Base Wholesale Price</span> set by Super Admin and can decide their own custom client pricing above the base price.</p>
         </div>
       </div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {plans.map((p) => {
           const effectiveYearly = p.yearlyOfferPrice || p.yearlyPrice
           const effectiveMonthly = p.monthlyOfferPrice || p.monthlyPrice
           return (
-            <div key={p.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 relative flex flex-col justify-between hover:border-blue-500/40 transition-all shadow-xl">
+            <div key={p.id} className="bg-[#161618] border border-white/[0.08] rounded-xl p-5 space-y-4 relative flex flex-col justify-between hover:border-white/[0.16] transition-colors">
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div>
@@ -439,7 +439,7 @@ export default function SuperAdminPlansPage() {
       {/* CREATE / EDIT PLAN MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-[#0c101a] border border-white/15 rounded-3xl p-6 md:p-8 w-full max-w-4xl space-y-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-[#121214] border border-white/[0.08] rounded-xl p-6 md:p-8 w-full max-w-4xl space-y-6 my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h2 className="text-xl font-bold text-white">
@@ -689,20 +689,20 @@ export default function SuperAdminPlansPage() {
               </div>
 
               {/* Landing Page Features Generator & Customizer */}
-              <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div className="p-4 rounded-xl bg-[#121214] border border-white/[0.08] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
                   <div>
-                    <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-400" /> Landing Page Marketing Features & Excluded Items
+                    <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-[#86868b]" /> Landing Page Marketing Features & Excluded Items
                     </span>
-                    <p className="text-[11px] text-zinc-400">Controls the exact bullet points displayed on https://garage.grekam.in/pricing</p>
+                    <p className="text-[11px] text-[#86868b]">Controls the exact bullet points displayed on https://garage.grekam.in/pricing</p>
                   </div>
                   <button
                     type="button"
                     onClick={autoGenerateBullets}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold text-xs transition-all shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08] font-medium text-xs transition-colors shrink-0"
                   >
-                    <Sparkles className="w-3.5 h-3.5" /> Auto-Generate from Toggles
+                    <Layers className="w-3.5 h-3.5" /> Auto-Generate from Toggles
                   </button>
                 </div>
 
@@ -745,7 +745,7 @@ export default function SuperAdminPlansPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                  className="px-5 py-2.5 bg-[#0A84FF] hover:bg-[#0071E3] text-white rounded-lg font-medium text-xs transition-colors"
                 >
                   {editingPlanId ? "Save Changes" : "Create Package"}
                 </button>

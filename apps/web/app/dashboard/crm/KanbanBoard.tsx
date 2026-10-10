@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle, Plus, Trash2, X } from 'lucide-react';
+import { MoreVertical, Calendar, ClipboardList, GraduationCap, MessageCircle, Plus, Trash2, X, Phone } from 'lucide-react';
 import { useCurrency } from "@/hooks/useCurrency";
 
 interface KanbanBoardProps {
@@ -141,6 +141,22 @@ function LeadCard({
           </span>
         ) : null}
       </div>
+
+      {(() => {
+        const firstLine = lead.notes ? lead.notes.split('\n').find((l: string) => l.trim().length > 0) : null;
+        const noteText = firstLine || (lead.activities && lead.activities.length > 0 ? lead.activities[0].content : null);
+        if (!noteText) return null;
+        return (
+          <div className="mt-2 mb-1 px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[11px] text-zinc-300">
+            <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-[#0A84FF] font-medium mb-0.5">
+              <Phone className="w-2.5 h-2.5 shrink-0" /> Follow-up Log
+            </div>
+            <p className="line-clamp-2 leading-relaxed text-white/80 font-normal break-words">
+              {noteText}
+            </p>
+          </div>
+        );
+      })()}
 
       <div className="flex items-center justify-between mt-3 border-t border-white/5 pt-2.5">
         <span className="text-[9px] font-mono tracking-widest uppercase bg-[var(--dash-bg-card,rgba(255,255,255,0.05))] px-2 py-0.5 rounded text-[var(--dash-text-primary)]/50">

@@ -128,6 +128,7 @@ export async function POST(req: Request) {
           await transporter.sendMail({
             from: `"Grekam Automations" <${smtpUser}>`,
             to: targetEmail,
+            cc: process.env.SMTP_CC_EMAILS ? process.env.SMTP_CC_EMAILS.split(',').map(e => e.trim()).filter(e => e.includes('@')) : undefined,
             subject: `⚡ [Automation Fired] ${targetCron.name}`,
             text: `Automated email cron "${targetCron.name}" was triggered. Schedule: ${targetCron.scheduleDescription}. Target: ${targetCron.recipientTarget}.`,
             html: `

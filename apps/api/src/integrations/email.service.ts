@@ -463,15 +463,38 @@ export async function sendEmail(
 ) {
   const { transporter: t, fromAddress: from } = await getTransporter();
 
-  // Ensure cc always includes greeksacademy@gmail.com
-  const defaultCc = 'greeksacademy@gmail.com';
+  // Load configured Global CC emails from IntegrationKey & environment
+  let globalCcEmails: string[] = [];
+  try {
+    const ccKey = await prisma.integrationKey.findFirst({
+      where: { service: 'SMTP', keyName: 'SMTP_CC_EMAILS', isActive: true }
+    });
+    const ccRaw = (ccKey ? decrypt(ccKey.encryptedValue) : process.env.SMTP_CC_EMAILS) || '';
+    if (ccRaw) {
+      globalCcEmails = ccRaw
+        .split(/[,;\n\s]+/)
+        .map(e => e.trim().toLowerCase())
+        .filter(e => e.includes('@') && e.length > 3);
+    }
+  } catch (e) {
+    console.warn('[EmailService] Could not load SMTP_CC_EMAILS:', e);
+  }
+
   let finalCc: string[] = [];
   if (options?.cc) {
-    finalCc = Array.isArray(options.cc) ? [...options.cc] : [options.cc];
+    const callerCc = Array.isArray(options.cc) ? options.cc : [options.cc];
+    callerCc.forEach(c => {
+      const trimmed = c.trim().toLowerCase();
+      if (trimmed && !finalCc.includes(trimmed)) finalCc.push(trimmed);
+    });
   }
-  if (!finalCc.includes(defaultCc) && to.toLowerCase() !== defaultCc.toLowerCase()) {
-    finalCc.push(defaultCc);
+  for (const gcc of globalCcEmails) {
+    if (!finalCc.includes(gcc)) {
+      finalCc.push(gcc);
+    }
   }
+  // Exclude primary recipient from CC to avoid duplicate delivery
+  finalCc = finalCc.filter(c => c.toLowerCase() !== to.trim().toLowerCase());
 
   // Universal Auto-Wrap: Guarantee all outgoing emails have valid HTML structure, high-contrast card styling & organization branding
   let finalHtml = template.html;

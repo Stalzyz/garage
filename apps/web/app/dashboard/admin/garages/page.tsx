@@ -315,7 +315,7 @@ export default function SuperAdminGaragesPage() {
               setNewForm(prev => ({ ...prev, password: generateRandomPassword() }))
               setShowAddModal(true)
             }}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all"
+            className="flex items-center gap-2 bg-[#0A84FF] hover:bg-[#0071E3] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Direct Garage
           </button>
@@ -324,15 +324,15 @@ export default function SuperAdminGaragesPage() {
 
       {/* Tabs & Search Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 w-fit">
+        <div className="flex items-center gap-1.5 bg-[#161618] p-1 rounded-xl border border-white/[0.08] w-fit">
           {(["All", "Direct", "Reseller"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === tab
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                  : "text-zinc-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/[0.1] text-white"
+                  : "text-[#86868b] hover:text-white"
               }`}
             >
               {tab === "All" ? `All Garages (${garages.length})` : tab === "Direct" ? "Direct Only" : "Partner / Reseller"}
@@ -341,19 +341,19 @@ export default function SuperAdminGaragesPage() {
         </div>
 
         <div className="relative max-w-md w-full">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#86868b]" />
           <input
             type="text"
             placeholder="Search by garage name, owner, or partner..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#161618] border border-white/[0.08] rounded-lg py-2 pl-9 pr-4 text-xs text-white placeholder:text-[#86868b] focus:outline-none focus:border-[#0A84FF]"
           />
         </div>
       </div>
 
       {/* Garages Table */}
-      <div className="bg-[#080d1a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-white/10 text-zinc-400 font-semibold uppercase text-[10px] bg-white/[0.02]">
@@ -454,7 +454,7 @@ export default function SuperAdminGaragesPage() {
       {/* ── MODAL: MANAGE GARAGE & SUBSCRIPTION CONTROLS ── */}
       {manageGarage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-2xl bg-[#0b101d] border border-white/15 p-6 shadow-2xl space-y-5 my-8">
+          <div className="relative w-full max-w-2xl rounded-xl bg-[#161618] border border-white/[0.08] p-6 space-y-5 my-8">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -732,9 +732,9 @@ export default function SuperAdminGaragesPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-                  <button type="button" onClick={() => setManageGarage(null)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white">Cancel</button>
-                  <button type="submit" disabled={manageSubmitting} className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-600/20">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
+                  <button type="button" onClick={() => setManageGarage(null)} className="px-4 py-2 rounded-lg text-[#86868b] hover:text-white">Cancel</button>
+                  <button type="submit" disabled={manageSubmitting} className="px-5 py-2.5 rounded-lg bg-[#0A84FF] hover:bg-[#0071E3] text-white font-medium transition-colors">
                     {manageSubmitting ? "Saving Controls..." : "Save Garage Controls"}
                   </button>
                 </div>
@@ -747,7 +747,7 @@ export default function SuperAdminGaragesPage() {
       {/* Add Direct Garage Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0b101d] border border-white/15 p-6 shadow-2xl space-y-4">
+          <div className="relative w-full max-w-md rounded-xl bg-[#161618] border border-white/[0.08] p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-base font-bold text-white">Add Direct Garage Customer</h3>
               <button onClick={() => setShowAddModal(false)} className="text-zinc-400 hover:text-white">✕</button>
@@ -860,7 +860,7 @@ export default function SuperAdminGaragesPage() {
       {/* Reset Password Modal */}
       {resetModalGarage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0b101d] border border-white/15 p-6 shadow-2xl space-y-4">
+          <div className="relative w-full max-w-md rounded-xl bg-[#161618] border border-white/[0.08] p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-base font-bold text-white">Reset Garage Password</h3>
