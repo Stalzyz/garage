@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Plug, Zap, Video, Mail, CreditCard, Save, CheckCircle2, Webhook, Plus, Trash2, Loader2, Eye, EyeOff, X, KeyRound, Copy, Check, Share2, ArrowDownLeft, ExternalLink, ShieldCheck, MessageSquare, Cpu } from "lucide-react"
+import { Plug, Zap, Video, Mail, CreditCard, Save, CheckCircle2, Webhook, Plus, Trash2, Loader2, Eye, EyeOff, X, KeyRound, Copy, Check, Share2, ArrowDownLeft, ExternalLink, ShieldCheck, MessageSquare, Cpu, Lock } from "lucide-react"
+import { useOrganization } from "@/context/OrganizationContext"
 
 type Service = "META" | "RAZORPAY" | "PHONEPE" | "STRIPE" | "SMTP" | "WHATSAPP" | "GOOGLE" | "OPENAI" | "GEMINI"
 
@@ -63,6 +64,17 @@ async function apiDelete(path: string) {
 }
 
 export default function IntegrationsDashboard() {
+  const org = useOrganization()
+  const features = org?.features
+
+  const isServiceLocked = (s: Service) => {
+    if (!features) return false
+    if (s === "META") return features.metaLeadsEnabled === false && features.whatsappCloudApiEnabled === false
+    if (s === "GOOGLE") return features.googleLeadsEnabled === false
+    if (s === "WHATSAPP") return features.whatsappAlertsEnabled === false && features.whatsappCloudApiEnabled === false
+    return false
+  }
+
   const [activeTab, setActiveTab]   = useState<"api" | "webhooks">("api")
   const [keys, setKeys]             = useState<IntegrationKey[]>([])
   const [loading, setLoading]       = useState(true)
@@ -423,16 +435,29 @@ export default function IntegrationsDashboard() {
                 const meta = SERVICE_META[service]
                 const Icon = meta.icon
                 const serviceKeys = grouped[service]
+                const isLocked = isServiceLocked(service)
+
                 return (
-                  <div key={service} className={`bg-card border rounded-2xl p-5 shadow-sm transition-all hover:border-primary/30 ${serviceKeys.length > 0 ? 'border-primary/20' : 'border-border/50'}`}>
+                  <div key={service} className={`bg-card border rounded-2xl p-5 shadow-sm transition-all hover:border-primary/30 ${isLocked ? 'border-amber-500/20 bg-amber-500/[0.02]' : serviceKeys.length > 0 ? 'border-primary/20' : 'border-border/50'}`}>
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${meta.bg} ${meta.color} ${meta.border}`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-bold text-foreground">{meta.label}</h3>
-                          {serviceKeys.length > 0 ? (
+                          <h3 className="font-bold text-foreground flex items-center gap-2">
+                            {meta.label}
+                            {isLocked && (
+                              <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                                Upgrade Required
+                              </span>
+                            )}
+                          </h3>
+                          {isLocked ? (
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                              <Lock className="w-3.5 h-3.5" /> Plan Locked
+                            </span>
+                          ) : serviceKeys.length > 0 ? (
                             <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                               <CheckCircle2 className="w-3.5 h-3.5" /> {serviceKeys.length} key{serviceKeys.length > 1 ? "s" : ""} configured
                             </span>

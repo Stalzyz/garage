@@ -15,8 +15,15 @@ const AVAILABLE_MODULES = [
   "Support Helpdesk",
   "Automations Engine",
   "WhatsApp Automation & Alerts",
+  "WhatsApp Cloud API Direct Connection",
+  "Automated Email Triggers & Drip Campaigns",
+  "Meta (Facebook & Instagram) Lead Ads Integration",
+  "Google Leads / Forms / Ads Sync",
   "Asset Drive Cloud Storage",
+  "Client Self-Service Branded Portal",
+  "Whitelabel PDF Branding",
   "White Label & Custom Domain",
+  "AI Assistant / Copilot",
 ]
 
 export default function SuperAdminPlansPage() {
@@ -47,6 +54,7 @@ export default function SuperAdminPlansPage() {
 
   const [form, setForm] = useState({
     name: "",
+    tagline: "",
     monthlyPrice: "",
     monthlyOfferPrice: "",
     yearlyPrice: "",
@@ -55,13 +63,18 @@ export default function SuperAdminPlansPage() {
     whitelabelYearlyBasePrice: "",
     resellerCommissionRate: "25",
     allowWhitelabelCustomMarkup: true,
+    maxUsers: "5",
+    maxClients: "100",
     selectedModules: [] as string[],
+    featuresText: "",
+    missingText: "",
   })
 
   const handleOpenCreateModal = () => {
     setEditingPlanId(null)
     setForm({
       name: "",
+      tagline: "",
       monthlyPrice: "",
       monthlyOfferPrice: "",
       yearlyPrice: "",
@@ -70,7 +83,11 @@ export default function SuperAdminPlansPage() {
       whitelabelYearlyBasePrice: "",
       resellerCommissionRate: "25",
       allowWhitelabelCustomMarkup: true,
+      maxUsers: "5",
+      maxClients: "100",
       selectedModules: [...AVAILABLE_MODULES],
+      featuresText: "",
+      missingText: "",
     })
     setShowModal(true)
   }
@@ -79,6 +96,7 @@ export default function SuperAdminPlansPage() {
     setEditingPlanId(plan.id)
     setForm({
       name: plan.name,
+      tagline: plan.tagline || "",
       monthlyPrice: plan.monthlyPrice !== undefined && plan.monthlyPrice !== null ? String(plan.monthlyPrice) : "",
       monthlyOfferPrice: plan.monthlyOfferPrice !== undefined && plan.monthlyOfferPrice !== null ? String(plan.monthlyOfferPrice) : "",
       yearlyPrice: plan.yearlyPrice !== undefined && plan.yearlyPrice !== null ? String(plan.yearlyPrice) : "",
@@ -87,7 +105,11 @@ export default function SuperAdminPlansPage() {
       whitelabelYearlyBasePrice: plan.whitelabelYearlyBasePrice !== undefined && plan.whitelabelYearlyBasePrice !== null ? String(plan.whitelabelYearlyBasePrice) : "",
       resellerCommissionRate: plan.resellerCommissionRate !== undefined && plan.resellerCommissionRate !== null ? String(plan.resellerCommissionRate) : "25",
       allowWhitelabelCustomMarkup: plan.allowWhitelabelCustomMarkup ?? true,
+      maxUsers: String(plan.maxUsers || 5),
+      maxClients: String(plan.maxClients || 100),
       selectedModules: plan.modules || [],
+      featuresText: (plan.features || []).join("\n"),
+      missingText: (plan.missing || []).join("\n"),
     })
     setShowModal(true)
   }
@@ -103,12 +125,67 @@ export default function SuperAdminPlansPage() {
     })
   }
 
+  const autoGenerateBullets = () => {
+    const bullets: string[] = []
+    const users = form.maxUsers ? (Number(form.maxUsers) >= 999 ? "Unlimited Team Members" : `Up to ${form.maxUsers} Team Logins`) : "Up to 5 Team Logins"
+    const clients = form.maxClients ? (Number(form.maxClients) >= 999 ? "Unlimited Active Clients" : `${form.maxClients} Active Client Accounts`) : "100 Active Client Accounts"
+    bullets.push(`${users} & ${clients}`)
+    
+    if (form.selectedModules.includes("CRM & Lead Pipeline")) bullets.push("Visual Kanban Sales Pipeline & Lead Tracking")
+    if (form.selectedModules.includes("AI Power Dialer & Call Intel")) bullets.push("AI Power Dialer & Call Intelligence")
+    if (form.selectedModules.includes("WhatsApp Automation & Alerts")) bullets.push("Automated WhatsApp Alerts (Proposals & Invoices)")
+    if (form.selectedModules.includes("WhatsApp Cloud API Direct Connection")) bullets.push("WhatsApp Cloud API Direct Integration")
+    if (form.selectedModules.includes("Automated Email Triggers & Drip Campaigns")) bullets.push("Automated Email Triggers & Drip Sequences")
+    if (form.selectedModules.includes("Meta (Facebook & Instagram) Lead Ads Integration")) bullets.push("Meta (Facebook & Instagram) Lead Ads Sync")
+    if (form.selectedModules.includes("Google Leads / Forms / Ads Sync")) bullets.push("Google Leads, Forms & Calendar Sync")
+    if (form.selectedModules.includes("Finance, Invoicing & P&L")) bullets.push("Standard GST Invoicing & Payment Links")
+    if (form.selectedModules.includes("Client Self-Service Branded Portal")) bullets.push("Client Self-Service Branded Portal")
+    if (form.selectedModules.includes("Kanban Projects & Asset Hub")) bullets.push("Team Task & Sprint Milestone Tracking")
+    if (form.selectedModules.includes("HR, Payroll & Attendance")) bullets.push("Full HR & Payroll: Attendance & Kiosk")
+    if (form.selectedModules.includes("Automations Engine")) bullets.push("Custom Workflow Automations & Webhooks")
+    if (form.selectedModules.includes("White Label & Custom Domain")) bullets.push("100% Custom Domain & Proprietary Branding")
+
+    const missingBullets: string[] = []
+    if (!form.selectedModules.includes("WhatsApp Automation & Alerts") && !form.selectedModules.includes("WhatsApp Cloud API Direct Connection")) {
+      missingBullets.push("Automated WhatsApp Client Notifications")
+    }
+    if (!form.selectedModules.includes("Meta (Facebook & Instagram) Lead Ads Integration")) {
+      missingBullets.push("Meta Lead Ads Connection")
+    }
+    if (!form.selectedModules.includes("Google Leads / Forms / Ads Sync")) {
+      missingBullets.push("Google Leads Sync")
+    }
+    if (!form.selectedModules.includes("Client Self-Service Branded Portal")) {
+      missingBullets.push("Client Self-Service Branded Portal")
+    }
+    if (!form.selectedModules.includes("White Label & Custom Domain")) {
+      missingBullets.push("Custom Whitelabel Partner Domain")
+    }
+
+    setForm(prev => ({
+      ...prev,
+      featuresText: bullets.join("\n"),
+      missingText: missingBullets.join("\n")
+    }))
+    toast.success("Generated landing page features list from toggles!")
+  }
+
   const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name || !form.yearlyPrice) return toast.error("Please fill required fields (Name and Yearly Price)")
 
+    const featuresList = form.featuresText
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean)
+    const missingList = form.missingText
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean)
+
     const payload = {
       name: form.name,
+      tagline: form.tagline,
       monthlyPrice: form.monthlyPrice,
       monthlyOfferPrice: form.monthlyOfferPrice,
       yearlyPrice: form.yearlyPrice,
@@ -117,7 +194,11 @@ export default function SuperAdminPlansPage() {
       whitelabelYearlyBasePrice: form.whitelabelYearlyBasePrice,
       resellerCommissionRate: form.resellerCommissionRate,
       allowWhitelabelCustomMarkup: form.allowWhitelabelCustomMarkup,
+      maxUsers: parseInt(form.maxUsers || "5", 10),
+      maxClients: parseInt(form.maxClients || "100", 10),
       modules: form.selectedModules,
+      features: featuresList.length > 0 ? featuresList : form.selectedModules,
+      missing: missingList,
     }
 
     try {
@@ -272,6 +353,18 @@ export default function SuperAdminPlansPage() {
                   </div>
                 </div>
 
+                {/* Quotas: Roles and Clients */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200">
+                    <span className="text-[10px] uppercase tracking-wider text-blue-400 block font-bold">Max Team Roles:</span>
+                    <span className="font-bold text-sm">{!p.maxUsers || Number(p.maxUsers) >= 999 ? "Unlimited Roles" : `${p.maxUsers} Staff Logins`}</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">
+                    <span className="text-[10px] uppercase tracking-wider text-emerald-400 block font-bold">Max Clients:</span>
+                    <span className="font-bold text-sm">{!p.maxClients || Number(p.maxClients) >= 999 ? "Unlimited Clients" : `${p.maxClients} Active Accounts`}</span>
+                  </div>
+                </div>
+
                 {/* Whitelabel & Reseller Splits */}
                 <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
                   <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200">
@@ -284,20 +377,42 @@ export default function SuperAdminPlansPage() {
                   </div>
                 </div>
 
-                {/* Modules Included */}
+                {/* Modules & Feature Badges */}
                 <div className="pt-2 space-y-2 text-xs text-zinc-300">
                   <span className="font-semibold text-zinc-400 uppercase text-[10px] tracking-wider block">
-                    Enabled Modules ({p.modules?.length || 0} / {AVAILABLE_MODULES.length})
+                    Enabled Modules & Connectors ({p.modules?.length || 0} / {AVAILABLE_MODULES.length})
                   </span>
-                  <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                    {p.modules?.map((feat: string, i: number) => (
-                      <div key={i} className="flex items-center gap-2 bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.05]">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="truncate">{feat}</span>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto custom-scrollbar pr-1">
+                    {p.modules?.map((feat: string, i: number) => {
+                      const isMeta = feat.includes("Meta")
+                      const isGoogle = feat.includes("Google")
+                      const isWa = feat.includes("WhatsApp")
+                      const isMail = feat.includes("Email")
+                      return (
+                        <div key={i} className="flex items-center justify-between gap-2 bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.05]">
+                          <div className="flex items-center gap-2 truncate">
+                            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span className="truncate">{feat}</span>
+                          </div>
+                          {isMeta && <span className="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono shrink-0">Meta Leads</span>}
+                          {isGoogle && <span className="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-mono shrink-0">Google Leads</span>}
+                          {isWa && <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono shrink-0">WhatsApp</span>}
+                          {isMail && <span className="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-mono shrink-0">Email Triggers</span>}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
+
+                {/* Landing Page Bullet Points Preview */}
+                {p.features && p.features.length > 0 && (
+                  <div className="pt-1 border-t border-white/5 space-y-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 block">Landing Page Bullets ({p.features.length}):</span>
+                    <p className="text-[11px] text-zinc-400 line-clamp-2 italic">
+                      {p.features.slice(0, 3).join(" • ")} {p.features.length > 3 ? "..." : ""}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
@@ -319,13 +434,13 @@ export default function SuperAdminPlansPage() {
       {/* CREATE / EDIT PLAN MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-[#0c101a] border border-white/15 rounded-3xl p-6 md:p-8 w-full max-w-3xl space-y-6 shadow-2xl my-8">
+          <div className="bg-[#0c101a] border border-white/15 rounded-3xl p-6 md:p-8 w-full max-w-4xl space-y-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h2 className="text-xl font-bold text-white">
                   {editingPlanId ? "Edit Package & Pricing Controls" : "Create New SaaS Package"}
                 </h2>
-                <p className="text-xs text-zinc-400">Set retail costs (+ GST), Whitelabel base pricing, reseller commissions, and module access.</p>
+                <p className="text-xs text-zinc-400">Set retail costs (+ GST), user & client limits, WhatsApp/Email triggers, Meta & Google lead controls.</p>
               </div>
               <button onClick={() => setShowModal(false)} className="text-zinc-500 hover:text-white p-2 rounded-xl bg-white/5">
                 <X className="w-5 h-5" />
@@ -334,17 +449,66 @@ export default function SuperAdminPlansPage() {
 
             <form onSubmit={handleSavePlan} className="space-y-6 text-xs">
               
-              {/* Package Name */}
-              <div className="space-y-1">
-                <label className="text-zinc-300 font-semibold block">Package / Plan Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Enterprise Garage SaaS"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500"
-                />
+              {/* Package Name & Tagline */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-zinc-300 font-semibold block">Package / Plan Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Freelancers, Starter Studio, Pro Enterprise"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-zinc-300 font-semibold block">Short Tagline (Shown on Landing Page)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Solo service consultants & boutique garages"
+                    value={form.tagline}
+                    onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Numerical Quotas & Role Limits */}
+              <div className="p-4 rounded-2xl bg-blue-950/20 border border-blue-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-blue-300 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-blue-400" /> Control Number of Staff Roles & Active Clients
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-mono">Tip: Enter 9999 for Unlimited</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-zinc-300 font-medium block text-xs">Max Team Roles / Staff Logins *</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 1, 3, 10 or 9999"
+                      value={form.maxUsers}
+                      onChange={(e) => setForm({ ...form, maxUsers: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 font-mono"
+                    />
+                    <span className="text-[10px] text-zinc-500 block">Number of employee/manager logins permitted per garage.</span>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-300 font-medium block text-xs">Max Active Client Accounts *</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 15, 25, 150 or 9999"
+                      value={form.maxClients}
+                      onChange={(e) => setForm({ ...form, maxClients: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 font-mono"
+                    />
+                    <span className="text-[10px] text-zinc-500 block">Total customer contacts/portal profiles allowed.</span>
+                  </div>
+                </div>
               </div>
 
               {/* Retail Pricing Section */}
@@ -450,7 +614,7 @@ export default function SuperAdminPlansPage() {
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between border-b border-white/10 pb-2">
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-emerald-400" /> Select Included Modules ({form.selectedModules.length} selected)
+                    <Layers className="w-4 h-4 text-emerald-400" /> Select Included Modules & Lead Connections ({form.selectedModules.length} selected)
                   </span>
                   <div className="flex gap-2">
                     <button
@@ -474,38 +638,94 @@ export default function SuperAdminPlansPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {AVAILABLE_MODULES.map((mod) => {
                     const isChecked = form.selectedModules.includes(mod)
-                    const isWhiteLabelMod = mod.includes("White Label")
+                    const isWhiteLabelMod = mod.includes("White Label") || mod.includes("Whitelabel")
+                    const isMetaOrGoogle = mod.includes("Meta") || mod.includes("Google")
+                    const isWaOrMail = mod.includes("WhatsApp") || mod.includes("Email")
+
                     return (
                       <label
                         key={mod}
                         onClick={() => handleModuleToggle(mod)}
                         className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                           isChecked
-                            ? isWhiteLabelMod
-                              ? "bg-purple-600/20 border-purple-500/50 text-purple-200 font-semibold shadow-md shadow-purple-500/10"
-                              : "bg-blue-600/15 border-blue-500/40 text-white font-medium"
-                            : isWhiteLabelMod
-                              ? "bg-purple-950/10 border-purple-500/20 text-purple-400 hover:bg-purple-950/20"
-                              : "bg-white/[0.02] border-white/10 text-zinc-400 hover:bg-white/[0.05]"
+                            ? isMetaOrGoogle
+                              ? "bg-blue-600/20 border-blue-500/50 text-blue-200 font-semibold"
+                              : isWaOrMail
+                                ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-200 font-semibold"
+                                : isWhiteLabelMod
+                                  ? "bg-purple-600/20 border-purple-500/50 text-purple-200 font-semibold"
+                                  : "bg-blue-600/15 border-blue-500/40 text-white font-medium"
+                            : "bg-white/[0.02] border-white/10 text-zinc-400 hover:bg-white/[0.05]"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            onChange={() => {}} // handled by parent onClick
-                            className={`rounded border-white/10 bg-white/5 w-4 h-4 ${isWhiteLabelMod ? "text-purple-600" : "text-blue-600"}`}
+                            onChange={() => {}}
+                            className="rounded border-white/10 bg-white/5 w-4 h-4 text-blue-600"
                           />
                           <span className="text-xs truncate">{mod}</span>
                         </div>
-                        {isWhiteLabelMod && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
-                            Partner Tier
+                        {isMetaOrGoogle && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
+                            Leads Sync
+                          </span>
+                        )}
+                        {isWaOrMail && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                            Trigger
                           </span>
                         )}
                       </label>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Landing Page Features Generator & Customizer */}
+              <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                  <div>
+                    <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" /> Landing Page Marketing Features & Excluded Items
+                    </span>
+                    <p className="text-[11px] text-zinc-400">Controls the exact bullet points displayed on https://garage.grekam.in/pricing</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={autoGenerateBullets}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold text-xs transition-all shrink-0"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Auto-Generate from Toggles
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-emerald-400 font-semibold block text-xs flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Included Features (1 bullet per line):
+                    </label>
+                    <textarea
+                      rows={6}
+                      placeholder={`Up to 3 Team Logins & 25 Active Client Accounts\nVisual Kanban Sales Pipeline & Lead Tracking\nAutomated WhatsApp Alerts (Proposals & Invoices)`}
+                      value={form.featuresText}
+                      onChange={(e) => setForm({ ...form, featuresText: e.target.value })}
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-white text-xs font-mono focus:outline-none focus:border-emerald-500 custom-scrollbar"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-red-400 font-semibold block text-xs flex items-center gap-1">
+                      <X className="w-3.5 h-3.5" /> Missing / Excluded Items (Crossed out with X, 1 per line):
+                    </label>
+                    <textarea
+                      rows={6}
+                      placeholder={`Automated WhatsApp Client Notifications\nClient Self-Service Branded Portal\nCustom Whitelabel Partner Domain`}
+                      value={form.missingText}
+                      onChange={(e) => setForm({ ...form, missingText: e.target.value })}
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-white text-xs font-mono focus:outline-none focus:border-red-500 custom-scrollbar"
+                    />
+                  </div>
                 </div>
               </div>
 

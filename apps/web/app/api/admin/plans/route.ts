@@ -4,6 +4,48 @@ import { prisma } from "@/lib/prisma"
 
 const DEFAULT_PLANS = [
   {
+    slug: "freelancers",
+    name: "Freelancers",
+    tagline: "Solo garage consultants, freelance automotive estimators & single-bay shops.",
+    badge: null,
+    monthlyPrice: 99,
+    monthlyOfferPrice: 83,
+    yearlyPrice: 1200,
+    yearlyOfferPrice: 999,
+    whitelabelMonthlyBasePrice: 49,
+    whitelabelYearlyBasePrice: 499,
+    resellerCommissionRate: 15,
+    allowWhitelabelCustomMarkup: false,
+    popular: false,
+    ctaText: "Get Started",
+    status: "Active",
+    displayOrder: 1,
+    maxUsers: 1,
+    maxClients: 15,
+    modules: [
+      "CRM & Lead Pipeline",
+      "Kanban Projects & Asset Hub",
+      "Finance, Invoicing & P&L",
+      "Support Helpdesk",
+      "White Label & Custom Domain",
+    ],
+    features: [
+      "1 Team Login & 15 Active Client Accounts",
+      "Visual Kanban Sales Pipeline & Lead Tracking",
+      "Interactive Digital Client Proposals",
+      "Standard GST Invoicing & Payment Links",
+      "Basic Client File & Asset Storage",
+      "Email Support & Knowledge Base",
+    ],
+    missing: [
+      "Automated WhatsApp Alerts & Cloud API",
+      "Meta & Google Lead Ads Sync",
+      "Client Self-Service Branded Portal",
+      "Full HR & Payroll Attendance",
+      "Custom Whitelabel Partner Domain",
+    ]
+  },
+  {
     slug: "starter-studio",
     name: "Starter Studio",
     tagline: "Ideal for boutique agencies, freelance consultants & solo service businesses.",
@@ -19,7 +61,9 @@ const DEFAULT_PLANS = [
     popular: false,
     ctaText: "Start Free Trial",
     status: "Active",
-    displayOrder: 1,
+    displayOrder: 2,
+    maxUsers: 3,
+    maxClients: 25,
     modules: [
       "CRM & Sales (Leads, Proposals, Dialer)",
       "Finance, Invoicing & P&L",
@@ -57,7 +101,9 @@ const DEFAULT_PLANS = [
     popular: true,
     ctaText: "Get Growth Plan",
     status: "Active",
-    displayOrder: 2,
+    displayOrder: 3,
+    maxUsers: 10,
+    maxClients: 150,
     modules: [
       "CRM & Sales (Leads, Proposals, Dialer)",
       "Kanban Projects & Asset Hub",
@@ -99,7 +145,9 @@ const DEFAULT_PLANS = [
     popular: false,
     ctaText: "Upgrade to Pro",
     status: "Active",
-    displayOrder: 3,
+    displayOrder: 4,
+    maxUsers: 9999,
+    maxClients: 9999,
     modules: [
       "CRM & Sales (Leads, Proposals, Dialer)",
       "Kanban Projects & Asset Hub",
@@ -144,7 +192,9 @@ const DEFAULT_PLANS = [
     popular: false,
     ctaText: "Partner With Us",
     status: "Active",
-    displayOrder: 4,
+    displayOrder: 5,
+    maxUsers: 9999,
+    maxClients: 9999,
     modules: [
       "CRM & Sales (Leads, Proposals, Dialer)",
       "Kanban Projects & Asset Hub",
@@ -222,6 +272,8 @@ export async function POST(req: Request) {
       modules = [],
       features = [],
       missing = [],
+      maxUsers = 5,
+      maxClients = 100,
     } = body
 
     if (!name) {
@@ -250,6 +302,8 @@ export async function POST(req: Request) {
         modules,
         features,
         missing,
+        maxUsers: parseInt(String(maxUsers), 10) || 5,
+        maxClients: parseInt(String(maxClients), 10) || 100,
       }
     })
 
@@ -290,6 +344,8 @@ export async function PUT(req: Request) {
     if (data.modules !== undefined) updateData.modules = data.modules
     if (data.features !== undefined) updateData.features = data.features
     if (data.missing !== undefined) updateData.missing = data.missing
+    if (data.maxUsers !== undefined) updateData.maxUsers = parseInt(String(data.maxUsers), 10) || 5
+    if (data.maxClients !== undefined) updateData.maxClients = parseInt(String(data.maxClients), 10) || 100
 
     const updatedPlan = await prisma.systemPlan.update({
       where: { id },

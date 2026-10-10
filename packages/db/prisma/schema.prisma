@@ -319,6 +319,17 @@ model TenantFeatures {
   aiAssistantAllowed   Boolean  @default(false)
   apiAccessAllowed     Boolean  @default(false)
 
+  // Channels & Leads Connections
+  whatsappAlertsEnabled   Boolean  @default(true)
+  whatsappCloudApiEnabled Boolean  @default(true)
+  emailTriggersEnabled    Boolean  @default(true)
+  metaLeadsEnabled        Boolean  @default(true)
+  googleLeadsEnabled      Boolean  @default(true)
+
+  // Quotas & Role Limits
+  maxUsers             Int      @default(5)
+  maxClients           Int      @default(100)
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -3968,6 +3979,8 @@ model SystemPlan {
   modules                     String[]
   features                    String[]
   missing                     String[]
+  maxUsers                    Int      @default(5)
+  maxClients                  Int      @default(100)
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
 

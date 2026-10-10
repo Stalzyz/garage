@@ -94,6 +94,13 @@ export async function GET(
         customDomainAllowed: savedFeatures.customDomainAllowed ?? true,
         whiteLabelPdfAllowed: savedFeatures.whiteLabelPdfAllowed ?? true,
         aiAssistantAllowed: savedFeatures.aiAssistantAllowed ?? true,
+        whatsappAlertsEnabled: savedFeatures.whatsappAlertsEnabled ?? true,
+        whatsappCloudApiEnabled: savedFeatures.whatsappCloudApiEnabled ?? true,
+        emailTriggersEnabled: savedFeatures.emailTriggersEnabled ?? true,
+        metaLeadsEnabled: savedFeatures.metaLeadsEnabled ?? true,
+        googleLeadsEnabled: savedFeatures.googleLeadsEnabled ?? true,
+        maxUsers: savedFeatures.maxUsers ?? 5,
+        maxClients: savedFeatures.maxClients ?? 100,
       }
     }
 
@@ -192,6 +199,13 @@ export async function PATCH(
             customDomainAllowed: features.customDomainAllowed ?? true,
             whiteLabelPdfAllowed: features.whiteLabelPdfAllowed ?? true,
             aiAssistantAllowed: features.aiAssistantAllowed ?? true,
+            whatsappAlertsEnabled: features.whatsappAlertsEnabled ?? true,
+            whatsappCloudApiEnabled: features.whatsappCloudApiEnabled ?? true,
+            emailTriggersEnabled: features.emailTriggersEnabled ?? true,
+            metaLeadsEnabled: features.metaLeadsEnabled ?? true,
+            googleLeadsEnabled: features.googleLeadsEnabled ?? true,
+            maxUsers: features.maxUsers !== undefined ? (parseInt(String(features.maxUsers), 10) || 5) : 5,
+            maxClients: features.maxClients !== undefined ? (parseInt(String(features.maxClients), 10) || 100) : 100,
           },
           update: {
             ...(features.crmEnabled !== undefined && { crmEnabled: features.crmEnabled }),
@@ -205,6 +219,13 @@ export async function PATCH(
             ...(features.customDomainAllowed !== undefined && { customDomainAllowed: features.customDomainAllowed }),
             ...(features.whiteLabelPdfAllowed !== undefined && { whiteLabelPdfAllowed: features.whiteLabelPdfAllowed }),
             ...(features.aiAssistantAllowed !== undefined && { aiAssistantAllowed: features.aiAssistantAllowed }),
+            ...(features.whatsappAlertsEnabled !== undefined && { whatsappAlertsEnabled: features.whatsappAlertsEnabled }),
+            ...(features.whatsappCloudApiEnabled !== undefined && { whatsappCloudApiEnabled: features.whatsappCloudApiEnabled }),
+            ...(features.emailTriggersEnabled !== undefined && { emailTriggersEnabled: features.emailTriggersEnabled }),
+            ...(features.metaLeadsEnabled !== undefined && { metaLeadsEnabled: features.metaLeadsEnabled }),
+            ...(features.googleLeadsEnabled !== undefined && { googleLeadsEnabled: features.googleLeadsEnabled }),
+            ...(features.maxUsers !== undefined && { maxUsers: parseInt(String(features.maxUsers), 10) || 5 }),
+            ...(features.maxClients !== undefined && { maxClients: parseInt(String(features.maxClients), 10) || 100 }),
           }
         })
       }
@@ -248,7 +269,7 @@ export async function PATCH(
           ...(name && { name }),
           ...(plan && { subscription: plan }),
           ...(status && { status }),
-          ...(features && { features }),
+          ...(features && { features: { ...((org.features as any) || {}), ...features } }),
           ...(ownerName && { ownerName }),
           ...(ownerEmail && { ownerEmail }),
           ...(ownerPhone && { ownerPhone }),

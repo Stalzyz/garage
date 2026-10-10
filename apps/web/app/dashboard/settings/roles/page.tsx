@@ -6,10 +6,13 @@ import { useState, useEffect } from "react"
 import { useApi, fetchApi } from "@/lib/useApi"
 import { SlideOver } from "@/components/SlideOver"
 import { toast } from "sonner"
+import { useOrganization } from "@/context/OrganizationContext"
 
 const SYSTEM_MODULES = ["CRM & Sales", "Projects", "Finance", "HR & Payroll", "Marketing Hub", "Support Helpdesk", "System Settings"]
 
 export default function RolesPage() {
+  const org = useOrganization()
+  const maxUsers = org?.features?.maxUsers || 5
   const { data, mutate, isLoading } = useApi<any>("/settings/roles")
   const roles = data?.roles || []
 
@@ -100,6 +103,9 @@ export default function RolesPage() {
             <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
               <Shield className="w-5 h-5 text-purple-400" /> Roles & Permissions
             </h1>
+            <p className="text-xs text-white/50 mt-0.5">
+              Plan Quota: {Number(maxUsers) >= 999 ? "Unlimited Staff Logins" : `Up to ${maxUsers} Staff Logins`} permitted ({org?.subscription || "Active Tier"})
+            </p>
           </div>
         </div>
         <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">

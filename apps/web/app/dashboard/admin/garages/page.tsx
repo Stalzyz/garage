@@ -45,6 +45,13 @@ export default function SuperAdminGaragesPage() {
       customDomainAllowed: true,
       whiteLabelPdfAllowed: true,
       aiAssistantAllowed: true,
+      whatsappAlertsEnabled: true,
+      whatsappCloudApiEnabled: true,
+      emailTriggersEnabled: true,
+      metaLeadsEnabled: true,
+      googleLeadsEnabled: true,
+      maxUsers: 5,
+      maxClients: 100,
     }
   })
 
@@ -122,6 +129,13 @@ export default function SuperAdminGaragesPage() {
             customDomainAllowed: g.features?.customDomainAllowed ?? true,
             whiteLabelPdfAllowed: g.features?.whiteLabelPdfAllowed ?? true,
             aiAssistantAllowed: g.features?.aiAssistantAllowed ?? true,
+            whatsappAlertsEnabled: g.features?.whatsappAlertsEnabled ?? true,
+            whatsappCloudApiEnabled: g.features?.whatsappCloudApiEnabled ?? true,
+            emailTriggersEnabled: g.features?.emailTriggersEnabled ?? true,
+            metaLeadsEnabled: g.features?.metaLeadsEnabled ?? true,
+            googleLeadsEnabled: g.features?.googleLeadsEnabled ?? true,
+            maxUsers: g.features?.maxUsers ?? 5,
+            maxClients: g.features?.maxClients ?? 100,
           }
         })
       } else {
@@ -145,6 +159,13 @@ export default function SuperAdminGaragesPage() {
             customDomainAllowed: true,
             whiteLabelPdfAllowed: true,
             aiAssistantAllowed: true,
+            whatsappAlertsEnabled: true,
+            whatsappCloudApiEnabled: true,
+            emailTriggersEnabled: true,
+            metaLeadsEnabled: true,
+            googleLeadsEnabled: true,
+            maxUsers: 5,
+            maxClients: 100,
           }
         })
       }
@@ -475,6 +496,13 @@ export default function SuperAdminGaragesPage() {
                               newFeats.whiteLabelPdfAllowed = mods.some(m => m.toLowerCase().includes("white label") || m.toLowerCase().includes("whitelabel") || m.toLowerCase().includes("pdf"))
                               newFeats.customDomainAllowed = mods.some(m => m.toLowerCase().includes("custom domain") || m.toLowerCase().includes("domain"))
                               newFeats.aiAssistantAllowed = mods.some(m => m.toLowerCase().includes("ai") || m.toLowerCase().includes("assistant") || m.toLowerCase().includes("intel"))
+                              newFeats.whatsappAlertsEnabled = mods.some(m => m.toLowerCase().includes("whatsapp"))
+                              newFeats.whatsappCloudApiEnabled = mods.some(m => m.toLowerCase().includes("cloud api") || m.toLowerCase().includes("meta"))
+                              newFeats.emailTriggersEnabled = true
+                              newFeats.metaLeadsEnabled = mods.some(m => m.toLowerCase().includes("meta") || m.toLowerCase().includes("facebook"))
+                              newFeats.googleLeadsEnabled = mods.some(m => m.toLowerCase().includes("google") || m.toLowerCase().includes("ads"))
+                              if (planObj.maxUsers !== undefined) newFeats.maxUsers = planObj.maxUsers
+                              if (planObj.maxClients !== undefined) newFeats.maxClients = planObj.maxClients
                               return { ...prev, plan: selectedPlanName, features: newFeats }
                             }
                             return { ...prev, plan: selectedPlanName }
@@ -531,7 +559,36 @@ export default function SuperAdminGaragesPage() {
                   </div>
                 </div>
 
-                {/* 2. Module & Entitlement Controls */}
+                {/* 2. Quotas & Role Limits */}
+                <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-500/20 space-y-3">
+                  <h4 className="font-bold text-white text-xs flex items-center justify-between text-blue-400">
+                    <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Staff Roles & Client Account Quotas</span>
+                    <span className="text-[10px] text-zinc-400 font-mono">9999 = Unlimited</span>
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 mb-1 text-[11px] font-semibold">Max Staff Roles / User Logins</label>
+                      <input
+                        type="number"
+                        value={editForm.features.maxUsers ?? 5}
+                        onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, maxUsers: parseInt(e.target.value, 10) || 1 } })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-1 text-[11px] font-semibold">Max Active Client Profiles</label>
+                      <input
+                        type="number"
+                        value={editForm.features.maxClients ?? 100}
+                        onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, maxClients: parseInt(e.target.value, 10) || 1 } })}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Module & Entitlement Controls */}
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
                   <h4 className="font-bold text-white text-xs flex items-center gap-1.5 text-purple-400">
                     <Sliders className="w-3.5 h-3.5" /> Enable / Disable Specific Modules & Entitlements
@@ -591,6 +648,32 @@ export default function SuperAdminGaragesPage() {
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.aiAssistantAllowed ? "bg-amber-500/10 border-amber-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
                       <span>AI Assistant</span>
                       <input type="checkbox" checked={editForm.features.aiAssistantAllowed} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, aiAssistantAllowed: e.target.checked } })} className="accent-amber-500" />
+                    </label>
+
+                    {/* New Channels & Lead Connections */}
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.whatsappAlertsEnabled ? "bg-emerald-500/10 border-emerald-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>💬 WhatsApp Alerts</span>
+                      <input type="checkbox" checked={editForm.features.whatsappAlertsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, whatsappAlertsEnabled: e.target.checked } })} className="accent-emerald-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.whatsappCloudApiEnabled ? "bg-emerald-500/10 border-emerald-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>📱 WhatsApp Cloud API</span>
+                      <input type="checkbox" checked={editForm.features.whatsappCloudApiEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, whatsappCloudApiEnabled: e.target.checked } })} className="accent-emerald-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.emailTriggersEnabled ? "bg-cyan-500/10 border-cyan-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>✉️ Email Triggers</span>
+                      <input type="checkbox" checked={editForm.features.emailTriggersEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, emailTriggersEnabled: e.target.checked } })} className="accent-cyan-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.metaLeadsEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>🌐 Meta Leads Sync</span>
+                      <input type="checkbox" checked={editForm.features.metaLeadsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, metaLeadsEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.googleLeadsEnabled ? "bg-red-500/10 border-red-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>🔍 Google Leads Sync</span>
+                      <input type="checkbox" checked={editForm.features.googleLeadsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, googleLeadsEnabled: e.target.checked } })} className="accent-red-500" />
                     </label>
                   </div>
                 </div>

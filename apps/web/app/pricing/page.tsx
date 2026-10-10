@@ -133,15 +133,27 @@ export default function PricingPage() {
               const yPriceTotal = p.yearlyOfferPrice || p.yearlyPrice || 0
               const yPriceMonthly = yPriceTotal > 0 ? Math.round(yPriceTotal / 12) : mPrice
 
+              let planFeatures = (p.features && p.features.length > 0) ? [...p.features] : []
+              if (planFeatures.length === 0) {
+                const uStr = p.maxUsers ? (Number(p.maxUsers) >= 999 ? "Unlimited Team Members" : `Up to ${p.maxUsers} Team Logins`) : "1 Team Login"
+                const cStr = p.maxClients ? (Number(p.maxClients) >= 999 ? "Unlimited Active Clients" : `${p.maxClients} Active Client Accounts`) : "15 Active Client Accounts"
+                planFeatures.push(`${uStr} & ${cStr}`)
+                if (p.modules && Array.isArray(p.modules)) {
+                  p.modules.forEach((m: string) => {
+                    planFeatures.push(m)
+                  })
+                }
+              }
+
               return {
                 name: p.name,
-                tagline: p.tagline || "Comprehensive Agency OS & Client CRM workspace.",
+                tagline: p.tagline || "Comprehensive Garage OS & Client CRM workspace.",
                 monthlyPrice: mPrice,
                 yearlyPrice: yPriceMonthly,
                 badge: p.badge || (p.popular ? "Most Popular" : null),
                 popular: Boolean(p.popular),
                 ctaText: p.ctaText || "Get Started",
-                features: (p.features && p.features.length > 0) ? p.features : (p.modules || []),
+                features: planFeatures,
                 missing: p.missing || [],
               }
             })
