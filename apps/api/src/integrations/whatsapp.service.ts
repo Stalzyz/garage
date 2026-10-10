@@ -139,7 +139,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplateDef[] = [
       { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
       { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://garage.grekam.in',
     buttons: []
   }
 ];
@@ -621,7 +621,7 @@ const KNOWN_TEMPLATE_MEDIA: Record<string, string> = {
     const sanitizedName = templateName.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
 
     // Resolve effective media URL:
-    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public https://agency.grekam.in domain).
+    // If the caller provided a mediaUrl, use it (rewriting any internal localhost:4000 to public dashboard.grekam.in domain).
     // If the template requires an IMAGE, DOCUMENT, or VIDEO header and no mediaUrl was supplied,
     // automatically fall back to the template's approved defaultMediaUrl (e.g. Meta sample image header_handle)!
     let resolvedMediaUrl = mediaUrl ? mediaUrl.trim() : '';

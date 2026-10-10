@@ -9,10 +9,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth?.user
 
-  // 1. Domain-specific root routing
-  if (host.includes("agency.grekam.in") && pathname === "/") {
-    return NextResponse.rewrite(new URL("/agency", req.url))
-  }
+
 
   if (host.includes("dashboard.grekam.in") && pathname === "/") {
     if (!isLoggedIn) {

@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ['academy.grekam.in', 'grekam.in', 'www.grekam.in', 'agency.grekam.in', 'dashboard.grekam.in', 'garage.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
+      allowedOrigins: ['dashboard.grekam.in', 'garage.grekam.in', 'localhost:3000', '127.0.0.1:3000'],
     },
   },
 
@@ -124,11 +124,6 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
-      // The agency.grekam.in rewrites were removed. They sent `/` to `/agency`,
-      // but no app/agency route exists anywhere in this repo, so both hostnames
-      // resolved to a hard 404 for every visitor. With no rewrite they serve
-      // app/page.tsx (the ecosystem landing page) instead.
-      // Re-add these once app/agency/page.tsx is actually built.
       {
         source: '/api/v1/:path*',
         destination: `${API_INTERNAL}/:path*`,

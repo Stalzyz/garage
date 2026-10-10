@@ -726,11 +726,11 @@ export default function GarageLandingPage() {
                     exit={{ opacity: 0, y: 4 }}
                     className="absolute top-full right-0 w-80 p-3 bg-[#0c1220]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl z-50 flex flex-col gap-1"
                   >
-                    <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
-                      <Building2 className="w-5 h-5 text-purple-400 mt-0.5" />
+                    <a href="https://garage.grekam.in" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
+                      <Building2 className="w-5 h-5 text-blue-400 mt-0.5" />
                       <div>
-                        <div className="text-xs font-semibold text-white">Grekam Agency</div>
-                        <div className="text-[11px] text-zinc-400">Digital agency & enterprise tech</div>
+                        <div className="text-xs font-semibold text-white">Garage CRM</div>
+                        <div className="text-[11px] text-zinc-400">All-in-one business operations</div>
                       </div>
                     </a>
                     <a href="https://echo.grekam.in" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3">
@@ -2033,9 +2033,9 @@ export default function GarageLandingPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 w-full lg:w-auto">
-              <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors">
-                <div className="text-xs font-bold text-white">Grekam Agency ↗</div>
-                <div className="text-[10px] text-zinc-400">agency.grekam.in</div>
+              <a href="https://garage.grekam.in" className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors">
+                <div className="text-xs font-bold text-white">Garage CRM ↗</div>
+                <div className="text-[10px] text-zinc-400">garage.grekam.in</div>
               </a>
               <a href="https://echo.grekam.in" target="_blank" rel="noopener noreferrer" className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors">
                 <div className="text-xs font-bold text-white">Echo LMS ↗</div>
@@ -2130,7 +2130,7 @@ export default function GarageLandingPage() {
             <img src="/garage-logo.svg" alt="Garage CRM" className="w-5 h-5" />
             <span className="text-zinc-300 font-bold">Garage CRM</span>
             <span>•</span>
-            <span>A proud product by <a href="https://agency.grekam.in" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-semibold">Grekam</a></span>
+            <span>A proud product of Grekam Ecosystem</span>
           </div>
 
           <div className="flex items-center gap-6">

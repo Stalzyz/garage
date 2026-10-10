@@ -71,8 +71,8 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
       { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service Interested', placeholder: 'Shopify / Web Development' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nPortfolio: https://agency.grekam.in',
-    buttons: ['Call Support', 'View Portfolio']
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to us regarding {{2}}!\n\nOur team is reviewing your requirements and will connect with you shortly.\n\nWebsite: https://garage.grekam.in',
+    buttons: ['Call Support', 'View Services']
   },
   {
     id: 'grafty_proposals',
@@ -118,8 +118,8 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
       { name: 'leadName', label: 'Lead Name', placeholder: 'Stalin Kumar' },
       { name: 'serviceInterest', label: 'Service / Requirement', placeholder: 'Next.js App & AI Bot' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out to Grekam Visuals regarding {{2}}!\n\nOur agency team is reviewing your requirements and will connect with you shortly.\n\nExplore our portfolio: https://agency.grekam.in',
-    buttons: ['Call Support', 'View Portfolio']
+    bodyPattern: 'Hi {{1}},\n\nThank you for reaching out regarding {{2}}!\n\nOur team is reviewing your requirements and will connect with you shortly.\n\nExplore our platform: https://garage.grekam.in',
+    buttons: ['Call Support', 'View Services']
   },
   {
     id: 'proposal_sent_v1',
@@ -181,7 +181,7 @@ const FALLBACK_TEMPLATES: TemplateDef[] = [
       { name: 'leadName', label: 'Lead / Client Name', placeholder: 'Stalin Kumar' },
       { name: 'callbackTime', label: 'Follow-Up / Next Step', placeholder: 'Tomorrow at 10 AM' }
     ],
-    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://agency.grekam.in',
+    bodyPattern: 'Hi {{1}},\n\nThank you for taking our call today!\n\nAs discussed, our team will follow up with you regarding {{2}}.\n\nWebsite: https://garage.grekam.in',
     buttons: []
   }
 ];
@@ -309,7 +309,7 @@ export function WhatsAppModal({
       if (data?.downloadUrl) {
         let finalUrl = data.downloadUrl;
         if (finalUrl.includes('localhost:4000') || finalUrl.includes('127.0.0.1:4000')) {
-          finalUrl = finalUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
+          finalUrl = finalUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://dashboard.grekam.in');
         }
         setMediaUrl(finalUrl);
         toast.success(`Uploaded "${file.name}" successfully!`);
@@ -356,7 +356,7 @@ export function WhatsAppModal({
 
       let effectiveMediaUrl = (mediaUrl.trim() || selectedTemplate.defaultMediaUrl || '').trim();
       if (effectiveMediaUrl.includes('localhost:4000') || effectiveMediaUrl.includes('127.0.0.1:4000')) {
-        effectiveMediaUrl = effectiveMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://agency.grekam.in');
+        effectiveMediaUrl = effectiveMediaUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):4000/g, 'https://dashboard.grekam.in');
       }
 
       const res = await fetchApi<any>('/integrations/whatsapp/send-template', {
@@ -823,8 +823,8 @@ export function WhatsAppModal({
                       className="w-full bg-black/70 border border-emerald-500/40 rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-400 text-white"
                       placeholder={
                         selectedTemplate.headerType === 'DOCUMENT'
-                          ? 'https://agency.grekam.in/sample_proposal.pdf'
-                          : 'https://agency.grekam.in/portfolio_showcase.png'
+                          ? 'https://dashboard.grekam.in/sample_proposal.pdf'
+                          : 'https://dashboard.grekam.in/portfolio_showcase.png'
                       }
                       value={mediaUrl}
                       onChange={(e) => {
@@ -842,7 +842,7 @@ export function WhatsAppModal({
                       <button
                         type="button"
                         onClick={() => {
-                          setMediaUrl('https://agency.grekam.in/sample_proposal.pdf');
+                          setMediaUrl('https://dashboard.grekam.in/sample_proposal.pdf');
                           setLocalPreviewUrl('');
                           setUploadedFileName('sample_proposal.pdf');
                         }}
@@ -853,7 +853,7 @@ export function WhatsAppModal({
                       <button
                         type="button"
                         onClick={() => {
-                          setMediaUrl('https://agency.grekam.in/sample_invoice.pdf');
+                          setMediaUrl('https://dashboard.grekam.in/sample_invoice.pdf');
                           setLocalPreviewUrl('');
                           setUploadedFileName('sample_invoice.pdf');
                         }}
@@ -867,7 +867,7 @@ export function WhatsAppModal({
                       <button
                         type="button"
                         onClick={() => {
-                          setMediaUrl('https://agency.grekam.in/portfolio_showcase.png');
+                          setMediaUrl('https://dashboard.grekam.in/portfolio_showcase.png');
                           setLocalPreviewUrl('');
                           setUploadedFileName('portfolio_showcase.png');
                         }}
