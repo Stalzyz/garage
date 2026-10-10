@@ -14,6 +14,13 @@ export interface OrganizationFeatures {
   customDomainAllowed: boolean;
   whiteLabelPdfAllowed: boolean;
   aiAssistantAllowed: boolean;
+  whatsappAlertsEnabled?: boolean;
+  whatsappCloudApiEnabled?: boolean;
+  emailTriggersEnabled?: boolean;
+  metaLeadsEnabled?: boolean;
+  googleLeadsEnabled?: boolean;
+  maxUsers?: number;
+  maxClients?: number;
 }
 
 export interface Organization {

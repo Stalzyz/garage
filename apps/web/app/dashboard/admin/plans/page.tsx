@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles, Loader2 } from "lucide-react"
+import { DollarSign, Plus, Edit, Check, X, ShieldCheck, Tag, Info, Layers, Lock, Sparkles, Loader2, Users } from "lucide-react"
 import { toast } from "sonner"
 
 const AVAILABLE_MODULES = [
