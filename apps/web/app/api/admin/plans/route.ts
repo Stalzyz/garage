@@ -224,21 +224,48 @@ const DEFAULT_PLANS = [
 
 export async function GET() {
   const guard = await requireAdmin()
-  if (!guard.ok) return guard.response
+  const isAdmin = guard.ok
 
   try {
     let plans = await prisma.systemPlan.findMany({
+      where: isAdmin ? undefined : { status: "Active" },
       orderBy: { displayOrder: "asc" }
     })
 
     // Seed default system plans if DB table is empty
-    if (plans.length === 0) {
+    if (plans.length === 0 && isAdmin) {
       for (const p of DEFAULT_PLANS) {
         await prisma.systemPlan.create({ data: p }).catch(() => {})
       }
       plans = await prisma.systemPlan.findMany({
         orderBy: { displayOrder: "asc" }
       })
+    }
+
+    if (!isAdmin) {
+      // Return public plan properties without wholesale whitelabel cost fields
+      const publicPlans = plans.map(p => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        tagline: p.tagline,
+        badge: p.badge,
+        monthlyPrice: p.monthlyPrice,
+        monthlyOfferPrice: p.monthlyOfferPrice,
+        yearlyPrice: p.yearlyPrice,
+        yearlyOfferPrice: p.yearlyOfferPrice,
+        popular: p.popular,
+        ctaText: p.ctaText,
+        ctaUrl: p.ctaUrl,
+        status: p.status,
+        displayOrder: p.displayOrder,
+        modules: p.modules,
+        features: p.features,
+        missing: p.missing,
+        maxUsers: p.maxUsers,
+        maxClients: p.maxClients,
+      }))
+      return NextResponse.json({ success: true, plans: publicPlans })
     }
 
     return NextResponse.json({ success: true, plans })

@@ -24,6 +24,32 @@ import {
 
 const DEFAULT_PLANS = [
   {
+    name: "Freelancers",
+    tagline: "Solo garage consultants, freelance automotive estimators & single-bay shops.",
+    monthlyPrice: 99,
+    monthlyOfferPrice: 83,
+    yearlyPrice: 1200,
+    yearlyOfferPrice: 999,
+    badge: null,
+    popular: false,
+    ctaText: "Get Started",
+    features: [
+      "1 Team Login & 15 Active Client Accounts",
+      "Visual Kanban Sales Pipeline & Lead Tracking",
+      "Interactive Digital Client Proposals",
+      "Standard GST Invoicing & Payment Links",
+      "Basic Client File & Asset Storage",
+      "Email Support & Knowledge Base",
+    ],
+    missing: [
+      "Automated WhatsApp Alerts & Cloud API",
+      "Meta & Google Lead Ads Sync",
+      "Client Self-Service Branded Portal",
+      "Full HR & Payroll Attendance",
+      "Custom Whitelabel Partner Domain",
+    ]
+  },
+  {
     name: "Starter Studio",
     tagline: "Ideal for boutique agencies, freelance consultants & solo service businesses.",
     monthlyPrice: 1899,
