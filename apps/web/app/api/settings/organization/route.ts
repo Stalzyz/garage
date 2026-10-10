@@ -48,12 +48,15 @@ export async function GET() {
           bankIfsc: tb.ifscCode || "",
           swiftCode: tb.swiftCode || "",
           bankBranch: tb.bankBranch || "",
+          upiId: tb.upiId || "",
+          upiQrCodeUrl: tb.upiQrCodeUrl || null,
           subscription: tb.tenant.plan || "Growth Plan",
           features: tf ? {
             crmEnabled: tf.crmEnabled ?? true,
             powerDialerEnabled: tf.powerDialerEnabled ?? true,
             hrmEnabled: tf.hrmEnabled ?? true,
             projectsEnabled: tf.projectsEnabled ?? true,
+            tasksEnabled: tf.tasksEnabled ?? true,
             financeEnabled: tf.financeEnabled ?? true,
             marketingEnabled: tf.marketingEnabled ?? true,
             automationsEnabled: tf.automationsEnabled ?? true,
@@ -131,12 +134,15 @@ export async function GET() {
             bankIfsc: tb.ifscCode || "",
             swiftCode: tb.swiftCode || "",
             bankBranch: tb.bankBranch || "",
+            upiId: tb.upiId || "",
+            upiQrCodeUrl: tb.upiQrCodeUrl || null,
             subscription: tenantMember.tenant.plan || "Growth Plan",
             features: tf ? {
               crmEnabled: tf.crmEnabled ?? true,
               powerDialerEnabled: tf.powerDialerEnabled ?? true,
               hrmEnabled: tf.hrmEnabled ?? true,
               projectsEnabled: tf.projectsEnabled ?? true,
+              tasksEnabled: tf.tasksEnabled ?? true,
               financeEnabled: tf.financeEnabled ?? true,
               marketingEnabled: tf.marketingEnabled ?? true,
               automationsEnabled: tf.automationsEnabled ?? true,
@@ -229,6 +235,8 @@ export async function GET() {
       bankIfsc: org.ifscCode || "",
       swiftCode: org.swiftCode || "",
       bankBranch: org.bankBranch || "",
+      upiId: org.upiId || "",
+      upiQrCodeUrl: org.upiQrCodeUrl || null,
       subscription: org.subscription || "Growth Plan",
       features: org.features || undefined,
     })
@@ -278,6 +286,8 @@ export async function PATCH(req: Request) {
           ifscCode: ifsc || null,
           swiftCode: body.swiftCode || null,
           bankBranch: body.bankBranch || null,
+          upiId: body.upiId || null,
+          upiQrCodeUrl: body.upiQrCodeUrl || null,
         },
         update: {
           ...(body.companyName !== undefined && { companyName: body.companyName }),
@@ -298,6 +308,8 @@ export async function PATCH(req: Request) {
           ...(ifsc !== undefined && { ifscCode: ifsc || null }),
           ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
           ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
+          ...(body.upiId !== undefined && { upiId: body.upiId || null }),
+          ...(body.upiQrCodeUrl !== undefined && { upiQrCodeUrl: body.upiQrCodeUrl || null }),
         }
       })
 
@@ -389,6 +401,8 @@ export async function PATCH(req: Request) {
         ...(ifsc !== undefined && { ifscCode: ifsc || null }),
         ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
         ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
+        ...(body.upiId !== undefined && { upiId: body.upiId || null }),
+        ...(body.upiQrCodeUrl !== undefined && { upiQrCodeUrl: body.upiQrCodeUrl || null }),
       }
     })
 

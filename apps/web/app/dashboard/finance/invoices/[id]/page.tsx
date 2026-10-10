@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ChevronLeft, Download, Globe, Loader2, Mail, MessageSquare, Phone, Send } from "lucide-react"
+import { ChevronLeft, Download, Globe, Loader2, Mail, MessageSquare, Phone, Send, CreditCard, QrCode } from "lucide-react"
 
 import Link from "next/link"
 import { useOrganization } from "@/context/OrganizationContext"
@@ -308,6 +308,71 @@ export default function InvoiceDetailsPage() {
                   <span className="text-sm">Total Amount ({symbol})</span>
                   <span className="text-base font-black font-mono">{symbol} {invoice.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bank & UPI QR Payment Box */}
+          <div className="pt-4 border-t border-slate-100">
+            <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-5 grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+              {/* Bank Wire Details */}
+              <div className="md:col-span-8 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-slate-700" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Bank Settlement & Wire Transfer Details
+                  </span>
+                  {(invoice.isProforma || invoice.invoiceNumber?.startsWith("PI-")) && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
+                      PROFORMA ESTIMATE
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">Bank Name</p>
+                    <p className="font-bold text-slate-900">{org.bankName || "HDFC Bank Ltd"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">Account Name</p>
+                    <p className="font-bold text-slate-900 truncate">{org.accountName || companyName}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">Account Number</p>
+                    <p className="font-bold font-mono text-slate-900">{org.accountNumber || org.bankAccountNo || "50200012345678"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">IFSC Code</p>
+                    <p className="font-bold font-mono text-slate-900">{org.ifscCode || org.bankIfsc || "HDFC0000123"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">Branch</p>
+                    <p className="font-semibold text-slate-800">{org.bankBranch || "Main Branch"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">UPI VPA</p>
+                    <p className="font-bold font-mono text-emerald-700">{org.upiId || "grekam@okaxis"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* UPI Instant QR Code */}
+              <div className="md:col-span-4 flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-slate-200 text-center shadow-sm">
+                <div className="w-28 h-28 flex items-center justify-center mb-1.5">
+                  <img
+                    src={org.upiQrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${org.upiId || 'grekam@okaxis'}&pn=${encodeURIComponent(companyName)}&am=${invoice.totalAmount || 0}&cu=INR`)}`}
+                    alt="Scan UPI QR Code"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-900">
+                  <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Scan to Pay via UPI</span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  {org.upiId || "grekam@okaxis"}
+                </p>
               </div>
             </div>
           </div>

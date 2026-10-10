@@ -36,6 +36,8 @@ const UpdateOrganizationSchema = z.object({
   bankIfsc: z.string().nullable().optional().or(z.literal('')),
   swiftCode: z.string().nullable().optional().or(z.literal('')),
   bankBranch: z.string().nullable().optional().or(z.literal('')),
+  upiId: z.string().nullable().optional().or(z.literal('')),
+  upiQrCodeUrl: z.string().nullable().optional().or(z.literal('')),
 });
 
 async function resolveWorkspaceOrg(app: FastifyInstance, req: any) {
@@ -363,6 +365,8 @@ export default async function organizationRouter(app: FastifyInstance) {
           ifscCode: ifsc || null,
           swiftCode: body.swiftCode || null,
           bankBranch: body.bankBranch || null,
+          upiId: body.upiId || null,
+          upiQrCodeUrl: body.upiQrCodeUrl || null,
         },
         update: {
           ...(body.companyName !== undefined && { companyName: body.companyName || null }),
@@ -383,6 +387,8 @@ export default async function organizationRouter(app: FastifyInstance) {
           ...(ifsc !== undefined && { ifscCode: ifsc || null }),
           ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
           ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
+          ...(body.upiId !== undefined && { upiId: body.upiId || null }),
+          ...(body.upiQrCodeUrl !== undefined && { upiQrCodeUrl: body.upiQrCodeUrl || null }),
         },
       });
 
@@ -426,6 +432,8 @@ export default async function organizationRouter(app: FastifyInstance) {
       ...(ifsc !== undefined && { ifscCode: ifsc || null }),
       ...(body.swiftCode !== undefined && { swiftCode: body.swiftCode || null }),
       ...(body.bankBranch !== undefined && { bankBranch: body.bankBranch || null }),
+      ...(body.upiId !== undefined && { upiId: body.upiId || null }),
+      ...(body.upiQrCodeUrl !== undefined && { upiQrCodeUrl: body.upiQrCodeUrl || null }),
     };
 
     const updatedOrg = await app.prisma.organization.update({

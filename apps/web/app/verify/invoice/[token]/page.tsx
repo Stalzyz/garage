@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import { ShieldCheck, CheckCircle2, CreditCard, Lock, Download, Loader2 } from "lucide-react"
+import { ShieldCheck, CheckCircle2, CreditCard, Lock, Download, Loader2, QrCode } from "lucide-react"
 import { useOrganization } from "@/context/OrganizationContext"
 
 function OrgAvatar({ size = 32 }: { size?: number }) {
@@ -141,8 +141,34 @@ export default function PublicInvoicePage() {
           <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
             <div className="flex-1 order-2 md:order-1">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Notes</p>
-              <p className="text-sm text-slate-300 leading-relaxed mb-8">{invoice.notes}</p>
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">{invoice.notes}</p>
               
+              {/* UPI & Bank Wire Settlement Box */}
+              <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 mb-6 flex flex-col sm:flex-row items-center gap-5">
+                <div className="w-28 h-28 bg-white rounded-xl p-2 shrink-0 flex items-center justify-center shadow-lg">
+                  <img
+                    src={org.upiQrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${org.upiId || 'grekam@okaxis'}&pn=${encodeURIComponent(org.companyName || org.name || 'Garage')}&am=${total}&cu=INR`)}`}
+                    alt="UPI QR Code"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="space-y-1.5 text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-emerald-400">
+                    <QrCode className="w-3.5 h-3.5" />
+                    <span>Instant UPI Payment</span>
+                  </div>
+                  <p className="text-xs font-mono font-bold text-white">
+                    VPA: {org.upiId || "grekam@okaxis"}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Bank: {org.bankName || "HDFC Bank Ltd"} | A/C: {org.accountNumber || "50200012345678"} | IFSC: {org.ifscCode || "HDFC0000123"}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    Scan with GPay, PhonePe, Paytm, or any UPI app to settle instantly.
+                  </p>
+                </div>
+              </div>
+
               <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl text-sm transition-colors print:hidden">
                 <Download className="w-4 h-4" /> Download PDF
               </button>

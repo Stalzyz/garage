@@ -8,6 +8,7 @@ const AVAILABLE_MODULES = [
   "CRM & Lead Pipeline",
   "AI Power Dialer & Call Intel",
   "Kanban Projects & Asset Hub",
+  "Task & Work Allocation: Staff Tasks",
   "Finance, Invoicing & P&L",
   "HR, Payroll & Attendance",
   "Marketing Hub & Campaign Scheduler",
@@ -141,11 +142,15 @@ export default function SuperAdminPlansPage() {
     if (form.selectedModules.includes("Finance, Invoicing & P&L")) bullets.push("Standard GST Invoicing & Payment Links")
     if (form.selectedModules.includes("Client Self-Service Branded Portal")) bullets.push("Client Self-Service Branded Portal")
     if (form.selectedModules.includes("Kanban Projects & Asset Hub")) bullets.push("Team Task & Sprint Milestone Tracking")
+    if (form.selectedModules.includes("Task & Work Allocation: Staff Tasks")) bullets.push("Staff Task Assignment & Work Allocation Hub")
     if (form.selectedModules.includes("HR, Payroll & Attendance")) bullets.push("Full HR & Payroll: Attendance & Kiosk")
     if (form.selectedModules.includes("Automations Engine")) bullets.push("Custom Workflow Automations & Webhooks")
     if (form.selectedModules.includes("White Label & Custom Domain")) bullets.push("100% Custom Domain & Proprietary Branding")
 
     const missingBullets: string[] = []
+    if (!form.selectedModules.includes("Task & Work Allocation: Staff Tasks")) {
+      missingBullets.push("Staff Task & Work Allocation")
+    }
     if (!form.selectedModules.includes("WhatsApp Automation & Alerts") && !form.selectedModules.includes("WhatsApp Cloud API Direct Connection")) {
       missingBullets.push("Automated WhatsApp Client Notifications")
     }

@@ -28,7 +28,8 @@ export interface NavItem {
   icon: React.ElementType
   roles: Role[]
   resource?: string
-  children?: { title: string; href: string }[]
+  upgradeRequired?: boolean
+  children?: { title: string; href: string; upgradeRequired?: boolean }[]
 }
 
 export const navigation: NavItem[] = [
@@ -254,6 +255,7 @@ export const getNavItemsByRole = (
     customDomainAllowed?: boolean;
     whiteLabelPdfAllowed?: boolean;
     aiAssistantAllowed?: boolean;
+    tasksEnabled?: boolean;
   }
 ) => {
   let normRole = (role || "").toUpperCase()
@@ -265,7 +267,7 @@ export const getNavItemsByRole = (
 
   return navigation
     .filter((item) => {
-      // 1. Core workspace and productivity links
+      // 1. Role-based entitlement check
       let allowed = false
       if (["/dashboard", "/dashboard/ess", "/dashboard/tasks", "/dashboard/team-hub", "/dashboard/notifications", "/dashboard/chat"].includes(item.href)) {
         allowed = item.roles.includes(normRole as Role)
@@ -279,42 +281,45 @@ export const getNavItemsByRole = (
         allowed = item.roles.includes(normRole as Role)
       }
 
-      if (!allowed) return false
-
-      // 2. Feature Entitlement Gate (Super Admin always has full access)
-      if (isSuperAdmin || !features) return true
-
-      if (item.href === "/dashboard/crm" && features.crmEnabled === false) return false
-      if (item.href === "/dashboard/projects" && features.projectsEnabled === false) return false
-      if (item.href === "/dashboard/finance" && features.financeEnabled === false) return false
-      if (item.href === "/dashboard/hr" && features.hrmEnabled === false) return false
-      if (item.href === "/dashboard/team-hub" && features.hrmEnabled === false) return false
-      if (item.href === "/dashboard/ess" && features.hrmEnabled === false) return false
-      if (item.href === "/dashboard/tasks" && features.projectsEnabled === false) return false
-      if (item.href === "/dashboard/drive" && features.projectsEnabled === false) return false
-      if (item.href === "/dashboard/vendors" && (features.financeEnabled === false && features.crmEnabled === false)) return false
-      if (item.href.startsWith("/dashboard/marketing") && features.marketingEnabled === false) return false
-      if (item.href === "/dashboard/automations" && features.automationsEnabled === false) return false
-
-      return true
+      return allowed
     })
     .map((item) => {
-      // Filter child navigation items based on granular feature flags
-      if (!isSuperAdmin && features && item.children) {
-        let filteredChildren = item.children
-
-        // Power Dialer sub-items
-        if (features.powerDialerEnabled === false) {
-          filteredChildren = filteredChildren.filter(
-            child => child.href !== "/dashboard/crm/dialer" && child.href !== "/dashboard/crm/calls"
-          )
-        }
-
-        return {
-          ...item,
-          children: filteredChildren
-        }
+      // 2. Instead of hiding features, mark with upgradeRequired flag
+      let upgradeRequired = false
+      if (!isSuperAdmin && features) {
+        if (item.href === "/dashboard/crm" && features.crmEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/projects" && features.projectsEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/finance" && features.financeEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/hr" && features.hrmEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/team-hub" && features.hrmEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/ess" && features.hrmEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/tasks" && (features.tasksEnabled === false || features.projectsEnabled === false)) upgradeRequired = true
+        if (item.href === "/dashboard/drive" && features.projectsEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/vendors" && (features.financeEnabled === false && features.crmEnabled === false)) upgradeRequired = true
+        if (item.href.startsWith("/dashboard/marketing") && features.marketingEnabled === false) upgradeRequired = true
+        if (item.href === "/dashboard/automations" && features.automationsEnabled === false) upgradeRequired = true
       }
-      return item
+
+      let children = item.children
+      if (children) {
+        children = children.map(child => {
+          let childUpgradeRequired = upgradeRequired
+          if (!isSuperAdmin && features) {
+            if ((child.href === "/dashboard/crm/dialer" || child.href === "/dashboard/crm/calls") && (features.powerDialerEnabled === false || features.crmEnabled === false)) {
+              childUpgradeRequired = true
+            }
+          }
+          return {
+            ...child,
+            upgradeRequired: childUpgradeRequired
+          }
+        })
+      }
+
+      return {
+        ...item,
+        upgradeRequired,
+        children
+      }
     })
 }

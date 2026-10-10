@@ -28,20 +28,25 @@ export default function InteractiveProposalBuilder() {
   const templates = templatesData?.data || []
   
   const [formData, setFormData] = useState({
-    title: "Brand Strategy & Web Development",
+    title: "",
     leadId: "",
     contactId: "",
     assignToType: "LEAD", // 'LEAD' or 'CONTACT'
-    content: "<h2>Overview</h2><p>We are excited to propose a comprehensive brand strategy and website overhaul for your company. Our goal is to position you as the industry leader.</p><h2>Scope of Work</h2><ul><li><strong>Brand Identity Design</strong></li><li><strong>UI/UX Prototyping</strong></li><li><strong>Full-stack Development</strong></li></ul><h2>Timeline</h2><p>This project will take approximately 6 weeks to complete from the signing of this proposal.</p>",
+    content: "",
   })
 
   const [discountRate, setDiscountRate] = useState<number>(0)
   const [taxRate, setTaxRate] = useState<number>(0)
 
-  const [items, setItems] = useState([
-    { name: "Brand Identity", description: "Logo, Color Palette, Typography", quantity: 1, unitPrice: 2500, discountRate: 0, taxRate: 0, total: 2500 },
-    { name: "Web Development", description: "Frontend and Backend", quantity: 1, unitPrice: 5000, discountRate: 0, taxRate: 0, total: 5000 }
-  ])
+  const [items, setItems] = useState<Array<{
+    name: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    discountRate: number;
+    taxRate: number;
+    total: number;
+  }>>([])
 
   const calculateItemTotal = (qty: any, price: any, disc: any, tax: any) => {
     const base = Number(qty) * Number(price);
@@ -289,8 +294,20 @@ export default function InteractiveProposalBuilder() {
               </div>
 
               <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div key={index} className="p-4 rounded-xl bg-white/5 border border-white/10 relative group">
+                {items.length === 0 ? (
+                  <div className="text-center py-8 px-4 bg-white/[0.02] border border-white/5 border-dashed rounded-xl">
+                    <p className="text-sm text-white/50 mb-3">No line items added yet.</p>
+                    <button 
+                      type="button" 
+                      onClick={handleAddItem}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-600/20 text-violet-400 border border-violet-500/30 rounded-lg text-xs font-semibold hover:bg-violet-600/30 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add First Pricing Item
+                    </button>
+                  </div>
+                ) : (
+                  items.map((item, index) => (
+                    <div key={index} className="p-4 rounded-xl bg-white/5 border border-white/10 relative group">
                     <button 
                       onClick={() => handleRemoveItem(index)}
                       className="absolute -right-2 -top-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
@@ -360,7 +377,8 @@ export default function InteractiveProposalBuilder() {
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
               </div>
               
               <div className="flex flex-col gap-2 p-4 bg-white/5 border border-white/10 rounded-xl mt-4">
@@ -442,19 +460,27 @@ export default function InteractiveProposalBuilder() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {items.map((item, i) => (
-                      <tr key={i} className="hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4">
-                          <p className="font-bold text-white">{item.name || 'Item Name'}</p>
-                          {item.description && <p className="text-xs text-slate-500 mt-1">{item.description}</p>}
+                    {items.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-xs">
+                          No pricing deliverables added yet. Add items on the left to see live calculations.
                         </td>
-                        <td className="px-6 py-4 text-right text-slate-300">{item.quantity}</td>
-                        <td className="px-6 py-4 text-right text-slate-300">{symbol}{Number(item.unitPrice).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-right text-slate-300">{item.discountRate}%</td>
-                        <td className="px-6 py-4 text-right text-slate-300">{item.taxRate}%</td>
-                        <td className="px-6 py-4 text-right font-medium text-white">{symbol}{item.total.toLocaleString()}</td>
                       </tr>
-                    ))}
+                    ) : (
+                      items.map((item, i) => (
+                        <tr key={i} className="hover:bg-white/5 transition-colors">
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-white">{item.name || 'Item Name'}</p>
+                            {item.description && <p className="text-xs text-slate-500 mt-1">{item.description}</p>}
+                          </td>
+                          <td className="px-6 py-4 text-right text-slate-300">{item.quantity}</td>
+                          <td className="px-6 py-4 text-right text-slate-300">{symbol}{Number(item.unitPrice).toLocaleString()}</td>
+                          <td className="px-6 py-4 text-right text-slate-300">{item.discountRate}%</td>
+                          <td className="px-6 py-4 text-right text-slate-300">{item.taxRate}%</td>
+                          <td className="px-6 py-4 text-right font-medium text-white">{symbol}{item.total.toLocaleString()}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                   <tfoot>
                     <tr className="bg-violet-600/10 border-t border-white/10">
@@ -464,6 +490,35 @@ export default function InteractiveProposalBuilder() {
                   </tfoot>
                 </table>
               </div>
+
+              {/* UPI & Instant QR Code Payments */}
+              {(org.upiId || org.upiQrCodeUrl) && (
+                <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/10 relative overflow-hidden">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="shrink-0 bg-white p-2.5 rounded-xl shadow-lg border border-white/10 flex flex-col items-center">
+                      <img 
+                        src={org.upiQrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${org.upiId}&pn=${org.name || 'Grekam'}&cu=INR`)}`}
+                        alt="UPI QR Code"
+                        className="w-28 h-28 object-contain rounded"
+                      />
+                      <span className="text-[10px] font-black tracking-widest text-slate-800 uppercase mt-1">Scan & Pay</span>
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+                        Instant UPI Settlement
+                      </div>
+                      <h4 className="text-white font-bold text-sm mb-1">Make Payment via Any UPI App</h4>
+                      <p className="text-xs text-slate-400 mb-2">Google Pay, PhonePe, Paytm, BHIM, or any UPI-enabled mobile banking app.</p>
+                      {org.upiId && (
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs font-mono text-violet-300">
+                          <span className="text-slate-400 text-[10px] uppercase font-sans">UPI ID:</span>
+                          <span className="font-bold">{org.upiId}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Mock Signature Block */}

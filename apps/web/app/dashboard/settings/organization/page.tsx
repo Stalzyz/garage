@@ -15,7 +15,10 @@ import {
   CreditCard,
   ExternalLink,
   Share2,
-  FileBadge2
+  FileBadge2,
+  QrCode,
+  Copy,
+  Smartphone
 } from "lucide-react";
 import { 
   FaTwitter, 
@@ -47,6 +50,7 @@ export default function OrganizationSettingsPage() {
 
   const squareLogoInputRef = useRef<HTMLInputElement>(null);
   const rectLogoInputRef = useRef<HTMLInputElement>(null);
+  const upiQrInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     ApiClient.get("/settings/organization")
@@ -61,7 +65,7 @@ export default function OrganizationSettingsPage() {
       });
   }, []);
 
-  const handleUploadFile = async (file: File, field: 'logoUrl' | 'faviconUrl') => {
+  const handleUploadFile = async (file: File, field: 'logoUrl' | 'faviconUrl' | 'upiQrCodeUrl') => {
     setUploadingState((prev) => ({ ...prev, [field]: true }));
 
     try {
@@ -93,7 +97,8 @@ export default function OrganizationSettingsPage() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("organization-updated"));
       }
-      toast.success(`${field === 'faviconUrl' ? 'Dashboard logo' : 'Document logo'} uploaded and saved!`);
+      const label = field === 'faviconUrl' ? 'Dashboard logo' : field === 'upiQrCodeUrl' ? 'UPI QR code' : 'Document logo';
+      toast.success(`${label} uploaded and saved!`);
     } catch (err: any) {
       console.error('File upload error:', err);
       toast.error(err.message || 'Failed to upload image');
@@ -102,13 +107,14 @@ export default function OrganizationSettingsPage() {
     }
   };
 
-  const handleRemoveLogo = async (field: 'logoUrl' | 'faviconUrl') => {
+  const handleRemoveLogo = async (field: 'logoUrl' | 'faviconUrl' | 'upiQrCodeUrl') => {
     setOrg((prev: any) => ({ ...prev, [field]: "" }));
     await ApiClient.patch('/settings/organization', { [field]: null }).catch(() => {});
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("organization-updated"));
     }
-    toast.success(`${field === 'faviconUrl' ? 'Dashboard logo' : 'Document logo'} removed`);
+    const label = field === 'faviconUrl' ? 'Dashboard logo' : field === 'upiQrCodeUrl' ? 'UPI QR code' : 'Document logo';
+    toast.success(`${label} removed`);
   };
 
   const handleSave = async () => {
@@ -141,6 +147,8 @@ export default function OrganizationSettingsPage() {
         ifscCode: org.ifscCode ? org.ifscCode.trim().toUpperCase() : (org.bankIfsc || null),
         swiftCode: org.swiftCode ? org.swiftCode.trim().toUpperCase() : null,
         bankBranch: org.bankBranch ? org.bankBranch.trim() : null,
+        upiId: org.upiId ? org.upiId.trim() : null,
+        upiQrCodeUrl: org.upiQrCodeUrl || null,
       };
 
       const updated = await ApiClient.patch("/settings/organization", payload);
@@ -702,7 +710,155 @@ export default function OrganizationSettingsPage() {
         </div>
       </div>
 
-      {/* ── 5. OFFICIAL SOCIAL MEDIA CHANNELS ── */}
+      {/* ── 5. UPI & INSTANT QR CODE PAYMENTS ── */}
+      <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-6">
+        <div className="border-b border-white/[0.06] pb-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-emerald-400" /> UPI & Instant QR Code Payments
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Enables 1-click scan-to-pay on Proforma Invoices, Tax Invoices, and Digital Client Proposals.
+            </p>
+          </div>
+          <span className="text-[11px] font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" /> GPay / PhonePe / Paytm / BHIM
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left inputs (7 cols) */}
+          <div className="lg:col-span-7 space-y-5">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-zinc-300">UPI Virtual Payment Address (VPA)</label>
+                <span className="text-[11px] text-zinc-500">Auto-generates dynamic QR code</span>
+              </div>
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={org?.upiId || ""}
+                  onChange={(e) => setOrg({ ...org, upiId: e.target.value.trim() })}
+                  className="w-full bg-[#0b0d13] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm font-mono text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                  placeholder="e.g. grekam@okaxis or 9840012345@upi"
+                />
+                {org?.upiId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(org.upiId);
+                      toast.success("UPI ID copied to clipboard!");
+                    }}
+                    className="absolute right-3 text-zinc-400 hover:text-white transition"
+                    title="Copy UPI ID"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                Clients can directly pay this UPI ID or scan the live QR code on invoices and proposals.
+              </p>
+            </div>
+
+            {/* Custom QR Code Upload */}
+            <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-zinc-300">Custom Branded UPI QR Image (Optional)</label>
+                <span className="text-[11px] text-zinc-500">PNG, JPG or SVG</span>
+              </div>
+              <p className="text-xs text-zinc-400">
+                If you have an official merchant standee QR (from PhonePe Business, Paytm for Business, or BharatPe), you can upload it here to replace the auto-generated QR code.
+              </p>
+              
+              <input
+                ref={upiQrInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadFile(file, 'upiQrCodeUrl');
+                }}
+              />
+
+              <div className="flex items-center gap-3 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingState['upiQrCodeUrl']}
+                  onClick={() => upiQrInputRef.current?.click()}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-white text-xs gap-2"
+                >
+                  {uploadingState['upiQrCodeUrl'] ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                  )}
+                  {org?.upiQrCodeUrl ? "Replace Custom QR Code" : "Upload Custom Merchant QR"}
+                </Button>
+
+                {org?.upiQrCodeUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveLogo('upiQrCodeUrl')}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Remove Custom QR
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Live QR Preview (5 cols) */}
+          <div className="lg:col-span-5 bg-[#0b0d13] border border-white/[0.08] rounded-xl p-5 flex flex-col items-center justify-center text-center space-y-3">
+            <div className="flex items-center justify-between w-full">
+              <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                <QrCode className="w-3.5 h-3.5 text-emerald-400" /> Live QR Code Preview
+              </span>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                {org?.upiQrCodeUrl ? "Custom Merchant QR" : org?.upiId ? "Auto-Generated UPI" : "No QR Set"}
+              </span>
+            </div>
+
+            <div className="w-48 h-48 bg-white rounded-xl p-2.5 flex items-center justify-center shadow-lg shadow-black/40 border border-white/20">
+              {org?.upiQrCodeUrl ? (
+                <img
+                  src={org.upiQrCodeUrl}
+                  alt="Custom Merchant QR Code"
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              ) : org?.upiId ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${org.upiId}&pn=${org.companyName || org.name || 'Garage'}&cu=INR`)}`}
+                  alt="Auto-Generated UPI QR Code"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="text-zinc-400 flex flex-col items-center justify-center p-4">
+                  <QrCode className="w-12 h-12 text-zinc-300 mb-2 opacity-40" />
+                  <p className="text-[11px] text-zinc-500">Enter a UPI ID or upload an image to preview QR</p>
+                </div>
+              )}
+            </div>
+
+            <div className="text-center space-y-1">
+              <p className="text-xs font-mono font-bold text-zinc-200">
+                {org?.upiId || "No UPI ID Configured"}
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Scan with any UPI App: Google Pay, PhonePe, Paytm, CRED
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 6. OFFICIAL SOCIAL MEDIA CHANNELS ── */}
       <div className="bg-[#121620] border border-white/[0.08] rounded-xl p-6 space-y-5">
         <div className="border-b border-white/[0.06] pb-4">
           <h2 className="text-base font-semibold text-zinc-100 flex items-center gap-2">

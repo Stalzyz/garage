@@ -19,6 +19,7 @@ export interface OrganizationFeatures {
   emailTriggersEnabled?: boolean;
   metaLeadsEnabled?: boolean;
   googleLeadsEnabled?: boolean;
+  tasksEnabled?: boolean;
   maxUsers?: number;
   maxClients?: number;
 }
@@ -50,6 +51,8 @@ export interface Organization {
   bankIfsc?: string | null;
   swiftCode?: string | null;
   bankBranch?: string | null;
+  upiId?: string | null;
+  upiQrCodeUrl?: string | null;
   features?: OrganizationFeatures;
 }
 
@@ -65,6 +68,7 @@ const defaultFeatures: OrganizationFeatures = {
   customDomainAllowed: false,
   whiteLabelPdfAllowed: false,
   aiAssistantAllowed: false,
+  tasksEnabled: true,
 };
 
 const defaultOrg: Organization = {
@@ -73,6 +77,8 @@ const defaultOrg: Organization = {
   subscription: "Growth Plan",
   logoUrl: null,
   academyLogoUrl: null,
+  upiId: null,
+  upiQrCodeUrl: null,
   faviconUrl: null,
   academyFaviconUrl: null,
   primaryColor: "#2563eb",

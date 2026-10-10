@@ -284,13 +284,15 @@ model TenantBranding {
   customSmtpUser     String?
   customSmtpPass     String?
 
-  // Banking Info
+  // Banking & UPI Payment
   bankName           String?
   accountName        String?
   accountNumber      String?
   ifscCode           String?
   swiftCode          String?
   bankBranch         String?
+  upiId              String?
+  upiQrCodeUrl       String?
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -329,6 +331,9 @@ model TenantFeatures {
   // Quotas & Role Limits
   maxUsers             Int      @default(5)
   maxClients           Int      @default(100)
+
+  // Work & Task Allocation
+  tasksEnabled         Boolean  @default(true)
 
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -475,13 +480,15 @@ model Organization {
   openAiKey      String?
   resendApiKey   String?
 
-  // Bank Details
+  // Bank Details & UPI Payment
   bankName      String?
   accountName   String?
   accountNumber String?
   ifscCode      String?
   swiftCode     String?
   bankBranch    String?
+  upiId         String?
+  upiQrCodeUrl  String?
 
   // Multi-Tenancy & Owner (Database compatibility)
   slug           String?

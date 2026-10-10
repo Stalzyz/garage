@@ -324,6 +324,35 @@ export default function ProposalDetailPage() {
             );
           })()}
 
+          {/* UPI & Instant QR Code Payments */}
+          {(org.upiId || org.upiQrCodeUrl) && (
+            <div className="mb-10 p-6 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-border/40 relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="shrink-0 bg-white p-2.5 rounded-xl shadow-lg border border-border/20 flex flex-col items-center">
+                  <img 
+                    src={org.upiQrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${org.upiId}&pn=${org.name || 'Grekam'}&cu=INR`)}`}
+                    alt="UPI QR Code"
+                    className="w-28 h-28 object-contain rounded"
+                  />
+                  <span className="text-[10px] font-black tracking-widest text-slate-800 uppercase mt-1">Scan & Pay</span>
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                    Instant UPI Settlement
+                  </div>
+                  <h4 className="text-foreground font-bold text-sm mb-1">Make Payment via Any UPI App</h4>
+                  <p className="text-xs text-muted-foreground mb-2">Google Pay, PhonePe, Paytm, BHIM, or any UPI-enabled mobile banking app.</p>
+                  {org.upiId && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background/80 border border-border/40 text-xs font-mono text-primary">
+                      <span className="text-muted-foreground text-[10px] uppercase font-sans">UPI ID:</span>
+                      <span className="font-bold">{org.upiId}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           {proposal.notes && (
             <div className="mb-10">

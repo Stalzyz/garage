@@ -34,6 +34,7 @@ export default function SuperAdminGaragesPage() {
     ownerEmail: "",
     ownerPhone: "",
     features: {
+      tasksEnabled: true,
       crmEnabled: true,
       powerDialerEnabled: true,
       hrmEnabled: true,
@@ -118,6 +119,7 @@ export default function SuperAdminGaragesPage() {
           ownerEmail: g.owner?.email || garage.email || "",
           ownerPhone: g.owner?.phone || garage.phone || "",
           features: {
+            tasksEnabled: g.features?.tasksEnabled ?? true,
             crmEnabled: g.features?.crmEnabled ?? true,
             powerDialerEnabled: g.features?.powerDialerEnabled ?? true,
             hrmEnabled: g.features?.hrmEnabled ?? true,
@@ -148,6 +150,7 @@ export default function SuperAdminGaragesPage() {
           ownerEmail: garage.email || "",
           ownerPhone: garage.phone || "",
           features: {
+            tasksEnabled: true,
             crmEnabled: true,
             powerDialerEnabled: true,
             hrmEnabled: true,
@@ -611,8 +614,13 @@ export default function SuperAdminGaragesPage() {
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.projectsEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
-                      <span>Job Cards & Tasks</span>
+                      <span>Job Cards & Board</span>
                       <input type="checkbox" checked={editForm.features.projectsEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, projectsEnabled: e.target.checked } })} className="accent-blue-500" />
+                    </label>
+
+                    <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition={editForm.features.tasksEnabled ? "bg-indigo-500/10 border-indigo-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>
+                      <span>Staff Tasks & Allocation</span>
+                      <input type="checkbox" checked={editForm.features.tasksEnabled} onChange={(e) => setEditForm({ ...editForm, features: { ...editForm.features, tasksEnabled: e.target.checked } })} className="accent-indigo-500" />
                     </label>
 
                     <label className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${editForm.features.financeEnabled ? "bg-blue-500/10 border-blue-500/30 text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>

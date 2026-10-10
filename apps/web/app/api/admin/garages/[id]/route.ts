@@ -83,6 +83,7 @@ export async function GET(
         supportPhone: tenant?.branding?.supportPhone || org?.phone || "",
       },
       features: {
+        tasksEnabled: savedFeatures.tasksEnabled ?? true,
         crmEnabled: savedFeatures.crmEnabled ?? true,
         powerDialerEnabled: savedFeatures.powerDialerEnabled ?? true,
         hrmEnabled: savedFeatures.hrmEnabled ?? true,
@@ -188,6 +189,7 @@ export async function PATCH(
           where: { tenantId: tenant.id },
           create: {
             tenantId: tenant.id,
+            tasksEnabled: features.tasksEnabled ?? true,
             crmEnabled: features.crmEnabled ?? true,
             powerDialerEnabled: features.powerDialerEnabled ?? true,
             hrmEnabled: features.hrmEnabled ?? true,
@@ -208,6 +210,7 @@ export async function PATCH(
             maxClients: features.maxClients !== undefined ? (parseInt(String(features.maxClients), 10) || 100) : 100,
           },
           update: {
+            ...(features.tasksEnabled !== undefined && { tasksEnabled: features.tasksEnabled }),
             ...(features.crmEnabled !== undefined && { crmEnabled: features.crmEnabled }),
             ...(features.powerDialerEnabled !== undefined && { powerDialerEnabled: features.powerDialerEnabled }),
             ...(features.hrmEnabled !== undefined && { hrmEnabled: features.hrmEnabled }),

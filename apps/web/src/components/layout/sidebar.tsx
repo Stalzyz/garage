@@ -7,7 +7,7 @@ import { getNavItemsByRole, NavItem, Role } from "@/config/navigation"
 import { useOrganization } from "@/context/OrganizationContext"
 import { cn } from "@/lib/utils"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, Briefcase, ChevronDown, ChevronRight, DollarSign, Layers, LayoutDashboard, LogOut, Menu, MessageSquare, Moon, ShieldCheck, Sun, User, X } from "lucide-react"
+import { Bell, Briefcase, ChevronDown, ChevronRight, DollarSign, Layers, LayoutDashboard, Lock, LogOut, Menu, MessageSquare, Moon, ShieldCheck, Sun, User, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 
@@ -75,14 +75,20 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
         href={item.href}
         onClick={onClose}
         className={cn(
-          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors group",
+          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors group relative",
           isGroupActive
             ? "bg-white/[0.08] text-white font-medium shadow-sm"
             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
         )}
       >
         <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-300")} />
-        {item.title}
+        <span className="truncate">{item.title}</span>
+        {item.upgradeRequired && (
+          <span className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0 shadow-sm">
+            <Lock className="w-2.5 h-2.5 text-amber-400" />
+            Upgrade
+          </span>
+        )}
       </Link>
     )
   }
@@ -99,14 +105,20 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
           }
         }}
         className={cn(
-          "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors group",
+          "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors group relative",
           isGroupActive
             ? "text-zinc-200 font-semibold"
             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
         )}
       >
         <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-300")} />
-        <span className="flex-1 text-left">{item.title}</span>
+        <span className="flex-1 text-left truncate">{item.title}</span>
+        {item.upgradeRequired && (
+          <span className="mr-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0 shadow-sm">
+            <Lock className="w-2.5 h-2.5 text-amber-400" />
+            Upgrade
+          </span>
+        )}
         {open
           ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
           : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
@@ -134,8 +146,14 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
                       : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
                   )}
                 >
-                  <span className={cn("w-1.5 h-1.5 rounded-full transition-colors", isChildActive ? "bg-blue-400" : "bg-zinc-600/50 group-hover:bg-zinc-500")} />
-                  {child.title}
+                  <span className={cn("w-1.5 h-1.5 rounded-full transition-colors shrink-0", isChildActive ? "bg-blue-400" : "bg-zinc-600/50 group-hover:bg-zinc-500")} />
+                  <span className="truncate flex-1">{child.title}</span>
+                  {child.upgradeRequired && (
+                    <span className="ml-auto inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                      <Lock className="w-2 h-2 text-amber-400" />
+                      Upgrade
+                    </span>
+                  )}
                 </Link>
               )
             })}
