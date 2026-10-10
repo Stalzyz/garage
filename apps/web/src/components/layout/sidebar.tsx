@@ -81,12 +81,12 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
         )}
       >
-        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-300")} />
+        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-300")} />
         <span className="truncate">{item.title}</span>
         {item.upgradeRequired && (
-          <span className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0 shadow-sm">
-            <Lock className="w-2.5 h-2.5 text-amber-400" />
-            Upgrade
+          <span className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide text-zinc-400 bg-white/[0.04] border border-white/[0.08] shrink-0">
+            <Lock className="w-2.5 h-2.5 text-zinc-400" />
+            Pro
           </span>
         )}
       </Link>
@@ -111,12 +111,12 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
         )}
       >
-        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-300")} />
+        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isGroupActive ? "text-primary" : "text-zinc-500 group-hover:text-zinc-300")} />
         <span className="flex-1 text-left truncate">{item.title}</span>
         {item.upgradeRequired && (
-          <span className="mr-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0 shadow-sm">
-            <Lock className="w-2.5 h-2.5 text-amber-400" />
-            Upgrade
+          <span className="mr-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide text-zinc-400 bg-white/[0.04] border border-white/[0.08] shrink-0">
+            <Lock className="w-2.5 h-2.5 text-zinc-400" />
+            Pro
           </span>
         )}
         {open
@@ -146,12 +146,12 @@ function NavGroup({ item, pathname, onClose }: { item: NavItem; pathname: string
                       : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
                   )}
                 >
-                  <span className={cn("w-1.5 h-1.5 rounded-full transition-colors shrink-0", isChildActive ? "bg-blue-400" : "bg-zinc-600/50 group-hover:bg-zinc-500")} />
+                  <span className={cn("w-1.5 h-1.5 rounded-full transition-colors shrink-0", isChildActive ? "bg-primary" : "bg-zinc-600/50 group-hover:bg-zinc-500")} />
                   <span className="truncate flex-1">{child.title}</span>
                   {child.upgradeRequired && (
-                    <span className="ml-auto inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30 shrink-0">
-                      <Lock className="w-2 h-2 text-amber-400" />
-                      Upgrade
+                    <span className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-medium tracking-wide text-zinc-400 bg-white/[0.04] border border-white/[0.08] shrink-0">
+                      <Lock className="w-2 h-2 text-zinc-400" />
+                      Pro
                     </span>
                   )}
                 </Link>

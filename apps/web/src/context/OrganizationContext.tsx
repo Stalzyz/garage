@@ -169,10 +169,15 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
           };
           setOrg(finalOrg);
 
-          // Inject primary color as CSS variable globally
+          // Inject primary color as CSS variable globally across all modules
           if (typeof document !== "undefined") {
             const root = document.documentElement;
-            root.style.setProperty("--org-primary", finalOrg.primaryColor || "#2563eb");
+            const primary = finalOrg.primaryColor || "#0A84FF";
+            root.style.setProperty("--primary", primary);
+            root.style.setProperty("--ring", primary);
+            root.style.setProperty("--sidebar-primary", primary);
+            root.style.setProperty("--sidebar-ring", primary);
+            root.style.setProperty("--org-primary", primary);
 
             // Update page title
             if (orgData.name && orgData.name !== "Inertia creations" && orgData.name !== "Automated CRM") {
@@ -197,8 +202,24 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     fetchOrg();
 
     const handleUpdate = () => fetchOrg();
+    const handlePreview = (e: any) => {
+      if (typeof document !== "undefined" && e.detail?.primaryColor) {
+        const root = document.documentElement;
+        const color = e.detail.primaryColor;
+        root.style.setProperty("--primary", color);
+        root.style.setProperty("--ring", color);
+        root.style.setProperty("--sidebar-primary", color);
+        root.style.setProperty("--sidebar-ring", color);
+        root.style.setProperty("--org-primary", color);
+      }
+    };
+
     window.addEventListener("organization-updated", handleUpdate);
-    return () => window.removeEventListener("organization-updated", handleUpdate);
+    window.addEventListener("theme-color-preview", handlePreview);
+    return () => {
+      window.removeEventListener("organization-updated", handleUpdate);
+      window.removeEventListener("theme-color-preview", handlePreview);
+    };
   }, []);
 
   return (

@@ -31,12 +31,13 @@ import {
 import { toast } from "sonner";
 
 const PRESET_PALETTES = [
-  { name: "Indigo", primary: "#4f46e5", secondary: "#6366f1", accent: "#10b981" },
-  { name: "Blue", primary: "#2563eb", secondary: "#3b82f6", accent: "#06b6d4" },
-  { name: "Emerald", primary: "#059669", secondary: "#10b981", accent: "#34d399" },
-  { name: "Rose", primary: "#e11d48", secondary: "#f43f5e", accent: "#f59e0b" },
-  { name: "Purple", primary: "#7c3aed", secondary: "#8b5cf6", accent: "#ec4899" },
-  { name: "Slate", primary: "#334155", secondary: "#475569", accent: "#38bdf8" },
+  { name: "Apple Blue", primary: "#0A84FF", secondary: "#1C1C1E", accent: "#30D158" },
+  { name: "Apple Purple", primary: "#AF52DE", secondary: "#1C1C1E", accent: "#64D2FF" },
+  { name: "Apple Indigo", primary: "#5E5CE6", secondary: "#1C1C1E", accent: "#FF9F0A" },
+  { name: "Apple Teal", primary: "#64D2FF", secondary: "#1C1C1E", accent: "#30D158" },
+  { name: "Apple Mint", primary: "#30D158", secondary: "#1C1C1E", accent: "#64D2FF" },
+  { name: "Apple Amber", primary: "#FF9F0A", secondary: "#1C1C1E", accent: "#FF453A" },
+  { name: "Space Graphite", primary: "#8E8E93", secondary: "#1C1C1E", accent: "#0A84FF" },
 ];
 
 export default function OrganizationSettingsPage() {
@@ -64,6 +65,13 @@ export default function OrganizationSettingsPage() {
         setLoading(false);
       });
   }, []);
+
+  const handlePrimaryColorChange = (newColor: string) => {
+    setOrg((prev: any) => ({ ...prev, primaryColor: newColor }));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("theme-color-preview", { detail: { primaryColor: newColor } }));
+    }
+  };
 
   const handleUploadFile = async (file: File, field: 'logoUrl' | 'faviconUrl' | 'upiQrCodeUrl') => {
     setUploadingState((prev) => ({ ...prev, [field]: true }));
@@ -357,155 +365,91 @@ export default function OrganizationSettingsPage() {
         <div className="border-b border-white/[0.06] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
-              <Palette className="w-4 h-4 text-zinc-400" /> Brand Color Palette
+              <Palette className="w-4 h-4 text-zinc-400" /> Global Token Theme Color
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Customize your brand colors with manual HEX pickers and presets.</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Define your system primary accent. Cascades dynamically across navigation, buttons, and badges across all modules.</p>
           </div>
+          <span className="text-[11px] font-mono font-medium px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-zinc-300 shrink-0 self-start sm:self-auto">
+            Token: <strong className="text-white uppercase">{org?.primaryColor || "#0A84FF"}</strong>
+          </span>
         </div>
 
-        {/* 3 Dedicated Color Pickers */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Primary Color */}
-          <div className="bg-[#0b0d13] border border-white/[0.06] rounded-xl p-4 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-zinc-200">Primary Color</label>
-              <span className="text-[10px] text-zinc-500 font-mono">Buttons & Nav</span>
-            </div>
-            <p className="text-[11px] text-zinc-400 leading-tight">Key brand identity, active sidebar items, and primary buttons.</p>
-            <div className="flex items-center gap-2.5 pt-1">
-              <input
-                type="color"
-                value={org?.primaryColor || "#4f46e5"}
-                onChange={(e) => setOrg({ ...org, primaryColor: e.target.value })}
-                className="w-9 h-9 rounded-lg border border-white/10 cursor-pointer bg-transparent p-0 overflow-hidden shrink-0"
-              />
-              <input
-                type="text"
-                value={org?.primaryColor || "#4f46e5"}
-                onChange={(e) => setOrg({ ...org, primaryColor: e.target.value })}
-                className="w-full bg-black/50 border border-white/[0.1] rounded-lg px-3 py-2 text-xs font-mono font-bold text-zinc-100 uppercase focus:outline-none focus:border-blue-500"
-                maxLength={7}
-              />
-            </div>
-          </div>
-
-          {/* Secondary Color */}
-          <div className="bg-[#0b0d13] border border-white/[0.06] rounded-xl p-4 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-zinc-200">Secondary Color</label>
-              <span className="text-[10px] text-zinc-500 font-mono">Accents</span>
-            </div>
-            <p className="text-[11px] text-zinc-400 leading-tight">Supporting accents, secondary buttons, and card borders.</p>
-            <div className="flex items-center gap-2.5 pt-1">
-              <input
-                type="color"
-                value={org?.secondaryColor || "#7c3aed"}
-                onChange={(e) => setOrg({ ...org, secondaryColor: e.target.value })}
-                className="w-9 h-9 rounded-lg border border-white/10 cursor-pointer bg-transparent p-0 overflow-hidden shrink-0"
-              />
-              <input
-                type="text"
-                value={org?.secondaryColor || "#7c3aed"}
-                onChange={(e) => setOrg({ ...org, secondaryColor: e.target.value })}
-                className="w-full bg-black/50 border border-white/[0.1] rounded-lg px-3 py-2 text-xs font-mono font-bold text-zinc-100 uppercase focus:outline-none focus:border-blue-500"
-                maxLength={7}
-              />
-            </div>
-          </div>
-
-          {/* Accent Highlight */}
-          <div className="bg-[#0b0d13] border border-white/[0.06] rounded-xl p-4 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-zinc-200">Accent Highlight</label>
-              <span className="text-[10px] text-zinc-500 font-mono">Status & Badges</span>
-            </div>
-            <p className="text-[11px] text-zinc-400 leading-tight">Live telemetry dots, success badges, and status pills.</p>
-            <div className="flex items-center gap-2.5 pt-1">
-              <input
-                type="color"
-                value={org?.accentColor || "#10b981"}
-                onChange={(e) => setOrg({ ...org, accentColor: e.target.value })}
-                className="w-9 h-9 rounded-lg border border-white/10 cursor-pointer bg-transparent p-0 overflow-hidden shrink-0"
-              />
-              <input
-                type="text"
-                value={org?.accentColor || "#10b981"}
-                onChange={(e) => setOrg({ ...org, accentColor: e.target.value })}
-                className="w-full bg-black/50 border border-white/[0.1] rounded-lg px-3 py-2 text-xs font-mono font-bold text-zinc-100 uppercase focus:outline-none focus:border-blue-500"
-                maxLength={7}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Palette Presets */}
-        <div className="space-y-2 pt-2">
-          <label className="text-xs font-medium text-zinc-400">Quick Palette Presets</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        {/* Apple System Accent Presets */}
+        <div className="space-y-2.5">
+          <label className="text-xs font-medium text-zinc-400">Apple System Accent Presets</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
             {PRESET_PALETTES.map((palette) => {
-              const isSelected = 
-                org?.primaryColor?.toLowerCase() === palette.primary.toLowerCase() &&
-                org?.secondaryColor?.toLowerCase() === palette.secondary.toLowerCase() &&
-                org?.accentColor?.toLowerCase() === palette.accent.toLowerCase();
-
+              const isSelected = org?.primaryColor?.toLowerCase() === palette.primary.toLowerCase();
               return (
                 <button
                   key={palette.name}
                   type="button"
-                  onClick={() => setOrg({
-                    ...org,
-                    primaryColor: palette.primary,
-                    secondaryColor: palette.secondary,
-                    accentColor: palette.accent,
-                  })}
-                  className={`p-2.5 rounded-lg border text-left transition-colors flex items-center justify-between cursor-pointer ${
+                  onClick={() => handlePrimaryColorChange(palette.primary)}
+                  className={`p-2.5 rounded-lg border text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected 
-                      ? 'border-blue-500/60 bg-blue-500/10' 
-                      : 'border-white/[0.06] bg-[#0b0d13] hover:border-white/[0.15]'
+                      ? 'border-white/40 bg-white/[0.08] shadow-sm' 
+                      : 'border-white/[0.06] bg-[#0b0d13] hover:border-white/[0.15] hover:bg-white/[0.02]'
                   }`}
                 >
-                  <span className="text-xs font-medium text-zinc-300">{palette.name}</span>
-                  <div className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: palette.primary }} />
-                    <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: palette.accent }} />
-                  </div>
+                  <span className="text-[11px] font-medium text-zinc-300 truncate mr-1.5">{palette.name}</span>
+                  <span 
+                    className={`w-3.5 h-3.5 rounded-full shrink-0 border transition-transform ${isSelected ? 'border-white scale-110 shadow-sm' : 'border-white/20'}`} 
+                    style={{ backgroundColor: palette.primary }} 
+                  />
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* Custom HEX Picker Row */}
+        <div className="bg-[#0b0d13] border border-white/[0.06] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-xs font-semibold text-zinc-200">Custom Accent HEX</span>
+            <p className="text-[11px] text-zinc-400 leading-tight">Pick any custom brand HEX. Updates all UI modules in real time.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={org?.primaryColor || "#0A84FF"}
+              onChange={(e) => handlePrimaryColorChange(e.target.value)}
+              className="w-9 h-9 rounded-lg border border-white/10 cursor-pointer bg-transparent p-0 overflow-hidden shrink-0"
+            />
+            <input
+              type="text"
+              value={org?.primaryColor || "#0A84FF"}
+              onChange={(e) => handlePrimaryColorChange(e.target.value)}
+              className="w-32 bg-black/50 border border-white/[0.1] rounded-lg px-3 py-2 text-xs font-mono font-bold text-zinc-100 uppercase focus:outline-none focus:border-white/30 text-center"
+              maxLength={7}
+            />
+          </div>
+        </div>
+
         {/* Live Interactive Preview */}
-        <div className="border border-white/[0.06] bg-[#0b0d13] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
+        <div className="border border-white/[0.06] bg-[#0b0d13] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span 
-                className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide"
-                style={{ 
-                  backgroundColor: `${org?.accentColor || '#10b981'}1a`,
-                  color: org?.accentColor || '#10b981',
-                  border: `1px solid ${org?.accentColor || '#10b981'}33`
-                }}
-              >
-                ● Active Invoice #INV-2026-001
-              </span>
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: org?.primaryColor || '#0A84FF' }}
+              />
+              <span className="text-xs font-medium text-zinc-300">Live Workspace Theme Preview</span>
             </div>
-            <p className="text-sm font-semibold text-zinc-200">
-              {org?.companyName || org?.name || "Grekam Garage & Technologies Pvt Ltd"}
+            <p className="text-[11px] text-zinc-500">
+              Interactive buttons and active navigation indicators will immediately adapt to this accent.
             </p>
           </div>
           <div className="flex items-center gap-2.5 shrink-0">
             <button
               type="button"
-              className="px-4 py-2 rounded-lg text-xs font-bold text-white shadow-md transition-all cursor-pointer"
-              style={{ backgroundColor: org?.primaryColor || '#4f46e5' }}
+              className="px-4 py-2 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90 cursor-pointer shadow-sm"
+              style={{ backgroundColor: org?.primaryColor || '#0A84FF' }}
             >
-              Primary Button
+              Primary Action
             </button>
             <button
               type="button"
-              className="px-4 py-2 rounded-lg text-xs font-bold border border-white/[0.12] text-zinc-300 hover:bg-white/[0.04] transition-all cursor-pointer"
-              style={{ color: org?.secondaryColor || '#7c3aed' }}
+              className="px-4 py-2 rounded-lg text-xs font-medium bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 border border-white/[0.08] transition-colors cursor-pointer"
             >
               Secondary Action
             </button>

@@ -17,7 +17,14 @@ export function TelemetryNotifier() {
       const eventName = payload.payload?.event || payload.event || payload.type;
       const eventData = payload.payload?.data || payload.data || payload.payload;
       
-      if (!eventName) return;
+      if (
+        !eventName ||
+        eventName === 'TELEMETRY_HEARTBEAT' ||
+        eventName === 'TELEMETRY_INTERVAL' ||
+        eventName === 'PING' ||
+        eventName === 'PONG' ||
+        eventName.startsWith('SYS_INTERNAL_')
+      ) return;
 
       const newNotif = {
         id: Date.now(),

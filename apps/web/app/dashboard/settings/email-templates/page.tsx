@@ -33,9 +33,9 @@ import { useOrganization } from "@/context/OrganizationContext"
 import { toast } from "sonner"
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
-  CLIENT: { label: "Client Notifications", icon: Building2, color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
-  STAFF: { label: "Staff & Operations", icon: Users, color: "text-amber-400 bg-amber-400/10 border-amber-400/20" },
-  SYSTEM: { label: "System & Security", icon: ShieldCheck, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
+  CLIENT: { label: "Client Notifications", icon: Building2, color: "text-zinc-300 bg-white/[0.04] border-white/[0.08]" },
+  STAFF: { label: "Staff & Operations", icon: Users, color: "text-zinc-300 bg-white/[0.04] border-white/[0.08]" },
+  SYSTEM: { label: "System & Security", icon: ShieldCheck, color: "text-zinc-300 bg-white/[0.04] border-white/[0.08]" },
 }
 
 const SAMPLE_VARIABLES: Record<string, string> = {
@@ -74,19 +74,17 @@ function buildPreviewEmailHtml(bodyHtml: string, subject: string, org?: any) {
     content = content.replace(new RegExp(`{{\\s*${k}\\s*}}`, "gi"), SAMPLE_VARIABLES[k])
   })
 
-  const primary = org?.primaryColor || "#2563eb"
-  const secondary = org?.secondaryColor || "#1e293b"
+  const primary = org?.primaryColor || "#0A84FF"
   const companyName = org?.companyName || org?.name || "Grekam Garage OS"
   const logoUrl = org?.logoUrl
-  const initial = (companyName.trim()[0] || "G").toUpperCase()
 
   content = content.replace(
     /class=["']btn-primary["']/gi,
-    `style="display:inline-block;background-color:${primary};color:#ffffff !important;text-decoration:none !important;font-weight:600;font-size:14px;padding:13px 26px;border-radius:8px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);"`
+    `style="display:inline-block;background-color:${primary};color:#ffffff !important;text-decoration:none !important;font-weight:500;font-size:13px;padding:12px 24px;border-radius:8px;text-align:center;"`
   )
   content = content.replace(
     /class=["']button-container["']/gi,
-    `style="margin:26px 0;text-align:center;"`
+    `style="margin:24px 0;text-align:center;"`
   )
 
   return `<!DOCTYPE html>
@@ -96,45 +94,38 @@ function buildPreviewEmailHtml(bodyHtml: string, subject: string, org?: any) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#334155;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;padding:24px 8px;">
+<body style="margin:0;padding:0;background-color:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#1d1d1f;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f7;padding:32px 12px;">
     <tr>
       <td align="center" valign="top">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(15,23,42,0.06);">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background-color:#ffffff;border:1px solid #e5e5ea;border-radius:14px;overflow:hidden;">
           <tr>
-            <td style="background-color:${primary};background:linear-gradient(135deg,${primary} 0%,${secondary} 100%);padding:24px 30px;">
+            <td style="padding:28px 32px 20px;border-bottom:1px solid #f5f5f7;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
                     ${logoUrl ? `
-                      <img src="${logoUrl}" alt="${companyName}" style="max-height:36px;max-width:180px;display:block;border:0;" />
+                      <img src="${logoUrl}" alt="${companyName}" style="max-height:32px;max-width:160px;display:block;border:0;" />
                     ` : `
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                        <tr>
-                          <td style="background-color:rgba(255,255,255,0.22);width:34px;height:34px;border-radius:8px;text-align:center;vertical-align:middle;">
-                            <span style="color:#ffffff;font-size:17px;font-weight:800;line-height:34px;display:inline-block;">${initial}</span>
-                          </td>
-                          <td style="padding-left:12px;vertical-align:middle;">
-                            <div style="color:#ffffff;font-size:15px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;">${companyName}</div>
-                            <div style="color:#e0e7ff;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;">Workshop Notification</div>
-                          </td>
-                        </tr>
-                      </table>
+                      <div style="color:#1d1d1f;font-size:15px;font-weight:600;letter-spacing:-0.2px;">${companyName}</div>
                     `}
+                  </td>
+                  <td align="right" valign="middle">
+                    <span style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#86868b;">Notification</span>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr>
-            <td style="padding:32px 30px 28px;background-color:#ffffff;color:#334155;font-size:15px;line-height:1.65;">
+            <td style="padding:32px 32px 28px;background-color:#ffffff;color:#333336;font-size:14px;line-height:1.65;">
               ${content}
             </td>
           </tr>
           <tr>
-            <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 30px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;">
-              <p style="margin:0 0 4px 0;font-weight:600;color:#475569;">${companyName}</p>
-              <p style="margin:0;color:#64748b;">Official notification sent from <a href="https://grekam.in" style="color:${primary};text-decoration:underline;font-weight:600;">grekam.in</a></p>
+            <td style="background-color:#fafafa;border-top:1px solid #f2f2f4;padding:20px 32px;text-align:center;font-size:11px;line-height:1.5;color:#86868b;">
+              <p style="margin:0 0 4px 0;font-weight:500;color:#515154;">${companyName}</p>
+              <p style="margin:0;color:#86868b;">Automated transactional update generated by <a href="https://grekam.in" style="color:${primary};text-decoration:none;">Grekam OS</a></p>
             </td>
           </tr>
         </table>
